@@ -82,15 +82,16 @@ func (b *SimpleButton) Draw() {
 
 	clui.SetTextColor(fg)
 	shift, text := clui.AlignColorizedText(b.Title(), w, b.Align())
+	px, py := b.Paddings()
 
 	if b.isPressed() == 0 {
 		clui.SetBackColor(bg)
 		clui.FillRect(x, y, w, h, ' ')
-		clui.DrawText(x+shift, y, text)
+		clui.DrawText(x+shift+px, y+py, text)
 	} else {
 		clui.SetBackColor(bg)
 		clui.FillRect(x, y, w, h, ' ')
-		clui.DrawText(x+shift, y, b.Title())
+		clui.DrawText(x+shift+px, y+py, b.Title())
 	}
 }
 
