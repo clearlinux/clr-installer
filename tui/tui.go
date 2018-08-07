@@ -100,8 +100,8 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string) (bool, error) {
 		panic("Could not change theme")
 	}
 
-	errorLabelBg = clui.RealColor(clui.ColorDefault, "ErrorLabelBack")
-	errorLabelFg = clui.RealColor(clui.ColorDefault, "ErrorLabelText")
+	errorLabelBg = clui.RealColor(clui.ColorDefault, "ErrorLabel", "Back")
+	errorLabelFg = clui.RealColor(clui.ColorDefault, "ErrorLabel", "Text")
 
 	tui.rootDir = rootDir
 	tui.paniced = make(chan error, 1)

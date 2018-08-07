@@ -65,23 +65,51 @@ SparkChart=█
 TableView=─│┼▼▲
 
 // ----- Custom -----
-ManualPartitionBack = blue
-ErrorLabelBack = blue
-ErrorLabelText = red bold
+ManualPartition.Back = blue
+ErrorLabel.Back = blue
+ErrorLabel.Text = red bold
 
-MenuButtonBack=blue
-MenuButtonText=white
-MenuButtonActiveBack=cyan
-MenuButtonActiveText=black
-MenuButtonShadowBack=black
-MenuButtonDisabledText=white bold
-MenuButtonDisabledBack=red
+Menu.ButtonBack=blue
+Menu.ButtonText=white
+Menu.ButtonActiveBack=cyan
+Menu.ButtonActiveText=black
+Menu.ButtonShadowBack=black
+Menu.ButtonDisabledText=white bold
+Menu.ButtonDisabledBack=red
 
 
-PartButtonBack=blue
-PartButtonText=white
-PartButtonActiveBack=cyan
-PartButtonActiveText=black
-PartButtonShadowBack=black
-PartButtonDisabledText=white bold
-PartButtonDisabledBack=red
+PartButton.Back=blue
+PartButton.Text=white
+PartButton.ActiveBack=cyan
+PartButton.ActiveText=black
+PartButton.ShadowBack=black
+PartButton.DisabledText=white bold
+PartButton.DisabledBack=red
+
+
+//----- Main menu tab theme ------------------
+Tab.ButtonBack=white
+Tab.ButtonText=blue bold
+
+Tab.ButtonActiveBack=blue
+Tab.ButtonActiveText=white bold
+
+Tab.ButtonShadowBack=black
+Tab.ButtonDisabledText=white bold
+Tab.ButtonDisabledBack=red
+
+Tab.ViewBack = white
+Tab.ViewText = blue
+
+// ---- Main menu items ---------------------
+MenuButtonText = white bold
+MenuButtonBack = blue
+
+MenuButtonActiveText=blue bold
+MenuButtonActiveBack=white
+
+SubMenuButtonText=white
+SubMenuButtonBack=blue
+
+SubMenuButtonActiveText=blue
+SubMenuButtonActiveBack=white
