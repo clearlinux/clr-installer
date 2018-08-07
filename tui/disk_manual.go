@@ -198,7 +198,7 @@ func (page *ManualPartPage) SetDone(done bool) bool {
 }
 
 func newManualPartitionPage(tui *Tui) (Page, error) {
-	partBtnBg = clui.RealColor(clui.ColorDefault, "ManualPartitionBack")
+	partBtnBg = clui.RealColor(clui.ColorDefault, "ManualPartition", "Back")
 
 	page := &ManualPartPage{}
 	page.setup(tui, TuiPageManualPart, AllButtons, TuiPageMenu)
