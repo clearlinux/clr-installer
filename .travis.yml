@@ -1,0 +1,18 @@
+language: go
+sudo: required
+
+go:
+    - 1.10
+
+go_import_path: github.com/clearlinux/clr-installer
+
+before_install:
+    - sudo apt-get update -qq
+    - go get -u gopkg.in/alecthomas/gometalinter.v2
+    - gometalinter.v2 --install
+
+script:
+    - make dist-clean
+    - make
+    - make lint
+    - make check

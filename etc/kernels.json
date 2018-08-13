@@ -1,0 +1,14 @@
+{
+  "kernels": [
+		{
+      "bundle": "kernel-native",
+      "name": "Native",
+      "desc": "Bleeding edge bare metal tailored Linux kernel"
+    },
+		{
+      "bundle": "kernel-lts",
+      "name": "LTS",
+      "desc": "The Long Term Support (LTS) Linux Kernel"
+    }
+  ]
+}

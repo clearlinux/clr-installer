@@ -1,0 +1,87 @@
+﻿// Copyright 2018 Intel Corporation
+//
+// SPDX-License-Identifier: GPL-3.0-only
+
+//
+// Do not use 'bold' attribute on background colors
+// This results in flashing text on some terminals
+//
+
+//----------------- Theme properties -----------------
+title=Clear Linux Installer
+author=Leandro Dorileo
+version=0.1
+parent=default
+
+//----------------- Colors -----------------
+// View colors - internal area and border
+ViewBack = blue
+ViewText = white bold
+
+// general colors
+Back = blue
+Text = white
+
+// button control
+ButtonBack=white
+ButtonText=black
+ButtonActiveBack=cyan
+ButtonActiveText=black
+ButtonShadowBack=black
+ButtonDisabledText=white bold
+ButtonDisabledBack=red
+
+// editable & listbox-like controls (interactive ones)
+EditBack       = white
+EditText       = black bold
+EditActiveBack = magenta
+EditActiveText = white bold
+SelectionText  = white bold
+SelectionBack  = blue
+
+GrayBack = red
+GrayText = white bold
+
+// progressbar control
+ProgressBack       = blue
+ProgressText       = yellow
+ProgressActiveBack = cyan
+ProgressActiveText = yellow bold
+
+// checkbox
+ControlBack = blue
+
+//----------------- Objects -----------------
+SingleBorder=─│┌┐└┘
+DoubleBorder=═║╔╗╚╝
+Edit=←→V*
+ScrollBar=░■▲▼◄►
+ViewButtons=^↓○[]
+CheckBox=[] X?
+Radio=() *
+ProgressBar=░▒
+BarChart=█─│┌┐└┘┬┴├┤┼
+SparkChart=█
+TableView=─│┼▼▲
+
+// ----- Custom -----
+ManualPartitionBack = blue
+ErrorLabelBack = blue
+ErrorLabelText = red bold
+
+MenuButtonBack=blue
+MenuButtonText=white
+MenuButtonActiveBack=cyan
+MenuButtonActiveText=black
+MenuButtonShadowBack=black
+MenuButtonDisabledText=white bold
+MenuButtonDisabledBack=red
+
+
+PartButtonBack=blue
+PartButtonText=white
+PartButtonActiveBack=cyan
+PartButtonActiveText=black
+PartButtonShadowBack=black
+PartButtonDisabledText=white bold
+PartButtonDisabledBack=red

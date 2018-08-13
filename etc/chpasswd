@@ -1,0 +1,3 @@
+auth      sufficient  pam_rootok.so debug
+account   sufficient  pam_rootok.so debug
+password  include     common-password debug

@@ -1,0 +1,40 @@
+---
+targetMedia:
+- name: sda
+  type: disk
+  children:
+  - name: sda1
+    size: 150M
+    type: part
+    fstype: vfat
+    mountpoint: "/boot"
+  - name: sda2
+    size: 1.364G
+    type: part
+    fstype: swap
+  - name: sda3
+    size: 2G
+    type: part
+    fstype: ext4
+    mountpoint: "/home"
+  - name: sda4
+    size: 4G
+    type: part
+    fstype: ext4
+    mountpoint: "/"
+networkInterfaces:
+- name: enp57s0u1u2
+  addrs:
+  - ip: 10.7.200.163
+    netmask: 255.255.255.0
+    version: 0
+  - ip: fe80::1adb:f2ff:fe5c:664b
+    netmask: 'ffff:ffff:ffff:ffff::'
+    version: 1
+  dhcp: "false"
+  gateway: 10.7.200.251
+  dns: 10.248.2.1
+bundles: [os-core, os-core-update, kernel-native]
+keyboard: us
+language: us.UTF-8
+telemetry: true

@@ -1,0 +1,20 @@
+{
+  "bundles": [
+		{
+      "name": "editors",
+      "desc": "Popular text editors (terminal-based)"
+    },
+		{
+      "name": "user-basic",
+      "desc": "Captures most console work flows"
+    },
+		{
+      "name": "desktop-autostart",
+      "desc": "UI that automatically starts on boot"
+    },
+		{
+      "name": "dev-utils",
+      "desc": "Utilities to assist application development"
+    }
+  ]
+}
