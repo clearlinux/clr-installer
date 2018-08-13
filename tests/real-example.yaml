@@ -1,0 +1,35 @@
+#clear-linux-config
+targetMedia:
+- name: sdc
+  model: 'Ultra USB 3.0   '
+  majMin: "8:32"
+  size: "30752636928"
+  ro: "false"
+  rm: "true"
+  type: disk
+  state: running
+  children:
+  - name: sdc1
+    fstype: vfat
+    mountpoint: /boot
+    size: "157286400"
+    ro: "false"
+    rm: "false"
+    type: part
+  - name: sdc2
+    fstype: swap
+    size: "2147483648"
+    ro: "false"
+    rm: "false"
+    type: part
+  - name: sdc3
+    fstype: ext4
+    mountpoint: /
+    size: "28447866880"
+    ro: "false"
+    rm: "false"
+    type: part
+keyboard: us
+language: en_US.UTF-8
+bundles: [os-core, os-core-update, kernel-native]
+telemetry: true
