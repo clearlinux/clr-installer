@@ -16,7 +16,7 @@ func TestGetHostMirror(t *testing.T) {
 	}
 
 	if _, err := GetHostMirror(); err != nil {
-		t.Fatal("Getting Host Mirror failed")
+		t.Fatalf("Getting Host Mirror failed: %s", err)
 	}
 }
 
@@ -30,7 +30,7 @@ func TestBadSetHostMirror(t *testing.T) {
 
 	mirror := "http://www.google.com"
 	if _, err := SetHostMirror(mirror); err == nil {
-		t.Fatal("Setting Bad Host Mirror failed")
+		t.Fatalf("Setting Bad Host Mirror failed: %s", err)
 	}
 }
 
@@ -45,12 +45,12 @@ func TestGoodSetHostMirror(t *testing.T) {
 	mirror := "https://download.clearlinux.org/update/"
 	//mirror := "http://linux-ftp.jf.intel.com/pub/mirrors/clearlinux/update/"
 	if _, err := SetHostMirror(mirror); err != nil {
-		t.Fatal("Setting Good Host Mirror failed")
+		t.Fatalf("Setting Good Host Mirror failed: %s", err)
 	}
 
 	// Remove the mirror
 	if _, err := UnSetHostMirror(); err != nil {
-		t.Fatal("Unsetting Good Host Mirror failed")
+		t.Fatalf("Unsetting Good Host Mirror failed: %s", err)
 	}
 }
 

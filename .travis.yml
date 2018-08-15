@@ -1,18 +1,45 @@
-language: go
 sudo: required
 
-go:
-    - 1.10
+services:
+    - docker
 
-go_import_path: github.com/clearlinux/clr-installer
+# This is just shere for Travis CI to report correctly
+language: go
+go:
+    - "1.10"
+
+# go_import_path: github.com/clearlinux/clr-installer
 
 before_install:
-    - sudo apt-get update -qq
-    - go get -u gopkg.in/alecthomas/gometalinter.v2
-    - gometalinter.v2 --install
+    - docker pull clearlinux
+    - docker run --network=host --name clear-test -v $(pwd):/travis -v /dev:/dev --privileged -dit --rm clearlinux:latest /sbin/init
+    - docker ps
+
+# we need both -l (login) and -c (command) for the bash shell
+# in order to ensure we read the .profile settings
+install:
+    - docker exec -it clear-test bash -lc "swupd info"
+    - docker exec -it clear-test bash -lc "swupd update"
+    - docker exec -it clear-test bash -lc "swupd bundle-add sysadmin-basic storage-utils network-basic go-basic-dev git telemetrics"
+    - docker exec -it clear-test bash -lc "echo export GOPATH=\$(go env GOPATH) >> \${HOME}/.profile"
+    - docker exec -it clear-test bash -lc "echo export PATH=\\\${PATH}:\\\${GOPATH}/bin >> \${HOME}/.profile"
+    - docker exec -it clear-test bash -lc "go get -u gopkg.in/alecthomas/gometalinter.v2"
+    - docker exec -it clear-test bash -lc "gometalinter.v2 --install"
+
+before_script:
+    # Telemetry is NOT working in the Docker images under Travis-CI
+    # Drop these tests for now
+    - docker exec -it clear-test bash -lc "cd /travis ; rm telemetry/telemetry_test.go"
+    - docker exec -it clear-test bash -lc "set;printenv"
+      # - docker exec -it clear-test bash -lc "systemctl status telemd.service;/bin/true"
+      # - docker exec -it clear-test bash -lc "journalctl|cat"
+      #- docker exec -it clear-test bash -lc "ls -l /var/spool/"
 
 script:
-    - make dist-clean
-    - make
-    - make lint
-    - make check
+    - docker exec -it clear-test bash -lc "cd /travis ; make dist-clean"
+    - docker exec -it clear-test bash -lc "cd /travis ; make"
+    - docker exec -it clear-test bash -lc "cd /travis ; make lint"
+    - docker exec -it clear-test bash -lc "cd /travis ; make check"
+
+after_script:
+    - docker container stop clear-test

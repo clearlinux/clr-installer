@@ -16,26 +16,26 @@ import (
 func TestGoodURL(t *testing.T) {
 
 	if err := CheckURL("http://www.google.com"); err != nil {
-		t.Fatal("Good HTTP URL failed")
+		t.Fatalf("Good HTTP URL failed: %s", err)
 	}
 
 	if err := CheckURL("https://www.google.com"); err != nil {
-		t.Fatal("Good HTTPS URL failed")
+		t.Fatalf("Good HTTPS URL failed: %s", err)
 	}
 
 	if err := CheckURL("https://cdn.download.clearlinux.org/update/"); err != nil {
-		t.Fatal("Good Clear Linux HTTPS URL failed")
+		t.Fatalf("Good Clear Linux HTTPS URL failed: %s", err)
 	}
 }
 
 func TestBadURL(t *testing.T) {
 
 	if err := CheckURL("http://www.google.zonk"); err == nil {
-		t.Fatal("Bad HTTP URL passed incorrectly")
+		t.Fatalf("Bad HTTP URL passed incorrectly: %s", err)
 	}
 
 	if err := CheckURL("https://www.google.zonk"); err == nil {
-		t.Fatal("Bad HTTPS URL passed incorrectly")
+		t.Fatalf("Bad HTTPS URL passed incorrectly: %s", err)
 	}
 }
 
