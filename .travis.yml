@@ -12,7 +12,7 @@ go:
 
 before_install:
     - docker pull clearlinux
-    - docker run --network=host --name clear-test -v $(pwd):/travis -v /dev:/dev --privileged -dit --rm clearlinux:latest /sbin/init
+    - docker run --network=host --name clear-test -v $(pwd):/travis -v /dev:/dev  -v /var/tmp/test:/tmp -v /sys/fs/cgroup:/sys/fs/cgroup:ro -e container=docker --privileged --tmpfs /run --tmpfs /run/lock -dit --rm clearlinux:latest /sbin/init
     - docker ps
 
 # we need both -l (login) and -c (command) for the bash shell
@@ -27,19 +27,21 @@ install:
     - docker exec -it clear-test bash -lc "gometalinter.v2 --install"
 
 before_script:
-    # Telemetry is NOT working in the Docker images under Travis-CI
-    # Drop these tests for now
-    - docker exec -it clear-test bash -lc "cd /travis ; rm telemetry/telemetry_test.go"
+    - docker exec -it clear-test bash -lc "ls -l /var/spool/"
+      # Debug information
     - docker exec -it clear-test bash -lc "set;printenv"
-      # - docker exec -it clear-test bash -lc "systemctl status telemd.service;/bin/true"
-      # - docker exec -it clear-test bash -lc "journalctl|cat"
-      #- docker exec -it clear-test bash -lc "ls -l /var/spool/"
+    - docker exec -it clear-test bash -lc "telemctl restart"
+      # Debug information
+    - docker exec -it clear-test bash -lc "journalctl|cat"
+      # Dump more network related information
+    - docker exec -it clear-test bash -lc "netstat -rn"
+    - docker exec -it clear-test bash -lc "ip a"
 
 script:
     - docker exec -it clear-test bash -lc "cd /travis ; make dist-clean"
     - docker exec -it clear-test bash -lc "cd /travis ; make"
     - docker exec -it clear-test bash -lc "cd /travis ; make lint"
-    - docker exec -it clear-test bash -lc "cd /travis ; make check"
+    - travis_retry docker exec -it clear-test bash -lc "cd /travis ; make check"
 
 after_script:
     - docker container stop clear-test
