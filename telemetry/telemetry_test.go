@@ -6,10 +6,15 @@ package telemetry
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
+	"net"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/utils"
@@ -55,16 +60,16 @@ func TestTelemetryServer(t *testing.T) {
 	}
 
 	if err := telem.SetTelemetryServer(url, tid, policy); err != nil {
-		t.Fatalf("Setting telemetry server should not return error: %s", err)
+		t.Fatalf("Setting telemetry server should not return error: %s\n", err)
 	}
 
 	url = "--3-3-3-3"
 	if err := telem.SetTelemetryServer(url, tid, policy); err == nil {
-		t.Fatalf("Setting telemetry server should return error: URL=%q, TID=%q, Policy=%q", url, tid, policy)
+		t.Fatalf("Setting telemetry server should return error: URL=%q, TID=%q, Policy=%q\n", url, tid, policy)
 	}
 	url = "http://not.real.domain.com"
 	if err := telem.SetTelemetryServer(url, tid, policy); err == nil {
-		t.Fatalf("Setting telemetry server should return error: URL=%q, TID=%q, Policy=%q", url, tid, policy)
+		t.Fatalf("Setting telemetry server should return error: URL=%q, TID=%q, Policy=%q\n", url, tid, policy)
 	}
 }
 
@@ -80,14 +85,21 @@ func TestTelemetryServerPublicIP(t *testing.T) {
 
 	url = "http://www.google.com"
 	if err := telem.SetTelemetryServer(url, tid, policy); err != nil {
-		t.Fatalf("Setting telemetry server (%q) should not return error: %s", url, err)
+		t.Fatalf("Setting telemetry server (%q) should not return error: %s\n", url, err)
 	}
 	if telem.IsUsingPrivateIP() == true {
-		t.Fatalf("Telemetry server %q should be a Public IP", url)
+		t.Fatalf("Telemetry server %q should be a Public IP\n", url)
 	}
 }
 
+// hello world, the web server
+func HelloServer(w http.ResponseWriter, req *http.Request) {
+	_, _ = io.WriteString(w, "hello, world!\n")
+}
 func TestTelemetryServerPrivateIP(t *testing.T) {
+	const httpPort = "2222"
+	const httpAddr = "192.168.168.168"
+
 	var url string
 	tid := "MyTid"
 	policy := "Policy of the State"
@@ -98,54 +110,81 @@ func TestTelemetryServerPrivateIP(t *testing.T) {
 	}
 
 	if utils.IsRoot() {
-		etcHosts := "/etc/hosts"
-		hostData := []byte("192.168.168.168\tmylocalhost\n")
-		if doesExist, existsErr := utils.FileExists(etcHosts); doesExist {
-			// Save a copy of the hosts file
-			copyHosts := etcHosts + ".orig"
-			if copyErr := utils.CopyFile(etcHosts, copyHosts); copyErr != nil {
-				t.Fatalf("Failed to copy hostfile %q: %v", etcHosts, copyErr)
-			}
-
-			defer func() {
-				if copyErr := utils.CopyFile(copyHosts, etcHosts); copyErr != nil {
-					t.Fatalf("Failed to restore hostfile %q: %v", etcHosts, copyErr)
-				} else {
-					_ = os.Remove(copyHosts)
-				}
-			}()
-
-			// Add out host info to the existing file
-			appendFile, appendErr := os.OpenFile(etcHosts, os.O_WRONLY|os.O_APPEND, 0644)
-			if appendErr != nil {
-				t.Fatalf("Failed to open hostfile %q for append: %v", etcHosts, appendErr)
-			}
-			if _, appendErr = appendFile.Write(hostData); appendErr != nil {
-				t.Fatalf("Failed to update hostfile %q during append: %v", etcHosts, appendErr)
-			}
-			if appendErr = appendFile.Close(); appendErr != nil {
-				t.Fatalf("Failed to close hostfile %q during append: %v", etcHosts, appendErr)
-			}
-		} else {
-			if existsErr != nil {
-				t.Fatalf("Telemetry: Failed to detect %q file for testing: %s", etcHosts, existsErr)
-			}
-
-			// Write the new file
-			writeErr := ioutil.WriteFile(etcHosts, hostData, 0644)
-			if writeErr != nil {
-				t.Fatalf("Telemetry: Failed to create %q file for testing: %s", etcHosts, writeErr)
-			}
-			defer func() { _ = os.Remove(etcHosts) }()
+		// Ensure we do not send this address through a proxy
+		proxies := []string{httpAddr, os.Getenv("no_proxy")}
+		if osErr := os.Setenv("no_proxy", strings.Join(proxies, ",")); osErr != nil {
+			t.Fatalf("Failed to modify no_proxy for telemetry testing: %v\n", osErr)
+		}
+		proxies = []string{httpAddr, os.Getenv("NO_PROXY")}
+		if osErr := os.Setenv("NO_PROXY", strings.Join(proxies, ",")); osErr != nil {
+			t.Fatalf("Failed to modify NO_PROXY for telemetry testing: %v\n", osErr)
 		}
 
-		url = "http://mylocalhost"
+		// https://linuxconfig.org/configuring-virtual-network-interfaces-in-linux
+		// Find an interface name to extend
+		ifaces, err := net.Interfaces()
+		if err != nil {
+			t.Fatalf("Failed to read network interfaces for telemetry testing: %v\n", err)
+		}
+		want := net.FlagUp | net.FlagBroadcast
+		var ifaceName string
+		for _, iface := range ifaces {
+			if iface.Flags&want == want {
+				ifaceName = iface.Name
+				break
+			}
+		}
+		if ifaceName == "" {
+			ifaceName = "lo" // fallback
+		}
+
+		args := []string{
+			"ifconfig",
+			ifaceName + ":0",
+			httpAddr,
+		}
+		cmdErr := cmd.RunAndLog(args...)
+		if cmdErr != nil {
+			t.Fatalf("Failed to create network interface for telemetry testing: %v\n", cmdErr)
+		}
+
+		// Remove this interface after the test
+		defer func() {
+			args := []string{
+				"ifconfig",
+				ifaceName + ":0",
+				"down",
+			}
+			cmdErr := cmd.RunAndLog(args...)
+			if cmdErr != nil {
+				t.Fatalf("Failed to remote network interface for telemetry testing: %v\n", cmdErr)
+			}
+		}()
+
+		// Start a micro http server
+		go func() {
+			http.HandleFunc("/", HelloServer)
+			if err := http.ListenAndServe(httpAddr+":"+httpPort, nil); err != nil {
+				t.Fatalf("Telemetry: Failed to create http server for testing: %s\n", err)
+			}
+		}()
+
+		url = "http://" + httpAddr + ":" + httpPort + "/"
+		_, getErr := http.Get(url)
+		retries := 1
+		for getErr != nil && retries <= 10 {
+			t.Logf("Failed response (%d) from temp HTTP server: %v\n", retries, getErr)
+			time.Sleep(time.Second * 1)
+			retries++
+			_, getErr = http.Get(url)
+		}
+
 		if err := telem.SetTelemetryServer(url, tid, policy); err != nil {
-			t.Fatalf("Setting telemetry server (%q) should not return error: %s", url, err)
+			t.Fatalf("Setting telemetry server (%q) should not return error: %s\n", url, err)
 		}
 
 		if telem.IsUsingPrivateIP() == false {
-			t.Fatalf("Telemetry server %q should be a Private IP", url)
+			t.Fatalf("Telemetry server %q should be a Private IP\n", url)
 		}
 	} else {
 		t.Skip("Not running as 'root', skipping Private IP test")
@@ -153,10 +192,10 @@ func TestTelemetryServerPrivateIP(t *testing.T) {
 
 	url = "http://www.google.com"
 	if err := telem.SetTelemetryServer(url, tid, policy); err != nil {
-		t.Fatalf("Setting telemetry server (%q) should not return error: %s", url, err)
+		t.Fatalf("Setting telemetry server (%q) should not return error: %s\n", url, err)
 	}
 	if telem.IsUsingPrivateIP() == true {
-		t.Fatalf("Telemetry server %q should be a Public IP", url)
+		t.Fatalf("Telemetry server %q should be a Public IP\n", url)
 	}
 }
 
@@ -176,7 +215,7 @@ func TestWriteTargetConfig(t *testing.T) {
 
 	url = "http://www.google.com"
 	if err := telem.SetTelemetryServer(url, tid, policy); err != nil {
-		t.Fatalf("Setting telemetry server (%q) should not return error: %s", url, err)
+		t.Fatalf("Setting telemetry server (%q) should not return error: %s\n", url, err)
 	}
 
 	dir, err := ioutil.TempDir("", "clr-installer-telem-test")
@@ -191,14 +230,14 @@ func TestWriteTargetConfig(t *testing.T) {
 	defConfFile := filepath.Join(dir, defaultTelemetryConf)
 	defConfDir := filepath.Dir(defConfFile)
 	if err = utils.MkdirAll(defConfDir, 0755); err != nil {
-		t.Fatalf("Failed to create directories to write config file: %v", err)
+		t.Fatalf("Failed to create directories to write config file: %v\n", err)
 	}
 	if copyErr := utils.CopyFile(defaultTelemetryConf, defConfFile); copyErr != nil {
-		t.Fatalf("Failed to copy default config file %q: %v", defaultTelemetryConf, copyErr)
+		t.Fatalf("Failed to copy default config file %q: %v\n", defaultTelemetryConf, copyErr)
 	}
 	err = telem.CreateTelemetryConf(dir)
 	if err != nil {
-		t.Fatalf("Should have succeeded to write config file: %v", err)
+		t.Fatalf("Should have succeeded to write config file: %v\n", err)
 	}
 }
 
@@ -259,12 +298,12 @@ func TestWriteLocalConfig(t *testing.T) {
 			// Save a copy of the custom file
 			copyConf := custConf + ".orig"
 			if copyErr := utils.CopyFile(custConf, copyConf); copyErr != nil {
-				t.Fatalf("Failed to copy local conf %q: %v", custConf, copyErr)
+				t.Fatalf("Failed to copy local conf %q: %v\n", custConf, copyErr)
 			}
 
 			defer func() {
 				if copyErr := utils.CopyFile(copyConf, custConf); copyErr != nil {
-					t.Fatalf("Failed to restore local conf %q: %v", custConf, copyErr)
+					t.Fatalf("Failed to restore local conf %q: %v\n", custConf, copyErr)
 				} else {
 					_ = os.Remove(copyConf)
 					_ = telem.RestartLocalTelemetryServer()
@@ -272,7 +311,7 @@ func TestWriteLocalConfig(t *testing.T) {
 			}()
 		} else {
 			if existsErr != nil {
-				t.Fatalf("Telemetry: Failed to detect %q file for testing: %s", custConf, existsErr)
+				t.Fatalf("Telemetry: Failed to detect %q file for testing: %s\n", custConf, existsErr)
 			}
 		}
 	} else {
@@ -281,7 +320,7 @@ func TestWriteLocalConfig(t *testing.T) {
 
 	url = "http://www.google.com"
 	if err := telem.SetTelemetryServer(url, tid, policy); err != nil {
-		t.Fatalf("Setting telemetry server (%q) should not return error: %s", url, err)
+		t.Fatalf("Setting telemetry server (%q) should not return error: %s\n", url, err)
 	}
 
 	err := telem.CreateLocalTelemetryConf()
@@ -325,7 +364,7 @@ func TestCopyRecords(t *testing.T) {
 
 	url = "http://www.google.com"
 	if err := telem.SetTelemetryServer(url, tid, policy); err != nil {
-		t.Fatalf("Setting telemetry server (%q) should not return error: %s", url, err)
+		t.Fatalf("Setting telemetry server (%q) should not return error: %s\n", url, err)
 	}
 
 	dir, err := ioutil.TempDir("", "clr-installer-telem-test")
@@ -358,9 +397,9 @@ func TestConfigNotChanged(t *testing.T) {
 	err := cmd.Run(w, "diff", baseConf, defaultTelemetryConf)
 	if err != nil {
 		if result := w.String(); result != "" {
-			t.Fatalf("Baseline telemetrics.conf file has changed:\n%s", result)
+			t.Fatalf("Baseline telemetrics.conf file has changed:%s\n", result)
 		} else {
-			t.Fatalf("Failed to compare telemetrics.conf file : %v", err)
+			t.Fatalf("Failed to compare telemetrics.conf file : %v\n", err)
 		}
 	}
 }
