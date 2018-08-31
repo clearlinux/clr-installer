@@ -5,6 +5,8 @@
 package tui
 
 import (
+	"github.com/clearlinux/clr-installer/storage"
+
 	"github.com/VladimirMarkelov/clui"
 )
 
@@ -71,6 +73,16 @@ func newDiskPage(tui *Tui) (Page, error) {
 	mBtn.SetAlign(AlignLeft)
 	mBtn.OnClick(func(ev clui.Event) {
 		page.GotoPage(TuiPageManualPart)
+	})
+
+	rBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Rescan Media", Fixed)
+	rBtn.OnClick(func(ev clui.Event) {
+		_, err := storage.RescanBlockDevices(page.getModel().TargetMedias)
+		if err != nil {
+			page.Panic(err)
+		}
+
+		page.GotoPage(TuiPageDiskMenu)
 	})
 
 	page.activated = gBtn
