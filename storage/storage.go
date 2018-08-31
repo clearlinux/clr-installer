@@ -414,6 +414,13 @@ func listBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
 	return merged, nil
 }
 
+// RescanBlockDevices Clear current list available block devices and rescans
+func RescanBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
+	avBlockDevices = nil
+
+	return ListAvailableBlockDevices(userDefined)
+}
+
 // ListAvailableBlockDevices Lists only available block devices
 // where available means block devices not mounted or not in use by the host system
 // userDefined will be inserted in the resulting list rather the loaded ones
