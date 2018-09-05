@@ -130,8 +130,8 @@ lint: install-linters
 	--enable=errcheck \
 	./...
 
-PHONY += install-dep
-install-dep:
+PHONY += dep-install
+dep-install:
 	@if ! dep version &>/dev/null; then \
 		echo "Installing dep..."; \
 		mkdir -p ${orig_go_path}/bin; \
@@ -139,8 +139,12 @@ install-dep:
 		| GOPATH=${orig_go_path} bash; \
 	fi \
 
-PHONY += update-dep
-update-dep:
+PHONY += dep-check
+dep-check:
+	@cd ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX} ; GOPATH=${LOCAL_GOPATH} dep check
+
+PHONY += dep-update
+dep-update:
 	@if dep version &>/dev/null; then \
 		echo "Updating dep..."; \
 		curl https://raw.githubusercontent.com/golang/dep/master/install.sh 2>/dev/null \
@@ -150,9 +154,30 @@ update-dep:
 		exit 1; \
 	fi \
 
-PHONY += update-vendor
-update-vendor: install-dep
-	@cd ${GOPATH}/src/${GO_PACKAGE_PREFIX} ; dep ensure -update
+PHONY += vendor-init
+vendor-init: gopath dep-install
+	@rm -rf ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor
+	@rm -f ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/Gopkg.*
+	@cd ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX} ; GOPATH=${LOCAL_GOPATH} dep init
+	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor ${top_srcdir}
+	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/Gopkg.* ${top_srcdir}
+
+PHONY += vendor-status
+vendor-status: dep-install
+	@cd ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX} ; GOPATH=${LOCAL_GOPATH} dep status
+
+PHONY += vendor-check
+vendor-check: dep-check
+
+PHONY += vendor-update
+vendor-update: dep-install
+	@# Copy the updated files from revision control area
+	@cp -a ${top_srcdir}/Gopkg.* ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
+	@# Pull updates
+	@cd ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX} ; GOPATH=${LOCAL_GOPATH} dep ensure -update
+	@# Copy results back to revision control area
+	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor ${top_srcdir}
+	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/Gopkg.* ${top_srcdir}
 
 PHONY += tag
 tag:
