@@ -7,18 +7,18 @@ Command Line User Interface (Console UI inspired by TurboVision) with built-in t
 
 
 ## Current version
-The current version is 0.8.0. Please see details in [changelog](./changelog).
+The current version is 0.9.0 RC2. Please see details in [changelog](./changelog).
 
 ## Applications that uses the library
 * Terminal FB2 reader(termfb2): https://github.com/VladimirMarkelov/termfb2
 
 ## Documentation
-* ![Introduction](/docs/intro.md)
-* ![Getting started](/docs/hello.md)
-* ![Layout manager](/docs/layout.md)
-* ![Basic standrd control methods and properties](/docs/widget.md)
-* ![About Windows](/docs/window.md)
-* ![Predefined hotkeys](/docs/hotkeys.md)
+* [Introduction](/docs/intro.md)
+* [Getting started](/docs/hello.md)
+* [Layout manager](/docs/layout.md)
+* [Basic standrd control methods and properties](/docs/widget.md)
+* [About Windows](/docs/window.md)
+* [Predefined hotkeys](/docs/hotkeys.md)
 
 ## The list of available controls
 * Window (Main control container - with maximize, window order and other window features)
@@ -38,6 +38,8 @@ The current version is 0.8.0. Please see details in [changelog](./changelog).
 * BarChart (Horizontal bar chart without scroll)
 * SparkChart (Show tabular data as a bar graph)
 * GridView (Table to show structured data - only virtual and readonly mode with scroll support)
+* [FilePicker](/docs/fselect.md)
+* LoginDialog - a simple authorization dialog with two fields: Username and Password
 
 ## Screenshots
 The main demo (theme changing and radio group control)

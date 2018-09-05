@@ -1,6 +1,6 @@
 # Gopkg.toml example
 #
-# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# Refer to https://golang.github.io/dep/docs/Gopkg.toml.html
 # for detailed Gopkg.toml documentation.
 #
 # required = ["github.com/user/thing/cmd/thing"]
@@ -25,37 +25,21 @@
 #   unused-packages = true
 
 
-required = [
-    # clui/edit_other.go requires clipboard
-    "github.com/atotto/clipboard",
-    # termbox-go/termbox_windows.go requires runewidth
-    # termbox-go/api.go requires runewidth
-    "github.com/mattn/go-runewidth"
-]
-
 [[constraint]]
   name = "github.com/VladimirMarkelov/clui"
-  revision = "06931cad8b1680b964660af5addd867ac8f94189"
-
-[[constraint]]
-  name = "github.com/atotto/clipboard"
-  revision = "bc5958e1c8339112fc3347a89f3c482f416a69d3"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/huandu/xstrings"
-  version = "1.0.0"
+  version = "1.1.0"
 
 [[constraint]]
-  name = "github.com/mattn/go-runewidth"
-  version = "v0.0.2"
-
-[[constraint]]
+  branch = "master"
   name = "github.com/nsf/termbox-go"
-  revision = "e2050e41c8847748ec5288741c0b19a8cb26d084"
 
 [[constraint]]
   name = "github.com/spf13/pflag"
-  version = "v1.0.1"
+  version = "1.0.2"
 
 [[constraint]]
   name = "golang.org/x/text"
@@ -63,7 +47,7 @@ required = [
 
 [[constraint]]
   name = "gopkg.in/yaml.v2"
-  version = "v2.2.1"
+  version = "2.2.1"
 
 [prune]
   go-tests = true
