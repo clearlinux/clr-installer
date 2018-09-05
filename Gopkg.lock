@@ -2,39 +2,55 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:06cb27109f9e5ae9e844ccd7527ce1e698caca6b427d088ea43ff1fc91c8ab1c"
   name = "github.com/VladimirMarkelov/clui"
   packages = ["."]
-  revision = "06931cad8b1680b964660af5addd867ac8f94189"
+  pruneopts = "UT"
+  revision = "7749b2936744140b703023c6c9d76491e3abd22c"
 
 [[projects]]
+  digest = "1:dd1417c60900a2be6d1653e90306614657761fc9c3066eccc558ae432b31aa60"
   name = "github.com/atotto/clipboard"
   packages = ["."]
-  revision = "bc5958e1c8339112fc3347a89f3c482f416a69d3"
+  pruneopts = "UT"
+  revision = "5e2c7bddca04488284428a201e4a15615f7a5074"
+  version = "v0.1.0"
 
 [[projects]]
+  digest = "1:4e0aa2a8f7c5d6e125af6ed331f5389003429e4fb0747f6d4be9715f246800f0"
   name = "github.com/huandu/xstrings"
   packages = ["."]
-  revision = "2bf18b218c51864a87384c06996e40ff9dcff8e1"
-  version = "v1.0.0"
+  pruneopts = "UT"
+  revision = "55ae428c2ac4f74d7430952ef528631e656ac92c"
+  version = "v1.1.0"
 
 [[projects]]
+  digest = "1:cdb899c199f907ac9fb50495ec71212c95cb5b0e0a8ee0800da0238036091033"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
-  revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
-  version = "v0.0.2"
+  pruneopts = "UT"
+  revision = "ce7b0b5c7b45a81508558cd1dba6bb1e4ddb51bb"
+  version = "v0.0.3"
 
 [[projects]]
+  branch = "master"
+  digest = "1:f335d800550786b6f51ddaedb9d1107a7a72f4a2195e5b039dd7c0e103e119bc"
   name = "github.com/nsf/termbox-go"
   packages = ["."]
-  revision = "e2050e41c8847748ec5288741c0b19a8cb26d084"
+  pruneopts = "UT"
+  revision = "b66b20ab708e289ff1eb3e218478302e6aec28ce"
 
 [[projects]]
+  digest = "1:dab83a1bbc7ad3d7a6ba1a1cc1760f25ac38cdf7d96a5cdd55cd915a4f5ceaf9"
   name = "github.com/spf13/pflag"
   packages = ["."]
-  revision = "583c0c0531f06d5278b7d917446061adc344b5cd"
-  version = "v1.0.1"
+  pruneopts = "UT"
+  revision = "9a97c102cda95a86cec2345a6f09f55a939babf5"
+  version = "v1.0.2"
 
 [[projects]]
+  digest = "1:770ae53f0090c9b9ddea5f62c746e61c2adcfb0e877f321e1d07263feffe7a24"
   name = "golang.org/x/text"
   packages = [
     "internal/format",
@@ -42,20 +58,31 @@
     "internal/tag",
     "language",
     "language/display",
-    "unicode/cldr"
+    "unicode/cldr",
   ]
+  pruneopts = "UT"
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
 
 [[projects]]
+  digest = "1:342378ac4dcb378a5448dd723f0784ae519383532f5e70ade24132c4c8693202"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
+  pruneopts = "UT"
   revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
   version = "v2.2.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cab00a80c262a69b20f089ce64254fd1b6a9049f8b162228c4534c64430c2d9a"
+  input-imports = [
+    "github.com/VladimirMarkelov/clui",
+    "github.com/huandu/xstrings",
+    "github.com/nsf/termbox-go",
+    "github.com/spf13/pflag",
+    "golang.org/x/text/language",
+    "golang.org/x/text/language/display",
+    "gopkg.in/yaml.v2",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

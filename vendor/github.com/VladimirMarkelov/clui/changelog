@@ -1,16 +1,47 @@
+2018-08-13 - version 0.9.0 RC2
+[+] New control: LoginDialog (a dialog with username and password fields)
+
+2018-08-04 - version 0.9.0 RC1
+[+] New control: File Picker (a dialog for file save/load operations)
+[+] New property for Label: TextDisplay. It defines which part of Label title
+   is shown when the title is longer than the Label length:
+   - AlignLeft - the head of the Title is displayed
+   - AlignRight - the tail of the Title is displayed
+[+] New ListBox functions:
+   - Item(index int) (title string, ok book) - returns a text of ListBox item
+   by its index. If the item does not exist then ok is set to false. The
+   function works similar Go 's, ok := map[key]'
+   - PartialFind(text string, caseSensitive bool) int - return the index of
+   the first item of ListBox that starts with the 'text'. If no item starts
+   with the 'text' then '-1' is returned
+[*] Fix bug in EditField: when new Title was set the current display offset was
+   not reset. It might result in an application crash when new Title was
+   shorter than the old one
+[*] Fix bug with ListBox 'select item' event: the event was not emitted after
+   pressing End, Home, PageUp, and PageDown
+
+2018-07-17 - version 0.8.1
+[+] New API functions SetColorMap and GetColorMap to change the current color
+    palette
+[*] FindNextControl function improved
+[*] Fix selecting next control with TAB: disabled and invisible controls
+    are skipped
+[+] Next and previous control can be selected with Up and Down Arrow keys
+[+] New event OnActive - is emitted when a control gains or lost focus
+
 2018-04-07 - version 0.8.0
 [+] New dialog type: SelectDialogEdit - a dialog with an edit box
 [+] Added Control method destroy
 [*] EditField event OnKeyPress now receives two arguments: key code and rune
 
 2018-03-15 - version 0.8.0-RC3
-[*] If active control is about to hide then the next control is acctivated
+[*] If active control is about to hide then the next control is activated
 [*] Setting EditField content with SetTitle moves cursor to the end of line
 
 2018-03-14 - version 0.8.0-RC2
 [*] Fixed crash when the last Window is closed from a code call without user
     interaction (e.g, when a Dialog button is pressed the button click handler
-    closes the Dialog and the applicaton crashes if the Dialog is the last
+    closes the Dialog and the application crashes if the Dialog is the last
     Window in the screen)
 
 2018-03-13 - version 0.8.0-RC1
@@ -21,8 +52,8 @@
     argument - Control that should handle the event. On receiving the event
     the Control must recalculate and reposition all its children.
     At this moment only Windows handle this event. Other kinds of Control
-    never receieves the event
-[+] Add a new simple demo to play with Control visiblity: demos/visible
+    never receives the event
+[+] Add a new simple demo to play with Control visibility: demos/visible
 
 2018-01-26 - version 0.7.0
 [+] Added new event handler for Window: set a callback OnScreenResize if you
@@ -34,7 +65,7 @@
     manipulating Composer Windows if the code runs in separate thread. And
     call EndUpdate right after all changes are done. Do not lock for a long
     time because while lock is on the screen is not updated.
-    Another usage: create new Window inside varios handlers (e.g, OnSelectItem
+    Another usage: create new Window inside various handlers (e.g, OnSelectItem
     of ListBox)
 
 2018-01-23 - version 0.7.0
@@ -51,7 +82,7 @@
 
 2018-01-02 - version 0.6.3
 [+] Add a new boolean property for EditField - PasswordMode. If PasswordMode is
-    true then the editfield text is hidden with 'stars'.
+    true then the EditField text is hidden with 'stars'.
     Please see demo demos/editfield for details
 [+] Change a theme for object 'Edit' - added non-obligatory forth character
    that is used as replacement for any character inside EditField when Password
@@ -99,7 +130,7 @@
 [+] Added constants for dragging events - new type DragType
 [+] Added new type of Event MouseClick: it is generated if a user does mouse
     button down and mouse release at the same coordinates. In this case a
-    control recieves 3 events: mouse down, mouse release, and mouse click
+    control receives 3 events: mouse down, mouse release, and mouse click
 [+] Main loop moved to separate source file
 [+] Added test for color parsing functions
 
