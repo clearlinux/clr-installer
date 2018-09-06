@@ -6,8 +6,11 @@ package tui
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/VladimirMarkelov/clui"
+
+	"github.com/clearlinux/clr-installer/controller"
 )
 
 // MenuPage is the Page implementation for the main menu page
@@ -101,7 +104,24 @@ func newMenuPage(tui *Tui) (Page, error) {
 
 	page.installBtn = CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Install", Fixed)
 	page.installBtn.OnClick(func(ev clui.Event) {
-		page.GotoPage(TuiPageInstall)
+		if controller.NetworkPassing {
+			// Network already validated, just start the install
+			page.GotoPage(TuiPageInstall)
+		} else {
+			// Network needs to be validated before the install
+			if dialog, err := CreateNetworkTestDialogBox(page.tui.model); err == nil {
+				if dialog.RunNetworkTest() {
+					// Automatically close if it worked
+					clui.RefreshScreen()
+					time.Sleep(time.Second)
+					dialog.Close()
+
+					page.GotoPage(TuiPageInstall)
+				} else {
+					page.installBtn.SetEnabled(false)
+				}
+			}
+		}
 	})
 
 	page.installBtn.SetEnabled(false)

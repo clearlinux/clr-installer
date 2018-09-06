@@ -5,18 +5,32 @@
 package tui
 
 import (
+	"net/url"
+	"time"
+
 	"github.com/VladimirMarkelov/clui"
 )
 
 // ProxyPage is the Page implementation for the proxy configuration page
 type ProxyPage struct {
 	BasePage
-	httpsProxyEdit *clui.EditField
+	httpsProxyEdit    *clui.EditField
+	httpsProxyWarning *clui.Label
+	confirmBtn        *SimpleButton
 }
 
 // Activate sets the https proxy with the current model's value
 func (pp *ProxyPage) Activate() {
 	pp.httpsProxyEdit.SetTitle(pp.getModel().HTTPSProxy)
+	pp.httpsProxyWarning.SetTitle("")
+}
+
+func (pp *ProxyPage) setConfirmButton() {
+	if pp.httpsProxyWarning.Title() == "" {
+		pp.confirmBtn.SetEnabled(true)
+	} else {
+		pp.confirmBtn.SetEnabled(false)
+	}
 }
 
 func newProxyPage(tui *Tui) (Page, error) {
@@ -41,23 +55,57 @@ func newProxyPage(tui *Tui) (Page, error) {
 	iframe.SetPack(clui.Vertical)
 
 	page.httpsProxyEdit = clui.CreateEditField(iframe, 1, "", Fixed)
+	page.httpsProxyEdit.OnChange(func(ev clui.Event) {
+		warning := ""
+		userProxy := page.httpsProxyEdit.Title()
+
+		if userProxy != "" {
+			_, err := url.ParseRequestURI(page.httpsProxyEdit.Title())
+			if err != nil {
+				warning = "Invalid URL for Proxy Server"
+			}
+		}
+
+		page.httpsProxyWarning.SetTitle(warning)
+		page.setConfirmButton()
+	})
+
+	page.httpsProxyWarning = clui.CreateLabel(iframe, 1, 1, "", Fixed)
+	page.httpsProxyWarning.SetMultiline(true)
+	page.httpsProxyWarning.SetBackColor(errorLabelBg)
+	page.httpsProxyWarning.SetTextColor(errorLabelFg)
 
 	btnFrm := clui.CreateFrame(fldFrm, 30, 1, BorderNone, Fixed)
 	btnFrm.SetPack(clui.Horizontal)
 	btnFrm.SetGaps(1, 1)
-	btnFrm.SetPaddings(2, 0)
+	btnFrm.SetPaddings(2, 1)
 
 	cancelBtn := CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Cancel", Fixed)
 	cancelBtn.OnClick(func(ev clui.Event) {
 		page.GotoPage(TuiPageAdvancedMenu)
 	})
 
-	confirmBtn := CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Confirm", Fixed)
-	confirmBtn.OnClick(func(ev clui.Event) {
+	page.confirmBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Confirm", Fixed)
+	page.confirmBtn.OnClick(func(ev clui.Event) {
 		proxy := page.httpsProxyEdit.Title()
+		currentProxy := page.getModel().HTTPSProxy
 		page.getModel().HTTPSProxy = proxy
-		page.SetDone(proxy != "")
-		page.GotoPage(TuiPageAdvancedMenu)
+		if dialog, err := CreateNetworkTestDialogBox(page.tui.model); err == nil {
+			dialog.OnClose(func() {
+				page.GotoPage(TuiPageAdvancedMenu)
+			})
+			if dialog.RunNetworkTest() {
+				page.SetDone(proxy != "")
+
+				// Automatically close if it worked
+				clui.RefreshScreen()
+				time.Sleep(time.Second)
+				dialog.Close()
+			} else {
+				page.getModel().HTTPSProxy = currentProxy
+				page.SetDone(false)
+			}
+		}
 	})
 
 	page.activated = page.httpsProxyEdit
