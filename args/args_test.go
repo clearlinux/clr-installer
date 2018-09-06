@@ -42,7 +42,9 @@ func serveHTTPDescFile(t *testing.T) (*http.Server, error) {
 	srv := &http.Server{Addr: ":" + testHTTPPort}
 
 	http.HandleFunc("/clr-installer.yaml", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "{}")
+		if _, err := fmt.Fprintf(w, "{}"); err != nil {
+			t.Error(err)
+		}
 	})
 
 	go func() {
