@@ -59,7 +59,7 @@ build-pkgs: build
    done
 
 build-vendor: build
-	@cp -R vendor/* .gopath/src/
+	@cp -a vendor/* .gopath/src/
 	@for pkg in `find ./vendor -name "*.go" \
 	   -printf "%h\n" | sort -u | sed 's/\.\/vendor\///g'`; do \
 	   go install -v $$pkg; \
@@ -72,6 +72,12 @@ build: gopath
 
 check: gopath
 	go test -cover ${GO_PACKAGE_PREFIX}/...
+
+check-clean: gopath
+	go clean -testcache
+
+check-root: gopath
+	sudo -E go test -cover ${GO_PACKAGE_PREFIX}/...
 
 PHONY += coverage
 coverage: build
