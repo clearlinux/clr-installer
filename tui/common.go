@@ -52,6 +52,11 @@ type Page interface {
 }
 
 const (
+	// WindowWidth is our desired terminal width
+	WindowWidth = 80
+	// WindowHeight is our desired terminal width
+	WindowHeight = 24
+
 	// MenuButtonPrefixUncompleted is the standard, uncompleted prefix for a menu button
 	MenuButtonPrefixUncompleted = "[ ]"
 	// MenuButtonPrefixCompletedByConfig is the completed by config prefix for a menu button
@@ -180,6 +185,15 @@ const (
 	// ActionNone indicates no action has been performed
 	ActionNone
 )
+
+// Is the page id a PopUp page
+func isPopUpPage(id int) bool {
+	if id == TuiPageNetworkValidate {
+		return true
+	}
+
+	return false
+}
 
 // GetConfigDefinition is a stub implementation
 // the real implementation must check with the model and return:
@@ -313,10 +327,10 @@ func (page *BasePage) setup(tui *Tui, id int, btns int, returnID int) {
 func (page *BasePage) newWindow() {
 	sw, sh := clui.ScreenSize()
 
-	x := (sw - 80) / 2
-	y := (sh - 24) / 2
+	x := (sw - WindowWidth) / 2
+	y := (sh - WindowHeight) / 2
 
-	page.window = clui.AddWindow(x, y, 80, 24, " [Clear Linux Installer ("+model.Version+")] ")
+	page.window = clui.AddWindow(x, y, WindowWidth, WindowHeight, " [Clear Linux Installer ("+model.Version+")] ")
 	page.window.SetTitleButtons(0)
 	page.window.SetSizable(false)
 	page.window.SetMovable(false)

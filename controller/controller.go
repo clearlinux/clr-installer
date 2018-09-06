@@ -30,6 +30,12 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
+var (
+	// NetworkPassing is used to track if the latest network configuration
+	// is passing; changes in proxy, etc.
+	NetworkPassing bool
+)
+
 func sortMountPoint(bds []*storage.BlockDevice) []*storage.BlockDevice {
 	sort.Slice(bds[:], func(i, j int) bool {
 		return filepath.HasPrefix(bds[j].MountPoint, bds[i].MountPoint)
@@ -245,15 +251,17 @@ func ConfigureNetwork(model *model.SystemInstall) error {
 	prg, err := configureNetwork(model)
 	if err != nil {
 		prg.Success()
+		NetworkPassing = false
 		return err
 	}
+
+	NetworkPassing = true
+
 	return nil
 }
 
 func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
-	if model.HTTPSProxy != "" {
-		cmd.SetHTTPSProxy(model.HTTPSProxy)
-	}
+	cmd.SetHTTPSProxy(model.HTTPSProxy)
 
 	if len(model.NetworkInterfaces) > 0 {
 		prg := progress.NewLoop("Applying network settings")

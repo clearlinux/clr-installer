@@ -168,21 +168,24 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string) (bool, error) {
 }
 
 func (tui *Tui) gotoPage(id int, currPage Page) {
-	if tui.currPage != nil {
-		tui.currPage.GetWindow().SetVisible(false)
-		tui.currPage.DeActivate()
+	if tui.currPage != nil && !isPopUpPage(id) {
+		if tui.currPage.GetWindow() != nil {
+			tui.currPage.GetWindow().SetVisible(false)
+			tui.currPage.DeActivate()
 
-		// TODO clui is not hiding cursor when we hide/destroy an edit widget
-		termbox.HideCursor()
+			// TODO clui is not hiding cursor when we hide/destroy an edit widget
+			termbox.HideCursor()
+		}
 	}
 
 	tui.currPage = tui.getPage(id)
 	tui.prevPage = currPage
 
 	tui.currPage.Activate()
-	tui.currPage.GetWindow().SetVisible(true)
-
-	clui.ActivateControl(tui.currPage.GetWindow(), tui.currPage.GetActivated())
+	if !isPopUpPage(id) {
+		tui.currPage.GetWindow().SetVisible(true)
+		clui.ActivateControl(tui.currPage.GetWindow(), tui.currPage.GetActivated())
+	}
 }
 
 func (tui *Tui) getPage(page int) Page {
