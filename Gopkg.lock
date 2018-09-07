@@ -3,11 +3,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:06cb27109f9e5ae9e844ccd7527ce1e698caca6b427d088ea43ff1fc91c8ab1c"
+  digest = "1:cf90665ea4bb37bee01cbecff0a5b2e3b49355a62bfb7dd4aa5433eda11682b5"
   name = "github.com/VladimirMarkelov/clui"
   packages = ["."]
   pruneopts = "UT"
-  revision = "7749b2936744140b703023c6c9d76491e3abd22c"
+  revision = "89a7c86623ec35323906bc09de4f1d98bc75abdb"
 
 [[projects]]
   digest = "1:dd1417c60900a2be6d1653e90306614657761fc9c3066eccc558ae432b31aa60"
@@ -18,12 +18,12 @@
   version = "v0.1.0"
 
 [[projects]]
-  digest = "1:4e0aa2a8f7c5d6e125af6ed331f5389003429e4fb0747f6d4be9715f246800f0"
+  digest = "1:f9a5e090336881be43cfc1cf468330c1bdd60abdc9dd194e0b1ab69f4b94dd7c"
   name = "github.com/huandu/xstrings"
   packages = ["."]
   pruneopts = "UT"
-  revision = "55ae428c2ac4f74d7430952ef528631e656ac92c"
-  version = "v1.1.0"
+  revision = "f02667b379e2fb5916c3cda2cf31e0eb885d79f8"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:cdb899c199f907ac9fb50495ec71212c95cb5b0e0a8ee0800da0238036091033"
