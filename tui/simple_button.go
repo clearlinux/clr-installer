@@ -16,7 +16,6 @@ import (
 // visual elements (i.e no shadows).
 type SimpleButton struct {
 	clui.BaseControl
-	style   string
 	pressed int32
 	onClick func(clui.Event)
 }
