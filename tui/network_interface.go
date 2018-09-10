@@ -5,6 +5,8 @@
 package tui
 
 import (
+	"time"
+
 	"github.com/clearlinux/clr-installer/network"
 
 	"github.com/VladimirMarkelov/clui"
@@ -293,8 +295,21 @@ func newNetworkInterfacePage(tui *Tui) (Page, error) {
 			page.getModel().AddNetworkInterface(sel)
 		}
 
-		page.GotoPage(TuiPageNetwork)
-		page.tui.getPage(TuiPageNetwork).SetDone(true)
+		if dialog, err := CreateNetworkTestDialogBox(page.tui.model); err == nil {
+			dialog.OnClose(func() {
+				page.GotoPage(TuiPageNetwork)
+			})
+			if dialog.RunNetworkTest() {
+				page.tui.getPage(TuiPageNetwork).SetDone(true)
+
+				// Automatically close if it worked
+				clui.RefreshScreen()
+				time.Sleep(time.Second)
+				dialog.Close()
+			} else {
+				page.tui.getPage(TuiPageNetwork).SetDone(false)
+			}
+		}
 	})
 
 	return page, nil

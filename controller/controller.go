@@ -94,8 +94,11 @@ func Install(rootDir string, model *model.SystemInstall) error {
 		return err
 	}
 
-	if err = ConfigureNetwork(model); err != nil {
-		return err
+	// Using MassInstaller (non-UI) the network will not have been checked yet
+	if !NetworkPassing {
+		if err = ConfigureNetwork(model); err != nil {
+			return err
+		}
 	}
 
 	mountPoints := []*storage.BlockDevice{}
