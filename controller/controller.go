@@ -94,10 +94,6 @@ func Install(rootDir string, model *model.SystemInstall) error {
 		return err
 	}
 
-	if err = ConfigureNetwork(model); err != nil {
-		return err
-	}
-
 	mountPoints := []*storage.BlockDevice{}
 
 	// prepare all the target block devices
