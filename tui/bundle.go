@@ -6,6 +6,7 @@ package tui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/VladimirMarkelov/clui"
 	"github.com/clearlinux/clr-installer/swupd"
@@ -25,6 +26,11 @@ type BundleCheck struct {
 var (
 	bundles = []*BundleCheck{}
 )
+
+// GetConfiguredValue Returns the string representation of currently value set
+func (bp *BundlePage) GetConfiguredValue() string {
+	return strings.Join(bp.getModel().Bundles, ", ")
+}
 
 // Activate marks the checkbox selections based on the data model
 func (bp *BundlePage) Activate() {
@@ -52,7 +58,7 @@ func newBundlePage(tui *Tui) (Page, error) {
 	}
 
 	page := &BundlePage{}
-	page.setupMenu(tui, TuiPageBundle, "Bundle Selection", NoButtons, TuiPageAdvancedMenu)
+	page.setupMenu(tui, TuiPageBundle, "Bundle Selection", NoButtons, TuiPageMenu)
 
 	clui.CreateLabel(page.content, 2, 2, "Select additional bundles to be added to the system", Fixed)
 
@@ -74,7 +80,7 @@ func newBundlePage(tui *Tui) (Page, error) {
 
 	cancelBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Cancel", Fixed)
 	cancelBtn.OnClick(func(ev clui.Event) {
-		page.GotoPage(TuiPageAdvancedMenu)
+		page.GotoPage(TuiPageMenu)
 	})
 
 	confirmBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Confirm", Fixed)
@@ -90,7 +96,7 @@ func newBundlePage(tui *Tui) (Page, error) {
 		}
 
 		page.SetDone(anySelected)
-		page.GotoPage(TuiPageAdvancedMenu)
+		page.GotoPage(TuiPageMenu)
 	})
 
 	return page, nil

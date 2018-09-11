@@ -5,6 +5,8 @@
 package tui
 
 import (
+	"strings"
+
 	"github.com/clearlinux/clr-installer/storage"
 
 	"github.com/VladimirMarkelov/clui"
@@ -19,6 +21,29 @@ const (
 	diskDesc = `The installer can use a guided standard	disk partitioning scheme or, you
 can manually set your own.`
 )
+
+// GetConfiguredValue Returns the string representation of currently value set
+func (page *DiskMenuPage) GetConfiguredValue() string {
+	if len(page.getModel().TargetMedias) == 0 {
+		return "No media configured"
+	}
+
+	res := []string{}
+
+	for _, curr := range page.getModel().TargetMedias {
+		for _, part := range curr.Children {
+			tks := []string{part.Name, part.FsType}
+
+			if part.MountPoint != "" {
+				tks = append(tks, part.MountPoint)
+			}
+
+			res = append(res, strings.Join(tks, ":"))
+		}
+	}
+
+	return strings.Join(res, ", ")
+}
 
 // GetConfigDefinition returns if the config was interactively defined by the user,
 // was loaded from a config file or if the config is not set.

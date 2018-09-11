@@ -17,6 +17,11 @@ type TimezonePage struct {
 	tzListBox   *clui.ListBox
 }
 
+// GetConfiguredValue Returns the string representation of currently timezone set
+func (page *TimezonePage) GetConfiguredValue() string {
+	return page.getModel().Timezone.Code
+}
+
 // GetConfigDefinition returns if the config was interactively defined by the user,
 // was loaded from a config file or if the config is not set.
 func (page *TimezonePage) GetConfigDefinition() int {
@@ -73,7 +78,7 @@ func newTimezonePage(tui *Tui) (Page, error) {
 	lbl := clui.CreateLabel(page.content, 2, 2, "Select System Timezone", Fixed)
 	lbl.SetPaddings(0, 2)
 
-	page.tzListBox = clui.CreateListBox(page.content, AutoSize, 17, Fixed)
+	page.tzListBox = clui.CreateListBox(page.content, AutoSize, ContentHeight-1, Fixed)
 
 	defTimezone := 0
 	for idx, curr := range page.avTimezones {

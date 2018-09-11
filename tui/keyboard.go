@@ -17,6 +17,11 @@ type KeyboardPage struct {
 	kbdListBox *clui.ListBox
 }
 
+// GetConfiguredValue Returns the string representation of currently keyboard set
+func (page *KeyboardPage) GetConfiguredValue() string {
+	return page.getModel().Keyboard.Code
+}
+
 // GetConfigDefinition returns if the config was interactively defined by the user,
 // was loaded from a config file or if the config is not set.
 func (page *KeyboardPage) GetConfigDefinition() int {
@@ -107,11 +112,12 @@ func newKeyboardPage(tui *Tui) (Page, error) {
 		}
 	})
 
-	frame := clui.CreateFrame(page.content, AutoSize, 7, BorderNone, Fixed)
+	frame := clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
 	frame.SetPack(clui.Vertical)
-	frame.SetPaddings(0, 1)
 
-	clui.CreateLabel(frame, AutoSize, 1, "Test keyboard", Fixed)
+	lbl = clui.CreateLabel(frame, AutoSize, 1, "Test keyboard", Fixed)
+	lbl.SetPaddings(0, 1)
+
 	newEditField(frame, false, nil)
 
 	page.activated = page.doneBtn

@@ -6,6 +6,7 @@ package tui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/clearlinux/clr-installer/user"
 
@@ -33,6 +34,28 @@ type UseraddPage struct {
 type UserBtn struct {
 	user *user.User
 	btn  *SimpleButton
+}
+
+// GetConfiguredValue Returns the string representation of currently value set
+func (page *UseraddPage) GetConfiguredValue() string {
+	users := page.getModel().Users
+	res := []string{}
+
+	if len(users) == 0 {
+		return "No users added"
+	}
+
+	for _, curr := range users {
+		tks := []string{curr.Login}
+
+		if curr.Admin {
+			tks = append(tks, "admin")
+		}
+
+		res = append(res, strings.Join(tks, ":"))
+	}
+
+	return strings.Join(res, ", ")
 }
 
 func (page *UseraddPage) validateLogin() {
@@ -102,7 +125,7 @@ func (page *UseraddPage) validatePassword() {
 
 func newUseraddPage(tui *Tui) (Page, error) {
 	page := &UseraddPage{users: []*UserBtn{}}
-	page.setupMenu(tui, TuiPageUseradd, "Add Users", BackButton, TuiPageAdvancedMenu)
+	page.setupMenu(tui, TuiPageUseradd, "Add Users", BackButton, TuiPageMenu)
 
 	clui.CreateLabel(page.content, 2, 2, "Add new users", Fixed)
 

@@ -6,6 +6,7 @@ package tui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/clearlinux/clr-installer/network"
 
@@ -19,6 +20,34 @@ type NetworkPage struct {
 	btns       []*SimpleButton
 	labels     []*clui.Label
 	interfaces []*network.Interface
+}
+
+// GetConfiguredValue Returns the string representation of currently value set
+func (page *NetworkPage) GetConfiguredValue() string {
+	var err error
+	ifaces := page.getModel().NetworkInterfaces
+
+	if len(ifaces) == 0 {
+		ifaces, err = network.Interfaces()
+		if err != nil {
+			return "Could not load network interfaces"
+		}
+	}
+
+	res := []string{}
+
+	for _, curr := range ifaces {
+		for _, addr := range curr.Addrs {
+			if addr.Version != network.IPv4 {
+				continue
+			}
+
+			tks := []string{addr.IP, addr.NetMask}
+			res = append(res, strings.Join(tks, ":"))
+		}
+	}
+
+	return strings.Join(res, ", ")
 }
 
 // GetConfigDefinition returns if the config was interactively defined by the user,
@@ -99,7 +128,7 @@ func (page *NetworkPage) Activate() {
 func newNetworkPage(tui *Tui) (Page, error) {
 	page := &NetworkPage{}
 	page.setupMenu(tui, TuiPageNetwork, "Configure network interfaces",
-		BackButton, TuiPageAdvancedMenu)
+		BackButton, TuiPageMenu)
 
 	page.frm = clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
 	page.frm.SetPack(clui.Vertical)

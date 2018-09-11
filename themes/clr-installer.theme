@@ -102,14 +102,14 @@ Tab.ViewBack = white
 Tab.ViewText = blue
 
 // ---- Main menu items ---------------------
-MenuButtonText = white bold
-MenuButtonBack = blue
+Main.MenuText = white bold
+Main.MenuBack = blue
 
-MenuButtonActiveText=blue bold
-MenuButtonActiveBack=white
+Main.MenuActiveText=blue bold
+Main.MenuActiveBack=white
 
-SubMenuButtonText=white
-SubMenuButtonBack=blue
+Main.MenuContentText=white
+Main.MenuContentBack=blue
 
-SubMenuButtonActiveText=blue
-SubMenuButtonActiveBack=white
+Main.MenuContentActiveText=blue
+Main.MenuContentActiveBack=white

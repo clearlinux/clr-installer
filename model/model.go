@@ -25,7 +25,7 @@ import (
 // Also used by the Makefile for releases.
 // Default to the version of the program
 // but may be overridden for demo/documentation mode.
-var Version = "0.8.0"
+var Version = "0.9.0"
 
 // SystemInstall represents the system install "configuration", the target
 // medias, bundles to install and whatever state a install may require

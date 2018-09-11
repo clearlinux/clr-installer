@@ -33,11 +33,19 @@ To enable post-installation, use:
 `
 )
 
+// GetConfiguredValue Returns the string representation of currently value set
+func (aup *AutoUpdatePage) GetConfiguredValue() string {
+	if aup.getModel().AutoUpdate {
+		return "Enabled"
+	}
+	return "Disabled"
+}
+
 func newAutoUpdatePage(tui *Tui) (Page, error) {
 	page := &AutoUpdatePage{}
 
 	page.setupMenu(tui, TuiPageAutoUpdate, "Automatic OS Updates",
-		BackButton|DoneButton, TuiPageAdvancedMenu)
+		BackButton|DoneButton, TuiPageMenu)
 
 	lbl := clui.CreateLabel(page.content, 2, 16, autoUpdateHelp, Fixed)
 	lbl.SetMultiline(true)

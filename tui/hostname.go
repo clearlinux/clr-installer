@@ -20,6 +20,17 @@ type HostnamePage struct {
 	userDefined     bool
 }
 
+// GetConfiguredValue Returns the string representation of currently value set
+func (page *HostnamePage) GetConfiguredValue() string {
+	hn := page.getModel().Hostname
+
+	if hn == "" {
+		return "No target system hostname assigned"
+	}
+
+	return hn
+}
+
 // GetConfigDefinition returns if the config was interactively defined by the user,
 // was loaded from a config file or if the config is not set.
 func (page *HostnamePage) GetConfigDefinition() int {
@@ -50,7 +61,7 @@ func (page *HostnamePage) setConfirmButton() {
 
 func newHostnamePage(tui *Tui) (Page, error) {
 	page := &HostnamePage{}
-	page.setupMenu(tui, TuiPageHostname, "Assign Hostname", NoButtons, TuiPageAdvancedMenu)
+	page.setupMenu(tui, TuiPageHostname, "Assign Hostname", NoButtons, TuiPageMenu)
 
 	clui.CreateLabel(page.content, 2, 2, "Assign a Hostname for the installation target", Fixed)
 
@@ -89,7 +100,7 @@ func newHostnamePage(tui *Tui) (Page, error) {
 
 	page.cancelBtn = CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Cancel", Fixed)
 	page.cancelBtn.OnClick(func(ev clui.Event) {
-		page.GotoPage(TuiPageAdvancedMenu)
+		page.GotoPage(TuiPageMenu)
 	})
 
 	page.confirmBtn = CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Confirm", Fixed)
@@ -105,7 +116,7 @@ func newHostnamePage(tui *Tui) (Page, error) {
 		}
 		page.getModel().Hostname = hostname
 		page.setConfirmButton()
-		page.GotoPage(TuiPageAdvancedMenu)
+		page.GotoPage(TuiPageMenu)
 	})
 	page.confirmBtn.SetEnabled(false)
 

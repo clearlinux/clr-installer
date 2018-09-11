@@ -24,6 +24,11 @@ type KernelRadio struct {
 	radio  *clui.Radio
 }
 
+// GetConfiguredValue Returns the string representation of currently value set
+func (kp *KernelPage) GetConfiguredValue() string {
+	return kp.getModel().Kernel.Bundle
+}
+
 // Activate marks selects the kernel radio based on the data model
 func (kp *KernelPage) Activate() {
 	model := kp.getModel()
@@ -64,7 +69,7 @@ func newKernelPage(tui *Tui) (Page, error) {
 		page.kernels = append(page.kernels, &KernelRadio{curr, nil})
 	}
 
-	page.setupMenu(tui, TuiPageKernel, "Kernel Selection", NoButtons, TuiPageAdvancedMenu)
+	page.setupMenu(tui, TuiPageKernel, "Kernel Selection", NoButtons, TuiPageMenu)
 	clui.CreateLabel(page.content, 2, 2, "Select desired kernel", Fixed)
 
 	frm := clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
@@ -88,7 +93,7 @@ func newKernelPage(tui *Tui) (Page, error) {
 
 	cancelBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Cancel", Fixed)
 	cancelBtn.OnClick(func(ev clui.Event) {
-		page.GotoPage(TuiPageAdvancedMenu)
+		page.GotoPage(TuiPageMenu)
 	})
 
 	confirmBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Confirm", Fixed)
@@ -96,7 +101,7 @@ func newKernelPage(tui *Tui) (Page, error) {
 		selected := page.group.Selected()
 		page.getModel().Kernel = page.kernels[selected].kernel
 		page.SetDone(true)
-		page.GotoPage(TuiPageAdvancedMenu)
+		page.GotoPage(TuiPageMenu)
 	})
 
 	return page, nil

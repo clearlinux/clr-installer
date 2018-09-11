@@ -5,6 +5,7 @@
 package tui
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/VladimirMarkelov/clui"
@@ -15,6 +16,23 @@ import (
 // TelemetryPage is the Page implementation for the telemetry configuration page
 type TelemetryPage struct {
 	BasePage
+}
+
+// GetConfiguredValue Returns the string representation of currently value set
+func (tp *TelemetryPage) GetConfiguredValue() string {
+	var obs string
+	var res string
+
+	if tp.getModel().Telemetry.Defined {
+		obs = " (Acknowledgment required)"
+	}
+
+	res = "Disabled"
+	if tp.getModel().Telemetry.Enabled {
+		res = "Enabled"
+	}
+
+	return fmt.Sprintf("%s %s", res, obs)
 }
 
 func newTelemetryPage(tui *Tui) (Page, error) {

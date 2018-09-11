@@ -19,6 +19,17 @@ type ProxyPage struct {
 	confirmBtn        *SimpleButton
 }
 
+// GetConfiguredValue Returns the string representation of currently value set
+func (pp *ProxyPage) GetConfiguredValue() string {
+	value := pp.getModel().HTTPSProxy
+
+	if value == "" {
+		return "No HTTPS proxy URL set"
+	}
+
+	return value
+}
+
 // Activate sets the https proxy with the current model's value
 func (pp *ProxyPage) Activate() {
 	pp.httpsProxyEdit.SetTitle(pp.getModel().HTTPSProxy)
@@ -35,7 +46,7 @@ func (pp *ProxyPage) setConfirmButton() {
 
 func newProxyPage(tui *Tui) (Page, error) {
 	page := &ProxyPage{}
-	page.setupMenu(tui, TuiPageProxy, "Proxy", NoButtons, TuiPageAdvancedMenu)
+	page.setupMenu(tui, TuiPageProxy, "Proxy", NoButtons, TuiPageMenu)
 
 	clui.CreateLabel(page.content, 2, 2, "Configure the network proxy", Fixed)
 
@@ -82,7 +93,7 @@ func newProxyPage(tui *Tui) (Page, error) {
 
 	cancelBtn := CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Cancel", Fixed)
 	cancelBtn.OnClick(func(ev clui.Event) {
-		page.GotoPage(TuiPageAdvancedMenu)
+		page.GotoPage(TuiPageMenu)
 	})
 
 	page.confirmBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Confirm", Fixed)
@@ -92,7 +103,7 @@ func newProxyPage(tui *Tui) (Page, error) {
 		page.getModel().HTTPSProxy = proxy
 		if dialog, err := CreateNetworkTestDialogBox(page.tui.model); err == nil {
 			dialog.OnClose(func() {
-				page.GotoPage(TuiPageAdvancedMenu)
+				page.GotoPage(TuiPageMenu)
 			})
 			if dialog.RunNetworkTest() {
 				page.SetDone(proxy != "")

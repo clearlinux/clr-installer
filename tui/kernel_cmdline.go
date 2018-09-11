@@ -14,6 +14,17 @@ type KernelCMDLine struct {
 	kernelCMDLineEdit *clui.EditField
 }
 
+// GetConfiguredValue Returns the string representation of currently value set
+func (pp *KernelCMDLine) GetConfiguredValue() string {
+	cmdLine := pp.getModel().KernelCMDLine
+
+	if cmdLine == "" {
+		return "No kernel command line append set"
+	}
+
+	return cmdLine
+}
+
 // Activate sets the kernel cmd line configuration with the current model's value
 func (pp *KernelCMDLine) Activate() {
 	pp.kernelCMDLineEdit.SetTitle(pp.getModel().KernelCMDLine)
@@ -21,7 +32,7 @@ func (pp *KernelCMDLine) Activate() {
 
 func newKernelCMDLine(tui *Tui) (Page, error) {
 	page := &KernelCMDLine{}
-	page.setupMenu(tui, TuiPageKernelCMDLine, "Kernel Command Line", NoButtons, TuiPageAdvancedMenu)
+	page.setupMenu(tui, TuiPageKernelCMDLine, "Kernel Command Line", NoButtons, TuiPageMenu)
 
 	clui.CreateLabel(page.content, 2, 2, "Configure the Kernel Command Line", Fixed)
 
@@ -49,7 +60,7 @@ func newKernelCMDLine(tui *Tui) (Page, error) {
 
 	cancelBtn := CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Cancel", Fixed)
 	cancelBtn.OnClick(func(ev clui.Event) {
-		page.GotoPage(TuiPageAdvancedMenu)
+		page.GotoPage(TuiPageMenu)
 	})
 
 	confirmBtn := CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Confirm", Fixed)
@@ -57,7 +68,7 @@ func newKernelCMDLine(tui *Tui) (Page, error) {
 	confirmBtn.OnClick(func(ev clui.Event) {
 		page.getModel().KernelCMDLine = page.kernelCMDLineEdit.Title()
 		page.SetDone(page.kernelCMDLineEdit.Title() != "")
-		page.GotoPage(TuiPageAdvancedMenu)
+		page.GotoPage(TuiPageMenu)
 	})
 
 	page.activated = page.kernelCMDLineEdit

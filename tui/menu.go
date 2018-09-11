@@ -5,52 +5,64 @@
 package tui
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/VladimirMarkelov/clui"
-
 	"github.com/clearlinux/clr-installer/controller"
+
+	"github.com/VladimirMarkelov/clui"
 )
 
 // MenuPage is the Page implementation for the main menu page
 type MenuPage struct {
 	BasePage
-	btns       []*SimpleButton
 	installBtn *SimpleButton
+	tabGroup   *TabGroup
+	reqTab     *TabPage
+	advTab     *TabPage
 }
 
-func (page *MenuPage) addMenuItem(item Page) bool {
+func (page *MenuPage) addMenuItem(item Page, tab *TabPage) *MenuButton {
+	fw, _ := tab.frame.Size()
 
-	buttonPrefix := page.GetButtonPrefix(item)
-	title := fmt.Sprintf(" %s %s", buttonPrefix, item.GetMenuTitle())
-	btn := CreateSimpleButton(page.content, AutoSize, AutoSize, title, Fixed)
-	btn.SetStyle("Menu")
+	btn := CreateMenuButton(tab.frame, MenuButtonStatusDefault, item.GetMenuTitle(), fw)
+	btn.SetStyle("Main")
 	btn.SetAlign(AlignLeft)
+	btn.SetActive(false)
+
+	item.SetMenuButton(btn)
 
 	btn.OnClick(func(ev clui.Event) {
+		tab.activeMenu = btn
 		page.GotoPage(item.GetID())
 	})
 
-	page.btns = append(page.btns, btn)
-
-	return buttonPrefix != MenuButtonPrefixUncompleted
+	return btn
 }
 
 // Activate is called when the page is "shown" and it repaints the main menu based on the
 // available menu pages and their done/undone status
 func (page *MenuPage) Activate() {
-	for _, curr := range page.btns {
-		curr.Destroy()
-	}
-	page.btns = []*SimpleButton{}
-
 	previous := false
 	activeSet := false
+
+	// if we're returning to the "advanced" tab then simply sets the previously
+	// active menu item
+	if page.advTab.IsVisible() {
+		page.activated = page.advTab.activeMenu
+		activeSet = true
+	}
+
+	// if we're returning to the "required" tab then we iterate over not yet
+	// completed required "tasks" and select the missing one
 	for _, curr := range page.tui.pages {
-		// Skip Menu Pages that are not required
-		if !curr.IsRequired() {
+		if curr.GetMenuTitle() == "" || curr.GetID() == page.GetID() {
 			continue
+		}
+
+		tab := page.reqTab
+
+		if !curr.IsRequired() {
+			tab = page.advTab
 		}
 
 		if page.tui.prevPage != nil {
@@ -58,21 +70,30 @@ func (page *MenuPage) Activate() {
 			previous = page.tui.prevPage.GetID() == curr.GetID()
 		}
 
+		btn := curr.GetMenuButton()
+
+		if btn == nil {
+			btn = page.addMenuItem(curr, tab)
+		}
+
+		btn.SetMenuItemValue(curr.GetConfiguredValue())
+		btn.SetStatus(GetMenuStatus(curr))
+
 		// Does the menu item added have the data set completed?
-		completed := page.addMenuItem(curr)
+		completed := GetMenuStatus(curr) != MenuButtonStatusDefault
 
 		// If we haven't found the first active choice, set it
 		if !activeSet && !completed {
 			// Make last button added Active
-			page.activated = page.btns[len(page.btns)-1]
+			page.activated = btn
 			activeSet = true
 		}
 
 		// Special case if the previous page and the data set is not completed
 		// we want THIS to be the active choice for easy return
-		if previous && !completed {
+		if previous && !completed && !activeSet {
 			// Make last button added Active
-			page.activated = page.btns[len(page.btns)-1]
+			page.activated = btn
 			activeSet = true
 		}
 	}
@@ -80,22 +101,50 @@ func (page *MenuPage) Activate() {
 	if page.getModel() != nil && page.getModel().Validate() == nil {
 		page.installBtn.SetEnabled(true)
 		page.activated = page.installBtn
+	} else {
+		scrollTabToActive(page.activated, page.tabGroup)
 	}
 }
 
-const (
-	menuHelp = `Choose the next steps. Use <Tab> or arrow keys (up and down) to navigate
-between the elements.
-`
-)
+func scrollTabToActive(activated clui.Control, group *TabGroup) {
+	if activated == nil {
+		return
+	}
+
+	vFrame := group.GetVisibleFrame()
+
+	_, cy, _, ch := vFrame.Clipper()
+	vx, vy := vFrame.Pos()
+
+	_, ay := activated.Pos()
+	_, ah := activated.Size()
+
+	if ay+ah > cy+ch || ay < cy {
+		diff := (cy + ch) - (ay + ah)
+		ty := vy + diff
+		vFrame.ScrollTo(vx, ty)
+	}
+}
 
 func newMenuPage(tui *Tui) (Page, error) {
+	var err error
+
 	page := &MenuPage{}
 	page.setup(tui, TuiPageMenu, NoButtons, TuiPageMenu)
 
-	lbl := clui.CreateLabel(page.content, 2, 3, menuHelp, Fixed)
-	lbl.SetMultiline(true)
-	lbl.SetPaddings(0, 2)
+	// the menu is an special case, we have no paddings
+	page.content.SetPaddings(0, 0)
+
+	page.tabGroup = NewTabGroup(page.content, 1, ContentHeight)
+	page.reqTab, err = page.tabGroup.AddTab("Required options", 'r')
+	if err != nil {
+		return nil, err
+	}
+
+	page.advTab, err = page.tabGroup.AddTab("Advanced options", 'a')
+	if err != nil {
+		return nil, err
+	}
 
 	cancelBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Cancel", Fixed)
 	cancelBtn.OnClick(func(ev clui.Event) {

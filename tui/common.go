@@ -5,9 +5,6 @@
 package tui
 
 import (
-	"reflect"
-	"strings"
-
 	"github.com/clearlinux/clr-installer/model"
 
 	"github.com/VladimirMarkelov/clui"
@@ -17,21 +14,21 @@ import (
 // BasePage is the common implementation for the TUI frontend
 // other pages will inherit this base page behaviours
 type BasePage struct {
-	tui       *Tui          // the Tui frontend reference
-	window    *clui.Window  // the page window
-	mFrame    *clui.Frame   // main frame
-	content   *clui.Frame   // the main content frame
-	cFrame    *clui.Frame   // control frame
-	cancelBtn *SimpleButton // cancel button
-	backBtn   *SimpleButton // back button
-	doneBtn   *SimpleButton // done button
-	activated clui.Control  // activated control
-	menuTitle string        // the title used to show on main menu
-	done      bool          // marks if an item is completed
-	id        int           // the page id
-	data      interface{}   // arbitrary page context data
-	action    int           // indicates if the user has performed a navigation action
-	required  bool          // marks if an item is required for the install
+	tui        *Tui          // the Tui frontend reference
+	window     *clui.Window  // the page window
+	content    *clui.Frame   // the main content frame
+	cFrame     *clui.Frame   // control frame
+	cancelBtn  *SimpleButton // cancel button
+	backBtn    *SimpleButton // back button
+	doneBtn    *SimpleButton // done button
+	activated  clui.Control  // activated control
+	menuTitle  string        // the title used to show on main menu
+	done       bool          // marks if an item is completed
+	id         int           // the page id
+	data       interface{}   // arbitrary page context data
+	action     int           // indicates if the user has performed a navigation action
+	required   bool          // marks if an item is required for the install
+	menuButton *MenuButton
 }
 
 // Page defines the methods a Page must implement
@@ -48,7 +45,9 @@ type Page interface {
 	Activate()
 	DeActivate()
 	GetConfigDefinition() int
-	GetButtonPrefix(item Page) string
+	GetConfiguredValue() string
+	SetMenuButton(mb *MenuButton)
+	GetMenuButton() *MenuButton
 }
 
 const (
@@ -57,14 +56,8 @@ const (
 	// WindowHeight is our desired terminal width
 	WindowHeight = 24
 
-	// MenuButtonPrefixUncompleted is the standard, uncompleted prefix for a menu button
-	MenuButtonPrefixUncompleted = "[ ]"
-	// MenuButtonPrefixCompletedByConfig is the completed by config prefix for a menu button
-	MenuButtonPrefixCompletedByConfig = "[*]"
-	// MenuButtonPrefixCompletedByUser is the completed by user prefix for a menu button
-	MenuButtonPrefixCompletedByUser = "[+]"
-	// MenuButtonPrefixSubMenu is the prefix for a sub-menu button
-	MenuButtonPrefixSubMenu = "-->"
+	// ContentHeight is content frame height
+	ContentHeight = 15
 
 	// AutoSize is shortcut for clui.AutoSize flag
 	AutoSize = clui.AutoSize
@@ -150,9 +143,6 @@ const (
 	// TuiPageKernel is the id for the kernel selection page
 	TuiPageKernel
 
-	// TuiPageAdvancedMenu is the id for Advanced/Optional configuration menu
-	TuiPageAdvancedMenu
-
 	// TuiPageSwupdMirror is the id for the swupd mirror page
 	TuiPageSwupdMirror
 
@@ -193,6 +183,21 @@ func isPopUpPage(id int) bool {
 	}
 
 	return false
+}
+
+// SetMenuButton sets the page's menu control
+func (page *BasePage) SetMenuButton(mb *MenuButton) {
+	page.menuButton = mb
+}
+
+// GetMenuButton returns the page's menu control
+func (page *BasePage) GetMenuButton() *MenuButton {
+	return page.menuButton
+}
+
+// GetConfiguredValue Returns the string representation of currently value set
+func (page *BasePage) GetConfiguredValue() string {
+	return "Unknown value"
 }
 
 // GetConfigDefinition is a stub implementation
@@ -267,23 +272,17 @@ func (page *BasePage) IsRequired() bool {
 	return page.required
 }
 
-// GetButtonPrefix returns string for prefixing a menu button
-func (page *BasePage) GetButtonPrefix(item Page) string {
-	prefix := MenuButtonPrefixUncompleted
+// GetMenuStatus returns the menu button status id
+func GetMenuStatus(item Page) int {
+	res := MenuButtonStatusDefault
 
 	if item.GetDone() {
-		prefix = MenuButtonPrefixCompletedByUser
+		res = MenuButtonStatusUserDefined
 	} else if item.GetConfigDefinition() == ConfigDefinedByConfig {
-		prefix = MenuButtonPrefixCompletedByConfig
+		res = MenuButtonStatusAutoDetect
 	}
 
-	itemType := reflect.TypeOf(item).Elem().Name()
-
-	if strings.Contains(itemType, "SubMenu") {
-		prefix = MenuButtonPrefixSubMenu
-	}
-
-	return prefix
+	return res
 }
 
 func (page *BasePage) setupMenu(tui *Tui, id int, menuTitle string, btns int, returnID int) {
@@ -295,19 +294,19 @@ func (page *BasePage) setup(tui *Tui, id int, btns int, returnID int) {
 	page.action = ActionNone
 	page.id = id
 	page.tui = tui
+
 	page.newWindow()
+	page.window.SetPack(clui.Vertical)
 
-	page.mFrame = clui.CreateFrame(page.window, 78, 22, BorderNone, clui.Fixed)
-	page.mFrame.SetPack(clui.Vertical)
-
-	page.content = clui.CreateFrame(page.mFrame, 8, 21, BorderNone, clui.Fixed)
+	page.content = clui.CreateFrame(page.window, AutoSize, ContentHeight,
+		BorderNone, clui.Fixed)
 	page.content.SetPack(clui.Vertical)
 	page.content.SetPaddings(2, 1)
 
-	page.cFrame = clui.CreateFrame(page.mFrame, AutoSize, 1, BorderNone, Fixed)
+	page.cFrame = clui.CreateFrame(page.window, AutoSize, 1, BorderNone, Fixed)
 	page.cFrame.SetPack(clui.Horizontal)
 	page.cFrame.SetGaps(1, 1)
-	page.cFrame.SetPaddings(2, 0)
+	page.cFrame.SetPaddings(3, 0)
 
 	if btns&CancelButton == CancelButton {
 		page.newCancelButton(returnID)
@@ -321,6 +320,12 @@ func (page *BasePage) setup(tui *Tui, id int, btns int, returnID int) {
 		page.newDoneButton(tui, returnID)
 	}
 
+	frm := clui.CreateFrame(page.window, AutoSize, 1, BorderNone, Fixed)
+	frm.SetPaddings(3, 1)
+
+	clui.CreateLabel(frm, AutoSize, 1,
+		"Use [Tab] or the arrow keys [up and down] to navigate", Fixed)
+
 	page.window.SetVisible(false)
 }
 
@@ -330,7 +335,9 @@ func (page *BasePage) newWindow() {
 	x := (sw - WindowWidth) / 2
 	y := (sh - WindowHeight) / 2
 
-	page.window = clui.AddWindow(x, y, WindowWidth, WindowHeight, " [Clear Linux Installer ("+model.Version+")] ")
+	page.window = clui.AddWindow(x, y, WindowWidth, WindowHeight,
+		" [Clear Linux Installer ("+model.Version+")] ")
+
 	page.window.SetTitleButtons(0)
 	page.window.SetSizable(false)
 	page.window.SetMovable(false)
@@ -342,6 +349,7 @@ func (page *BasePage) newWindow() {
 		y := (evt.Height - wh) / 2
 
 		page.window.SetPos(x, y)
+		page.window.ResizeChildren()
 		page.window.PlaceChildren()
 	})
 }
