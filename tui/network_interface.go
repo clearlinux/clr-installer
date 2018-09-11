@@ -157,7 +157,7 @@ func validateIPEdit(k term.Key, ch rune) bool {
 
 func newNetworkInterfacePage(tui *Tui) (Page, error) {
 	page := &NetworkInterfacePage{}
-	page.setup(tui, TuiPageInterface, NoButtons, TuiPageAdvancedMenu)
+	page.setup(tui, TuiPageInterface, NoButtons, TuiPageMenu)
 
 	frm := clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
 	frm.SetPack(clui.Horizontal)

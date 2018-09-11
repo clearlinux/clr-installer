@@ -16,8 +16,9 @@ import (
 // visual elements (i.e no shadows).
 type SimpleButton struct {
 	clui.BaseControl
-	pressed int32
-	onClick func(clui.Event)
+	pressed          int32
+	onClick          func(clui.Event)
+	forceActiveStyle bool
 }
 
 // CreateSimpleButton returns an instance of SimpleButton
@@ -70,7 +71,7 @@ func (b *SimpleButton) Draw() {
 	if !b.Enabled() {
 		fg = clui.RealColor(fg, b.Style(), "ButtonDisabledText")
 		bg = clui.RealColor(bg, b.Style(), "ButtonDisabledBack")
-	} else if b.Active() {
+	} else if b.Active() || b.ForceActiveStyle() {
 		fgActive, bgActive := b.ActiveColors()
 
 		fg = clui.RealColor(fgActive, b.Style(), "ButtonActiveText")
@@ -170,4 +171,15 @@ func (b *SimpleButton) ProcessEvent(event clui.Event) bool {
 // OnClick sets the button's onClick callback
 func (b *SimpleButton) OnClick(fn func(clui.Event)) {
 	b.onClick = fn
+}
+
+// SetForceActiveStyle even if the button is not active the user may want
+// to force setting the active style
+func (b *SimpleButton) SetForceActiveStyle(f bool) {
+	b.forceActiveStyle = f
+}
+
+// ForceActiveStyle returns the forceActiveStyle flag
+func (b *SimpleButton) ForceActiveStyle() bool {
+	return b.forceActiveStyle
 }

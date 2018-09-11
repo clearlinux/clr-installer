@@ -128,7 +128,6 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string) (bool, error) {
 		{"kernel cmdline", newKernelCMDLine},
 		{"kernel selection", newKernelPage},
 		{"install", newInstallPage},
-		{"advanced menu", newAdvancedPage},
 		{"swupd mirror", newSwupdMirrorPage},
 		{"hostname", newHostnamePage},
 		{"autoupdate", newAutoUpdatePage},

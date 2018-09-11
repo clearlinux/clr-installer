@@ -17,6 +17,11 @@ type LanguagePage struct {
 	langListBox *clui.ListBox
 }
 
+// GetConfiguredValue Returns the string representation of currently language set
+func (page *LanguagePage) GetConfiguredValue() string {
+	return page.getModel().Language.String()
+}
+
 // GetConfigDefinition returns if the config was interactively defined by the user,
 // was loaded from a config file or if the config is not set.
 func (page *LanguagePage) GetConfigDefinition() int {
@@ -73,7 +78,7 @@ func newLanguagePage(tui *Tui) (Page, error) {
 	lbl := clui.CreateLabel(page.content, 2, 2, "Select System Language", Fixed)
 	lbl.SetPaddings(0, 2)
 
-	page.langListBox = clui.CreateListBox(page.content, AutoSize, 17, Fixed)
+	page.langListBox = clui.CreateListBox(page.content, AutoSize, ContentHeight-1, Fixed)
 
 	defLanguage := 0
 	for idx, curr := range page.avLanguages {

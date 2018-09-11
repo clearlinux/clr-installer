@@ -16,12 +16,13 @@ import (
 // the Page interface, but does not allocate a Window. Instead it will launch
 // a modal PopUp window.
 type NetworkValidatePage struct {
-	tui       *Tui        // the Tui frontend reference
-	menuTitle string      // the title used to show on main menu
-	done      bool        // marks if an item is completed
-	id        int         // the page id
-	data      interface{} // arbitrary page context data
-	required  bool        // marks if an item is required for the install
+	tui        *Tui        // the Tui frontend reference
+	menuTitle  string      // the title used to show on main menu
+	done       bool        // marks if an item is completed
+	id         int         // the page id
+	data       interface{} // arbitrary page context data
+	required   bool        // marks if an item is required for the install
+	menuButton *MenuButton // the menu button reference
 }
 
 // GetID returns the current page's identifier
@@ -74,7 +75,7 @@ func (page *NetworkValidatePage) GetDone() bool {
 func (page *NetworkValidatePage) Activate() {
 	if dialog, err := CreateNetworkTestDialogBox(page.tui.model); err == nil {
 		dialog.OnClose(func() {
-			page.tui.gotoPage(TuiPageAdvancedMenu, page.tui.currPage)
+			page.tui.gotoPage(TuiPageMenu, page.tui.currPage)
 		})
 
 		result := dialog.RunNetworkTest()
@@ -100,15 +101,24 @@ func (page *NetworkValidatePage) GetConfigDefinition() int {
 	return ConfigDefinedByUser
 }
 
-// GetButtonPrefix returns string for prefixing a menu button
-func (page *NetworkValidatePage) GetButtonPrefix(item Page) string {
-	prefix := MenuButtonPrefixUncompleted
+// GetConfiguredValue Returns the string representation of currently value set
+func (page *NetworkValidatePage) GetConfiguredValue() string {
+	return "Check if all the required network settings are properly set"
+}
 
-	if item.GetDone() {
-		prefix = MenuButtonPrefixCompletedByUser
-	}
+// GetMenuStatus returns the menu button status id
+func (page *NetworkValidatePage) GetMenuStatus(item Page) int {
+	return MenuButtonStatusDefault
+}
 
-	return prefix
+// GetMenuButton is a page implementation for network validate popup
+func (page *NetworkValidatePage) GetMenuButton() *MenuButton {
+	return page.menuButton
+}
+
+// SetMenuButton is a no-op page implementation for network validate popup
+func (page *NetworkValidatePage) SetMenuButton(mb *MenuButton) {
+	page.menuButton = mb
 }
 
 func newNetworkValidatePage(tui *Tui) (Page, error) {

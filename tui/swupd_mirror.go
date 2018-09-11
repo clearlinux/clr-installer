@@ -22,6 +22,17 @@ type SwupdMirrorPage struct {
 	userDefined        bool
 }
 
+// GetConfiguredValue Returns the string representation of currently value set
+func (page *SwupdMirrorPage) GetConfiguredValue() string {
+	mirror := page.getModel().SwupdMirror
+
+	if mirror == "" {
+		return "No swupd mirror set"
+	}
+
+	return mirror
+}
+
 // GetConfigDefinition returns if the config was interactively defined by the user,
 // was loaded from a config file or if the config is not set.
 func (page *SwupdMirrorPage) GetConfigDefinition() int {
@@ -52,7 +63,7 @@ func (page *SwupdMirrorPage) setConfirmButton() {
 
 func newSwupdMirrorPage(tui *Tui) (Page, error) {
 	page := &SwupdMirrorPage{}
-	page.setupMenu(tui, TuiPageSwupdMirror, "Swupd Mirror", NoButtons, TuiPageAdvancedMenu)
+	page.setupMenu(tui, TuiPageSwupdMirror, "Swupd Mirror", NoButtons, TuiPageMenu)
 
 	clui.CreateLabel(page.content, 2, 2, "Configure the Installation Source (swupd) Mirror", Fixed)
 
@@ -101,7 +112,7 @@ func newSwupdMirrorPage(tui *Tui) (Page, error) {
 
 	page.cancelBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Cancel", Fixed)
 	page.cancelBtn.OnClick(func(ev clui.Event) {
-		page.GotoPage(TuiPageAdvancedMenu)
+		page.GotoPage(TuiPageMenu)
 	})
 
 	page.confirmBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Confirm", Fixed)
@@ -114,7 +125,7 @@ func newSwupdMirrorPage(tui *Tui) (Page, error) {
 				page.getModel().SwupdMirror = mirror
 			}
 			page.SetDone(false)
-			page.GotoPage(TuiPageAdvancedMenu)
+			page.GotoPage(TuiPageMenu)
 			page.userDefined = false
 		} else {
 			url, err := swupd.SetHostMirror(mirror)
@@ -127,7 +138,7 @@ func newSwupdMirrorPage(tui *Tui) (Page, error) {
 					page.userDefined = true
 					page.getModel().SwupdMirror = mirror
 					page.SetDone(true)
-					page.GotoPage(TuiPageAdvancedMenu)
+					page.GotoPage(TuiPageMenu)
 				}
 			}
 		}
