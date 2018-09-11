@@ -78,7 +78,7 @@ func newKeyboardPage(tui *Tui) (Page, error) {
 		},
 	}
 
-	page.setupMenu(tui, TuiPageKeyboard, "Configure the keyboard",
+	page.setupMenu(tui, TuiPageKeyboard, "Configure the Keyboard",
 		DoneButton|CancelButton, TuiPageMenu)
 
 	lbl := clui.CreateLabel(page.content, 2, 2, "Select Keyboard", Fixed)

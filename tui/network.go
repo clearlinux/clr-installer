@@ -127,7 +127,7 @@ func (page *NetworkPage) Activate() {
 
 func newNetworkPage(tui *Tui) (Page, error) {
 	page := &NetworkPage{}
-	page.setupMenu(tui, TuiPageNetwork, "Configure network interfaces",
+	page.setupMenu(tui, TuiPageNetwork, "Configure Network Interfaces",
 		BackButton, TuiPageMenu)
 
 	page.frm = clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
