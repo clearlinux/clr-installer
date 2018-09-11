@@ -32,12 +32,18 @@ before_script:
     - docker exec -it clear-test bash -c "telemctl restart"
       # Debug information to verify restart
     - docker exec -it clear-test bash -c "journalctl|cat"
+      # Add a non-root user
+    - docker exec -it clear-test bash -c "cd /travis ; ls -l ; ls -ln"
+    - docker exec -it clear-test bash -c "useradd -d /travis --uid $UID --user-group travis"
+    - docker exec -it clear-test bash -c "cd /travis ; ls -l ; ls -ln"
+    - docker exec -it --user $UID clear-test bash -c "cd /travis ; id ; pwd"
 
 script:
-    - docker exec -it clear-test bash -c "cd /travis ; make dist-clean"
-    - docker exec -it clear-test bash -c "cd /travis ; make"
-    - docker exec -it clear-test bash -c "cd /travis ; make lint"
-    - travis_retry docker exec -it clear-test bash -c "cd /travis ; make check"
+    - docker exec -it --user $UID clear-test bash -c "cd /travis ; make dist-clean"
+    - docker exec -it --user $UID clear-test bash -c "cd /travis ; make"
+    - docker exec -it --user $UID clear-test bash -c "cd /travis ; make lint"
+    - travis_retry docker exec -it --user $UID clear-test bash -c "cd /travis ; make check"
+    - travis_retry docker exec -it --user $UID clear-test bash -c "cd /travis ; make check-root"
 
 after_script:
     - docker container stop clear-test
