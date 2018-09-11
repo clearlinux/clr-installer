@@ -78,13 +78,13 @@ Menu.ButtonDisabledText=white bold
 Menu.ButtonDisabledBack=red
 
 
-PartButton.Back=blue
-PartButton.Text=white
-PartButton.ActiveBack=cyan
-PartButton.ActiveText=black
-PartButton.ShadowBack=black
-PartButton.DisabledText=white bold
-PartButton.DisabledBack=red
+Part.ButtonBack=blue
+Part.ButtonText=white
+Part.ButtonActiveBack=cyan
+Part.ButtonActiveText=black
+Part.ButtonShadowBack=black
+Part.ButtonDisabledText=white bold
+Part.ButtonDisabledBack=red
 
 
 //----- Main menu tab theme ------------------
