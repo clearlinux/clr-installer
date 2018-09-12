@@ -71,6 +71,10 @@ func ChildAt(parent Control, x, y int) Control {
 	var ctrl Control
 	ctrl = parent
 	for _, child := range parent.Children() {
+		if !child.Visible() {
+			continue
+		}
+
 		check := ChildAt(child, x, y)
 		if check != nil {
 			ctrl = check
@@ -213,7 +217,21 @@ func getLinearControlList(parent Control, fn func(Control) bool) []Control {
 // that has tab-stop feature on. Used by library when processing TAB key
 func NextControl(parent Control, curr Control, next bool) Control {
 	fnTab := func(c Control) bool {
-		return c.TabStop() && c.Visible() && c.Enabled()
+		isVisible := func() bool {
+			ctrl := c.Parent()
+
+			for ctrl != nil {
+				if !ctrl.Visible() {
+					return false
+				}
+
+				ctrl = ctrl.Parent()
+			}
+
+			return c.Visible()
+		}
+
+		return c.TabStop() && isVisible() && c.Enabled()
 	}
 
 	linear := getLinearControlList(parent, fnTab)
