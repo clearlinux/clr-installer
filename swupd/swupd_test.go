@@ -63,7 +63,8 @@ func TestIsCoreBundle(t *testing.T) {
 		{"go-basic", false},
 		{"git", false},
 		{"games", false},
-		{"os-core", true},
+		{"sudo", true},
+		{"os-core-update", true},
 		{"os-core-update", true},
 	}
 

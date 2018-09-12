@@ -1,5 +1,5 @@
 ---
-bundles: [os-core, os-core-update]
+bundles: [os-core, os-core-update, sudo]
 keyboard: us
 language: en_US.UTF-8
 timezone: "America/Los_Angeles"
