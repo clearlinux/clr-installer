@@ -25,6 +25,7 @@ var (
 	CoreBundles = []string{
 		"os-core",
 		"os-core-update",
+		"sudo",
 	}
 )
 
@@ -100,7 +101,14 @@ func (s *SoftwareUpdater) Verify(version string, mirror string) error {
 		"bundle-add",
 		fmt.Sprintf("--path=%s", s.rootDir),
 		fmt.Sprintf("--statedir=%s", s.stateDir),
-		"os-core-update",
+	}
+
+	// Remove the 'os-core' bundle as it is already
+	// installed and will cause a failure
+	for _, bundle := range CoreBundles {
+		if bundle != "os-core" {
+			args = append(args, bundle)
+		}
 	}
 
 	err = cmd.RunAndLog(args...)
