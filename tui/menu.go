@@ -104,10 +104,7 @@ func newMenuPage(tui *Tui) (Page, error) {
 
 	page.installBtn = CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Install", Fixed)
 	page.installBtn.OnClick(func(ev clui.Event) {
-		if controller.NetworkPassing {
-			// Network already validated, just start the install
-			page.GotoPage(TuiPageInstall)
-		} else {
+		if !controller.NetworkPassing {
 			// Network needs to be validated before the install
 			if dialog, err := CreateNetworkTestDialogBox(page.tui.model); err == nil {
 				if dialog.RunNetworkTest() {
@@ -115,11 +112,19 @@ func newMenuPage(tui *Tui) (Page, error) {
 					clui.RefreshScreen()
 					time.Sleep(time.Second)
 					dialog.Close()
-
-					page.GotoPage(TuiPageInstall)
 				} else {
 					page.installBtn.SetEnabled(false)
 				}
+			}
+		}
+
+		if page.installBtn.Enabled() {
+			if dialog, err := CreateConfirmInstallDialogBox(page.tui.model); err == nil {
+				dialog.OnClose(func() {
+					if dialog.Confirmed {
+						page.GotoPage(TuiPageInstall)
+					}
+				})
 			}
 		}
 	})
