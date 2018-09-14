@@ -156,7 +156,7 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 	lblFrm.SetPack(clui.Vertical)
 	lblFrm.SetPaddings(1, 0)
 
-	lbl = clui.CreateLabel(lblFrm, AutoSize, 3, "File System:", Fixed)
+	lbl = clui.CreateLabel(lblFrm, AutoSize, 4, "File System:", Fixed)
 	lbl.SetAlign(AlignRight)
 
 	lbl = clui.CreateLabel(lblFrm, AutoSize, 3, "Mount Point:", Fixed)
@@ -168,8 +168,17 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 	fldFrm := clui.CreateFrame(frm, 30, AutoSize, BorderNone, Fixed)
 	fldFrm.SetPack(clui.Vertical)
 
-	page.fsList = clui.CreateListBox(fldFrm, 1, 2, Fixed)
+	page.fsList = clui.CreateListBox(fldFrm, 1, 3, Fixed)
 	page.fsList.SetAlign(AlignLeft)
+	page.fsList.SetStyle("List")
+
+	page.fsList.OnActive(func(active bool) {
+		if active {
+			page.fsList.SetStyle("ListActive")
+		} else {
+			page.fsList.SetStyle("List")
+		}
+	})
 
 	for _, fs := range storage.SupportedFileSystems() {
 		page.fsList.AddItem(fs)

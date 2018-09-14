@@ -10,7 +10,7 @@
 //----------------- Theme properties -----------------
 title=Clear Linux Installer
 author=Leandro Dorileo
-version=0.1
+version=0.2
 parent=default
 
 //----------------- Colors -----------------
@@ -24,23 +24,51 @@ Text = white
 
 // button control
 ButtonBack=white
-ButtonText=black
+ButtonText=blue
+
 ButtonActiveBack=cyan
-ButtonActiveText=black
+ButtonActiveText=blue
+
 ButtonShadowBack=black
-ButtonDisabledText=white bold
-ButtonDisabledBack=red
+
+ButtonDisabledText=blue
+ButtonDisabledBack=black
+
+// lists
+List.EditBack       = blue
+List.EditText       = white
+
+List.EditActiveBack = blue
+List.EditActiveText = white
+
+List.SelectionText  = blue bold
+List.SelectionBack  = white
+
+// active lists variation
+ListActive.EditBack       = blue
+ListActive.EditText       = white
+
+ListActive.EditActiveBack = blue
+ListActive.EditActiveText = white
+
+ListActive.SelectionText = blue bold
+ListActive.SelectionBack = cyan
 
 // editable & listbox-like controls (interactive ones)
 EditBack       = white
-EditText       = black bold
-EditActiveBack = magenta
-EditActiveText = white bold
-SelectionText  = white bold
-SelectionBack  = blue
+EditText       = blue bold
 
-GrayBack = red
-GrayText = white bold
+EditActiveBack = cyan
+EditActiveText = blue bold
+
+EditDisabledBack = black
+EditDisabledText = blue
+
+GrayText = blue
+GrayBack = black
+
+SelectionText  = blue bold
+SelectionBack  = cyan
 
 // progressbar control
 ProgressBack       = blue
@@ -50,6 +78,11 @@ ProgressActiveText = yellow bold
 
 // checkbox
 ControlBack = blue
+ControlText = white
+ControlDisabledBack = black
+ControlDisabledText = blue
+ControlActiveBack = cyan
+ControlActiveText = blue bold
 
 //----------------- Objects -----------------
 SingleBorder=─│┌┐└┘
@@ -71,45 +104,50 @@ ErrorLabel.Text = red bold
 
 Menu.ButtonBack=blue
 Menu.ButtonText=white
+
 Menu.ButtonActiveBack=cyan
 Menu.ButtonActiveText=black
+
 Menu.ButtonShadowBack=black
-Menu.ButtonDisabledText=white bold
-Menu.ButtonDisabledBack=red
 
+Menu.ButtonDisabledText= blue
+Menu.ButtonDisabledBack= black
 
+// disk partitioning
 Part.ButtonBack=blue
 Part.ButtonText=white
+
 Part.ButtonActiveBack=cyan
-Part.ButtonActiveText=black
-Part.ButtonShadowBack=black
-Part.ButtonDisabledText=white bold
-Part.ButtonDisabledBack=red
+Part.ButtonActiveText=blue
+
+Part.ButtonDisabledText=blue
+Part.ButtonDisabledBack=black
 
 
 //----- Main menu tab theme ------------------
-Tab.ButtonBack=white
-Tab.ButtonText=blue bold
+Tab.ButtonBack=black
+Tab.ButtonText=white bold
 
-Tab.ButtonActiveBack=blue
-Tab.ButtonActiveText=white bold
+Tab.ButtonActiveBack=cyan
+Tab.ButtonActiveText=blue bold
 
 Tab.ButtonShadowBack=black
-Tab.ButtonDisabledText=white bold
-Tab.ButtonDisabledBack=red
 
-Tab.ViewBack = white
-Tab.ViewText = blue
+Tab.ButtonDisabledText=blue
+Tab.ButtonDisabledBack=black
+
+Tab.ViewBack = black
+Tab.ViewText = white
 
 // ---- Main menu items ---------------------
 Main.MenuText = white bold
 Main.MenuBack = blue
 
 Main.MenuActiveText=blue bold
-Main.MenuActiveBack=white
+Main.MenuActiveBack=cyan
 
-Main.MenuContentText=white
+Main.MenuContentText=cyan bold
 Main.MenuContentBack=blue
 
 Main.MenuContentActiveText=blue
-Main.MenuContentActiveBack=white
+Main.MenuContentActiveBack=cyan

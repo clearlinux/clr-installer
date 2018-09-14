@@ -79,6 +79,15 @@ func newLanguagePage(tui *Tui) (Page, error) {
 	lbl.SetPaddings(0, 2)
 
 	page.langListBox = clui.CreateListBox(page.content, AutoSize, ContentHeight-1, Fixed)
+	page.langListBox.SetStyle("List")
+
+	page.langListBox.OnActive(func(active bool) {
+		if active {
+			page.langListBox.SetStyle("ListActive")
+		} else {
+			page.langListBox.SetStyle("List")
+		}
+	})
 
 	defLanguage := 0
 	for idx, curr := range page.avLanguages {
