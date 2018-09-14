@@ -79,6 +79,15 @@ func newTimezonePage(tui *Tui) (Page, error) {
 	lbl.SetPaddings(0, 2)
 
 	page.tzListBox = clui.CreateListBox(page.content, AutoSize, ContentHeight-1, Fixed)
+	page.tzListBox.SetStyle("List")
+
+	page.tzListBox.OnActive(func(active bool) {
+		if active {
+			page.tzListBox.SetStyle("ListActive")
+		} else {
+			page.tzListBox.SetStyle("List")
+		}
+	})
 
 	defTimezone := 0
 	for idx, curr := range page.avTimezones {

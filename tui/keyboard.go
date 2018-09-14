@@ -85,6 +85,7 @@ func newKeyboardPage(tui *Tui) (Page, error) {
 	lbl.SetPaddings(0, 2)
 
 	page.kbdListBox = clui.CreateListBox(page.content, AutoSize, 10, Fixed)
+	page.kbdListBox.SetStyle("List")
 
 	defKeyboard := 0
 	for idx, curr := range page.avKeymaps {
@@ -97,8 +98,11 @@ func newKeyboardPage(tui *Tui) (Page, error) {
 	page.kbdListBox.SelectItem(defKeyboard)
 	page.kbdListBox.OnActive(func(active bool) {
 		if active {
+			page.kbdListBox.SetStyle("ListActive")
 			return
 		}
+
+		page.kbdListBox.SetStyle("List")
 
 		idx := page.kbdListBox.SelectedItem()
 		selected := page.avKeymaps[idx]
