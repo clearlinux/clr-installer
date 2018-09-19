@@ -327,6 +327,19 @@ func (page *BasePage) setup(tui *Tui, id int, btns int, returnID int) {
 		"Use [Tab] or the arrow keys [up and down] to navigate", Fixed)
 
 	page.window.SetVisible(false)
+
+	// Escape-key cancel's this screen and returns
+	// same as the default 'Cancel' button
+	page.window.OnKeyDown(func(ev clui.Event, data interface{}) bool {
+		if ev.Key == term.KeyEsc {
+			page.action = ActionCancelButton
+			page.GotoPage(returnID)
+			page.action = ActionNone
+			return true
+		}
+
+		return false
+	}, nil)
 }
 
 func (page *BasePage) newWindow() {
