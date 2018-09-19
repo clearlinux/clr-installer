@@ -10,6 +10,17 @@ import (
 	"text/template"
 )
 
+func TestGetDeviceFile(t *testing.T) {
+	bd := &BlockDevice{Name: "sda"}
+	expected := "/dev/sda"
+
+	df := bd.GetDeviceFile()
+	if df != expected {
+		t.Fatalf("GetDeviceFile() returned wrong device file, returned: %s, expected: %s",
+			df, expected)
+	}
+}
+
 func TestSupportedFileSystem(t *testing.T) {
 	expected := []string{"btrfs", "ext2", "ext3", "ext4", "swap", "vfat", "xfs"}
 	supported := SupportedFileSystems()

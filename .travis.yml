@@ -38,6 +38,7 @@ script:
     - docker exec -it clear-test bash -c "cd /travis ; make"
     - docker exec -it clear-test bash -c "cd /travis ; make lint"
     - travis_retry docker exec -it clear-test bash -c "cd /travis ; make check"
+    - travis_retry docker exec -it clear-test bash -c "cd /travis ; ./tests/check-coverage.sh"
 
 after_script:
     - docker container stop clear-test

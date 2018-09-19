@@ -76,3 +76,10 @@ func TestIsCoreBundle(t *testing.T) {
 		}
 	}
 }
+
+func TestParseSwupdMirrorInvalid(t *testing.T) {
+	_, err := parseSwupdMirror([]byte(""))
+	if err == nil {
+		t.Error("Should fail to parse empty string")
+	}
+}

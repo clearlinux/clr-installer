@@ -20,6 +20,7 @@ var (
 
 func init() {
 	testHTTPPort = os.Getenv("TEST_HTTP_PORT")
+	_ = os.Setenv(logFileEnvironVar, "")
 }
 
 func makeTestKernelCmd(cmd string) (string, error) {
@@ -80,6 +81,23 @@ func TestParseArgsKernelCmdInvalidFile(t *testing.T) {
 	if err == nil {
 		t.Fatal("Failed to detect a valid error reading kernel command")
 	}
+}
+
+func TestTelemetry(t *testing.T) {
+	var testArgs Args
+	var err error
+
+	currArgs := make([]string, len(os.Args))
+	copy(currArgs, os.Args)
+
+	os.Args = append(os.Args, "--telemetry-url=http://telemetry")
+
+	err = testArgs.ParseArgs()
+	if err == nil {
+		t.Fatal("Telemetry should require both --telemetry-url and --telemetry-tid")
+	}
+
+	os.Args = currArgs
 }
 
 func TestKernelCmdDemoTrue(t *testing.T) {
