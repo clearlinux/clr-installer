@@ -32,6 +32,7 @@ for key in ${!ccoverage[@]}; do
 
     if [[ ${ncov/.} < ${ccov/.} ]]; then
         echo "FATAL: decreased coverage for: $key - was: $ccov, now: $ncov"
+        rm $tmp
         exit 1
     fi
 done

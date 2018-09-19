@@ -227,4 +227,9 @@ func TestWriteFile(t *testing.T) {
 	if err := loaded.WriteFile(path); err != nil {
 		t.Fatal("Failed to write descriptor, should be valid")
 	}
+
+	// test writing to an invalid file
+	if err := loaded.WriteFile("/invalid-dir/invalid.yaml"); err == nil {
+		t.Fatal("Should have failed writing to an invalid file")
+	}
 }
