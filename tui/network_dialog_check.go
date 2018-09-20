@@ -112,7 +112,7 @@ func initDiaglogWindow(dialog *NetworkTestDialog) error {
 
 	const title = "Testing Networking..."
 	const wBuff = 5
-	const hBuff = 4
+	const hBuff = 5
 	const dWidth = 50
 	const dHeight = 8
 
@@ -141,6 +141,7 @@ func initDiaglogWindow(dialog *NetworkTestDialog) error {
 	dialog.DialogBox.SetModal(true)
 	dialog.DialogBox.SetConstraints(dWidth, dHeight)
 	dialog.DialogBox.SetPack(clui.Vertical)
+	dialog.DialogBox.SetBorder(clui.BorderAuto)
 
 	borderFrame := clui.CreateFrame(dialog.DialogBox, dWidth, dHeight, clui.BorderNone, clui.Fixed)
 	borderFrame.SetPack(clui.Vertical)

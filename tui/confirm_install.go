@@ -53,7 +53,7 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 
 	const title = "Confirm Installation"
 	const wBuff = 5
-	const hBuff = 4
+	const hBuff = 5
 	const dWidth = 50
 	const dHeight = 8
 
@@ -82,6 +82,7 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 	dialog.DialogBox.SetModal(true)
 	dialog.DialogBox.SetConstraints(dWidth, dHeight)
 	dialog.DialogBox.SetPack(clui.Vertical)
+	dialog.DialogBox.SetBorder(clui.BorderAuto)
 
 	borderFrame := clui.CreateFrame(dialog.DialogBox, dWidth, dHeight, clui.BorderNone, clui.Fixed)
 	borderFrame.SetPack(clui.Vertical)
