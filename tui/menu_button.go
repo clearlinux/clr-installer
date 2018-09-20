@@ -6,6 +6,7 @@ package tui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/VladimirMarkelov/clui"
 	xs "github.com/huandu/xstrings"
@@ -142,11 +143,21 @@ func (mb *MenuButton) Draw() {
 	clui.PushAttributes()
 
 	itemValue := fmt.Sprintf("%c %s", statusSymbol[mb.status], mb.itemValue)
-	shift, itemText := clui.AlignColorizedText(itemValue, w, mb.Align())
+
+	if len(itemValue) >= w {
+		ellipsesSize := 3
+		scrollbarPadding := 1
+		ppx, _ := mb.Parent().Paddings()
+
+		maxWidth := w - (ellipsesSize + ppx + scrollbarPadding)
+		itemValue = fmt.Sprintf("%s...", strings.TrimSpace(clui.CutText(itemValue, maxWidth)))
+	}
+
+	shift, itemValue = clui.AlignColorizedText(itemValue, w, mb.Align())
 
 	clui.SetBackColor(sbg)
 	clui.SetTextColor(sfg)
-	clui.DrawText(x+shift+textPadding, y+2, itemText)
+	clui.DrawText(x+shift+textPadding, y+2, itemValue)
 
 	if !mb.Active() {
 		for i := 0; i < mb.sWdith; i++ {
