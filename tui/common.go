@@ -20,7 +20,7 @@ type BasePage struct {
 	cFrame     *clui.Frame   // control frame
 	cancelBtn  *SimpleButton // cancel button
 	backBtn    *SimpleButton // back button
-	doneBtn    *SimpleButton // done button
+	confirmBtn *SimpleButton // confirm button
 	activated  clui.Control  // activated control
 	menuTitle  string        // the title used to show on main menu
 	done       bool          // marks if an item is completed
@@ -80,14 +80,14 @@ const (
 	// BackButton mask defines a common Page will have a back button
 	BackButton = 1 << 1
 
-	// DoneButton mask defines a common Page will have done button
-	DoneButton = 1 << 2
+	// ConfirmButton mask defines a common Page will have Confirm button
+	ConfirmButton = 1 << 2
 
 	// CancelButton mask defines a common Page will have a cancel button
 	CancelButton = 1 << 3
 
-	// AllButtons mask defines a common Page will have both Back and Done buttons
-	AllButtons = BackButton | DoneButton
+	// AllButtons mask defines a common Page will have both Back and Confirm buttons
+	AllButtons = BackButton | ConfirmButton
 
 	// TuiPageMenu is the id for menu page
 	TuiPageMenu = iota
@@ -166,8 +166,8 @@ const (
 	// ActionBackButton indicates the user has pressed back button
 	ActionBackButton = iota
 
-	// ActionDoneButton indicates the user has pressed done button
-	ActionDoneButton
+	// ActionConfirmButton indicates the user has pressed confirm button
+	ActionConfirmButton
 
 	// ActionCancelButton indicates the user has pressed cancel button
 	ActionCancelButton
@@ -316,8 +316,8 @@ func (page *BasePage) setup(tui *Tui, id int, btns int, returnID int) {
 		page.newBackButton(returnID)
 	}
 
-	if btns&DoneButton == DoneButton {
-		page.newDoneButton(tui, returnID)
+	if btns&ConfirmButton == ConfirmButton {
+		page.newConfirmButton(tui, returnID)
 	}
 
 	frm := clui.CreateFrame(page.window, AutoSize, 1, BorderNone, Fixed)
@@ -393,17 +393,17 @@ func (page *BasePage) newCancelButton(pageID int) {
 	page.cancelBtn = btn
 }
 
-func (page *BasePage) newDoneButton(tui *Tui, pageID int) {
-	btn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Done", Fixed)
+func (page *BasePage) newConfirmButton(tui *Tui, pageID int) {
+	btn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Confirm", Fixed)
 
 	btn.OnClick(func(ev clui.Event) {
 		if tui.currPage.SetDone(true) {
-			page.action = ActionDoneButton
+			page.action = ActionConfirmButton
 			page.GotoPage(pageID)
 			page.action = ActionNone
 		}
 	})
-	page.doneBtn = btn
+	page.confirmBtn = btn
 }
 
 func (page *BasePage) getModel() *model.SystemInstall {

@@ -42,7 +42,7 @@ func newTelemetryPage(tui *Tui) (Page, error) {
 			required: true,
 		},
 	}
-	page.setupMenu(tui, TuiPageTelemetry, "Telemetry", BackButton|DoneButton, TuiPageMenu)
+	page.setupMenu(tui, TuiPageTelemetry, "Telemetry", BackButton|ConfirmButton, TuiPageMenu)
 
 	// Set one blank line between items for readability
 	page.content.SetGaps(0, 1)
@@ -75,24 +75,24 @@ func newTelemetryPage(tui *Tui) (Page, error) {
 	page.backBtn.SetTitle("No, thanks")
 	page.backBtn.SetSize(12, 1)
 
-	page.doneBtn.SetTitle("Yes, enable telemetry!!")
-	page.doneBtn.SetSize(25, 1)
+	page.confirmBtn.SetTitle("Yes, enable telemetry!!")
+	page.confirmBtn.SetSize(25, 1)
 
 	return page, nil
 }
 
-// DeActivate sets the model value and adjusts the "done" flag for this page
+// DeActivate sets the model value and adjusts the "confirm" flag for this page
 func (tp *TelemetryPage) DeActivate() {
-	tp.getModel().EnableTelemetry(tp.action == ActionDoneButton)
+	tp.getModel().EnableTelemetry(tp.action == ActionConfirmButton)
 	tp.SetDone(true)
 }
 
 // Activate activates the proper button depending on the current model value
-// if telemetry is enabled in the data model then the done button will be active
+// if telemetry is enabled in the data model then the confirm button will be active
 // otherwise the back button will be activated.
 func (tp *TelemetryPage) Activate() {
 	if tp.getModel().Telemetry.Enabled {
-		tp.activated = tp.doneBtn
+		tp.activated = tp.confirmBtn
 	} else {
 		tp.activated = tp.backBtn
 	}

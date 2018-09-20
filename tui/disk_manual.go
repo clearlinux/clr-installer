@@ -158,7 +158,7 @@ func (page *ManualPartPage) Activate() {
 
 	for _, bd := range page.bds {
 		if err = bd.Validate(); err == nil {
-			page.doneBtn.SetEnabled(true)
+			page.confirmBtn.SetEnabled(true)
 		}
 	}
 }
@@ -209,6 +209,6 @@ func newManualPartitionPage(tui *Tui) (Page, error) {
 	lbl = clui.CreateLabel(page.content, 70, 3, manualDesc, Fixed)
 	lbl.SetMultiline(true)
 
-	page.doneBtn.SetEnabled(false)
+	page.confirmBtn.SetEnabled(false)
 	return page, nil
 }

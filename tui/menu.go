@@ -40,7 +40,7 @@ func (page *MenuPage) addMenuItem(item Page, tab *TabPage) *MenuButton {
 }
 
 // Activate is called when the page is "shown" and it repaints the main menu based on the
-// available menu pages and their done/undone status
+// available menu pages and their confirm/unconfirm status
 func (page *MenuPage) Activate() {
 	previous := false
 	activeSet := false

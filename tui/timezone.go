@@ -45,7 +45,7 @@ func (page *TimezonePage) SetDone(done bool) bool {
 
 // DeActivate will reset the selection case the user has pressed cancel
 func (page *TimezonePage) DeActivate() {
-	if page.action == ActionDoneButton {
+	if page.action == ActionConfirmButton {
 		return
 	}
 
@@ -73,7 +73,7 @@ func newTimezonePage(tui *Tui) (Page, error) {
 		},
 	}
 
-	page.setupMenu(tui, TuiPageTimezone, "Choose Timezone", DoneButton|CancelButton, TuiPageMenu)
+	page.setupMenu(tui, TuiPageTimezone, "Choose Timezone", ConfirmButton|CancelButton, TuiPageMenu)
 
 	lbl := clui.CreateLabel(page.content, 2, 2, "Select System Timezone", Fixed)
 	lbl.SetPaddings(0, 2)
@@ -99,7 +99,7 @@ func newTimezonePage(tui *Tui) (Page, error) {
 	}
 
 	page.tzListBox.SelectItem(defTimezone)
-	page.activated = page.doneBtn
+	page.activated = page.confirmBtn
 
 	return page, nil
 }

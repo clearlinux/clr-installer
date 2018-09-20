@@ -45,7 +45,7 @@ func (page *KeyboardPage) SetDone(done bool) bool {
 
 // DeActivate will reset the selection case the user has pressed cancel
 func (page *KeyboardPage) DeActivate() {
-	if page.action == ActionDoneButton {
+	if page.action == ActionConfirmButton {
 		return
 	}
 
@@ -79,7 +79,7 @@ func newKeyboardPage(tui *Tui) (Page, error) {
 	}
 
 	page.setupMenu(tui, TuiPageKeyboard, "Configure the Keyboard",
-		DoneButton|CancelButton, TuiPageMenu)
+		ConfirmButton|CancelButton, TuiPageMenu)
 
 	lbl := clui.CreateLabel(page.content, 2, 2, "Select Keyboard", Fixed)
 	lbl.SetPaddings(0, 2)
@@ -124,7 +124,7 @@ func newKeyboardPage(tui *Tui) (Page, error) {
 
 	newEditField(frame, false, nil)
 
-	page.activated = page.doneBtn
+	page.activated = page.confirmBtn
 
 	return page, nil
 }
