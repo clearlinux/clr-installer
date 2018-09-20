@@ -20,6 +20,13 @@ type Kernel struct {
 	userDefined bool
 }
 
+// Arguments defines the set of arguments to be added and/or removed
+// from the list of kernel comand line arguments
+type Arguments struct {
+	Add    []string // Add is the set of arguments to be added
+	Remove []string // Remove is the set of arguments to be removed
+}
+
 // LoadKernelList loads the kernel definitions
 func LoadKernelList() ([]*Kernel, error) {
 	path, err := conf.LookupKernelListFile()

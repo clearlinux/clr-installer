@@ -124,3 +124,13 @@ func IsRoot() bool {
 
 	return is
 }
+
+// StringSliceContains returns true if sl contains str, returns false otherwise
+func StringSliceContains(sl []string, str string) bool {
+	for _, curr := range sl {
+		if curr == str {
+			return true
+		}
+	}
+	return false
+}

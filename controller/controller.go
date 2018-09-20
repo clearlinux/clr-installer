@@ -143,10 +143,24 @@ func Install(rootDir string, model *model.SystemInstall) error {
 		model.AddBundle("telemetrics")
 	}
 
-	if model.KernelCMDLine != "" {
+	if model.KernelArguments != nil && len(model.KernelArguments.Add) > 0 {
 		cmdlineDir := filepath.Join(rootDir, "etc", "kernel")
 		cmdlineFile := filepath.Join(cmdlineDir, "cmdline")
-		cmdline := model.KernelCMDLine
+		cmdline := strings.Join(model.KernelArguments.Add, " ")
+
+		if err = utils.MkdirAll(cmdlineDir, 0755); err != nil {
+			return err
+		}
+
+		if err = ioutil.WriteFile(cmdlineFile, []byte(cmdline), 0644); err != nil {
+			return err
+		}
+	}
+
+	if model.KernelArguments != nil && len(model.KernelArguments.Remove) > 0 {
+		cmdlineDir := filepath.Join(rootDir, "etc", "kernel", "cmdline-removal.d")
+		cmdlineFile := filepath.Join(cmdlineDir, "clr-installer.conf")
+		cmdline := strings.Join(model.KernelArguments.Remove, " ")
 
 		if err = utils.MkdirAll(cmdlineDir, 0755); err != nil {
 			return err

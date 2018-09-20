@@ -19,6 +19,7 @@ import (
 	"github.com/clearlinux/clr-installer/telemetry"
 	"github.com/clearlinux/clr-installer/timezone"
 	"github.com/clearlinux/clr-installer/user"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 // Version of Clear Installer.
@@ -39,7 +40,7 @@ type SystemInstall struct {
 	Telemetry         *telemetry.Telemetry   `yaml:"telemetry,omitempty,flow"`
 	Timezone          *timezone.TimeZone     `yaml:"timezone,omitempty,flow"`
 	Users             []*user.User           `yaml:"users,omitempty,flow"`
-	KernelCMDLine     string                 `yaml:"kernel-cmdline,omitempty,flow"`
+	KernelArguments   *kernel.Arguments      `yaml:"kernel-arguments,omitempty,flow"`
 	Kernel            *kernel.Kernel         `yaml:"kernel,omitempty,flow"`
 	PostReboot        bool                   `yaml:"postReboot,omitempty,flow"`
 	SwupdMirror       string                 `yaml:"swupdMirror,omitempty,flow"`
@@ -49,6 +50,39 @@ type SystemInstall struct {
 	TelemetryURL      string                 `yaml:"telemetryURL,omitempty,flow"`
 	TelemetryTID      string                 `yaml:"telemetryTID,omitempty,flow"`
 	TelemetryPolicy   string                 `yaml:"telemetryPolicy,omitempty,flow"`
+}
+
+// AddExtraKernelArguments adds a set of custom extra kernel arguments to be added to the
+// clr-boot-manager configuration
+func (si *SystemInstall) AddExtraKernelArguments(args []string) {
+	if si.KernelArguments == nil {
+		si.KernelArguments = &kernel.Arguments{}
+	}
+
+	for _, curr := range args {
+		if utils.StringSliceContains(si.KernelArguments.Add, curr) {
+			continue
+		}
+
+		si.KernelArguments.Add = append(si.KernelArguments.Add, curr)
+	}
+}
+
+// RemoveKernelArguments adds a set of kernel arguments to be "black listed" on
+// clear-boot-manager, meaning these arguments will never end up in the boot manager
+// entry configuration
+func (si *SystemInstall) RemoveKernelArguments(args []string) {
+	if si.KernelArguments == nil {
+		si.KernelArguments = &kernel.Arguments{}
+	}
+
+	for _, curr := range args {
+		if utils.StringSliceContains(si.KernelArguments.Remove, curr) {
+			continue
+		}
+
+		si.KernelArguments.Remove = append(si.KernelArguments.Remove, curr)
+	}
 }
 
 // ContainsBundle returns true if the data model has a bundle and false otherwise
