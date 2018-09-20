@@ -233,3 +233,63 @@ func TestWriteFile(t *testing.T) {
 		t.Fatal("Should have failed writing to an invalid file")
 	}
 }
+
+func TestAddExtraKernelArguments(t *testing.T) {
+	args := []string{"arg1", "arg2", "arg3"}
+
+	si := &SystemInstall{}
+	si.AddExtraKernelArguments(args)
+
+	if si.KernelArguments == nil {
+		t.Fatal("AddExtraKernelArguments() should had created a KernelArguments object")
+	}
+
+	if len(si.KernelArguments.Add) != len(args) {
+		t.Fatal("AddExtraKernelArguments() didn't add all requested arguments")
+	}
+
+	for _, curr := range args {
+		if !utils.StringSliceContains(si.KernelArguments.Add, curr) {
+			t.Fatal("AddExtraKernelArguments() didn't add all the requested arguments")
+		}
+	}
+
+	l := len(si.KernelArguments.Add)
+
+	// testing duplication checks
+	si.AddExtraKernelArguments(args)
+
+	if l < len(si.KernelArguments.Add) {
+		t.Fatal("The duplication check has failed")
+	}
+}
+
+func TestRemoveKernelArguments(t *testing.T) {
+	args := []string{"arg1", "arg2", "arg3"}
+
+	si := &SystemInstall{}
+	si.RemoveKernelArguments(args)
+
+	if si.KernelArguments == nil {
+		t.Fatal("RemoveKernelArguments() should had created a KernelArguments object")
+	}
+
+	if len(si.KernelArguments.Remove) != len(args) {
+		t.Fatal("RemoveKernelArguments() didn't add all requested arguments")
+	}
+
+	for _, curr := range args {
+		if !utils.StringSliceContains(si.KernelArguments.Remove, curr) {
+			t.Fatal("RemoveKernelArguments() didn't add all the requested arguments")
+		}
+	}
+
+	l := len(si.KernelArguments.Remove)
+
+	// testing duplication check
+	si.RemoveKernelArguments(args)
+
+	if l < len(si.KernelArguments.Remove) {
+		t.Fatal("The duplication check has failed")
+	}
+}

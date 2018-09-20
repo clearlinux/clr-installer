@@ -5,36 +5,76 @@
 package tui
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/VladimirMarkelov/clui"
 )
 
 // KernelCMDLine is the Page implementation for the kernel cmd line configuration page
 type KernelCMDLine struct {
 	BasePage
-	kernelCMDLineEdit *clui.EditField
+	addKernelArgEdit *clui.EditField
+	remKernelArgEdit *clui.EditField
 }
+
+const (
+	kernelArgsHelp = `Note: The boot manager tool will first include the "Add Extra Arguments"
+      items then the "Remove Arguments" items are removed from the final
+      - where the final list contains the kernel bundle's configured
+      arguments and the ones configured by the user.`
+)
 
 // GetConfiguredValue Returns the string representation of currently value set
 func (pp *KernelCMDLine) GetConfiguredValue() string {
-	cmdLine := pp.getModel().KernelCMDLine
+	result := ""
 
-	if cmdLine == "" {
-		return "No kernel command line append set"
+	if pp.getModel().KernelArguments != nil {
+		values := []string{}
+
+		addKernelArgs := strings.Join(pp.getModel().KernelArguments.Add, " ")
+		remKernelArgs := strings.Join(pp.getModel().KernelArguments.Remove, " ")
+
+		if addKernelArgs != "" {
+			values = append(values, fmt.Sprintf("Add: %s", addKernelArgs))
+		}
+
+		if remKernelArgs != "" {
+			values = append(values, fmt.Sprintf("Remove: %s", remKernelArgs))
+		}
+
+		result = strings.Join(values, " | ")
 	}
 
-	return cmdLine
+	if result == "" {
+		return "No kernel command line configuration defined"
+	}
+
+	return result
 }
 
 // Activate sets the kernel cmd line configuration with the current model's value
 func (pp *KernelCMDLine) Activate() {
-	pp.kernelCMDLineEdit.SetTitle(pp.getModel().KernelCMDLine)
+	if pp.getModel().KernelArguments == nil {
+		return
+	}
+
+	addKernelArgs := strings.Join(pp.getModel().KernelArguments.Add, " ")
+	remKernelArgs := strings.Join(pp.getModel().KernelArguments.Remove, " ")
+
+	pp.addKernelArgEdit.SetTitle(addKernelArgs)
+	pp.remKernelArgEdit.SetTitle(remKernelArgs)
 }
 
 func newKernelCMDLine(tui *Tui) (Page, error) {
 	page := &KernelCMDLine{}
 	page.setupMenu(tui, TuiPageKernelCMDLine, "Kernel Command Line", NoButtons, TuiPageMenu)
 
-	clui.CreateLabel(page.content, 2, 2, "Configure the Kernel Command Line", Fixed)
+	clui.CreateLabel(page.content, 2, 2, "Add or Remove Extra Kernel Command Line Arguments",
+		Fixed)
+
+	helpLabel := clui.CreateLabel(page.content, 2, 5, kernelArgsHelp, Fixed)
+	helpLabel.SetMultiline(true)
 
 	frm := clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
 	frm.SetPack(clui.Horizontal)
@@ -43,7 +83,9 @@ func newKernelCMDLine(tui *Tui) (Page, error) {
 	lblFrm.SetPack(clui.Vertical)
 	lblFrm.SetPaddings(1, 0)
 
-	newFieldLabel(lblFrm, "Extra Arguments:")
+	newFieldLabel(lblFrm, "Add Extra Arguments:")
+
+	newFieldLabel(lblFrm, "Remove Arguments:")
 
 	fldFrm := clui.CreateFrame(frm, 30, AutoSize, BorderNone, Fixed)
 	fldFrm.SetPack(clui.Vertical)
@@ -51,7 +93,12 @@ func newKernelCMDLine(tui *Tui) (Page, error) {
 	iframe := clui.CreateFrame(fldFrm, 5, 2, BorderNone, Fixed)
 	iframe.SetPack(clui.Vertical)
 
-	page.kernelCMDLineEdit = clui.CreateEditField(iframe, 1, "", Fixed)
+	page.addKernelArgEdit = clui.CreateEditField(iframe, 1, "", Fixed)
+
+	iframe = clui.CreateFrame(fldFrm, 5, 2, BorderNone, Fixed)
+	iframe.SetPack(clui.Vertical)
+
+	page.remKernelArgEdit = clui.CreateEditField(iframe, 1, "", Fixed)
 
 	btnFrm := clui.CreateFrame(fldFrm, 30, 1, BorderNone, Fixed)
 	btnFrm.SetPack(clui.Horizontal)
@@ -66,12 +113,24 @@ func newKernelCMDLine(tui *Tui) (Page, error) {
 	confirmBtn := CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Confirm", Fixed)
 
 	confirmBtn.OnClick(func(ev clui.Event) {
-		page.getModel().KernelCMDLine = page.kernelCMDLineEdit.Title()
-		page.SetDone(page.kernelCMDLineEdit.Title() != "")
+		addKernelArguments := page.addKernelArgEdit.Title()
+		remKernelArguments := page.remKernelArgEdit.Title()
+
+		if addKernelArguments != "" {
+			page.getModel().AddExtraKernelArguments(strings.Split(addKernelArguments, " "))
+		}
+
+		if remKernelArguments != "" {
+			page.getModel().RemoveKernelArguments(strings.Split(remKernelArguments, " "))
+		}
+
+		done := page.addKernelArgEdit.Title() != "" || page.remKernelArgEdit.Title() != ""
+		page.SetDone(done)
+
 		page.GotoPage(TuiPageMenu)
 	})
 
-	page.activated = page.kernelCMDLineEdit
+	page.activated = page.addKernelArgEdit
 
 	return page, nil
 }
