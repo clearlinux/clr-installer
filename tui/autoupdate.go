@@ -45,7 +45,7 @@ func newAutoUpdatePage(tui *Tui) (Page, error) {
 	page := &AutoUpdatePage{}
 
 	page.setupMenu(tui, TuiPageAutoUpdate, "Automatic OS Updates",
-		BackButton|DoneButton, TuiPageMenu)
+		BackButton|ConfirmButton, TuiPageMenu)
 
 	lbl := clui.CreateLabel(page.content, 2, 16, autoUpdateHelp, Fixed)
 	lbl.SetMultiline(true)
@@ -53,17 +53,17 @@ func newAutoUpdatePage(tui *Tui) (Page, error) {
 	page.backBtn.SetTitle("No [Disable]")
 	page.backBtn.SetSize(11, 1)
 
-	page.doneBtn.SetTitle("Yes [Enable, Default]")
-	page.doneBtn.SetSize(21, 1)
+	page.confirmBtn.SetTitle("Yes [Enable, Default]")
+	page.confirmBtn.SetSize(21, 1)
 
 	return page, nil
 }
 
-// DeActivate sets the model value and adjusts the "done" flag for this page
+// DeActivate sets the model value and adjusts the "confirm" flag for this page
 func (aup *AutoUpdatePage) DeActivate() {
 	model := aup.getModel()
 
-	if aup.action == ActionDoneButton {
+	if aup.action == ActionConfirmButton {
 		model.AutoUpdate = true
 	} else {
 		model.AutoUpdate = false
@@ -71,11 +71,11 @@ func (aup *AutoUpdatePage) DeActivate() {
 }
 
 // Activate activates the proper button depending on the current model value.
-// If Auto Update is enabled in the data model then the Done button will be active
+// If Auto Update is enabled in the data model then the Confirm button will be active
 // otherwise the Back button will be activated.
 func (aup *AutoUpdatePage) Activate() {
 	if aup.getModel().AutoUpdate {
-		aup.activated = aup.doneBtn
+		aup.activated = aup.confirmBtn
 	} else {
 		aup.activated = aup.backBtn
 	}

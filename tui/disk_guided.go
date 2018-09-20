@@ -90,8 +90,8 @@ func (page *GuidedPartPage) showGuidedDisk(bd *storage.BlockDevice) error {
 			labels = append(labels, lbl)
 		}
 
-		page.doneBtn.SetEnabled(true)
-		clui.ActivateControl(page.window, page.doneBtn)
+		page.confirmBtn.SetEnabled(true)
+		clui.ActivateControl(page.window, page.confirmBtn)
 		page.bd = bd
 	})
 
@@ -146,6 +146,6 @@ func newGuidedPartitionPage(tui *Tui) (Page, error) {
 	lbl = clui.CreateLabel(page.content, 70, 3, guidedDesc, Fixed)
 	lbl.SetMultiline(true)
 
-	page.doneBtn.SetEnabled(false)
+	page.confirmBtn.SetEnabled(false)
 	return page, nil
 }

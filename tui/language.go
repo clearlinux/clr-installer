@@ -45,7 +45,7 @@ func (page *LanguagePage) SetDone(done bool) bool {
 
 // DeActivate will reset the selection case the user has pressed cancel
 func (page *LanguagePage) DeActivate() {
-	if page.action == ActionDoneButton {
+	if page.action == ActionConfirmButton {
 		return
 	}
 
@@ -73,7 +73,7 @@ func newLanguagePage(tui *Tui) (Page, error) {
 		},
 	}
 
-	page.setupMenu(tui, TuiPageLanguage, "Choose Language", DoneButton|CancelButton, TuiPageMenu)
+	page.setupMenu(tui, TuiPageLanguage, "Choose Language", ConfirmButton|CancelButton, TuiPageMenu)
 
 	lbl := clui.CreateLabel(page.content, 2, 2, "Select System Language", Fixed)
 	lbl.SetPaddings(0, 2)
@@ -99,7 +99,7 @@ func newLanguagePage(tui *Tui) (Page, error) {
 	}
 
 	page.langListBox.SelectItem(defLanguage)
-	page.activated = page.doneBtn
+	page.activated = page.confirmBtn
 
 	return page, nil
 }
