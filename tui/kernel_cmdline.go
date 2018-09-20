@@ -20,8 +20,9 @@ type KernelCMDLine struct {
 
 const (
 	kernelArgsHelp = `Note: The boot manager tool will first include the "Add Extra Arguments"
-      items, then the "Remove Arguments" items are removed. The final argument list contains the
-      kernel bundle's configured arguments and the ones configured by the user.`
+      items, then the "Remove Arguments" items are removed. The final
+      argument list contains the kernel bundle's configured arguments
+      and the ones configured by the user.`
 )
 
 // GetConfiguredValue Returns the string representation of currently value set
