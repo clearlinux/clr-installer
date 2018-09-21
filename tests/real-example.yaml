@@ -31,5 +31,6 @@ targetMedia:
     type: part
 keyboard: us
 language: en_US.UTF-8
-bundles: [os-core, os-core-update, kernel-native]
+bundles: [os-core, os-core-update]
 telemetry: true
+kernel: kernel-native
