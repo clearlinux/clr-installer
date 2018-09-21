@@ -34,7 +34,8 @@ networkInterfaces:
   dhcp: "false"
   gateway: 10.7.200.251
   dns: 10.248.2.1
-bundles: [os-core, os-core-update, kernel-native]
+bundles: [os-core, os-core-update]
 keyboard: us
 language: us.UTF-8
 telemetry: true
+kernel: kernel-native
