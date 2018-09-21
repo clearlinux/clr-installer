@@ -279,9 +279,8 @@ func (tl *Telemetry) UpdateLocalTelemetryServer() error {
 // required after changes to the configuration file
 func (tl *Telemetry) RestartLocalTelemetryServer() error {
 	args := []string{
-		"systemctl",
+		"telemctl",
 		"restart",
-		"telemd.service",
 	}
 
 	err := cmd.RunAndLog(args...)
@@ -295,9 +294,8 @@ func (tl *Telemetry) RestartLocalTelemetryServer() error {
 // StopLocalTelemetryServer stops the Telemetry service
 func (tl *Telemetry) StopLocalTelemetryServer() error {
 	args := []string{
-		"systemctl",
+		"telemctl",
 		"stop",
-		"telemd.service",
 	}
 
 	err := cmd.RunAndLog(args...)
