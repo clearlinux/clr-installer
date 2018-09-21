@@ -221,18 +221,19 @@ func (bd *BlockDevice) Validate() error {
 
 // RemoveChild removes a partition from disk block device
 func (bd *BlockDevice) RemoveChild(child *BlockDevice) {
-	nList := []*BlockDevice{}
+	copyBd := bd.Clone()
 
-	for _, curr := range bd.Children {
-		if curr == child {
+	bd.Children = nil
+
+	for _, curr := range copyBd.Children {
+		if curr.Name == child.Name {
 			child.Parent = nil
 			continue
 		}
 
-		nList = append(nList, curr)
+		curr.Name = ""
+		bd.AddChild(curr)
 	}
-
-	bd.Children = nList
 }
 
 // AddChild adds a partition to a disk block device
