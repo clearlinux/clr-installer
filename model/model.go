@@ -166,6 +166,10 @@ func (si *SystemInstall) Validate() error {
 		return errors.ValidationErrorf("Telemetry not acknowledged")
 	}
 
+	if si.Kernel == nil {
+		return errors.ValidationErrorf("A kernel must be provided")
+	}
+
 	return nil
 }
 
