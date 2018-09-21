@@ -1,5 +1,8 @@
 sudo: required
 
+env:
+    - DOCKER_USER=travis
+
 services:
     - docker
 
@@ -25,6 +28,9 @@ before_install:
 #      - docker exec -it clear-test bash -c "swupd update"
 
 before_script:
+      # create a non-root user mapping the travis user (using same uid)
+    - docker exec -it clear-test bash -c "useradd -u $(id --u) $DOCKER_USER"
+      # Show the current swupd configuration
     - docker exec -it clear-test bash -c "swupd info"
       # Debug information
     - docker exec -it clear-test bash -c "set;printenv"
@@ -38,7 +44,11 @@ script:
     - docker exec -it clear-test bash -c "cd /travis ; make"
     - docker exec -it clear-test bash -c "cd /travis ; make lint"
     - travis_retry docker exec -it clear-test bash -c "cd /travis ; make check"
-    - travis_retry docker exec -it clear-test bash -c "cd /travis ; ./tests/check-coverage.sh"
+    - docker exec -it clear-test bash -c "cd /travis ; make clean"
+    - docker exec -it clear-test bash -c "cd /travis ; make check-clean"
+    - docker exec -it clear-test bash -c "chown -R travis:travis /travis"
+    - docker exec --user "${DOCKER_USER}" -it clear-test bash -c "cd /travis ; make"
+    - travis_retry docker exec --user "${DOCKER_USER}" -it clear-test bash -c "cd /travis ; ./tests/check-coverage.sh"
 
 after_script:
     - docker container stop clear-test
