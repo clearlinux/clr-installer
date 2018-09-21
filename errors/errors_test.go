@@ -47,3 +47,21 @@ func TestWrapp(t *testing.T) {
 		t.Fatal("Error() should return the content of Trace and What member")
 	}
 }
+
+func TestValidationError(t *testing.T) {
+	msg := "Validation error"
+	ve := ValidationErrorf(msg)
+
+	if ve.Error() != msg {
+		t.Fatal("Wrong validation error message")
+	}
+
+	if !IsValidationError(ve) {
+		t.Fatal("IsValidationError() should report true")
+	}
+
+	te := Errorf("A traceable error")
+	if IsValidationError(te) {
+		t.Fatal("IsValidationError() should return false for a TraceableError")
+	}
+}

@@ -20,6 +20,17 @@ type TraceableError struct {
 	What  string
 }
 
+// ValidationError is a type of error used to report model or any general condition
+// validation error. We don't deal this error as a regular error i.e panic`ing, showing
+// the error stack trace and exiting with a non zero code, otherwise, we do show
+// a nicely formatted and user friendly error message (the What attribute) and keep
+// returning a non zero exit code.
+// Consider this error as a user error, not an internal malfunctioning.
+type ValidationError struct {
+	When time.Time
+	What string
+}
+
 func getTraceIdx(idx int) (string, string, int) {
 	pc := make([]uintptr, 10)
 	runtime.Callers(2, pc)
@@ -78,4 +89,24 @@ func Errorf(format string, a ...interface{}) error {
 // embedded in the original error message
 func Wrap(err error) error {
 	return Errorf(err.Error())
+}
+
+func (ve ValidationError) Error() string {
+	return ve.What
+}
+
+// ValidationErrorf formats a new ValidationError
+func ValidationErrorf(format string, a ...interface{}) error {
+	return ValidationError{
+		What: fmt.Sprintf(format, a...),
+	}
+}
+
+// IsValidationError returns true if err is a ValidationError
+// returns false otherwise
+func IsValidationError(err error) bool {
+	if _, ok := err.(ValidationError); ok {
+		return true
+	}
+	return false
 }
