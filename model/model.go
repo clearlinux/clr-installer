@@ -141,11 +141,11 @@ func (si *SystemInstall) AddUser(usr *user.User) {
 func (si *SystemInstall) Validate() error {
 	// si will be nil if we fail to unmarshal (coverage tests has a case for that)
 	if si == nil {
-		return errors.Errorf("model is nil")
+		return errors.ValidationErrorf("model is nil")
 	}
 
 	if si.TargetMedias == nil || len(si.TargetMedias) == 0 {
-		return errors.Errorf("System Installation must provide a target media")
+		return errors.ValidationErrorf("System Installation must provide a target media")
 	}
 
 	for _, curr := range si.TargetMedias {
@@ -155,15 +155,15 @@ func (si *SystemInstall) Validate() error {
 	}
 
 	if si.Keyboard == nil {
-		return errors.Errorf("Keyboard not set")
+		return errors.ValidationErrorf("Keyboard not set")
 	}
 
 	if si.Language == nil {
-		return errors.Errorf("System Language not set")
+		return errors.ValidationErrorf("System Language not set")
 	}
 
 	if si.Telemetry == nil {
-		return errors.Errorf("Telemetry not acknowledged")
+		return errors.ValidationErrorf("Telemetry not acknowledged")
 	}
 
 	return nil

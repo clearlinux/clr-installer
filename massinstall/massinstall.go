@@ -11,6 +11,7 @@ import (
 
 	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/controller"
+	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/progress"
@@ -121,7 +122,9 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string) (bool, error
 
 	instError = controller.Install(rootDir, md)
 	if instError != nil {
-		fmt.Printf("ERROR: Installation has failed!\n")
+		if !errors.IsValidationError(instError) {
+			fmt.Printf("ERROR: Installation has failed!\n")
+		}
 		return false, instError
 	}
 
