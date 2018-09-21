@@ -5,7 +5,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -19,6 +18,7 @@ import (
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/crypt"
+	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/frontend"
 	"github.com/clearlinux/clr-installer/keyboard"
 	"github.com/clearlinux/clr-installer/log"
@@ -53,7 +53,7 @@ func validateTelemetry(options args.Args, md *model.SystemInstall) error {
 	// Make sure the both URL and TID are in the configuration file
 	if (md.TelemetryURL != "" && md.TelemetryTID == "") ||
 		(md.TelemetryURL == "" && md.TelemetryTID != "") {
-		return errors.New("Telemetry requires both telemetryUrl and telemetryTid in the configuration file")
+		return errors.Errorf("Telemetry requires both telemetryUrl and telemetryTid in the configuration file")
 	} else if md.TelemetryURL != "" && md.TelemetryPolicy == "" {
 		log.Warning("Defining a Telemetry Policy is encouraged when specifying a Telemetry server")
 	}
@@ -215,7 +215,14 @@ func main() {
 				if errLog := md.Telemetry.LogRecord(feName, 3, err.Error()); errLog != nil {
 					log.Error("Failed to log Telemetry fail record: %s", feName)
 				}
-				fatal(err)
+
+				if errors.IsValidationError(err) {
+					fmt.Println("Error: Invalid configuration:")
+					fmt.Printf("  %s\n", err)
+					os.Exit(1)
+				} else {
+					fatal(err)
+				}
 			}
 
 			break
