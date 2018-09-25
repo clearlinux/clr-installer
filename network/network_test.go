@@ -73,6 +73,10 @@ func TestIpAddress(t *testing.T) {
 }
 
 func TestInterfaces(t *testing.T) {
+	if utils.IsCheckCoverage() {
+		t.Skip("Running on behalf of \"check-coverage\", skipping test")
+	}
+
 	ifaces, err := Interfaces()
 	if err != nil {
 		t.Fatal(err)
@@ -84,6 +88,10 @@ func TestInterfaces(t *testing.T) {
 }
 
 func TestYaml(t *testing.T) {
+	if utils.IsCheckCoverage() {
+		t.Skip("Running on behalf of \"check-coverage\", skipping test")
+	}
+
 	ifaces, err := Interfaces()
 	if err != nil {
 		t.Fatal(err)
@@ -100,6 +108,10 @@ func TestYaml(t *testing.T) {
 }
 
 func TestAddAddr(t *testing.T) {
+	if utils.IsCheckCoverage() {
+		t.Skip("Running on behalf of \"check-coverage\", skipping test")
+	}
+
 	list, err := Interfaces()
 	if err != nil {
 		t.Fatal(err)
@@ -162,6 +174,10 @@ func TestNetmaskToCID(t *testing.T) {
 func TestApply(t *testing.T) {
 	if !utils.IsRoot() {
 		t.Skip("Not running as 'root', skipping test")
+	}
+
+	if utils.IsCheckCoverage() {
+		t.Skip("Running on behalf of \"check-coverage\", skipping test")
 	}
 
 	dir, err := ioutil.TempDir("", "clr-installer-utest")

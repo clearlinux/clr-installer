@@ -134,3 +134,8 @@ func StringSliceContains(sl []string, str string) bool {
 	}
 	return false
 }
+
+// IsCheckCoverage returns true if CHECK_COVERAGE variable is set
+func IsCheckCoverage() bool {
+	return os.Getenv("CHECK_COVERAGE") != ""
+}

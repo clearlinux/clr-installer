@@ -86,6 +86,7 @@ func run(sw func(cmd *exec.Cmd) error, writer io.Writer, args ...string) error {
 
 	cmd.Stdout = writer
 	cmd.Stderr = writer
+	cmd.Stdin = os.Stdin
 
 	err := cmd.Run()
 	if err != nil {
