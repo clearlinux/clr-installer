@@ -73,6 +73,9 @@ build: gopath
 check: gopath
 	go test -cover ${GO_PACKAGE_PREFIX}/...
 
+check-coverage: gopath
+	${TESTS_DIR}/check-coverage.sh
+
 check-clean: gopath
 	go clean -testcache
 
