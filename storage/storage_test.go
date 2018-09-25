@@ -10,6 +10,55 @@ import (
 	"text/template"
 )
 
+func TestGetConfiguredStatus(t *testing.T) {
+	children := make([]*BlockDevice, 0)
+	bd := &BlockDevice{Name: "sda", Children: children}
+	expected := ConfiguredNone
+
+	df := bd.GetConfiguredStatus()
+	if df != expected {
+		t.Fatalf("GetConfiguredStatus() returned returned: %d, expected: %d",
+			df, expected)
+	}
+
+	part1 := &BlockDevice{FsType: "vfat", MountPoint: "/boot"}
+	part2 := &BlockDevice{FsType: "swap", MountPoint: ""}
+	part3 := &BlockDevice{FsType: "ext4", MountPoint: "/"}
+
+	children = append(children, part1)
+	bd = nil
+	bd = &BlockDevice{Name: "sda", Children: children}
+	expected = ConfiguredPartial
+
+	df = bd.GetConfiguredStatus()
+	if df != expected {
+		t.Fatalf("GetConfiguredStatus() returned returned: %d, expected: %d",
+			df, expected)
+	}
+
+	children = append(children, part2)
+	bd = nil
+	bd = &BlockDevice{Name: "sda", Children: children}
+	expected = ConfiguredPartial
+
+	df = bd.GetConfiguredStatus()
+	if df != expected {
+		t.Fatalf("GetConfiguredStatus() returned returned: %d, expected: %d",
+			df, expected)
+	}
+
+	children = append(children, part3)
+	bd = nil
+	bd = &BlockDevice{Name: "sda", Children: children}
+	expected = ConfiguredFull
+
+	df = bd.GetConfiguredStatus()
+	if df != expected {
+		t.Fatalf("GetConfiguredStatus() returned returned: %d, expected: %d",
+			df, expected)
+	}
+}
+
 func TestGetDeviceFile(t *testing.T) {
 	bd := &BlockDevice{Name: "sda"}
 	expected := "/dev/sda"

@@ -114,14 +114,19 @@ Menu.ButtonDisabledText= blue
 Menu.ButtonDisabledBack= black
 
 // disk partitioning
-Part.ButtonBack=blue
-Part.ButtonText=white
+DiskSelected.ButtonBack=blue
+DiskSelected.ButtonText=white bold
+DiskSelected.ButtonActiveBack=cyan
+DiskSelected.ButtonActiveText=blue
 
-Part.ButtonActiveBack=cyan
-Part.ButtonActiveText=blue
+Partition.ButtonBack=blue
+Partition.ButtonText=white
 
-Part.ButtonDisabledText=blue
-Part.ButtonDisabledBack=black
+Partition.ButtonActiveBack=cyan
+Partition.ButtonActiveText=blue
+
+Partition.ButtonDisabledText=blue
+Partition.ButtonDisabledBack=black
 
 
 //----- Main menu tab theme ------------------
