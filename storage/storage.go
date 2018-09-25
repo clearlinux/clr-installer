@@ -28,6 +28,7 @@ type BlockDevice struct {
 	MajorMinor      string           // major:minor device number
 	FsType          string           // filesystem type
 	UUID            string           // filesystem uuid
+	Serial          string           // device serial number
 	MountPoint      string           // where the device is mounted
 	Size            uint64           // size of the device
 	Type            BlockDeviceType  // device type
@@ -47,6 +48,7 @@ type blockDeviceYAMLMarshal struct {
 	MajorMinor      string         `yaml:"majMin,omitempty"`
 	FsType          string         `yaml:"fstype,omitempty"`
 	UUID            string         `yaml:"uuid,omitempty"`
+	Serial          string         `yaml:"serial,omitempty"`
 	MountPoint      string         `yaml:"mountpoint,omitempty"`
 	Size            string         `yaml:"size,omitempty"`
 	ReadOnly        string         `yaml:"ro,omitempty"`
@@ -159,6 +161,7 @@ func (bd *BlockDevice) Clone() *BlockDevice {
 		MajorMinor:      bd.MajorMinor,
 		FsType:          bd.FsType,
 		UUID:            bd.UUID,
+		Serial:          bd.Serial,
 		MountPoint:      bd.MountPoint,
 		Size:            bd.Size,
 		Type:            bd.Type,
@@ -191,6 +194,46 @@ func (bd *BlockDevice) IsUserDefined() bool {
 // IsAvailable returns true if the media is not a installer media, returns false otherwise
 func (bd *BlockDevice) IsAvailable() bool {
 	return bd.available
+}
+
+// ConfigStatus is the status type for Configuration Status of the installation media
+type ConfigStatus int
+
+const (
+	// ConfiguredNone indicates no installation media has been configured
+	ConfiguredNone ConfigStatus = iota
+	// ConfiguredPartial indicates only some of the required partition are configured
+	ConfiguredPartial
+	// ConfiguredFull indicates ALL of the required partition are configured
+	ConfiguredFull
+)
+
+// GetConfiguredStatus check a block device for the required partitions
+// Returns either ConfiguredNone,ConfiguredPartial, or ConfiguredFull
+func (bd *BlockDevice) GetConfiguredStatus() ConfigStatus {
+	status := ConfiguredNone
+
+	var root, boot, swap bool
+	for _, part := range bd.Children {
+
+		if part.FsType == "vfat" && part.MountPoint == "/boot" {
+			boot = true
+		}
+		if part.MountPoint == "/" {
+			root = true
+		}
+		if part.FsType == "swap" {
+			swap = true
+		}
+	}
+	if boot || root {
+		status = ConfiguredPartial
+	}
+	if boot && root && swap {
+		status = ConfiguredFull
+	}
+
+	return status
 }
 
 // Validate checks if the minimal requirements for a installation is met
@@ -683,6 +726,15 @@ func (bd *BlockDevice) UnmarshalJSON(b []byte) error {
 			}
 
 			bd.UUID = uuid
+		case "serial":
+			var serial string
+
+			serial, err = getNextStrToken(dec, "serial")
+			if err != nil {
+				return err
+			}
+
+			bd.Serial = serial
 		case "type":
 			var tp string
 
@@ -748,6 +800,7 @@ func (bd *BlockDevice) MarshalYAML() (interface{}, error) {
 	bdm.MajorMinor = bd.MajorMinor
 	bdm.FsType = bd.FsType
 	bdm.UUID = bd.UUID
+	bdm.Serial = bd.Serial
 	bdm.MountPoint = bd.MountPoint
 	bdm.Size = strconv.FormatUint(bd.Size, 10)
 	bdm.ReadOnly = strconv.FormatBool(bd.ReadOnly)
@@ -774,6 +827,7 @@ func (bd *BlockDevice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	bd.MajorMinor = unmarshBlockDevice.MajorMinor
 	bd.FsType = unmarshBlockDevice.FsType
 	bd.UUID = unmarshBlockDevice.UUID
+	bd.Serial = unmarshBlockDevice.Serial
 	bd.MountPoint = unmarshBlockDevice.MountPoint
 	bd.Children = unmarshBlockDevice.Children
 	// Convert String to Uint64

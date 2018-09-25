@@ -26,6 +26,8 @@ type DiskPartitionPage struct {
 	cancelBtn     *SimpleButton
 	sizeWarning   *clui.Label
 	sizeInfo      *clui.Label
+	sizeOriginal  string
+	sizeTrue      uint64 // size of the device
 }
 
 const (
@@ -77,6 +79,8 @@ func (page *DiskPartitionPage) setPartitionForm(part *storage.BlockDevice) {
 		page.Panic(err)
 	}
 
+	page.sizeOriginal = size
+	page.sizeTrue = part.Size // The actual size, not the human readable
 	page.sizeEdit.SetTitle(size)
 
 	page.setPartitionButtonsVisible(true, partAllBtns)
@@ -86,7 +90,7 @@ func (page *DiskPartitionPage) getSelectedBlockDevice() *SelectedBlockDevice {
 	var sel *SelectedBlockDevice
 	var ok bool
 
-	prevPage := page.tui.getPage(TuiPageManualPart)
+	prevPage := page.tui.getPage(TuiPageDiskConfig)
 	if sel, ok = prevPage.GetData().(*SelectedBlockDevice); !ok {
 		return nil
 	}
@@ -142,7 +146,7 @@ func (page *DiskPartitionPage) validateMountPoint() {
 func newDiskPartitionPage(tui *Tui) (Page, error) {
 	page := &DiskPartitionPage{}
 
-	page.setup(tui, TuiPageDiskPart, NoButtons, TuiPageMenu)
+	page.setup(tui, TuiPageDiskPart, NoButtons, TuiPageDiskConfig)
 
 	lbl := clui.CreateLabel(page.content, 2, 2, "Partition Setup", Fixed)
 	lbl.SetPaddings(0, 2)
@@ -214,9 +218,12 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 
 	page.sizeEdit = clui.CreateEditField(sizeFrm, 3, "", Fixed)
 	page.sizeEdit.OnChange(func(ev clui.Event) {
-		sel := page.getSelectedBlockDevice()
-		page.sizeWarning.SetTitle(sel.part.IsValidSize(page.sizeEdit.Title()))
-
+		if page.sizeEdit.Title() != page.sizeOriginal {
+			sel := page.getSelectedBlockDevice()
+			page.sizeWarning.SetTitle(sel.part.IsValidSize(page.sizeEdit.Title()))
+		} else {
+			page.sizeWarning.SetTitle("")
+		}
 		page.setConfirmButton()
 	})
 	page.sizeEdit.OnKeyPress(func(k term.Key, ch rune) bool {
@@ -251,13 +258,18 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 		if sel.part != nil {
 			sel.part.FsType = page.fsList.SelectedItemText()
 			sel.part.MountPoint = page.mPointEdit.Title()
-			size, err := storage.ParseVolumeSize(page.sizeEdit.Title())
-			if err == nil {
-				sel.part.Size = size
+			if page.sizeEdit.Title() == page.sizeOriginal {
+				// Use the actual size, not the human readable
+				sel.part.Size = page.sizeTrue
+			} else {
+				size, err := storage.ParseVolumeSize(page.sizeEdit.Title())
+				if err == nil {
+					sel.part.Size = size
+				}
 			}
 		}
 
-		page.GotoPage(TuiPageManualPart)
+		page.GotoPage(TuiPageDiskConfig)
 	})
 
 	page.deleteBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Delete", Fixed)
@@ -265,12 +277,12 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 		sel := page.getSelectedBlockDevice()
 		sel.bd.RemoveChild(sel.part)
 
-		page.GotoPage(TuiPageManualPart)
+		page.GotoPage(TuiPageDiskConfig)
 	})
 
 	page.cancelBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Cancel", Fixed)
 	page.cancelBtn.OnClick(func(ev clui.Event) {
-		page.GotoPage(TuiPageManualPart)
+		page.GotoPage(TuiPageDiskConfig)
 	})
 
 	page.activated = page.fsList

@@ -101,17 +101,11 @@ const (
 	// TuiPageKeyboard is the id for keyboard page
 	TuiPageKeyboard
 
-	// TuiPageDiskMenu is the id for disk configuration menu
-	TuiPageDiskMenu
+	// TuiPageDiskConfig is the id for disk configuration menu
+	TuiPageDiskConfig
 
 	// TuiPageDiskPart is the id for disk partition configuration page
 	TuiPageDiskPart
-
-	// TuiPageGuidedPart is the id for disk guided partitioning page
-	TuiPageGuidedPart
-
-	// TuiPageManualPart is the id for disk manual partitioning page
-	TuiPageManualPart
 
 	// TuiPageNetwork is the id for network configuration page
 	TuiPageNetwork
