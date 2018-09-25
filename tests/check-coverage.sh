@@ -2,8 +2,11 @@
 
 shopt -s lastpipe
 
+export CHECK_COVERAGE="true"
+
 go clean -testcache
 
+treechanges=$(git status -s | wc -l)
 tmp=$(mktemp)
 
 # new coverage
@@ -11,6 +14,8 @@ declare -A ncoverage
 
 # current coverage
 declare -A ccoverage
+
+echo "saving to: $tmp"
 
 make check > $tmp
 
@@ -37,5 +42,14 @@ for key in ${!ccoverage[@]}; do
     fi
 done
 
-echo "Success. No coverage decreased."
+covchanged=$(diff -u tests/coverage-curr-status $tmp | wc -l)
+
+if [ $covchanged -gt 0 ] && [ $treechanges -eq 0 ] && [ -n "$UPDATE_COVERAGE" ]; then
+    cp $tmp tests/coverage-curr-status
+    git commit -a -m "updated code coverage" -s
+    echo "Code coverage has increased. Database was updated."
+else
+    echo "Success. No coverage decreased."
+fi
+
 rm $tmp

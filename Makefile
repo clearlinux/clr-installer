@@ -16,6 +16,8 @@ orig_go_path = $(shell go env GOPATH)
 export GOPATH=$(pkg_dir)
 export GO_PACKAGE_PREFIX := github.com/clearlinux/clr-installer
 export TESTS_DIR := $(top_srcdir)/tests/
+export TRAVIS_CONF = $(top_srcdir)/.travis.yml
+export UPDATE_COVERAGE = 1
 
 CLR_INSTALLER_TEST_HTTP_PORT ?= 8181
 
@@ -69,6 +71,12 @@ build-vendor: build
 build: gopath
 	go get -v ${GO_PACKAGE_PREFIX}/clr-installer
 	go install -v ${GO_PACKAGE_PREFIX}/clr-installer
+
+check-coverage: gopath
+	@go get -v ${GO_PACKAGE_PREFIX}/local-travis
+	@go install -v ${GO_PACKAGE_PREFIX}/local-travis
+	@echo "local-travis simulation:"
+	@$(top_srcdir)/.gopath/bin/local-travis
 
 check: gopath
 	go test -cover ${GO_PACKAGE_PREFIX}/...
