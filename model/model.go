@@ -50,6 +50,14 @@ type SystemInstall struct {
 	TelemetryURL      string                 `yaml:"telemetryURL,omitempty,flow"`
 	TelemetryTID      string                 `yaml:"telemetryTID,omitempty,flow"`
 	TelemetryPolicy   string                 `yaml:"telemetryPolicy,omitempty,flow"`
+	PreInstall        []*InstallHook         `yaml:"pre-install,omitempty,flow"`
+	PostInstall       []*InstallHook         `yaml:"post-install,omitempty,flow"`
+}
+
+// InstallHook is a commands to be executed in a given point of the install process
+type InstallHook struct {
+	Chroot bool   `yaml:"chroot,omitempty,flow"`
+	Cmd    string `yaml:"cmd,omitempty,flow"`
 }
 
 // AddExtraKernelArguments adds a set of custom extra kernel arguments to be added to the

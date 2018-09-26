@@ -50,10 +50,19 @@ func Install(rootDir string, model *model.SystemInstall) error {
 	var err error
 	var version string
 	var versionBuf []byte
+	var prg progress.Progress
+
+	vars := map[string]string{
+		"chrootDir": rootDir,
+	}
 
 	// First verify we are running as 'root' user which is required
 	// for most of the Installation commands
 	if err = utils.VerifyRootUser(); err != nil {
+		return err
+	}
+
+	if err = applyHooks("pre-install", vars, model.PreInstall); err != nil {
 		return err
 	}
 
@@ -112,7 +121,7 @@ func Install(rootDir string, model *model.SystemInstall) error {
 
 		// prepare the blockdevice's partitions filesystem
 		for _, ch := range curr.Children {
-			prg := progress.NewLoop("Writing %s file system to %s", ch.FsType, ch.Name)
+			prg = progress.NewLoop("Writing %s file system to %s", ch.FsType, ch.Name)
 			if err = ch.MakeFs(); err != nil {
 				return err
 			}
@@ -171,26 +180,78 @@ func Install(rootDir string, model *model.SystemInstall) error {
 		}
 	}
 
-	prg, err := contentInstall(rootDir, version, model)
-	if err != nil {
+	if prg, err = contentInstall(rootDir, version, model); err != nil {
 		prg.Failure()
 		return err
 	}
 
-	if err := cuser.Apply(rootDir, model.Users); err != nil {
+	if err = cuser.Apply(rootDir, model.Users); err != nil {
 		return err
 	}
 
 	if model.Hostname != "" {
-		if err := hostname.SetTargetHostname(rootDir, model.Hostname); err != nil {
+		if err = hostname.SetTargetHostname(rootDir, model.Hostname); err != nil {
 			return err
 		}
 	}
 
 	if model.Telemetry.URL != "" {
-		if err := model.Telemetry.CreateTelemetryConf(rootDir); err != nil {
+		if err = model.Telemetry.CreateTelemetryConf(rootDir); err != nil {
 			return err
 		}
+	}
+
+	if err = applyHooks("post-install", vars, model.PostInstall); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func applyHooks(name string, vars map[string]string, hooks []*model.InstallHook) error {
+	prg := progress.MultiStep(len(hooks), "Running %s hooks", name)
+
+	for idx, curr := range hooks {
+		if err := runInstallHook(vars, curr); err != nil {
+			prg.Failure()
+			return err
+		}
+		prg.Partial(idx)
+	}
+
+	prg.Success()
+	return nil
+}
+
+func expandHookVariable(vars map[string]string, cmd string) string {
+	// iterate over available variables
+	for k, v := range vars {
+		// tries to replace both ${var} and $var forms
+		for _, rep := range []string{fmt.Sprintf("$%s", k), fmt.Sprintf("${%s}", k)} {
+			if strings.Contains(cmd, rep) {
+				return strings.Replace(cmd, rep, v, -1)
+			}
+		}
+	}
+
+	// if no variables are expanded return the original cmd string
+	return cmd
+}
+
+func runInstallHook(vars map[string]string, hook *model.InstallHook) error {
+	args := []string{}
+	vars["chrooted"] = "0"
+
+	if hook.Chroot {
+		args = append(args, []string{"chroot", vars["chrootDir"]}...)
+		vars["chrooted"] = "1"
+	}
+
+	exec := expandHookVariable(vars, hook.Cmd)
+	args = append(args, []string{"bash", "-c", exec}...)
+
+	if err := cmd.RunAndLogWithEnv(vars, args...); err != nil {
+		return errors.Wrap(err)
 	}
 
 	return nil

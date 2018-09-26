@@ -42,6 +42,12 @@ func RunAndLog(args ...string) error {
 	return Run(runLogger{}, args...)
 }
 
+// RunAndLogWithEnv does the same as RunAndLog but it changes the execution's environment
+// variables adding the provided ones by the env argument
+func RunAndLogWithEnv(env map[string]string, args ...string) error {
+	return run(nil, runLogger{}, env, args...)
+}
+
 // PipeRunAndLog is similar to RunAndLog runs a command and writes the output
 // to default logger and also writes in to the process stdin
 func PipeRunAndLog(in string, args ...string) error {
@@ -60,10 +66,10 @@ func PipeRunAndLog(in string, args ...string) error {
 		}()
 
 		return nil
-	}, runLogger{}, args...)
+	}, runLogger{}, nil, args...)
 }
 
-func run(sw func(cmd *exec.Cmd) error, writer io.Writer, args ...string) error {
+func run(sw func(cmd *exec.Cmd) error, writer io.Writer, env map[string]string, args ...string) error {
 	var exe string
 	var cmdArgs []string
 
@@ -88,6 +94,10 @@ func run(sw func(cmd *exec.Cmd) error, writer io.Writer, args ...string) error {
 	cmd.Stderr = writer
 	cmd.Stdin = os.Stdin
 
+	for k, v := range env {
+		cmd.Args = append(cmd.Args, fmt.Sprintf("%s=%s", k, v))
+	}
+
 	err := cmd.Run()
 	if err != nil {
 		return err
@@ -99,5 +109,5 @@ func run(sw func(cmd *exec.Cmd) error, writer io.Writer, args ...string) error {
 // Run executes a command and uses writer to write both stdout and stderr
 // args are the actual command and its arguments
 func Run(writer io.Writer, args ...string) error {
-	return run(nil, writer, args...)
+	return run(nil, writer, nil, args...)
 }
