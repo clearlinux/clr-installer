@@ -23,3 +23,14 @@ telemetry: false
 keyboard: us
 language: en_US.UTF-8
 kernel: kernel-native
+pre-install: [
+   {cmd: 'echo "running pre-install hook. dir: $chrootDir, chroot? $chrooted"'}
+]
+post-install: [
+   {cmd: "tests/post-install-sample.sh ${chrooted}"},
+   {chroot: true, cmd: 'echo "running: dir: $chrootDir, chrooted? $chrooted"'}
+]
+# post install commands will have a set of pre-defined variables expanded
+# currently supported variables are:
+#    chrootDir - the installation chrootDir (where the target system's media is mounted)
+#    chrooted  - set to 1 if the command is executed chrooted, 0 otherwise
