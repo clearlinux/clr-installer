@@ -20,19 +20,19 @@ import (
 )
 
 type blockDeviceOps struct {
-	makeFs          func(bd *BlockDevice) error
+	makeFsArgs      []string
 	makePartCommand func(bd *BlockDevice, start uint64, end uint64) (string, error)
 }
 
 var (
 	bdOps = map[string]*blockDeviceOps{
-		"ext2":  {ext2MakeFs, commonMakePartCommand},
-		"ext3":  {ext3MakeFs, commonMakePartCommand},
-		"ext4":  {ext4MakeFs, commonMakePartCommand},
-		"btrfs": {btrfsMakeFs, commonMakePartCommand},
-		"xfs":   {xfsMakeFs, commonMakePartCommand},
-		"swap":  {swapMakeFs, swapMakePartCommand},
-		"vfat":  {vfatMakeFs, vfatMakePartCommand},
+		"ext2":  {[]string{"mkfs.ext2", "-v", "-F"}, commonMakePartCommand},
+		"ext3":  {[]string{"mkfs.ext3", "-v", "-F"}, commonMakePartCommand},
+		"ext4":  {[]string{"mkfs.ext4", "-v", "-F", "-b", "4096"}, commonMakePartCommand},
+		"btrfs": {[]string{"mkfs.btrfs", "-f"}, commonMakePartCommand},
+		"xfs":   {[]string{"mkfs.xfs", "-f"}, commonMakePartCommand},
+		"swap":  {[]string{"mkswap"}, swapMakePartCommand},
+		"vfat":  {[]string{"mkfs.vfat", "-F32"}, vfatMakePartCommand},
 	}
 
 	guidMap = map[string]string{
@@ -53,10 +53,25 @@ func (bd *BlockDevice) MakeFs() error {
 	}
 
 	if op, ok := bdOps[bd.FsType]; ok {
-		return op.makeFs(bd)
+		return makeFs(bd, op.makeFsArgs)
 	}
 
 	return errors.Errorf("MakeFs() not implemented for filesystem: %s", bd.FsType)
+}
+
+func makeFs(bd *BlockDevice, args []string) error {
+	if bd.options != "" {
+		args = append(args, strings.Split(bd.options, " ")...)
+	}
+
+	args = append(args, bd.GetDeviceFile())
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
 
 // getGUID determines the partition type guid either based on:
@@ -293,86 +308,6 @@ func commonMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, e
 	return strings.Join(args, " "), nil
 }
 
-func ext4MakeFs(bd *BlockDevice) error {
-	args := []string{
-		"mkfs.ext4",
-		"-v",
-		"-F",
-		"-b",
-		"4096",
-		bd.GetDeviceFile(),
-	}
-
-	err := cmd.RunAndLog(args...)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	return nil
-}
-
-func ext2MakeFs(bd *BlockDevice) error {
-	args := []string{
-		"mkfs.ext2",
-		"-v",
-		"-F",
-		bd.GetDeviceFile(),
-	}
-
-	err := cmd.RunAndLog(args...)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	return nil
-}
-
-func ext3MakeFs(bd *BlockDevice) error {
-	args := []string{
-		"mkfs.ext3",
-		"-v",
-		"-F",
-		bd.GetDeviceFile(),
-	}
-
-	err := cmd.RunAndLog(args...)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	return nil
-}
-
-func btrfsMakeFs(bd *BlockDevice) error {
-	args := []string{
-		"mkfs.btrfs",
-		"-f",
-		bd.GetDeviceFile(),
-	}
-
-	err := cmd.RunAndLog(args...)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	return nil
-}
-
-func xfsMakeFs(bd *BlockDevice) error {
-	args := []string{
-		"mkfs.xfs",
-		"-f",
-		bd.GetDeviceFile(),
-	}
-
-	err := cmd.RunAndLog(args...)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	return nil
-}
-
 func swapMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, error) {
 	args := []string{
 		"mkpart",
@@ -382,20 +317,6 @@ func swapMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, err
 	}
 
 	return strings.Join(args, " "), nil
-}
-
-func swapMakeFs(bd *BlockDevice) error {
-	args := []string{
-		"mkswap",
-		bd.GetDeviceFile(),
-	}
-
-	err := cmd.RunAndLog(args...)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	return nil
 }
 
 func vfatMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, error) {
@@ -408,19 +329,4 @@ func vfatMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, err
 	}
 
 	return strings.Join(args, " "), nil
-}
-
-func vfatMakeFs(bd *BlockDevice) error {
-	args := []string{
-		"mkfs.vfat",
-		"-F32",
-		bd.GetDeviceFile(),
-	}
-
-	err := cmd.RunAndLog(args...)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	return nil
 }
