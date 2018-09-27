@@ -38,6 +38,7 @@ func TestLoadFile(t *testing.T) {
 		{"real-example.yaml", true},
 		{"valid-network.yaml", true},
 		{"valid-minimal.yaml", true},
+		{"valid-with-version.yaml", true},
 	}
 
 	for _, curr := range tests {

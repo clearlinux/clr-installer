@@ -120,6 +120,10 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string) (bool, error
 
 	log.Debug("Starting install")
 
+	if md.Version > 0 {
+		fmt.Printf("Config file specifies a target \"version\", forcing auto-update off.")
+	}
+
 	instError = controller.Install(rootDir, md)
 	if instError != nil {
 		if !errors.IsValidationError(instError) {

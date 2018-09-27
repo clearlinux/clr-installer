@@ -80,22 +80,27 @@ func Install(rootDir string, model *model.SystemInstall) error {
 		}
 	}
 
-	log.Info("Querying Clear Linux version")
+	if model.Version == 0 {
+		log.Info("Querying Clear Linux version")
 
-	// in order to avoid issues raised by format bumps between installers image
-	// version and the latest released we assume the installers host version
-	// in other words we use the same version swupd is based on
-	if versionBuf, err = ioutil.ReadFile("/usr/lib/os-release"); err != nil {
-		return errors.Errorf("Read version file /usr/lib/os-release: %v", err)
+		// in order to avoid issues raised by format bumps between installers image
+		// version and the latest released we assume the installers host version
+		// in other words we use the same version swupd is based on
+		if versionBuf, err = ioutil.ReadFile("/usr/lib/os-release"); err != nil {
+			return errors.Errorf("Read version file /usr/lib/os-release: %v", err)
+		}
+		versionExp := regexp.MustCompile(`VERSION_ID=([0-9][0-9]*)`)
+		match := versionExp.FindSubmatch(versionBuf)
+
+		if len(match) < 2 {
+			return errors.Errorf("Version not found in /usr/lib/os-release")
+		}
+
+		version = string(match[1])
+	} else {
+		version = fmt.Sprintf("%d", model.Version)
 	}
-	versionExp := regexp.MustCompile(`VERSION_ID=([0-9][0-9]*)`)
-	match := versionExp.FindSubmatch(versionBuf)
 
-	if len(match) < 2 {
-		return errors.Errorf("Version not found in /usr/lib/os-release")
-	}
-
-	version = string(match[1])
 	log.Debug("Clear Linux version: %s", version)
 
 	// do we have the minimum required to install a system?
