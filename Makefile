@@ -125,7 +125,8 @@ update-linters:
 	fi \
 
 PHONY += lint
-lint: install-linters
+lint: build install-linters
+	@echo "Running linters"
 	@rm -rf ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor
 	@cp -af vendor/* ${LOCAL_GOPATH}/src/
 	@gometalinter.v2 --deadline=10m --tests --vendor \
