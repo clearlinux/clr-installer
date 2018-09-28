@@ -115,6 +115,73 @@ func Install(rootDir string, model *model.SystemInstall) error {
 		}
 	}
 
+	expandMe := []*storage.BlockDevice{}
+	detachMe := []string{}
+	aliasMap := map[string]string{}
+
+	// prepare image file, case the user has declared image alias then create
+	// the image, setup the loop device, prepare the variable expansion
+	for _, alias := range model.StorageAlias {
+		var file string
+
+		if alias.DeviceFile {
+			continue
+		}
+
+		// create the image and add the alias name to the variable expansion list
+		for _, tm := range model.TargetMedias {
+			if tm.Name == fmt.Sprintf("${%s}", alias.Name) {
+				if err = storage.MakeImage(tm, alias.File); err != nil {
+					return err
+				}
+
+				expandMe = append(expandMe, tm)
+			}
+		}
+
+		file, err = storage.SetupLoopDevice(alias.File)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		aliasMap[alias.Name] = filepath.Base(file)
+		detachMe = append(detachMe, file)
+
+		retry := 5
+
+		// wait the loop device to be prepared and available with 5 retry attempts
+		for {
+			var ok bool
+
+			if ok, err = utils.FileExists(file); err != nil {
+				for _, file := range detachMe {
+					storage.DetachLoopDevice(file)
+				}
+
+				return errors.Wrap(err)
+			}
+
+			if ok || retry == 0 {
+				break
+			}
+
+			retry--
+			time.Sleep(time.Second * 1)
+		}
+	}
+
+	// defer detaching used loop devices
+	defer func() {
+		for _, file := range detachMe {
+			storage.DetachLoopDevice(file)
+		}
+	}()
+
+	// expand block device's name case we've detected image replacement cases
+	for _, tm := range expandMe {
+		tm.ExpandName(aliasMap)
+	}
+
 	mountPoints := []*storage.BlockDevice{}
 
 	// prepare all the target block devices

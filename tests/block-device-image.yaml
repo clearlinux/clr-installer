@@ -1,0 +1,30 @@
+#clear-linux-config
+block-devices: [
+   {name: "target", file: "target.img"}
+]
+
+targetMedia:
+- name: ${target}
+  size: "30752636928"
+  type: disk
+  children:
+  - name: ${target}1
+    fstype: vfat
+    mountpoint: /boot
+    size: "157286400"
+    type: part
+  - name: ${target}2
+    fstype: swap
+    size: "2147483648"
+    type: part
+  - name: ${target}3
+    fstype: ext4
+    mountpoint: /
+    size: "28447866880"
+    type: part
+
+bundles: [os-core, os-core-update]
+telemetry: false
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-native

@@ -72,8 +72,9 @@ type InstallHook struct {
 //   {name: "alias", file: "/dev/nvme0n1"}
 // ]
 type StorageAlias struct {
-	Name string `yaml:"name,omitempty,flow"`
-	File string `yaml:"file,omitempty,flow"`
+	Name       string `yaml:"name,omitempty,flow"`
+	File       string `yaml:"file,omitempty,flow"`
+	DeviceFile bool
 }
 
 // AddExtraKernelArguments adds a set of custom extra kernel arguments to be added to the
@@ -264,6 +265,7 @@ func LoadFile(path string) (*SystemInstall, error) {
 				continue
 			}
 
+			curr.DeviceFile = true
 			alias[curr.Name] = filepath.Base(curr.File)
 		}
 
