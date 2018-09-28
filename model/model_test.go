@@ -5,6 +5,7 @@
 package model
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -20,6 +21,7 @@ var (
 
 func init() {
 	testsDir = os.Getenv("TESTS_DIR")
+	testAlias = append(testAlias, "/dev/sda")
 }
 
 func TestLoadFile(t *testing.T) {
@@ -39,6 +41,7 @@ func TestLoadFile(t *testing.T) {
 		{"valid-network.yaml", true},
 		{"valid-minimal.yaml", true},
 		{"valid-with-version.yaml", true},
+		{"block-devices-alias.yaml", true},
 	}
 
 	for _, curr := range tests {
@@ -52,6 +55,51 @@ func TestLoadFile(t *testing.T) {
 		err = model.Validate()
 		if curr.valid && err != nil {
 			t.Fatalf("%s is a valid tests and shouldn't return an error: %v", curr.file, err)
+		}
+	}
+}
+
+func TestIsTestAlias(t *testing.T) {
+	testAlias = []string{}
+
+	if isTestAlias("/dev/sda") {
+		t.Fatalf("Should have returned false for invalid alias")
+	}
+
+	testAlias = append(testAlias, "/dev/sda")
+	if !isTestAlias("/dev/sda") {
+		t.Fatalf("Should have returned true for valid alias")
+	}
+}
+
+func TestBlockDevicesAlias(t *testing.T) {
+	path := filepath.Join(testsDir, "block-devices-alias.yaml")
+	model, err := LoadFile(path)
+
+	if err != nil {
+		t.Fatalf("Failed to load yaml file: %s", err)
+	}
+
+	tm := model.TargetMedias[0]
+
+	if tm.Name != "sda" {
+		t.Fatalf("Failed to expand Name variable, value: %s, expected: sda", tm.Name)
+	}
+
+	if tm.GetDeviceFile() != "/dev/sda" {
+		t.Fatalf("Invalid device name value: %s, expected: /dev/sda", tm.GetDeviceFile())
+	}
+
+	for i, bd := range tm.Children {
+		expected := fmt.Sprintf("sda%d", i+1)
+		expectedFile := filepath.Join("/dev/", expected)
+
+		if bd.Name != expected {
+			t.Fatalf("Failed to expand Name variable, value: %s, expected: %s", bd.Name, expected)
+		}
+
+		if bd.GetDeviceFile() != expectedFile {
+			t.Fatalf("Invalid device name value: %s, expected: %s", bd.GetDeviceFile(), expectedFile)
 		}
 	}
 }

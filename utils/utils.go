@@ -5,12 +5,14 @@
 package utils
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 	"unsafe"
 
@@ -151,4 +153,21 @@ func IsStdoutTTY() bool {
 	_, _, err := syscall.Syscall6(syscall.SYS_IOCTL, fd, syscall.TCGETS, ptr, 0, 0, 0)
 
 	return err == 0
+}
+
+// ExpandVariables iterates over vars map and replace all the ocorrences of ${var} or
+// $var in the str string
+func ExpandVariables(vars map[string]string, str string) string {
+	// iterate over available variables
+	for k, v := range vars {
+		// tries to replace both ${var} and $var forms
+		for _, rep := range []string{fmt.Sprintf("$%s", k), fmt.Sprintf("${%s}", k)} {
+			if strings.Contains(str, rep) {
+				return strings.Replace(str, rep, v, -1)
+			}
+		}
+	}
+
+	// if no variables are expanded return the original string
+	return str
 }
