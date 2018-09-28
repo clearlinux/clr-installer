@@ -458,7 +458,7 @@ func listBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
 
 	if err = utils.VerifyRootUser(); err == nil {
 		for _, bd := range bds {
-			if err = bd.partProbe(); err != nil {
+			if err = bd.PartProbe(); err != nil {
 				return nil, err
 			}
 		}
@@ -971,7 +971,8 @@ func NewStandardPartitions(disk *BlockDevice) {
 	})
 }
 
-func (bd *BlockDevice) partProbe() error {
+// PartProbe runs partprobe against the block device's file
+func (bd *BlockDevice) PartProbe() error {
 	args := []string{
 		"partprobe",
 		bd.GetDeviceFile(),
@@ -982,4 +983,19 @@ func (bd *BlockDevice) partProbe() error {
 	}
 
 	return nil
+}
+
+// DiskSize given a BlockDevice sum's up its size and children sizes
+func (bd *BlockDevice) DiskSize() uint64 {
+	size := bd.Size
+
+	for _, ch := range bd.Children {
+		if len(ch.Children) > 0 {
+			size += ch.DiskSize()
+		} else {
+			size += ch.Size
+		}
+	}
+
+	return size
 }

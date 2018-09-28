@@ -5,6 +5,7 @@
 package storage
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -115,7 +116,7 @@ func UmountAll() error {
 	sort.Sort(sort.Reverse(sort.StringSlice(mountedPoints)))
 
 	for _, point := range mountedPoints {
-		if err := syscall.Unmount(point, syscall.MNT_FORCE); err != nil {
+		if err := syscall.Unmount(point, syscall.MNT_FORCE|syscall.MNT_DETACH); err != nil {
 			err = fmt.Errorf("umount %s: %v", point, err)
 			log.ErrorError(err)
 			fails = append(fails, point)
@@ -228,7 +229,7 @@ func (bd *BlockDevice) WritePartitionTable() error {
 		cnt = cnt + 1
 	}
 
-	if err = bd.partProbe(); err != nil {
+	if err = bd.PartProbe(); err != nil {
 		prg.Failure()
 		return err
 	}
@@ -329,4 +330,60 @@ func vfatMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, err
 	}
 
 	return strings.Join(args, " "), nil
+}
+
+// MakeImage create an image file considering the total block device size
+func MakeImage(bd *BlockDevice, file string) error {
+	size := bd.DiskSize()
+
+	args := []string{
+		"qemu-img",
+		"create",
+		"-f",
+		"raw",
+		file,
+		fmt.Sprintf("%d", size),
+	}
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
+}
+
+// SetupLoopDevice sets up a loop device and return the loop device path
+func SetupLoopDevice(file string) (string, error) {
+	args := []string{
+		"losetup",
+		"--find",
+		"--show",
+		file,
+	}
+
+	buff := bytes.NewBuffer(nil)
+
+	err := cmd.Run(buff, args...)
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+
+	result := buff.String()
+	if result == "" {
+		return result, errors.Errorf("Could not setup loop device")
+	}
+
+	return strings.Replace(result, "\n", "", -1), nil
+}
+
+// DetachLoopDevice detaches a loop device
+func DetachLoopDevice(file string) {
+	args := []string{
+		"losetup",
+		"-d",
+		file,
+	}
+
+	_ = cmd.RunAndLog(args...)
 }

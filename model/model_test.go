@@ -42,6 +42,7 @@ func TestLoadFile(t *testing.T) {
 		{"valid-minimal.yaml", true},
 		{"valid-with-version.yaml", true},
 		{"block-devices-alias.yaml", true},
+		{"block-device-image.yaml", true},
 	}
 
 	for _, curr := range tests {
