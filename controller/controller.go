@@ -296,7 +296,7 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall) 
 		// already installed - with that we need to prevent doing bundle-add for bundles
 		// previously installed by verify operation
 		if swupd.IsCoreBundle(bundle) {
-			log.Debug("Bundle %s was already installed with the core bundles, skipping")
+			log.Debug("Bundle %s was already installed with the core bundles, skipping", bundle)
 			continue
 		}
 
