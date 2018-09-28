@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/clearlinux/clr-installer/controller"
-	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/progress"
 
 	"github.com/VladimirMarkelov/clui"
@@ -95,18 +94,6 @@ func (page *InstallPage) Activate() {
 			page.Panic(err)
 			return // In a panic state, do not continue
 		}
-
-		prg := progress.NewLoop("Saving the installation results")
-		if err := controller.SaveInstallResults(page.tui.rootDir, page.getModel()); err != nil {
-			log.ErrorError(err)
-		}
-		prg.Success()
-
-		prg = progress.NewLoop("Cleaning up install environment")
-		if err := controller.Cleanup(page.tui.rootDir, true); err != nil {
-			log.ErrorError(err)
-		}
-		prg.Success()
 
 		page.prgLabel.SetTitle("Installation complete")
 		page.rebootBtn.SetEnabled(true)
