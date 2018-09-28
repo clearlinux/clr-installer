@@ -7,6 +7,7 @@ package model
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 
@@ -27,6 +28,7 @@ import (
 // Default to the version of the program
 // but may be overridden for demo/documentation mode.
 var Version = "0.9.0"
+var testAlias = []string{}
 
 // SystemInstall represents the system install "configuration", the target
 // medias, bundles to install and whatever state a install may require
@@ -53,12 +55,25 @@ type SystemInstall struct {
 	PreInstall        []*InstallHook         `yaml:"pre-install,omitempty,flow"`
 	PostInstall       []*InstallHook         `yaml:"post-install,omitempty,flow"`
 	Version           uint                   `yaml:"version,omitempty,flow"`
+	StorageAlias      []*StorageAlias        `yaml:"block-devices,omitempty,flow"`
 }
 
 // InstallHook is a commands to be executed in a given point of the install process
 type InstallHook struct {
 	Chroot bool   `yaml:"chroot,omitempty,flow"`
 	Cmd    string `yaml:"cmd,omitempty,flow"`
+}
+
+// StorageAlias is used to expand variables in the targetMedia definitions
+// a partition's block device name attribute could be declared in the form of:
+//   Name: ${alias}p1
+// where ${alias} was previously declared pointing to a block device file such as:
+// block-devices : [
+//   {name: "alias", file: "/dev/nvme0n1"}
+// ]
+type StorageAlias struct {
+	Name string `yaml:"name,omitempty,flow"`
+	File string `yaml:"file,omitempty,flow"`
 }
 
 // AddExtraKernelArguments adds a set of custom extra kernel arguments to be added to the
@@ -231,11 +246,45 @@ func LoadFile(path string) (*SystemInstall, error) {
 		}
 	}
 
+	if len(result.StorageAlias) > 0 {
+		alias := map[string]string{}
+
+		for _, curr := range result.StorageAlias {
+			fi, err := os.Lstat(curr.File)
+			if err != nil && !isTestAlias(curr.File) {
+				// could be an image file to be created
+				if os.IsNotExist(err) {
+					continue
+				}
+
+				return nil, errors.Wrap(err)
+			}
+
+			if (fi != nil && fi.Mode()&os.ModeDevice == 0) || !isTestAlias(curr.File) {
+				continue
+			}
+
+			alias[curr.Name] = filepath.Base(curr.File)
+		}
+
+		for _, bd := range result.TargetMedias {
+			bd.ExpandName(alias)
+		}
+	}
+
 	if result.Version > 0 {
 		result.AutoUpdate = false
 	}
 
 	return &result, nil
+}
+
+func isTestAlias(file string) bool {
+	if len(testAlias) == 0 {
+		return false
+	}
+
+	return utils.StringSliceContains(testAlias, file)
 }
 
 // EnableTelemetry operates on the telemetry flag and enables or disables the target

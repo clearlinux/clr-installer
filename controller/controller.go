@@ -247,21 +247,6 @@ func applyHooks(name string, vars map[string]string, hooks []*model.InstallHook)
 	return nil
 }
 
-func expandHookVariable(vars map[string]string, cmd string) string {
-	// iterate over available variables
-	for k, v := range vars {
-		// tries to replace both ${var} and $var forms
-		for _, rep := range []string{fmt.Sprintf("$%s", k), fmt.Sprintf("${%s}", k)} {
-			if strings.Contains(cmd, rep) {
-				return strings.Replace(cmd, rep, v, -1)
-			}
-		}
-	}
-
-	// if no variables are expanded return the original cmd string
-	return cmd
-}
-
 func runInstallHook(vars map[string]string, hook *model.InstallHook) error {
 	args := []string{}
 	vars["chrooted"] = "0"
@@ -271,7 +256,7 @@ func runInstallHook(vars map[string]string, hook *model.InstallHook) error {
 		vars["chrooted"] = "1"
 	}
 
-	exec := expandHookVariable(vars, hook.Cmd)
+	exec := utils.ExpandVariables(vars, hook.Cmd)
 	args = append(args, []string{"bash", "-c", exec}...)
 
 	if err := cmd.RunAndLogWithEnv(vars, args...); err != nil {

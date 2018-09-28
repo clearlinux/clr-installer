@@ -120,7 +120,37 @@ var (
 		BlockDeviceTypeLVM2Volume: "lvm",
 		BlockDeviceTypeUnknown:    "",
 	}
+	aliasPrefixTable = map[string]string{
+		"/dev/loop": "p",
+		"/dev/nvme": "p",
+	}
 )
+
+func getAliasSuffix(file string) string {
+	for k, v := range aliasPrefixTable {
+		if strings.HasPrefix(file, k) {
+			return v
+		}
+	}
+
+	return ""
+}
+
+// ExpandName expands variables in the Name attribute applying the values in the
+// alias map
+func (bd *BlockDevice) ExpandName(alias map[string]string) {
+	tmap := map[string]string{}
+
+	bd.Name = utils.ExpandVariables(alias, bd.Name)
+
+	for k, v := range alias {
+		tmap[k] = fmt.Sprintf("%s%s", v, getAliasSuffix(filepath.Join("/dev", v)))
+	}
+
+	for _, child := range bd.Children {
+		child.Name = utils.ExpandVariables(tmap, child.Name)
+	}
+}
 
 // GetDeviceFile formats the block device's file path
 func (bd BlockDevice) GetDeviceFile() string {
