@@ -148,6 +148,19 @@ func Install(rootDir string, model *model.SystemInstall) error {
 		}
 	}
 
+	defer func() {
+		log.Info("Umounting rootDir: %s", rootDir)
+		if storage.UmountAll() != nil {
+			log.Warning("Failed to umount volumes")
+			return
+		}
+
+		log.Info("Removing rootDir: %s", rootDir)
+		if err = os.RemoveAll(rootDir); err != nil {
+			log.Warning("Failed to remove rootDir: %s", rootDir)
+		}
+	}()
+
 	err = storage.MountMetaFs(rootDir)
 	if err != nil {
 		return err
@@ -205,6 +218,12 @@ func Install(rootDir string, model *model.SystemInstall) error {
 			return err
 		}
 	}
+
+	prg = progress.NewLoop("Saving the installation results")
+	if err = saveInstallResults(rootDir, model); err != nil {
+		log.ErrorError(err)
+	}
+	prg.Success()
 
 	if err = applyHooks("post-install", vars, model.PostInstall); err != nil {
 		return err
@@ -382,9 +401,9 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 	return nil, nil
 }
 
-// SaveInstallResults saves the results of the installation process
+// saveInstallResults saves the results of the installation process
 // onto the target media
-func SaveInstallResults(rootDir string, md *model.SystemInstall) error {
+func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 	var err error
 	errMsgs := []string{}
 
@@ -461,29 +480,6 @@ func SaveInstallResults(rootDir string, md *model.SystemInstall) error {
 
 	if len(errMsgs) > 0 {
 		return errors.Errorf("%s", strings.Join(errMsgs, ";"))
-	}
-
-	return nil
-}
-
-// Cleanup executes post-install cleanups i.e unmount partition, remove
-// temporary directory etc.
-func Cleanup(rootDir string, umount bool) error {
-	var err error
-
-	log.Info("Cleaning up %s", rootDir)
-
-	// we'll fail to umount only if a device is not mounted
-	// then, just log it and move cleaning up
-	if umount {
-		if storage.UmountAll() != nil {
-			log.Warning("Failed to umount volumes")
-		}
-	}
-
-	log.Info("Removing rootDir: %s", rootDir)
-	if err = os.RemoveAll(rootDir); err != nil {
-		return errors.Errorf("Failed to remove all in %s: %v", rootDir, err)
 	}
 
 	return nil
