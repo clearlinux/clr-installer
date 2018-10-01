@@ -5,6 +5,8 @@ import (
 	"unicode"
 
 	"github.com/VladimirMarkelov/clui"
+	term "github.com/nsf/termbox-go"
+
 	"github.com/clearlinux/clr-installer/errors"
 )
 
@@ -124,11 +126,59 @@ func (tg *TabGroup) AddTab(label string, hotKey rune) (*TabPage, error) {
 	return page, nil
 }
 
+func (tg *TabGroup) findNextTab() *TabPage {
+	if len(tg.pages) < 1 {
+		return nil
+	}
+
+	maxIndex := len(tg.pages) - 1
+	index := 0
+	for i, curr := range tg.pages {
+		if curr == tg.selected {
+			index = i + 1
+		}
+	}
+
+	// Check for running of the end
+	if index > maxIndex {
+		index = maxIndex
+	}
+
+	return tg.pages[index]
+}
+
+func (tg *TabGroup) findPrevTab() *TabPage {
+	if len(tg.pages) < 1 {
+		return nil
+	}
+
+	minIndex := 0
+	index := 0
+	for i, curr := range tg.pages {
+		if curr == tg.selected {
+			index = i - 1
+		}
+	}
+
+	// Check for running of the end
+	if index < minIndex {
+		index = minIndex
+	}
+
+	return tg.pages[index]
+}
+
 func keyEventCb(ev clui.Event, data interface{}) bool {
 	cbData := data.(*TabKeyCb)
 
 	var selected *TabPage
 	var hidden []*TabPage
+
+	if ev.Key == term.KeyArrowRight {
+		selected = cbData.tab.findNextTab()
+	} else if ev.Key == term.KeyArrowLeft {
+		selected = cbData.tab.findPrevTab()
+	}
 
 	for _, curr := range cbData.tab.pages {
 		if ev.Ch == curr.hotKey || ev.Ch == unicode.ToUpper(curr.hotKey) {
