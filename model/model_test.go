@@ -43,6 +43,7 @@ func TestLoadFile(t *testing.T) {
 		{"valid-with-version.yaml", true},
 		{"block-devices-alias.yaml", true},
 		{"block-device-image.yaml", true},
+		{"valid-with-pre-post-hooks.yaml", true},
 	}
 
 	for _, curr := range tests {

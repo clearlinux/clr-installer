@@ -1,0 +1,36 @@
+#clear-linux-config
+targetMedia:
+- name: sda
+  size: "30752636928"
+  type: disk
+  children:
+  - name: sda1
+    fstype: vfat
+    mountpoint: /boot
+    size: "157286400"
+    type: part
+  - name: sda2
+    fstype: swap
+    size: "2147483648"
+    type: part
+  - name: sda3
+    fstype: ext4
+    mountpoint: /
+    size: "28447866880"
+    type: part
+bundles: [os-core, os-core-update]
+telemetry: false
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-native
+pre-install: [
+   {cmd: 'echo "running pre-install hook. dir: $chrootDir, chroot? $chrooted"'}
+]
+post-install: [
+   {cmd: "tests/post-install-sample.sh ${chrooted}"},
+   {chroot: true, cmd: 'echo "running: dir: $chrootDir, chrooted? $chrooted"'}
+]
+# post install commands will have a set of pre-defined variables expanded
+# currently supported variables are:
+#    chrootDir - the installation chrootDir (where the target system's media is mounted)
+#    chrooted  - set to 1 if the command is executed chrooted, 0 otherwise
