@@ -79,7 +79,13 @@ check-coverage: gopath
 	@$(top_srcdir)/.gopath/bin/local-travis
 
 check: gopath
+	# Ensure no temp files are left behind
+	$(eval BEFORESHA = $(shell ls -art /tmp | sha512sum))
 	go test -cover ${GO_PACKAGE_PREFIX}/...
+	@if [ "$(BEFORESHA)" != "$$(ls -art /tmp | sha512sum)" ] ; then \
+		echo "Test Failed: Temporary directory may not be clean!"; \
+		/bin/false ; \
+	fi \
 
 check-clean: gopath
 	go clean -testcache

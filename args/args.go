@@ -41,6 +41,7 @@ type Args struct {
 	RebootSet       bool
 	LogFile         string
 	ConfigFile      string
+	CfDownloaded    bool
 	SwupdMirror     string
 	Telemetry       bool
 	TelemetrySet    bool
@@ -82,6 +83,7 @@ func (args *Args) setKernelArgs() (err error) {
 		}
 
 		args.ConfigFile = ffile
+		args.CfDownloaded = true
 	}
 
 	return nil

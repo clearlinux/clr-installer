@@ -67,7 +67,10 @@ func TestTag(t *testing.T) {
 	}
 
 	fh := setLog(t)
-	defer func() { _ = fh.Close() }()
+	defer func() {
+		_ = fh.Close()
+		_ = os.Remove(fh.Name())
+	}()
 
 	if err := SetLogLevel(LogLevelDebug); err != nil {
 		t.Fatal("Should not fail with a valid level")
@@ -90,7 +93,10 @@ func TestTag(t *testing.T) {
 
 func TestErrorError(t *testing.T) {
 	fh := setLog(t)
-	defer func() { _ = fh.Close() }()
+	defer func() {
+		_ = fh.Close()
+		_ = os.Remove(fh.Name())
+	}()
 
 	ErrorError(fmt.Errorf("testing log with error"))
 
@@ -112,7 +118,10 @@ func TestLogLevel(t *testing.T) {
 	}
 
 	fh := setLog(t)
-	defer func() { _ = fh.Close() }()
+	defer func() {
+		_ = fh.Close()
+		_ = os.Remove(fh.Name())
+	}()
 
 	for _, curr := range tests {
 		if err := SetLogLevel(curr.mutedLevel); err != nil {
@@ -164,7 +173,10 @@ func TestInvalidLogLevel(t *testing.T) {
 
 func TestLogTraceableError(t *testing.T) {
 	fh := setLog(t)
-	defer func() { _ = fh.Close() }()
+	defer func() {
+		_ = fh.Close()
+		_ = os.Remove(fh.Name())
+	}()
 
 	ErrorError(errors.Errorf("Traceable error"))
 
@@ -175,7 +187,10 @@ func TestLogTraceableError(t *testing.T) {
 
 func TestLogOut(t *testing.T) {
 	fh := setLog(t)
-	defer func() { _ = fh.Close() }()
+	defer func() {
+		_ = fh.Close()
+		_ = os.Remove(fh.Name())
+	}()
 	Out("command output")
 
 	if !strings.Contains(readLog(t).String(), "[OUT]") {
