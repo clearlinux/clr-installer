@@ -167,9 +167,9 @@ func splitArgs(cfg travisConfig, line string) ([]string, error) {
 	return res, nil
 }
 
-func addProxyToDocker(args []string) []string {
+func addEnvVarsToDocker(args []string) []string {
 	setVars := map[string]string{}
-	proxyVars := []string{"http_proxy", "https_proxy", "no_proxy"}
+	proxyVars := []string{"http_proxy", "https_proxy", "no_proxy", "UPDATE_COVERAGE"}
 
 	for _, pvar := range proxyVars {
 		value := os.Getenv(pvar)
@@ -221,7 +221,7 @@ func runBatch(cfg travisConfig, batch []string) error {
 		}
 
 		if args[0] == "docker" && dockerCommandSupportsEnv(args[1]) {
-			args = addProxyToDocker(args)
+			args = addEnvVarsToDocker(args)
 		}
 
 		if err := cmd.Run(os.Stdout, args...); err != nil {
