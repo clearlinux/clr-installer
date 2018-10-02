@@ -116,8 +116,8 @@ func (args *Args) setCommandLineArgs() (err error) {
 		&args.ConfigFile, "config", "c", args.ConfigFile, "Installation configuration file",
 	)
 
-	flag.StringVarP(
-		&args.SwupdMirror, "mirror", "m", args.SwupdMirror, "Swupd Installation mirror URL",
+	flag.StringVar(
+		&args.SwupdMirror, "swupd-mirror", args.SwupdMirror, "Swupd Installation mirror URL",
 	)
 
 	flag.BoolVar(
