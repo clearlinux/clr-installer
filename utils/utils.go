@@ -11,6 +11,8 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"syscall"
+	"unsafe"
 
 	"github.com/clearlinux/clr-installer/errors"
 )
@@ -138,4 +140,15 @@ func StringSliceContains(sl []string, str string) bool {
 // IsCheckCoverage returns true if CHECK_COVERAGE variable is set
 func IsCheckCoverage() bool {
 	return os.Getenv("CHECK_COVERAGE") != ""
+}
+
+// IsStdoutTTY returns true if the stdout is attached to a tty
+func IsStdoutTTY() bool {
+	var termios syscall.Termios
+
+	fd := os.Stdout.Fd()
+	ptr := uintptr(unsafe.Pointer(&termios))
+	_, _, err := syscall.Syscall6(syscall.SYS_IOCTL, fd, syscall.TCGETS, ptr, 0, 0, 0)
+
+	return err == 0
 }
