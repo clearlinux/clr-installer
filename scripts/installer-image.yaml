@@ -1,0 +1,40 @@
+#clear-linux-config
+
+# switch between aliases if you want to install to an actuall block device
+# i.e /dev/sda
+block-devices: [
+   {name: "installer", file: "clear-installer.img"}
+]
+
+targetMedia:
+- name: ${installer}
+  size: "1.2G"
+  type: disk
+  children:
+  - name: ${installer}1
+    fstype: vfat
+    mountpoint: /boot
+    size: "150M"
+    type: part
+  - name: ${installer}2
+    fstype: swap
+    size: "120M"
+    type: part
+  - name: ${installer}3
+    fstype: ext4
+    mountpoint: /
+    size: "958M"
+    type: part
+
+bundles: [os-core, os-core-update, telemetrics, os-installer, openssh-server]
+autoUpdate: false
+postArchive: false
+postReboot: false
+telemetry: false
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-native
+
+post-install: [
+   {cmd: "scripts/installer-image-post.sh ${chrootDir}"}
+]
