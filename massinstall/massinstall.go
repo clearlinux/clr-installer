@@ -15,6 +15,7 @@ import (
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/progress"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 // MassInstall is the frontend implementation for the "mass installer" it also
@@ -22,6 +23,7 @@ import (
 type MassInstall struct {
 	prgDesc  string
 	prgIndex int
+	step     int
 }
 
 // New creates a new instance of MassInstall frontend implementation
@@ -29,8 +31,26 @@ func New() *MassInstall {
 	return &MassInstall{}
 }
 
+func printPipedStatus(mi *MassInstall) bool {
+	isStdoutTTY := utils.IsStdoutTTY()
+	mi.step++
+
+	if !isStdoutTTY && mi.step == 1 {
+		fmt.Println(mi.prgDesc)
+		return true
+	} else if !isStdoutTTY {
+		return true
+	}
+
+	return false
+}
+
 // Step is the progress step implementation for progress.Client interface
 func (mi *MassInstall) Step() {
+	if printPipedStatus(mi) {
+		return
+	}
+
 	elms := []string{"|", "-", "\\", "|", "/", "-", "\\"}
 
 	fmt.Printf("%s [%s]\r", mi.prgDesc, elms[mi.prgIndex])
@@ -57,6 +77,10 @@ func (mi *MassInstall) Desc(desc string) {
 // Partial is part of the progress.Client implementation and sets the progress bar based
 // on actual progression
 func (mi *MassInstall) Partial(total int, step int) {
+	if printPipedStatus(mi) {
+		return
+	}
+
 	line := fmt.Sprintf("%s %.0f%%\r", mi.prgDesc, (float64(step)/float64(total))*100)
 	fmt.Printf("%s", line)
 }
@@ -64,6 +88,11 @@ func (mi *MassInstall) Partial(total int, step int) {
 // Success is part of the progress.Client implementation and represents the
 // successful progress completion of a task
 func (mi *MassInstall) Success() {
+	if !utils.IsStdoutTTY() {
+		mi.step = 0
+		return
+	}
+
 	mi.prgIndex = 0
 	fmt.Printf("%s [success]\n", mi.prgDesc)
 }
@@ -71,6 +100,11 @@ func (mi *MassInstall) Success() {
 // Failure is part of the progress.Client implementation and represents the
 // unsuccessful progress completion of a task
 func (mi *MassInstall) Failure() {
+	if !utils.IsStdoutTTY() {
+		mi.step = 0
+		return
+	}
+
 	mi.prgIndex = 0
 	fmt.Printf("%s [*failed*]\n", mi.prgDesc)
 }
