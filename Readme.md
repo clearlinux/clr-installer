@@ -1,5 +1,8 @@
 # Clear Linux Installer
 
+## Clear Linux OS Security
+As the installer is a part of the Clear Linux OS distribution, this program follows the [Clear Linux OS Security processes](https://clearlinux.org/documentation/clear-linux/concepts/security).
+
 ## Dependencies
 The following bundles are required in order to run clr-installer:
 
