@@ -109,6 +109,7 @@ func FetchRemoteConfigFile(url string) (string, error) {
 
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
+		defer func() { _ = os.Remove(out.Name()) }()
 		return "", err
 	}
 

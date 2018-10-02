@@ -179,7 +179,8 @@ sudo sed -i -e '/server=/s/clr.telemetry.intel.com/localhost/' \
     ${TEMP}/etc/telemetrics/telemetrics.conf
 popd
 
-sudo umount $TEMP
+sudo umount ${TEMP}
 $(${CLEANUPCMD})
+sudo /bin/rm -rf ${TEMP}
 
 exit 0

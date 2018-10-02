@@ -150,6 +150,7 @@ func main() {
 	if err != nil {
 		fatal(err)
 	}
+	defer func() { _ = os.RemoveAll(rootDir) }()
 
 	var md *model.SystemInstall
 	cf := options.ConfigFile
@@ -158,6 +159,9 @@ func main() {
 		if cf, err = conf.LookupDefaultConfig(); err != nil {
 			fatal(err)
 		}
+	}
+	if options.CfDownloaded {
+		defer func() { _ = os.Remove(cf) }()
 	}
 
 	log.Debug("Loading config file: %s", cf)
