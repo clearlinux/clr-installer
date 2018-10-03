@@ -407,7 +407,7 @@ func HumanReadableSize(size uint64) (string, error) {
 // FreeSpace returns the block device available/free space considering the currently
 // configured partition table
 func (bd *BlockDevice) FreeSpace() (uint64, error) {
-	if bd.Type != BlockDeviceTypeDisk {
+	if !utils.IntSliceContains([]int{BlockDeviceTypeDisk, BlockDeviceTypeLoop}, int(bd.Type)) {
 		return 0, errors.Errorf("FreeSpace() must only be called with a disk block device")
 	}
 

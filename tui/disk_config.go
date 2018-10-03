@@ -186,7 +186,7 @@ func (page *DiskConfigPage) Activate() {
 		for _, curr := range page.blockDevices {
 			if status := curr.GetConfiguredStatus(); status != storage.ConfiguredNone {
 				// A disk beside the active is configured
-				if page.activeSerial != curr.Serial {
+				if page.activeSerial != curr.Serial && page.lastAutoButton != nil {
 					// Disable Auto Partitioning
 					page.lastAutoButton.SetEnabled(false)
 				}
