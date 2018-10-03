@@ -37,6 +37,7 @@ func TestLoadFile(t *testing.T) {
 		{"no-bootable-descriptor.yaml", false},
 		{"no-root-partition-descriptor.yaml", false},
 		{"no-telemetry.yaml", false},
+		{"invalid-no-kernel.yaml", false},
 		{"real-example.yaml", true},
 		{"valid-network.yaml", true},
 		{"valid-minimal.yaml", true},
