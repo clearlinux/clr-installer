@@ -14,6 +14,8 @@ import (
 
 	"github.com/clearlinux/clr-installer/cmd"
 
+	flag "github.com/spf13/pflag"
+
 	"gopkg.in/yaml.v2"
 )
 
@@ -235,11 +237,20 @@ func runBatch(cfg travisConfig, batch []string) error {
 func main() {
 	var cfg travisConfig
 	var panicError error
+	var travisFile string
 
-	travisFile := os.Getenv("TRAVIS_CONF")
+	flag.StringVar(&travisFile, "config", "", "The travis configuration file")
+	flag.ErrHelp = fmt.Errorf("Local Travis Execution")
+
+	flag.Parse()
+
 	if travisFile == "" {
-		fmt.Println("ERROR: Could not find the travis config file, var $TRAVIS_CONF is not set")
-		os.Exit(1)
+		travisFile = os.Getenv("TRAVIS_CONF")
+
+		if travisFile == "" {
+			fmt.Println("ERROR: Could not find the travis config file, var $TRAVIS_CONF is not set")
+			os.Exit(1)
+		}
 	}
 
 	content, err := ioutil.ReadFile(travisFile)
