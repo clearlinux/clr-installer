@@ -1,0 +1,36 @@
+#clear-linux-config
+block-devices: [
+   {name: "main", file: "main.img"},
+   {name: "sec", file: "sec.img"}
+]
+
+targetMedia:
+- name: ${main}
+  size: "4G"
+  type: disk
+  children:
+  - name: ${main}1
+    fstype: vfat
+    mountpoint: /boot
+    size: "150M"
+    type: part
+  - name: ${main}2
+    fstype: swap
+    size: "120M"
+    type: part
+  - name: ${main}3
+    fstype: ext4
+    mountpoint: /
+    size: "3.73G"
+    type: part
+  - name: ${sec}1
+    fstype: ext4
+    mountpoint: /home
+    size: "2G"
+    type: part
+
+bundles: [os-core, os-core-update]
+telemetry: false
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-native
