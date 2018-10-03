@@ -72,9 +72,11 @@ build: gopath
 	go get -v ${GO_PACKAGE_PREFIX}/clr-installer
 	go install -v ${GO_PACKAGE_PREFIX}/clr-installer
 
-check-coverage: gopath
+build-local-travis: gopath
 	@go get -v ${GO_PACKAGE_PREFIX}/local-travis
 	@go install -v ${GO_PACKAGE_PREFIX}/local-travis
+
+check-coverage: build-local-travis
 	@echo "local-travis simulation:"
 	@$(top_srcdir)/.gopath/bin/local-travis
 
