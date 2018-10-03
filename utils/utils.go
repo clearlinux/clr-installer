@@ -139,6 +139,16 @@ func StringSliceContains(sl []string, str string) bool {
 	return false
 }
 
+// IntSliceContains returns true if is contains value, returns false otherwise
+func IntSliceContains(is []int, value int) bool {
+	for _, curr := range is {
+		if curr == value {
+			return true
+		}
+	}
+	return false
+}
+
 // IsCheckCoverage returns true if CHECK_COVERAGE variable is set
 func IsCheckCoverage() bool {
 	return os.Getenv("CHECK_COVERAGE") != ""
