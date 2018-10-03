@@ -25,7 +25,7 @@ const char dict[DICT_SIZE] =
 char *__salt_and_crypt(char prefix[3], char *pass, size_t size) {
   int i, fd;
   ssize_t randSize;
-  char rand[ENTROPY_SIZE], salt[SALT_SIZE], *enc;
+  char rand[ENTROPY_SIZE], salt[SALT_SIZE], *enc = NULL;
 
   // TODO change __salt_and_crypt signature to receive an *int so we can write back
   // the errno if getentropy() fails
@@ -37,13 +37,13 @@ char *__salt_and_crypt(char prefix[3], char *pass, size_t size) {
 #else
   fd = open("/dev/urandom", O_RDONLY);
   if (fd < 0) {
-    return NULL;
+    goto clean_rand;
   }
 
   randSize = read(fd, rand, ENTROPY_SIZE);
   close(fd);
   if (randSize != ENTROPY_SIZE) {
-    return NULL;
+    goto clean_rand;
   }
 #endif
 
@@ -59,10 +59,12 @@ char *__salt_and_crypt(char prefix[3], char *pass, size_t size) {
 
   // Ensure that the rand and salt arrays are zeroed out before returning.  The
   // asm statement below will instruct the compiler to not elide the memset() call
-  __asm__ __volatile__("" :: "g"(rand) : "memory");
-  memset(rand, 0, ENTROPY_SIZE);
   __asm__ __volatile__("" :: "g"(salt) : "memory");
   memset(salt, 0, SALT_SIZE);
+
+clean_rand:
+  __asm__ __volatile__("" :: "g"(rand) : "memory");
+  memset(rand, 0, ENTROPY_SIZE);
 
   return enc;
 }
@@ -83,7 +85,10 @@ const (
 // the algorithm is not selectable/customizable.
 func Crypt(password string) (string, error) {
 	cPassword := C.CString(password)
-	defer C.free(unsafe.Pointer(cPassword))
+	defer func() {
+		C.memset(unsafe.Pointer(cPassword), 0, len(password))
+		C.free(unsafe.Pointer(cPassword))
+	}()
 
 	cPrefix := C.CString(SHA512Prefix)
 	defer C.free(unsafe.Pointer(cPrefix))
