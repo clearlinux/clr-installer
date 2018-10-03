@@ -13,6 +13,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/kernel"
 	"github.com/clearlinux/clr-installer/keyboard"
@@ -228,7 +229,7 @@ func (si *SystemInstall) AddNetworkInterface(iface *network.Interface) {
 }
 
 // LoadFile loads a model from a yaml file pointed by path
-func LoadFile(path string) (*SystemInstall, error) {
+func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 	var result SystemInstall
 
 	// Default to archiving by default
@@ -247,6 +248,28 @@ func LoadFile(path string) (*SystemInstall, error) {
 		if err != nil {
 			return nil, errors.Wrap(err)
 		}
+	}
+
+	tmp := map[string]*StorageAlias{}
+
+	for _, bds := range result.StorageAlias {
+		tmp[bds.Name] = bds
+	}
+
+	for _, bds := range options.BlockDevices {
+		var tks []string
+
+		if tks = strings.Split(bds, ":"); len(tks) < 2 {
+			continue
+		}
+
+		tmp[tks[0]] = &StorageAlias{Name: tks[0], File: tks[1]}
+	}
+
+	result.StorageAlias = []*StorageAlias{}
+
+	for _, bds := range tmp {
+		result.StorageAlias = append(result.StorageAlias, bds)
 	}
 
 	if len(result.StorageAlias) > 0 {
