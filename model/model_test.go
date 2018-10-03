@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/user"
 	"github.com/clearlinux/clr-installer/utils"
 )
@@ -21,7 +22,7 @@ var (
 
 func init() {
 	testsDir = os.Getenv("TESTS_DIR")
-	testAlias = append(testAlias, "/dev/sda")
+	testAlias = append(testAlias, "/dev/sda", "/dev/sdb")
 }
 
 func TestLoadFile(t *testing.T) {
@@ -50,7 +51,7 @@ func TestLoadFile(t *testing.T) {
 
 	for _, curr := range tests {
 		path := filepath.Join(testsDir, curr.file)
-		model, err := LoadFile(path)
+		model, err := LoadFile(path, args.Args{})
 
 		if curr.valid && err != nil {
 			t.Fatalf("%s is a valid tests and shouldn't return an error: %v", curr.file, err)
@@ -74,11 +75,16 @@ func TestIsTestAlias(t *testing.T) {
 	if !isTestAlias("/dev/sda") {
 		t.Fatalf("Should have returned true for valid alias")
 	}
+
+	testAlias = append(testAlias, "/dev/sdb")
+	if !isTestAlias("/dev/sdb") {
+		t.Fatalf("Should have returned true for valid alias")
+	}
 }
 
 func TestBlockDevicesAlias(t *testing.T) {
 	path := filepath.Join(testsDir, "block-devices-alias.yaml")
-	model, err := LoadFile(path)
+	model, err := LoadFile(path, args.Args{})
 
 	if err != nil {
 		t.Fatalf("Failed to load yaml file: %s", err)
@@ -104,6 +110,61 @@ func TestBlockDevicesAlias(t *testing.T) {
 
 		if bd.GetDeviceFile() != expectedFile {
 			t.Fatalf("Invalid device name value: %s, expected: %s", bd.GetDeviceFile(), expectedFile)
+		}
+	}
+}
+
+func TestBlockDevicesAliasOverwrite(t *testing.T) {
+	path := filepath.Join(testsDir, "block-devices-alias.yaml")
+	options := args.Args{BlockDevices: []string{"target:/dev/sdb"}}
+
+	model, err := LoadFile(path, options)
+
+	if err != nil {
+		t.Fatalf("Failed to load yaml file: %s", err)
+	}
+
+	tm := model.TargetMedias[0]
+
+	if tm.Name != "sdb" {
+		t.Fatalf("Failed to expand Name variable, value: %s, expected: sdb", tm.Name)
+	}
+
+	if tm.GetDeviceFile() != "/dev/sdb" {
+		t.Fatalf("Invalid device name value: %s, expected: /dev/sdb", tm.GetDeviceFile())
+	}
+
+	for i, bd := range tm.Children {
+		expected := fmt.Sprintf("sdb%d", i+1)
+		expectedFile := filepath.Join("/dev/", expected)
+
+		if bd.Name != expected {
+			t.Fatalf("Failed to expand Name variable, value: %s, expected: %s", bd.Name, expected)
+		}
+
+		if bd.GetDeviceFile() != expectedFile {
+			t.Fatalf("Invalid device name value: %s, expected: %s", bd.GetDeviceFile(), expectedFile)
+		}
+	}
+}
+
+func TestInvalidBlockDeviceArgument(t *testing.T) {
+	path := filepath.Join(testsDir, "block-devices-alias.yaml")
+	options := args.Args{BlockDevices: []string{"invalid"}}
+
+	model, err := LoadFile(path, options)
+
+	if err != nil {
+		t.Fatalf("Failed to load yaml file: %s", err)
+	}
+
+	if len(model.StorageAlias) != 1 {
+		t.Fatalf("The model should contain only 2 storage aliases")
+	}
+
+	for _, curr := range model.StorageAlias {
+		if curr.Name == "invalid" {
+			t.Fatalf("The \"invalid\" block-device argument shouldn't be added to the model")
 		}
 	}
 }
@@ -145,7 +206,7 @@ func TestUnreadable(t *testing.T) {
 	if utils.IsRoot() {
 		t.Log("Not running as 'root', not checking read permission")
 	} else {
-		_, err = LoadFile(file.Name())
+		_, err = LoadFile(file.Name(), args.Args{})
 		if err == nil {
 			t.Fatal("Should have failed to read")
 		}
@@ -185,7 +246,7 @@ func TestBundle(t *testing.T) {
 
 func TestAddTargetMedia(t *testing.T) {
 	path := filepath.Join(testsDir, "basic-valid-descriptor.yaml")
-	loaded, err := LoadFile(path)
+	loaded, err := LoadFile(path, args.Args{})
 
 	if err != nil {
 		t.Fatal("Failed to load a valid descriptor")
@@ -216,7 +277,7 @@ func TestAddTargetMedia(t *testing.T) {
 
 func TestAddNetworkInterface(t *testing.T) {
 	path := filepath.Join(testsDir, "valid-network.yaml")
-	loaded, err := LoadFile(path)
+	loaded, err := LoadFile(path, args.Args{})
 
 	if err != nil {
 		t.Fatal("Failed to load a valid descriptor")
@@ -264,7 +325,7 @@ func TestUser(t *testing.T) {
 
 func TestWriteFile(t *testing.T) {
 	path := filepath.Join(testsDir, "basic-valid-descriptor.yaml")
-	loaded, err := LoadFile(path)
+	loaded, err := LoadFile(path, args.Args{})
 
 	if err != nil {
 		t.Fatal("Failed to load a valid descriptor")

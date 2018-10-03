@@ -54,6 +54,7 @@ type Args struct {
 	Archive         bool
 	ArchiveSet      bool
 	DemoMode        bool
+	BlockDevices    []string
 }
 
 func (args *Args) setKernelArgs() (err error) {
@@ -110,6 +111,11 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.BoolVar(
 		&args.ForceTUI, "tui", false, "Use TUI frontend",
+	)
+
+	flag.StringSliceVarP(
+		&args.BlockDevices, "block-device", "b", args.BlockDevices,
+		"Adds a new block-device's entry to configuration file. Format: <alias:filename>",
 	)
 
 	flag.StringVarP(

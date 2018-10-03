@@ -165,7 +165,7 @@ func main() {
 	}
 
 	log.Debug("Loading config file: %s", cf)
-	if md, err = model.LoadFile(cf); err != nil {
+	if md, err = model.LoadFile(cf, options); err != nil {
 		fatal(err)
 	}
 
