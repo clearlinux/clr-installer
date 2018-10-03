@@ -133,6 +133,7 @@ func TestUnreadable(t *testing.T) {
 		if err = file.Close(); err != nil {
 			t.Fatal(err)
 		}
+		_ = os.Remove(file.Name())
 	}()
 
 	if file.Chmod(0111) != nil {
@@ -271,6 +272,7 @@ func TestWriteFile(t *testing.T) {
 	if err != nil {
 		t.Fatal("Could not create a temp file")
 	}
+	defer func() { _ = os.Remove(tmpFile.Name()) }()
 	path = tmpFile.Name()
 	if err = tmpFile.Close(); err != nil {
 		t.Fatal(err)

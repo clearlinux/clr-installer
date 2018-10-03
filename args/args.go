@@ -180,7 +180,12 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.ErrHelp = errors.New("Clear Linux Installer program")
 
+	saveConfigFile := args.ConfigFile
 	flag.Parse()
+	// If we have a downloaded file, but it is overridden by command line, remove the tempfile
+	if args.CfDownloaded && args.ConfigFile != saveConfigFile {
+		_ = os.Remove(saveConfigFile)
+	}
 
 	fflag = flag.Lookup("telemetry")
 	if fflag != nil {

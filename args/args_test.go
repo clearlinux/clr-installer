@@ -64,6 +64,9 @@ func TestKernelCmdInvalidFile(t *testing.T) {
 	kernelCmdlineFile = "/proc/not-a-real-filename"
 
 	err = testArgs.setKernelArgs()
+	if testArgs.CfDownloaded && testArgs.ConfigFile != "" {
+		defer func() { _ = os.Remove(testArgs.ConfigFile) }()
+	}
 	if err == nil {
 		t.Errorf("Failed to detect a valid error reading kernel command")
 		return
@@ -78,6 +81,9 @@ func TestParseArgsKernelCmdInvalidFile(t *testing.T) {
 	kernelCmdlineFile = "/proc/not-a-real-filename"
 
 	err = testArgs.ParseArgs()
+	if testArgs.CfDownloaded && testArgs.ConfigFile != "" {
+		defer func() { _ = os.Remove(testArgs.ConfigFile) }()
+	}
 	if err == nil {
 		t.Fatal("Failed to detect a valid error reading kernel command")
 	}
@@ -93,6 +99,9 @@ func TestTelemetry(t *testing.T) {
 	os.Args = append(os.Args, "--telemetry-url=http://telemetry")
 
 	err = testArgs.ParseArgs()
+	if testArgs.CfDownloaded && testArgs.ConfigFile != "" {
+		defer func() { _ = os.Remove(testArgs.ConfigFile) }()
+	}
 	if err == nil {
 		t.Fatal("Telemetry should require both --telemetry-url and --telemetry-tid")
 	}
@@ -118,6 +127,9 @@ func TestKernelCmdDemoTrue(t *testing.T) {
 	}
 
 	err = testArgs.setKernelArgs()
+	if testArgs.CfDownloaded && testArgs.ConfigFile != "" {
+		defer func() { _ = os.Remove(testArgs.ConfigFile) }()
+	}
 	if err != nil {
 		t.Errorf("Failed to setKernelArgs with error %q", err)
 		return
@@ -146,6 +158,9 @@ func TestKernelCmdDemoFalse(t *testing.T) {
 	}
 
 	err = testArgs.setKernelArgs()
+	if testArgs.CfDownloaded && testArgs.ConfigFile != "" {
+		defer func() { _ = os.Remove(testArgs.ConfigFile) }()
+	}
 	if err != nil {
 		t.Errorf("Failed to setKernelArgs with error %q", err)
 		return
@@ -175,6 +190,9 @@ func TestKernelCmdConfPresent(t *testing.T) {
 	}
 
 	err = testArgs.setKernelArgs()
+	if testArgs.CfDownloaded && testArgs.ConfigFile != "" {
+		defer func() { _ = os.Remove(testArgs.ConfigFile) }()
+	}
 	if err != nil {
 		t.Errorf("Failed to setKernelArgs with error %q", err)
 		return
@@ -202,6 +220,9 @@ func TestKernelCmdInvalidProtocol(t *testing.T) {
 	}
 
 	err = testArgs.setKernelArgs()
+	if testArgs.CfDownloaded && testArgs.ConfigFile != "" {
+		defer func() { _ = os.Remove(testArgs.ConfigFile) }()
+	}
 	if err == nil {
 		t.Errorf("setKernelArgs() should fail with unsupported protocol")
 		return
@@ -237,6 +258,9 @@ func TestKernelCmdValidFetch(t *testing.T) {
 	}()
 
 	err = testArgs.setKernelArgs()
+	if testArgs.CfDownloaded && testArgs.ConfigFile != "" {
+		defer func() { _ = os.Remove(testArgs.ConfigFile) }()
+	}
 	if err != nil {
 		t.Errorf("Failed to setKernelArgs with error %q", err)
 		return
@@ -266,6 +290,9 @@ func TestKernelCmdConfEmpty(t *testing.T) {
 	}
 
 	err = testArgs.setKernelArgs()
+	if testArgs.CfDownloaded && testArgs.ConfigFile != "" {
+		defer func() { _ = os.Remove(testArgs.ConfigFile) }()
+	}
 	if err != nil {
 		t.Errorf("Failed to setKernelArgs with error %q", err)
 		return
@@ -302,6 +329,9 @@ func TestKernelAndCommandlineAllArgs(t *testing.T) {
 	}
 
 	err = testArgs.ParseArgs()
+	if testArgs.CfDownloaded && testArgs.ConfigFile != "" {
+		defer func() { _ = os.Remove(testArgs.ConfigFile) }()
+	}
 	if err != nil {
 		t.Errorf("Failed to ParseArgs with error %q", err)
 		return
