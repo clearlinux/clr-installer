@@ -5,9 +5,11 @@
 package model
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 
@@ -249,25 +251,38 @@ func LoadFile(path string) (*SystemInstall, error) {
 
 	if len(result.StorageAlias) > 0 {
 		alias := map[string]string{}
+		keepMe := []*StorageAlias{}
 
 		for _, curr := range result.StorageAlias {
-			fi, err := os.Lstat(curr.File)
-			if err != nil && !isTestAlias(curr.File) {
-				// could be an image file to be created
-				if os.IsNotExist(err) {
-					continue
-				}
+			if !isAliasInUse(result.TargetMedias, curr) {
+				continue
+			}
 
+			fi, err := os.Lstat(curr.File)
+			inTestAlias := isTestAlias(curr.File)
+
+			// could be an image file to be created so we fail only if the error doesn't
+			// indicate the image file doesn't exist
+			if err != nil && !inTestAlias && !os.IsNotExist(err) {
 				return nil, errors.Wrap(err)
 			}
 
-			if (fi != nil && fi.Mode()&os.ModeDevice == 0) || !isTestAlias(curr.File) {
+			keepMe = append(keepMe, curr)
+
+			if !inTestAlias && os.IsNotExist(err) {
+				continue
+			}
+
+			if (fi != nil && fi.Mode()&os.ModeDevice == 1) && !inTestAlias {
 				continue
 			}
 
 			curr.DeviceFile = true
 			alias[curr.Name] = filepath.Base(curr.File)
 		}
+
+		// keep only the aliases we're using
+		result.StorageAlias = keepMe
 
 		for _, bd := range result.TargetMedias {
 			bd.ExpandName(alias)
@@ -279,6 +294,22 @@ func LoadFile(path string) (*SystemInstall, error) {
 	}
 
 	return &result, nil
+}
+
+func isAliasInUse(bds []*storage.BlockDevice, alias *StorageAlias) bool {
+	for _, curr := range bds {
+		rep := fmt.Sprintf("${%s}", alias.Name)
+
+		if strings.Contains(curr.Name, rep) {
+			return true
+		}
+
+		if isAliasInUse(curr.Children, alias) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func isTestAlias(file string) bool {
