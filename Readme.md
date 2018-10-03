@@ -27,17 +27,22 @@ cd clr-installer && make
 
 ## Install (installing the installer)
 
-To create a bootable image which will launch the installer, use the `mk-installer-image.sh` in the scripts directory.
-
-Create a bootable installer on USB media:
-```
-scripts/mk-installer-image.sh <usb device>
-```
+To create a bootable image which will launch the installer, use the `installer-image.yaml` in the scripts directory.
 
 To create a raw image file and perform a Clear Linux install to it.
 ```
-scripts/mk-installer-image.sh
+sudo .gopath/bin/clr-installer --config scripts/installer-image.yaml
 ```
+
+Create a bootable installer on USB media:
+```
+sudo .gopath/bin/clr-installer --config scripts/installer-image.yaml -b installer:<usb device>
+```
+
+> Note: Replace ```<usb device>``` by your usb's device file, i.e ```/dev/sdb```, in that case your command would look like:
+>
+> sudo .gopath/bin/clr-installer --config scripts/installer-image.yaml -b installer:/dev/sdb
+>
 
 ## Testing [Run as root]
 
