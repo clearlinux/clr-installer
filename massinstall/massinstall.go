@@ -147,7 +147,7 @@ func shouldReboot() (bool, bool, error) {
 
 // Run is part of the Frontend implementation and is the actual entry point for the
 // "mass installer" frontend
-func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string) (bool, error) {
+func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args.Args) (bool, error) {
 	var instError error
 
 	progress.Set(mi)
@@ -158,7 +158,7 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string) (bool, error
 		fmt.Printf("Config file specifies a target \"version\", forcing auto-update off.")
 	}
 
-	instError = controller.Install(rootDir, md)
+	instError = controller.Install(rootDir, md, options)
 	if instError != nil {
 		if !errors.IsValidationError(instError) {
 			fmt.Printf("ERROR: Installation has failed!\n")

@@ -84,7 +84,7 @@ func lookupThemeDir() (string, error) {
 }
 
 // Run is part of the Frontend interface implementation and is the tui frontend main entry point
-func (tui *Tui) Run(md *model.SystemInstall, rootDir string) (bool, error) {
+func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) (bool, error) {
 	clui.InitLibrary()
 	defer clui.DeinitLibrary()
 
