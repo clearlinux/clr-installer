@@ -16,5 +16,5 @@ type Frontend interface {
 	MustRun(args *args.Args) bool
 
 	// Run is the actual entry point
-	Run(md *model.SystemInstall, rootDir string) (bool, error)
+	Run(md *model.SystemInstall, rootDir string, args args.Args) (bool, error)
 }

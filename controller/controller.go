@@ -16,6 +16,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/errors"
@@ -46,7 +47,7 @@ func sortMountPoint(bds []*storage.BlockDevice) []*storage.BlockDevice {
 
 // Install is the main install controller, this is the entry point for a full
 // installation
-func Install(rootDir string, model *model.SystemInstall) error {
+func Install(rootDir string, model *model.SystemInstall, options args.Args) error {
 	var err error
 	var version string
 	var versionBuf []byte
@@ -265,7 +266,7 @@ func Install(rootDir string, model *model.SystemInstall) error {
 		}
 	}
 
-	if prg, err = contentInstall(rootDir, version, model); err != nil {
+	if prg, err = contentInstall(rootDir, version, model, options); err != nil {
 		prg.Failure()
 		return err
 	}
@@ -337,9 +338,9 @@ func runInstallHook(vars map[string]string, hook *model.InstallHook) error {
 // latest one and start adding new bundles
 // for the bootstrap we use the hosts's swupd and the following operations are
 // executed using the target swupd
-func contentInstall(rootDir string, version string, model *model.SystemInstall) (progress.Progress, error) {
+func contentInstall(rootDir string, version string, model *model.SystemInstall, options args.Args) (progress.Progress, error) {
 
-	sw := swupd.New(rootDir)
+	sw := swupd.New(rootDir, options.SwupdStateDir)
 
 	prg := progress.NewLoop("Installing the base system")
 	if err := sw.Verify(version, model.SwupdMirror); err != nil {

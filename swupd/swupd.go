@@ -52,8 +52,12 @@ func IsCoreBundle(bundle string) bool {
 }
 
 // New creates a new instance of SoftwareUpdater with the rootDir properly adjusted
-func New(rootDir string) *SoftwareUpdater {
-	return &SoftwareUpdater{rootDir, filepath.Join(rootDir, "/var/lib/swupd")}
+func New(rootDir string, stateDir string) *SoftwareUpdater {
+	if stateDir == "" {
+		stateDir = filepath.Join(rootDir, "/var/lib/swupd")
+	}
+
+	return &SoftwareUpdater{rootDir, stateDir}
 }
 
 // Verify runs "swupd verify" operation

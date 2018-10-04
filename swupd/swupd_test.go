@@ -83,3 +83,16 @@ func TestParseSwupdMirrorInvalid(t *testing.T) {
 		t.Error("Should fail to parse empty string")
 	}
 }
+
+func TestNewWithState(t *testing.T) {
+	sw := New("/tmp/test", "/tmp/swupd-state")
+
+	if sw.stateDir != "/tmp/swupd-state" {
+		t.Fatalf("stateDir should be set to /tmp/swupd-state")
+	}
+
+	sw = New("/tmp/test", "")
+	if sw.stateDir != "/tmp/test/var/lib/swupd" {
+		t.Fatalf("stateDir should not be set to: %s", sw.stateDir)
+	}
+}

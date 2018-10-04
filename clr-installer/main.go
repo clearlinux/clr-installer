@@ -210,7 +210,7 @@ func main() {
 				continue
 			}
 
-			installReboot, err = fe.Run(md, rootDir)
+			installReboot, err = fe.Run(md, rootDir, options)
 			if err != nil {
 				feName := classExp.FindString(reflect.TypeOf(fe).String())
 				if feName == "" {
