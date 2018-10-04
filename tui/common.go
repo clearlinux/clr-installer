@@ -326,10 +326,14 @@ func (page *BasePage) setup(tui *Tui, id int, btns int, returnID int) {
 	// same as the default 'Cancel' button
 	page.window.OnKeyDown(func(ev clui.Event, data interface{}) bool {
 		if ev.Key == term.KeyEsc {
-			page.action = ActionCancelButton
-			page.GotoPage(returnID)
-			page.action = ActionNone
-			return true
+			if page.cancelBtn != nil {
+				page.cancelBtn.ProcessEvent(clui.Event{Type: clui.EventKey, Key: term.KeyEnter})
+			} else {
+				page.action = ActionCancelButton
+				page.GotoPage(returnID)
+				page.action = ActionNone
+				return true
+			}
 		}
 
 		return false
