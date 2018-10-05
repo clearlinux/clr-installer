@@ -318,7 +318,7 @@ func (page *BasePage) setup(tui *Tui, id int, btns int, returnID int) {
 	frm.SetPaddings(3, 1)
 
 	clui.CreateLabel(frm, AutoSize, 1,
-		"Use [Tab] or the arrow keys [up and down] to navigate", Fixed)
+		"Use [Tab] or the arrow keys [Up and Down] to navigate", Fixed)
 
 	page.window.SetVisible(false)
 
