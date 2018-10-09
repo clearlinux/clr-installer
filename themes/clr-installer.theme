@@ -31,7 +31,7 @@ ButtonActiveText=blue
 
 ButtonShadowBack=black
 
-ButtonDisabledText=blue
+ButtonDisabledText=cyan
 ButtonDisabledBack=black
 
 // lists
@@ -62,7 +62,7 @@ EditActiveBack = cyan
 EditActiveText = blue bold
 
 EditDisabledBack = black
-EditDisabledText = blue
+EditDisabledText = cyan
 
 GrayText = blue
 GrayBack = black
@@ -80,7 +80,7 @@ ProgressActiveText = yellow bold
 ControlBack = blue
 ControlText = white
 ControlDisabledBack = black
-ControlDisabledText = blue
+ControlDisabledText = cyan
 ControlActiveBack = cyan
 ControlActiveText = blue bold
 
@@ -110,7 +110,7 @@ Menu.ButtonActiveText=black
 
 Menu.ButtonShadowBack=black
 
-Menu.ButtonDisabledText= blue
+Menu.ButtonDisabledText= cyan
 Menu.ButtonDisabledBack= black
 
 // disk partitioning
@@ -125,7 +125,7 @@ Partition.ButtonText=white
 Partition.ButtonActiveBack=cyan
 Partition.ButtonActiveText=blue
 
-Partition.ButtonDisabledText=blue
+Partition.ButtonDisabledText=cyan
 Partition.ButtonDisabledBack=black
 
 
@@ -138,7 +138,7 @@ Tab.ButtonActiveText=blue bold
 
 Tab.ButtonShadowBack=black
 
-Tab.ButtonDisabledText=blue
+Tab.ButtonDisabledText=cyan
 Tab.ButtonDisabledBack=black
 
 Tab.ViewBack = black
