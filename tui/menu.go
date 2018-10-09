@@ -102,6 +102,9 @@ func (page *MenuPage) Activate() {
 		page.installBtn.SetEnabled(true)
 		page.activated = page.installBtn
 	} else {
+		// If we failed to validate, disable the Install button
+		// It may have been enable previously -- do not assume disabled
+		page.installBtn.SetEnabled(false)
 		scrollTabToActive(page.activated, page.tabGroup)
 	}
 }
