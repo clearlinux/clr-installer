@@ -65,7 +65,7 @@ func (aup *AutoUpdatePage) DeActivate() {
 
 	if aup.action == ActionConfirmButton {
 		model.AutoUpdate = true
-	} else {
+	} else if aup.action == ActionBackButton {
 		model.AutoUpdate = false
 	}
 }

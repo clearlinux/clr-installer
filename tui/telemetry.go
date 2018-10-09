@@ -83,7 +83,14 @@ func newTelemetryPage(tui *Tui) (Page, error) {
 
 // DeActivate sets the model value and adjusts the "confirm" flag for this page
 func (tp *TelemetryPage) DeActivate() {
-	tp.getModel().EnableTelemetry(tp.action == ActionConfirmButton)
+	model := tp.getModel()
+
+	if tp.action == ActionConfirmButton {
+		model.EnableTelemetry(true)
+	} else if tp.action == ActionBackButton {
+		model.EnableTelemetry(false)
+	}
+
 	tp.SetDone(true)
 }
 
