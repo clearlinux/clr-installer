@@ -89,12 +89,14 @@ func newLanguagePage(tui *Tui) (Page, error) {
 		}
 	})
 
+	modelLanguage := page.getModel().Language
 	defLanguage := 0
 	for idx, curr := range page.avLanguages {
 		page.langListBox.AddItem(curr.String())
 
-		if curr.Equals(page.getModel().Language) {
+		if curr.Equals(modelLanguage) {
 			defLanguage = idx
+			modelLanguage.Tag = curr.Tag
 		}
 	}
 
