@@ -5,6 +5,8 @@
 package tui
 
 import (
+	"fmt"
+
 	"github.com/clearlinux/clr-installer/model"
 
 	"github.com/VladimirMarkelov/clui"
@@ -128,6 +130,9 @@ const (
 	// TuiPageTimezone is the id for the timezone selection page
 	TuiPageTimezone
 
+	// TuiPageUserManager is the id for the user management page
+	TuiPageUserManager
+
 	// TuiPageUseradd is the id for the user add page
 	TuiPageUseradd
 
@@ -169,6 +174,34 @@ const (
 	// ActionNone indicates no action has been performed
 	ActionNone
 )
+const (
+	columnSpacer       = `  `
+	columnWidthDefault = 10
+	rowDividor         = `_`
+)
+
+type columnInfo struct {
+	title        string
+	rightJustify bool
+	minWidth     int
+	format       string
+	width        int
+}
+
+// given the columnInfo type, return the length and fmt string
+func getColumnFormat(info columnInfo) (int, string) {
+	l := len(info.title)
+	if info.minWidth > l {
+		l = info.minWidth
+	}
+	justify := "-"
+	if info.rightJustify {
+		justify = ""
+	}
+
+	// Ensure we only write the max width
+	return l, fmt.Sprintf("%%%s%d.%ds", justify, l, l)
+}
 
 // Is the page id a PopUp page
 func isPopUpPage(id int) bool {

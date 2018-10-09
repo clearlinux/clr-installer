@@ -15,14 +15,6 @@ import (
 	"github.com/clearlinux/clr-installer/storage"
 )
 
-type columnInfo struct {
-	title        string
-	rightJustify bool
-	minWidth     int
-	format       string
-	width        int
-}
-
 // SelectedBlockDevice holds the shared date between the Disk Configuration page
 // and the partition configuration page
 type SelectedBlockDevice struct {
@@ -33,11 +25,6 @@ type SelectedBlockDevice struct {
 
 const (
 	diskConfigTitle = `Configure Media`
-
-	columnSpacer   = `  `
-	columnMinWidth = 10
-
-	rowDividor = `_`
 )
 const (
 	columnDisk = iota
@@ -59,10 +46,10 @@ func init() {
 	diskColumns[columnDisk].minWidth = 16
 
 	diskColumns[columnPartition].title = "Partition"
-	diskColumns[columnPartition].minWidth = columnMinWidth
+	diskColumns[columnPartition].minWidth = columnWidthDefault
 
 	diskColumns[columnFsType].title = "File System"
-	diskColumns[columnFsType].minWidth = columnMinWidth
+	diskColumns[columnFsType].minWidth = columnWidthDefault
 
 	diskColumns[columnMount].title = "Mount Point"
 	diskColumns[columnMount].minWidth = -1 // This column get all free space
@@ -249,26 +236,13 @@ func (page *DiskConfigPage) redrawRows() {
 	} else {
 		rowFrame := clui.CreateFrame(page.scrollingFrame, 1, AutoSize, clui.BorderNone, clui.Fixed)
 		rowFrame.SetPack(clui.Vertical)
-		noLabel := clui.CreateLabel(rowFrame, 2, 1, "No Usable Media Detected", clui.Fixed)
-		noLabel.SetEnabled(false)
+		_ = clui.CreateLabel(rowFrame, 2, 1, "*** No Usable Media Detected ***", clui.Fixed)
 		page.rowFrames = append(page.rowFrames, rowFrame)
+		page.scrollToRow(rowFrame)
+		page.activated = page.cancelBtn
 	}
 
 	clui.RefreshScreen()
-}
-
-func getColumnFormat(info columnInfo) (int, string) {
-	l := len(info.title)
-	if info.minWidth > l {
-		l = info.minWidth
-	}
-	justify := "-"
-	if info.rightJustify {
-		justify = ""
-	}
-
-	// Ensure we only write the max width
-	return l, fmt.Sprintf("%%%s%d.%ds", justify, l, l)
 }
 
 // The disk page gives the user the option so select how to set the storage device,
@@ -303,7 +277,7 @@ func newDiskConfigPage(tui *Tui) (Page, error) {
 				continue // Do not format this column
 			} else {
 				log.Warning("More than one disk partition column set for all free space: %s", info.title)
-				info.minWidth = columnMinWidth
+				info.minWidth = columnWidthDefault
 			}
 		}
 

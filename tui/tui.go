@@ -121,6 +121,7 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string) (bool, error) {
 		{"main menu", newMenuPage},
 		{"disk partition", newDiskPartitionPage},
 		{"bundle selection", newBundlePage},
+		{"add manager", newUserManagerPage},
 		{"add user", newUseraddPage},
 		{"telemetry enabling", newTelemetryPage},
 		{"kernel cmdline", newKernelCMDLine},
