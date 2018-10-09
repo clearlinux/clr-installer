@@ -22,17 +22,24 @@ import (
 // User abstracts a target system definition
 type User struct {
 	Login    string
+	UserName string
 	Password string
 	Admin    bool
 }
 
 const (
 	defaultUsersFile = "/usr/share/defaults/etc/passwd"
-	minPasswordWidth = 8
+	// MaxUsernameLength is the longest possible username
+	MaxUsernameLength = 64
+	// MaxLoginLength is the longest possible login
+	MaxLoginLength = 31
+	// MinPasswordLength is the shortest possible password
+	MinPasswordLength = 8
 )
 
 var (
-	loginExp        = regexp.MustCompile("^[0-9,a-z,A-Z,-,_]*$")
+	usernameExp     = regexp.MustCompile("^([a-zA-Z]+[0-9a-zA-Z-_ ,'.]*|)$")
+	loginExp        = regexp.MustCompile("^[a-zA-Z]+[0-9a-zA-Z-_]*$")
 	sysDefaultUsers = []string{}
 )
 
@@ -79,7 +86,7 @@ func loadSysDefaultUsers() error {
 }
 
 // NewUser creates/allocates a new user handle
-func NewUser(login string, pwd string, admin bool) (*User, error) {
+func NewUser(login string, username string, pwd string, admin bool) (*User, error) {
 	hashed, err := crypt.Crypt(pwd)
 	if err != nil {
 		return nil, err
@@ -87,6 +94,7 @@ func NewUser(login string, pwd string, admin bool) (*User, error) {
 
 	return &User{
 		Login:    login,
+		UserName: username,
 		Password: hashed,
 		Admin:    admin,
 	}, nil
@@ -162,6 +170,8 @@ func (u *User) apply(rootDir string) error {
 		"useradd",
 		"--root",
 		rootDir,
+		"--comment",
+		u.UserName,
 		u.Login,
 	}
 
@@ -192,10 +202,27 @@ func (u *User) apply(rootDir string) error {
 	return nil
 }
 
+// IsValidUsername checks the username restrictions
+func IsValidUsername(username string) (bool, string) {
+	if !usernameExp.MatchString(username) {
+		return false, "Username must contain only numbers, letters, commas, - or _"
+	}
+
+	if len(username) > MaxUsernameLength {
+		return false, fmt.Sprintf("UserName maximum length is %d", MaxUsernameLength)
+	}
+
+	return true, ""
+}
+
 // IsValidLogin checks the minimum login requirements
 func IsValidLogin(login string) (bool, string) {
 	if login == "" {
 		return false, "Login is required"
+	}
+
+	if len(login) > MaxLoginLength {
+		return false, fmt.Sprintf("Login maximum length is %d", MaxLoginLength)
 	}
 
 	if !loginExp.MatchString(login) {
@@ -211,9 +238,9 @@ func IsValidPassword(pwd string) (bool, string) {
 		return false, "Password is required"
 	}
 
-	if len(pwd) < minPasswordWidth {
+	if len(pwd) < MinPasswordLength {
 		return false, fmt.Sprintf("Password must be at least %d characters long",
-			minPasswordWidth)
+			MinPasswordLength)
 	}
 
 	return true, ""

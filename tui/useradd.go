@@ -5,9 +5,9 @@
 package tui
 
 import (
-	"fmt"
 	"strings"
 
+	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/user"
 
 	"github.com/VladimirMarkelov/clui"
@@ -17,23 +17,22 @@ import (
 // UseraddPage is the Page implementation for the user add configuration page
 type UseraddPage struct {
 	BasePage
-	loginEdit  *clui.EditField
-	pwdEdit    *clui.EditField
-	adminCheck *clui.CheckBox
-	listFrm    *clui.Frame
-	users      []*UserBtn
-	deleteBtn  *SimpleButton
-	selected   *UserBtn
-	changedPwd bool
-	loginLabel *clui.Label
-	pwdLabel   *clui.Label
-	confirmBtn *SimpleButton
-}
-
-// UserBtn maps a ui button to a user
-type UserBtn struct {
-	user *user.User
-	btn  *SimpleButton
+	user            *user.User
+	definedUsers    []string
+	addMode         bool
+	titleLabel      *clui.Label
+	loginEdit       *clui.EditField
+	usernameEdit    *clui.EditField
+	passwordEdit    *clui.EditField
+	pwConfirmEdit   *clui.EditField
+	adminCheck      *clui.CheckBox
+	deleteBtn       *SimpleButton
+	changedPwd      bool
+	changedLogin    bool
+	loginWarning    *clui.Label
+	usernameWarning *clui.Label
+	passwordWarning *clui.Label
+	confirmBtn      *SimpleButton
 }
 
 // GetConfiguredValue Returns the string representation of currently value set
@@ -58,15 +57,86 @@ func (page *UseraddPage) GetConfiguredValue() string {
 	return strings.Join(res, ", ")
 }
 
+// Activate updates the UI elements
+func (page *UseraddPage) Activate() {
+	title := "Modify User"
+
+	page.clearForm()
+
+	prevPage := page.tui.getPage(TuiPageUserManager)
+	sel, ok := prevPage.GetData().(*SelectedUser)
+	if ok {
+		page.user = sel.user
+		page.definedUsers = sel.definedUsers
+		page.addMode = sel.addMode
+
+		if sel.addMode {
+			title = "Add New User"
+		} else {
+			page.resetForm()
+		}
+	}
+
+	page.titleLabel.SetTitle(title)
+
+	page.setConfirmButton()
+}
+
+// SetDone copies the edited user data into the cache and sets the page as done
+func (page *UseraddPage) SetDone(done bool) bool {
+
+	// SetDone can only be called if the Confirm Button is enable;
+	// hence we know the data is valid
+	page.user.UserName = page.usernameEdit.Title()
+	page.user.Login = page.loginEdit.Title()
+	if page.addMode || page.changedPwd {
+		if err := page.user.SetPassword(page.passwordEdit.Title()); err != nil {
+			log.Warning("Failed to encrypt password: %v", err)
+			page.clearForm()
+			page.GotoPage(TuiPageUserManager)
+		}
+	}
+
+	if page.adminCheck.State() != 0 {
+		page.user.Admin = true
+	} else {
+		page.user.Admin = false
+	}
+
+	page.GotoPage(TuiPageUserManager)
+
+	return false
+}
+
+func (page *UseraddPage) setConfirmButton() {
+	if page.usernameWarning.Title() == "" &&
+		page.loginWarning.Title() == "" &&
+		page.passwordWarning.Title() == "" &&
+		page.loginEdit.Title() != "" &&
+		page.passwordEdit.Title() != "" {
+		page.confirmBtn.SetEnabled(true)
+	} else {
+		page.confirmBtn.SetEnabled(false)
+	}
+}
+
+func (page *UseraddPage) validateUsername() {
+	username := page.usernameEdit.Title()
+	if ok, msg := user.IsValidUsername(username); !ok {
+		page.usernameWarning.SetTitle(msg)
+	} else {
+		page.usernameWarning.SetTitle("")
+	}
+
+	page.setConfirmButton()
+}
+
 func (page *UseraddPage) validateLogin() {
-	showLabel := false
-	enableConfirm := true
+	page.loginWarning.SetTitle("")
 
 	login := page.loginEdit.Title()
 	if ok, msg := user.IsValidLogin(login); !ok {
-		page.loginLabel.SetTitle(msg)
-		showLabel = true
-		enableConfirm = false
+		page.loginWarning.SetTitle(msg)
 	}
 
 	if notok, err := user.IsSysDefaultUser(login); notok || err != nil {
@@ -74,77 +144,88 @@ func (page *UseraddPage) validateLogin() {
 			page.Panic(err)
 		}
 
-		page.loginLabel.SetTitle("Specified login is a system default user")
-		showLabel = true
-		enableConfirm = false
+		page.loginWarning.SetTitle("Specified login is a system default user")
 	}
 
-	if page.selected == nil {
-		for _, curr := range page.users {
-			if curr.user.Login == page.loginEdit.Title() && curr != page.selected {
-				page.loginLabel.SetTitle("User must be unique")
-				showLabel = true
-				break
-			}
+	for _, curr := range page.definedUsers {
+		if curr == page.loginEdit.Title() {
+			page.loginWarning.SetTitle("User must be unique")
+			break
 		}
-
-		validPwd, _ := user.IsValidPassword(page.pwdEdit.Title())
-		enableConfirm = !showLabel && validPwd
 	}
 
-	page.loginLabel.SetVisible(showLabel)
-	page.confirmBtn.SetEnabled(enableConfirm)
+	page.setConfirmButton()
 }
 
 func (page *UseraddPage) validatePassword() {
-	showLabel := false
-
-	if page.selected != nil && !page.changedPwd {
+	if !page.changedPwd {
 		return
 	}
 
-	if ok, msg := user.IsValidPassword(page.pwdEdit.Title()); !ok {
-		page.pwdLabel.SetTitle(msg)
-		showLabel = true
+	if ok, msg := user.IsValidPassword(page.passwordEdit.Title()); !ok {
+		page.passwordWarning.SetTitle(msg)
+	} else if page.passwordEdit.Title() != page.pwConfirmEdit.Title() {
+		page.passwordWarning.SetTitle("Passwords do not match")
+	} else {
+		page.passwordWarning.SetTitle("")
 	}
 
-	page.pwdLabel.SetVisible(showLabel)
-
-	var sysDefUser, validLogin bool
-	var err error
-
-	login := page.loginEdit.Title()
-	if sysDefUser, err = user.IsSysDefaultUser(login); err != nil {
-		page.Panic(err)
-	}
-
-	validLogin, _ = user.IsValidLogin(login)
-
-	page.confirmBtn.SetEnabled(!showLabel && (validLogin && !sysDefUser))
+	page.setConfirmButton()
 }
 
 func newUseraddPage(tui *Tui) (Page, error) {
-	page := &UseraddPage{users: []*UserBtn{}}
-	page.setupMenu(tui, TuiPageUseradd, "Add Users", BackButton, TuiPageMenu)
+	page := &UseraddPage{}
+	page.setup(tui, TuiPageUseradd, NoButtons, TuiPageUserManager)
 
-	clui.CreateLabel(page.content, 2, 2, "Add new users", Fixed)
+	page.titleLabel = clui.CreateLabel(page.content, AutoSize, 2, "", clui.Fixed)
 
 	frm := clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
 	frm.SetPack(clui.Horizontal)
-
 	lblFrm := clui.CreateFrame(frm, 10, AutoSize, BorderNone, Fixed)
 	lblFrm.SetPack(clui.Vertical)
 	lblFrm.SetPaddings(1, 0)
 
+	newFieldLabel(lblFrm, "User Name:")
 	newFieldLabel(lblFrm, "Login:")
 	newFieldLabel(lblFrm, "Password:")
+	newFieldLabel(lblFrm, "Retype:")
 
 	fldFrm := clui.CreateFrame(frm, 50, AutoSize, BorderNone, Fixed)
 	fldFrm.SetPack(clui.Vertical)
 
-	page.loginEdit, page.loginLabel = newEditField(fldFrm, true, nil)
+	page.usernameEdit, page.usernameWarning = newEditField(fldFrm, true, nil)
+	page.usernameEdit.OnChange(func(ev clui.Event) {
+		if len(page.loginEdit.Title()) == 0 {
+			page.changedLogin = false
+		}
+		page.validateUsername()
+		if !page.changedLogin {
+			name := strings.Split(page.usernameEdit.Title(), ",")[0]
+			// Remove the invalid characters
+			name = strings.Replace(name, " ", "", -1)
+			name = strings.Replace(name, "'", "", -1)
+			name = strings.Replace(name, ".", "", -1)
+			name = strings.ToLower(name)
+			if len(name) > user.MaxLoginLength {
+				name = name[0:(user.MaxLoginLength - 1)]
+			}
+			page.loginEdit.SetTitle(name)
+		}
+	})
+	page.usernameWarning.SetVisible(true)
+
+	page.loginEdit, page.loginWarning = newEditField(fldFrm, true, nil)
 	page.loginEdit.OnChange(func(ev clui.Event) {
+		if len(page.loginEdit.Title()) == 0 {
+			page.changedLogin = false
+		}
 		page.validateLogin()
+	})
+	// If the user types in the Login field, no longer auto-generate
+	// the login value based on the UserName
+	page.loginEdit.OnKeyPress(func(k term.Key, ch rune) bool {
+		page.changedLogin = true
+		return false
 	})
 
 	page.loginEdit.OnActive(func(active bool) {
@@ -153,23 +234,63 @@ func newUseraddPage(tui *Tui) (Page, error) {
 		}
 	})
 
-	page.pwdEdit, page.pwdLabel = newEditField(fldFrm, true, nil)
-	page.pwdEdit.SetPasswordMode(true)
+	page.loginWarning.SetVisible(true)
 
-	page.pwdEdit.OnChange(func(ev clui.Event) {
+	page.passwordEdit, _ = newEditField(fldFrm, false, nil)
+	page.passwordEdit.SetPasswordMode(true)
+
+	page.passwordEdit.OnChange(func(ev clui.Event) {
 		page.validatePassword()
 	})
 
-	page.pwdEdit.OnActive(func(active bool) {
-		if page.pwdEdit.Active() {
+	page.passwordEdit.OnActive(func(active bool) {
+		if page.passwordEdit.Active() {
 			page.validatePassword()
 		}
 	})
 
-	page.pwdEdit.OnKeyPress(func(k term.Key, ch rune) bool {
-		if page.selected != nil && !page.changedPwd {
+	page.passwordEdit.OnKeyPress(func(k term.Key, ch rune) bool {
+		if k == term.KeyCtrlU {
+			page.revealPassword()
+			return true
+		}
+		if k == term.KeyArrowUp || k == term.KeyArrowDown {
+			return false
+		}
+		if !page.changedPwd {
 			page.changedPwd = true
-			page.pwdEdit.SetTitle("")
+			page.passwordEdit.SetTitle("")
+			page.pwConfirmEdit.SetTitle("")
+		}
+		return false
+	})
+
+	page.pwConfirmEdit, page.passwordWarning = newEditField(fldFrm, true, nil)
+	page.pwConfirmEdit.SetPasswordMode(true)
+	page.passwordWarning.SetVisible(true)
+
+	page.pwConfirmEdit.OnChange(func(ev clui.Event) {
+		page.validatePassword()
+	})
+
+	page.pwConfirmEdit.OnActive(func(active bool) {
+		if page.pwConfirmEdit.Active() {
+			page.validatePassword()
+		}
+	})
+
+	page.pwConfirmEdit.OnKeyPress(func(k term.Key, ch rune) bool {
+		if k == term.KeyCtrlU {
+			page.revealPassword()
+			return true
+		}
+		if k == term.KeyArrowUp || k == term.KeyArrowDown {
+			return false
+		}
+		if !page.changedPwd {
+			page.changedPwd = true
+			page.passwordEdit.SetTitle("")
+			page.pwConfirmEdit.SetTitle("")
 		}
 		return false
 	})
@@ -179,131 +300,97 @@ func newUseraddPage(tui *Tui) (Page, error) {
 
 	page.adminCheck = clui.CreateCheckBox(adminFrm, 1, "Administrative", Fixed)
 
-	btnFrm := clui.CreateFrame(fldFrm, 30, 1, BorderNone, Fixed)
-	btnFrm.SetPack(clui.Horizontal)
-	btnFrm.SetGaps(1, 1)
-	btnFrm.SetPaddings(2, 0)
+	cancelBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Cancel", Fixed)
+	cancelBtn.OnClick(func(ev clui.Event) {
+		page.clearForm()
+		page.GotoPage(TuiPageUserManager)
+	})
 
-	page.confirmBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Confirm", Fixed)
-
+	page.confirmBtn = CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Confirm", Fixed)
 	page.confirmBtn.OnClick(func(ev clui.Event) {
-		pwd := page.pwdEdit.Title()
-
-		if !page.changedPwd && page.selected != nil {
-			pwd = ""
-		}
-
-		page.showUser(page.loginEdit.Title(), pwd, page.adminCheck.State() == 1)
 		page.SetDone(true)
 	})
 
-	page.deleteBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Delete", Fixed)
+	page.deleteBtn = CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Delete", Fixed)
 	page.deleteBtn.SetEnabled(false)
-
 	page.deleteBtn.OnClick(func(ev clui.Event) {
-		if page.selected == nil {
-			return
-		}
-
-		btns := []*UserBtn{}
-		for _, curr := range page.users {
-			if curr == page.selected {
-				curr.btn.Destroy()
-				continue
-			}
-
-			btns = append(btns, curr)
-		}
-
-		page.users = btns
-		page.resetForm()
+		// Clear the form and user data; with Login being empty,
+		// this will result in the user not being re-added, aka deleted.
+		page.user.UserName = ""
+		page.user.Login = ""
+		page.user.Password = ""
+		page.user.Admin = false
+		page.clearForm()
+		page.GotoPage(TuiPageUserManager)
 	})
 
-	cancelBtn := CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Cancel", Fixed)
-	cancelBtn.OnClick(func(ev clui.Event) {
-		page.resetForm()
+	resetBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Reset", Fixed)
+	resetBtn.OnClick(func(ev clui.Event) {
+		if page.addMode {
+			page.clearForm()
+		} else {
+			page.resetForm()
+		}
+
+		page.setConfirmButton()
 	})
 
-	page.listFrm = clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
-	page.listFrm.SetPack(clui.Vertical)
-	page.listFrm.SetPaddings(4, 2)
-
-	page.activated = page.loginEdit
+	page.activated = page.usernameEdit
 
 	return page, nil
 }
 
-func (page *UseraddPage) resetForm() {
-	page.loginEdit.SetTitle("")
-	page.pwdEdit.SetTitle("")
-	page.adminCheck.SetState(0)
-	page.selected = nil
-	page.deleteBtn.SetEnabled(false)
-	clui.ActivateControl(page.tui.currPage.GetWindow(), page.loginEdit)
-}
-
-func (page *UseraddPage) updateUser(lbl string, login string, pwd string, admin bool) {
-	page.selected.btn.SetTitle(lbl)
-
-	page.selected.user.Login = login
-	page.selected.user.Admin = admin
-
-	if pwd != "" {
-		_ = page.selected.user.SetPassword(pwd)
-	}
-
-	page.selected = nil
-}
-
-func (page *UseraddPage) addNewUser(lbl string, login string, pwd string, admin bool) {
-	usr, err := user.NewUser(login, pwd, admin)
-	if err != nil {
+func (page *UseraddPage) revealPassword() {
+	if !page.addMode {
 		return
 	}
 
-	btn := CreateSimpleButton(page.listFrm, AutoSize, AutoSize, lbl, Fixed)
-	btn.SetAlign(AlignLeft)
-
-	usrBtn := &UserBtn{usr, btn}
-	page.users = append(page.users, usrBtn)
-
-	btn.OnClick(func(ev clui.Event) {
-		state := 0
-		page.selected = usrBtn
-		page.changedPwd = false
-
-		if usr.Admin {
-			state = 1
-		}
-
-		page.loginLabel.SetVisible(false)
-		page.loginEdit.SetTitle(usr.Login)
-
-		page.pwdLabel.SetVisible(false)
-		page.pwdEdit.SetTitle("xxxxxxxx")
-
-		page.adminCheck.SetState(state)
-		page.deleteBtn.SetEnabled(true)
-
-		clui.ActivateControl(page.tui.currPage.GetWindow(), page.loginEdit)
-	})
-}
-
-func (page *UseraddPage) showUser(login string, pwd string, admin bool) {
-	lbl := fmt.Sprintf("%-30s admin: %+v", login, admin)
-
-	if page.selected != nil {
-		page.updateUser(lbl, login, pwd, admin)
+	if page.passwordEdit.PasswordMode() {
+		page.passwordEdit.SetPasswordMode(false)
+		page.pwConfirmEdit.SetPasswordMode(false)
 	} else {
-		page.addNewUser(lbl, login, pwd, admin)
+		page.passwordEdit.SetPasswordMode(true)
+		page.pwConfirmEdit.SetPasswordMode(true)
 	}
-
-	page.resetForm()
 }
 
-// DeActivate merges the local data with the data model
-func (page *UseraddPage) DeActivate() {
-	for _, curr := range page.users {
-		page.getModel().AddUser(curr.user)
+func (page *UseraddPage) resetForm() {
+	page.usernameEdit.SetTitle(page.user.UserName)
+	page.loginEdit.SetTitle(page.user.Login)
+	page.changedLogin = true // Assume the user wants to keep this
+	page.changedPwd = false
+	if !page.addMode {
+		page.passwordEdit.SetTitle("************")
+		page.pwConfirmEdit.SetTitle("************")
+		page.passwordWarning.SetTitle("")
 	}
+	if page.user.Admin {
+		page.adminCheck.SetState(1)
+	}
+
+	page.deleteBtn.SetEnabled(true)
+
+	clui.ActivateControl(page.tui.currPage.GetWindow(), page.usernameEdit)
+}
+
+func (page *UseraddPage) clearForm() {
+	page.usernameEdit.SetTitle("")
+	// Need to ensure there is a change in the title so
+	// that the validation code executes
+	page.loginEdit.SetTitle(" ")
+	page.loginEdit.SetTitle("")
+	page.changedLogin = false
+	// Need to ensure there is a change in the title and
+	// change flag is set so that the validation code executes
+	page.changedPwd = true
+	page.passwordEdit.SetTitle(" ")
+	page.passwordEdit.SetTitle("")
+	page.changedPwd = false
+	page.pwConfirmEdit.SetTitle("")
+	page.passwordEdit.SetPasswordMode(true)
+	page.pwConfirmEdit.SetPasswordMode(true)
+	page.adminCheck.SetState(0)
+	page.deleteBtn.SetEnabled(false)
+	page.confirmBtn.SetEnabled(false)
+	clui.ActivateControl(page.tui.currPage.GetWindow(), page.usernameEdit)
 }
