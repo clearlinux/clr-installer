@@ -92,7 +92,9 @@ func run(sw func(cmd *exec.Cmd) error, writer io.Writer, env map[string]string, 
 
 	cmd.Stdout = writer
 	cmd.Stderr = writer
-	cmd.Stdin = os.Stdin
+	if cmd.Stdin == nil {
+		cmd.Stdin = os.Stdin
+	}
 
 	for k, v := range env {
 		cmd.Args = append(cmd.Args, fmt.Sprintf("%s=%s", k, v))
