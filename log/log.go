@@ -155,12 +155,6 @@ func Info(format string, a ...interface{}) {
 	logTag("INF", format, a...)
 }
 
-// Out is an special logging function, it's used for command output
-// and has no log level restrictions
-func Out(format string, a ...interface{}) {
-	logTag("OUT", format, a...)
-}
-
 // Warning prints an warning log entry with WRN tag
 func Warning(format string, a ...interface{}) {
 	if level > LogLevelWarning {
