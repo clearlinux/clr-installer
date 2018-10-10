@@ -185,19 +185,6 @@ func TestLogTraceableError(t *testing.T) {
 	}
 }
 
-func TestLogOut(t *testing.T) {
-	fh := setLog(t)
-	defer func() {
-		_ = fh.Close()
-		_ = os.Remove(fh.Name())
-	}()
-	Out("command output")
-
-	if !strings.Contains(readLog(t).String(), "[OUT]") {
-		t.Fatal("Out logs should contain the tag [OUT]")
-	}
-}
-
 func TestFailSeek(t *testing.T) {
 	err := ArchiveLogFile("archivefile")
 	if err == nil {

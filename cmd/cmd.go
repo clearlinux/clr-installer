@@ -31,7 +31,7 @@ func (rl runLogger) Write(p []byte) (n int, err error) {
 			continue
 		}
 
-		log.Out(curr)
+		log.Debug(curr)
 	}
 	return len(p), nil
 }
