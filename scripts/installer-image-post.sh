@@ -17,4 +17,6 @@ sed -i -e '/server=/s/clr.telemetry.intel.com/localhost/' \
     -e '/record_retention_enabled/s/=false/=true/' \
     $1/etc/telemetrics/telemetrics.conf
 
+echo "timeout 5" >> $1/boot/loader/loader.conf
+
 make clean
