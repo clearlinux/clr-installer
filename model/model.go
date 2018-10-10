@@ -296,7 +296,7 @@ func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 				continue
 			}
 
-			if (fi != nil && fi.Mode()&os.ModeDevice == 1) && !inTestAlias {
+			if (fi != nil && fi.Mode()&os.ModeDevice == 0) && !inTestAlias {
 				continue
 			}
 
