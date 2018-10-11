@@ -44,13 +44,17 @@ func init() {
 }
 
 // SetLogLevel sets the default log level to l
-func SetLogLevel(l int) error {
-	if l < LogLevelDebug || l > LogLevelError {
-		return errors.Errorf("Invalid log level: %d", l)
+func SetLogLevel(l int) {
+	if l < LogLevelDebug {
+		level = LogLevelDebug
+		logTag("WRN", "Log Level '%d' too low, forcing to %s (%d)", l, levelMap[level], level)
+	} else if l > LogLevelError {
+		level = LogLevelError
+		logTag("WRN", "Log Level '%d' too high, forcing to %s (%d)", l, levelMap[level], level)
+	} else {
+		level = l
+		Debug("Log Level set to %s (%d)", levelMap[level], l)
 	}
-
-	level = l
-	return nil
 }
 
 // SetOutputFilename ... sets the default log output to filename instead of stdout/stderr

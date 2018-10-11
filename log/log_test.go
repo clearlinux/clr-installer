@@ -72,9 +72,7 @@ func TestTag(t *testing.T) {
 		_ = os.Remove(fh.Name())
 	}()
 
-	if err := SetLogLevel(LogLevelDebug); err != nil {
-		t.Fatal("Should not fail with a valid level")
-	}
+	SetLogLevel(LogLevelDebug)
 
 	for _, curr := range tests {
 		curr.fc(curr.msg)
@@ -150,9 +148,7 @@ func TestLogLevel(t *testing.T) {
 	}()
 
 	for _, curr := range tests {
-		if err := SetLogLevel(curr.mutedLevel); err != nil {
-			t.Fatal("Should not fail with a valid log level")
-		}
+		SetLogLevel(curr.mutedLevel)
 		curr.fc(curr.msg)
 
 		if readLog(t).String() != "" {
@@ -192,9 +188,9 @@ func TestInvalidLogLevelStr(t *testing.T) {
 }
 
 func TestInvalidLogLevel(t *testing.T) {
-	if err := SetLogLevel(999); err == nil {
-		t.Fatal("Should fail with an invalid log level")
-	}
+	// Exercise the code paths for invalid, but it is not a fatal error
+	SetLogLevel(-1)
+	SetLogLevel(999)
 }
 
 func TestLogTraceableError(t *testing.T) {
