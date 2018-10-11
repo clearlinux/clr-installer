@@ -31,6 +31,9 @@ var (
 	level      = LogLevelInfo
 	levelMap   = map[int]string{}
 	filehandle *os.File
+
+	lineLast  string
+	lineCount int
 )
 
 func init() {
@@ -115,8 +118,27 @@ func LevelStr(level int) (string, error) {
 
 func logTag(tag string, format string, a ...interface{}) {
 	f := fmt.Sprintf("[%s] %s\n", tag, format)
-	str := fmt.Sprintf(f, a...)
-	log.Printf(str)
+	output := fmt.Sprintf(f, a...)
+
+	if output != lineLast {
+		// output the previous repeated line
+		if lineCount > 0 {
+			plural := ""
+			if lineCount > 1 {
+				plural = "s"
+			}
+
+			repeat := fmt.Sprintf("[%s] [Previous line repeated %d time%s]\n", tag, lineCount, plural)
+			log.Printf(repeat)
+		}
+
+		log.Printf(output)
+
+		lineLast = output
+		lineCount = 0
+	} else { // Repeated line
+		lineCount++
+	}
 }
 
 // Debug prints a debug log entry with DBG tag
