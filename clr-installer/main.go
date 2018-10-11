@@ -109,14 +109,22 @@ func main() {
 	// Make the Version of the program visible to telemetry
 	telemetry.ProgVersion = model.Version
 
-	if err := log.SetLogLevel(options.LogLevel); err != nil {
+	f, err := log.SetOutputFilename(options.LogFile)
+	if err != nil {
 		fatal(err)
 	}
+	defer func() {
+		_ = f.Close()
+	}()
+
+	log.SetLogLevel(options.LogLevel)
+
+	log.Info(path.Base(os.Args[0]) + ": " + model.Version)
 
 	if options.PamSalt != "" {
-		hashed, err := crypt.Crypt(options.PamSalt)
+		hashed, errHash := crypt.Crypt(options.PamSalt)
 		if err != nil {
-			panic(err)
+			panic(errHash)
 		}
 
 		fmt.Println(hashed)
@@ -127,15 +135,6 @@ func main() {
 		fmt.Println(path.Base(os.Args[0]) + ": " + model.Version)
 		return
 	}
-
-	f, err := log.SetOutputFilename(options.LogFile)
-	if err != nil {
-		fatal(err)
-	}
-	defer func() {
-		_ = f.Close()
-	}()
-	log.Info(path.Base(os.Args[0]) + ": " + model.Version)
 
 	initFrontendList()
 
