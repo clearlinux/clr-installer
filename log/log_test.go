@@ -91,6 +91,32 @@ func TestTag(t *testing.T) {
 	}
 }
 
+func TestRepeat(t *testing.T) {
+	fh := setLog(t)
+	defer func() {
+		_ = fh.Close()
+		_ = os.Remove(fh.Name())
+	}()
+
+	SetLogLevel(LogLevelDebug)
+
+	msg := "This is a log message"
+	Debug(msg)
+	Debug(msg)
+	Debug(msg)
+	Debug(msg)
+	Debug("Different")
+
+	str := readLog(t).String()
+	if str == "" {
+		t.Fatal("No log written to output")
+	}
+
+	if !strings.Contains(str, "repeated") {
+		t.Fatalf("Log generated an entries without the expected repeated message")
+	}
+}
+
 func TestErrorError(t *testing.T) {
 	fh := setLog(t)
 	defer func() {
