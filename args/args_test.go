@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/clearlinux/clr-installer/log"
@@ -203,6 +204,78 @@ func TestKernelCmdConfPresent(t *testing.T) {
 	}
 }
 
+func TestKernelCmdLogPresent(t *testing.T) {
+
+	var testArgs Args
+	var kernelCmd string
+	var err error
+
+	forcedLogLevel := "1"
+
+	// Check for configuration file present
+	kernelCmd = "root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0 console=ttyS0,115200n8 init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" +
+		" " + kernelCmdlineLog + "=" + forcedLogLevel
+	kernelCmdlineFile, err = makeTestKernelCmd(kernelCmd)
+	defer func() {
+		_ = os.Remove(kernelCmdlineFile)
+	}()
+	if err != nil {
+		t.Errorf("Failed to makeTestKernelCmd with error %q", err)
+		return
+	}
+
+	err = testArgs.setKernelArgs()
+	if testArgs.CfDownloaded && testArgs.ConfigFile != "" {
+		defer func() { _ = os.Remove(testArgs.ConfigFile) }()
+	}
+	if err != nil {
+		t.Errorf("Failed to setKernelArgs with error %q", err)
+		return
+	}
+
+	var logLevel int
+	if logLevel, _ = strconv.Atoi(forcedLogLevel); err != nil {
+		t.Errorf("Invalid logLevel value '%s'", forcedLogLevel)
+	}
+	if testArgs.LogLevel != logLevel {
+		t.Errorf("Failed to detect Log Level with kernel command %q", kernelCmd)
+	}
+}
+
+func TestKernelCmdLogError(t *testing.T) {
+
+	var testArgs Args
+	var kernelCmd string
+	var err error
+
+	forcedLogLevel := "a"
+
+	// Check for configuration file present
+	kernelCmd = "root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0 console=ttyS0,115200n8 init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" +
+		" " + kernelCmdlineLog + "=" + forcedLogLevel
+	kernelCmdlineFile, err = makeTestKernelCmd(kernelCmd)
+	defer func() {
+		_ = os.Remove(kernelCmdlineFile)
+	}()
+	if err != nil {
+		t.Errorf("Failed to makeTestKernelCmd with error %q", err)
+		return
+	}
+
+	err = testArgs.setKernelArgs()
+	if testArgs.CfDownloaded && testArgs.ConfigFile != "" {
+		defer func() { _ = os.Remove(testArgs.ConfigFile) }()
+	}
+	if err != nil {
+		t.Errorf("Failed to setKernelArgs with error %q", err)
+		return
+	}
+
+	if testArgs.LogLevel != 0 {
+		t.Errorf("Failed to detect Log Level with bad kernel command %q", kernelCmd)
+	}
+}
+
 func TestKernelCmdInvalidProtocol(t *testing.T) {
 	var testArgs Args
 	var kernelCmd string
@@ -311,9 +384,7 @@ func TestKernelAndCommandlineAllArgs(t *testing.T) {
 
 	const confName = "command.conf"
 	t.Logf("%v", os.Args)
-	//os.Args = []string{os.Args[0], os.Args[1], "--config=" + confName, "--demo"}
-	//os.Args = append(os.Args, "--config="+confName, "--demo")
-	os.Args[1] = "--config=" + confName
+	os.Args = append(os.Args, "--config="+confName, "--demo", "--telemetry", "--reboot")
 	fmt.Println(os.Args)
 
 	// Check for configuration file missing

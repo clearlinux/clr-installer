@@ -17,6 +17,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/clearlinux/clr-installer/conf"
@@ -27,6 +28,7 @@ import (
 const (
 	kernelCmdlineConf = "clri.descriptor"
 	kernelCmdlineDemo = "clri.demo"
+	kernelCmdlineLog  = "clri.loglevel"
 	logFileEnvironVar = "CLR_INSTALLER_LOG_FILE"
 )
 
@@ -70,10 +72,18 @@ func (args *Args) setKernelArgs() (err error) {
 
 	// Parse the kernel command for relevant installer options
 	for _, curr := range strings.Split(kernelCmd, " ") {
+		curr = strings.TrimSpace(curr)
 		if strings.HasPrefix(curr, kernelCmdlineConf+"=") {
 			url = strings.Split(curr, "=")[1]
 		} else if strings.HasPrefix(curr, kernelCmdlineDemo) {
 			args.DemoMode = true
+		} else if strings.HasPrefix(curr, kernelCmdlineLog) {
+			logLevelString := strings.Split(curr, "=")[1]
+			if logLevel, _ := strconv.Atoi(logLevelString); err != nil {
+				log.Warning("Ignoring invalid kernel parameter %s='%s'", kernelCmdlineLog, logLevelString)
+			} else {
+				args.LogLevel = logLevel
+			}
 		}
 	}
 
