@@ -155,7 +155,7 @@ func (args *Args) setCommandLineArgs() (err error) {
 		&args.LogLevel,
 		"log-level",
 		"l",
-		log.LogLevelDebug,
+		args.LogLevel,
 		fmt.Sprintf("%d (debug), %d (info), %d (warning), %d (error)",
 			log.LogLevelDebug, log.LogLevelInfo, log.LogLevelWarning, log.LogLevelError),
 	)
@@ -231,6 +231,9 @@ func (args *Args) setCommandLineArgs() (err error) {
 // and read any options set on the kernel command line from boot-time
 // setting the results into the Args member variables.
 func (args *Args) ParseArgs() (err error) {
+	// Set the default log level
+	args.LogLevel = log.LogLevelInfo
+
 	err = args.setKernelArgs()
 	if err != nil {
 		return err
