@@ -194,7 +194,9 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 
 		// prepare the blockdevice's partitions filesystem
 		for _, ch := range curr.Children {
-			prg = progress.NewLoop("Writing %s file system to %s", ch.FsType, ch.Name)
+			msg := fmt.Sprintf("Writing %s file system to %s", ch.FsType, ch.Name)
+			prg = progress.NewLoop(msg)
+			log.Info(msg)
 			if err = ch.MakeFs(); err != nil {
 				return err
 			}
@@ -287,21 +289,25 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		}
 	}
 
-	prg = progress.NewLoop("Saving the installation results")
+	if err = applyHooks("post-install", vars, model.PostInstall); err != nil {
+		return err
+	}
+
+	msg := "Saving the installation results"
+	prg = progress.NewLoop(msg)
+	log.Info(msg)
 	if err = saveInstallResults(rootDir, model); err != nil {
 		log.ErrorError(err)
 	}
 	prg.Success()
 
-	if err = applyHooks("post-install", vars, model.PostInstall); err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func applyHooks(name string, vars map[string]string, hooks []*model.InstallHook) error {
-	prg := progress.MultiStep(len(hooks), "Running %s hooks", name)
+	msg := fmt.Sprintf("Running %s hooks", name)
+	prg := progress.MultiStep(len(hooks), msg)
+	log.Info(msg)
 
 	for idx, curr := range hooks {
 		if err := runInstallHook(vars, curr); err != nil {
@@ -342,7 +348,9 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 
 	sw := swupd.New(rootDir, options.SwupdStateDir)
 
-	prg := progress.NewLoop("Installing the base system")
+	msg := "Installing the base system"
+	prg := progress.NewLoop(msg)
+	log.Info(msg)
 	if err := sw.Verify(version, model.SwupdMirror); err != nil {
 		return prg, err
 	}
@@ -372,7 +380,9 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 			continue
 		}
 
-		prg = progress.NewLoop("Installing bundle: %s", bundle)
+		msg = fmt.Sprintf("Installing bundle: %s", bundle)
+		prg = progress.NewLoop(msg)
+		log.Info(msg)
 		if err := sw.BundleAdd(bundle); err != nil {
 			// Attempt to continue the installation for non-core bundles
 			if errLog := model.Telemetry.LogRecord("swupd", 2, "Failed to install bundle: "+bundle); errLog != nil {
@@ -385,7 +395,9 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 		}
 	}
 
-	prg = progress.NewLoop("Installing boot loader")
+	msg = "Installing boot loader"
+	prg = progress.NewLoop(msg)
+	log.Info(msg)
 	args := []string{
 		fmt.Sprintf("%s/usr/bin/clr-boot-manager", rootDir),
 		"update",
@@ -419,26 +431,32 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 	cmd.SetHTTPSProxy(model.HTTPSProxy)
 
 	if len(model.NetworkInterfaces) > 0 {
-		prg := progress.NewLoop("Applying network settings")
+		msg := "Applying network settings"
+		prg := progress.NewLoop(msg)
+		log.Info(msg)
 		if err := network.Apply("/", model.NetworkInterfaces); err != nil {
 			return prg, err
 		}
 		prg.Success()
 
-		prg = progress.NewLoop("Restarting network interfaces")
+		msg = "Restarting network interfaces"
+		prg = progress.NewLoop(msg)
+		log.Info(msg)
 		if err := network.Restart(); err != nil {
 			return prg, err
 		}
 		prg.Success()
 	}
 
-	prg := progress.NewLoop("Testing connectivity")
+	msg := "Testing connectivity"
+	prg := progress.NewLoop(msg)
 	ok := false
 
 	// 3 attempts to test connectivity
 	for i := 0; i < 3; i++ {
 		time.Sleep(2 * time.Second)
 
+		log.Info(msg)
 		if err := network.VerifyConnectivity(); err == nil {
 			ok = true
 			break

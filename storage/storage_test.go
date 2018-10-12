@@ -6,9 +6,49 @@ package storage
 
 import (
 	"bytes"
+	"io/ioutil"
+	"os"
+	"path"
 	"testing"
 	"text/template"
+	"time"
+
+	"github.com/clearlinux/clr-installer/progress"
+	"github.com/clearlinux/clr-installer/utils"
 )
+
+// Need to implement an empty progress interface for testing
+// FakeInstall implements the progress interface: progress.Client
+type FakeInstall struct {
+	prgDesc string
+}
+
+// Step is the progress step implementation for progress.Client interface
+func (mi *FakeInstall) Step() { return }
+
+// LoopWaitDuration is part of the progress.Client implementation and returns the
+// duration each loop progress step should wait
+func (mi *FakeInstall) LoopWaitDuration() time.Duration {
+	return 1 * time.Millisecond
+}
+
+// Desc is part of the implementation for ProgresIface and is used to adjust the progress bar
+// label content
+func (mi *FakeInstall) Desc(desc string) {
+	mi.prgDesc = desc
+}
+
+// Partial is part of the progress.Client implementation and sets the progress bar based
+// on actual progression
+func (mi *FakeInstall) Partial(total int, step int) { return }
+
+// Success is part of the progress.Client implementation and represents the
+// successful progress completion of a task
+func (mi *FakeInstall) Success() { return }
+
+// Failure is part of the progress.Client implementation and represents the
+// unsuccessful progress completion of a task
+func (mi *FakeInstall) Failure() { return }
 
 func TestGetConfiguredStatus(t *testing.T) {
 	children := make([]*BlockDevice, 0)
@@ -410,5 +450,89 @@ func TestNullRemovable(t *testing.T) {
 	_, err := parseBlockDevicesDescriptor([]byte(lsblkOutput))
 	if err != nil {
 		t.Fatalf("Could not parser block device descriptor: %s", err)
+	}
+}
+
+func TestWritePartition(t *testing.T) {
+	tmpFile, err := ioutil.TempFile("", "test-image-")
+	if err != nil {
+		t.Fatal("Could not create a temp file")
+	}
+	defer func() { _ = os.Remove(tmpFile.Name()) }()
+	imageFile := tmpFile.Name()
+	if err = tmpFile.Close(); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Image file is :%s", imageFile)
+
+	children := make([]*BlockDevice, 0)
+	bd := &BlockDevice{Name: "", Size: 1288490188, Type: BlockDeviceTypeLoop, Children: children}
+
+	if err = MakeImage(bd, imageFile); err != nil {
+		t.Fatalf("Could not make image file: %s", err)
+	}
+
+	if !utils.IsRoot() {
+		t.Log("Not running as 'root', not using Loopback device")
+	} else {
+		detachMe := []string{}
+		fakeImpl := &FakeInstall{}
+		progress.Set(fakeImpl)
+
+		file, err := SetupLoopDevice(imageFile)
+		if err != nil {
+			t.Fatalf("Could not setup loop device for image file %s: %s", file, err)
+		}
+
+		detachMe = append(detachMe, file)
+
+		retry := 5
+		// wait the loop device to be prepared and available with 5 retry attempts
+		for {
+			var ok bool
+
+			if ok, err = utils.FileExists(file); err != nil {
+				for _, file := range detachMe {
+					DetachLoopDevice(file)
+				}
+				t.Fatalf("Could not check for file exists (%s): %s", file, err)
+			}
+
+			if ok || retry == 0 {
+				break
+			}
+
+			retry--
+			time.Sleep(time.Second * 1)
+		}
+
+		// defer detaching used loop devices
+		defer func() {
+			for _, file := range detachMe {
+				DetachLoopDevice(file)
+			}
+		}()
+		bd.Name = path.Base(file)
+		part1 := &BlockDevice{Name: bd.Name + "p1", FsType: "vfat", Size: 157286400, Type: BlockDeviceTypePart, MountPoint: "/boot"}
+		part2 := &BlockDevice{Name: bd.Name + "p2", FsType: "swap", Size: 125829120, Type: BlockDeviceTypePart, MountPoint: ""}
+		part3 := &BlockDevice{Name: bd.Name + "p3", FsType: "ext4", Size: 1004535808, Type: BlockDeviceTypePart, MountPoint: "/"}
+
+		children = append(children, part1)
+		children = append(children, part2)
+		children = append(children, part3)
+		bd.Children = children
+
+		//write the partition table
+		if err = bd.WritePartitionTable(); err != nil {
+			t.Fatalf("Could not write partition table (%s): %s", file, err)
+		}
+
+		// prepare the blockdevice's partitions filesystem
+		for _, ch := range bd.Children {
+			if err = ch.MakeFs(); err != nil {
+				t.Fatalf("Could not MakeFs partition (%s): %s", ch.Name, err)
+			}
+
+		}
 	}
 }

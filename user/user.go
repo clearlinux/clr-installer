@@ -15,6 +15,7 @@ import (
 	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/crypt"
 	"github.com/clearlinux/clr-installer/errors"
+	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/progress"
 	"github.com/clearlinux/clr-installer/utils"
 )
@@ -154,6 +155,7 @@ func Apply(rootDir string, users []*User) error {
 	}
 
 	for _, usr := range users {
+		log.Info("Adding extra user '%s'", usr.Login)
 		if err := usr.apply(rootDir); err != nil {
 			prg.Failure()
 			return err
