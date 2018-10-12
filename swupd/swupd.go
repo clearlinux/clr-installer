@@ -132,6 +132,8 @@ func (s *SoftwareUpdater) Update() error {
 		fmt.Sprintf("--statedir=%s", s.stateDir),
 	}
 
+	log.Info("Checking for swupd updates")
+
 	err := cmd.RunAndLog(args...)
 	if err != nil {
 		return errors.Wrap(err)

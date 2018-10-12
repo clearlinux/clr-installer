@@ -138,7 +138,9 @@ func (bd *BlockDevice) WritePartitionTable() error {
 		return errors.Errorf("Type is partition, disk required")
 	}
 
-	prg := progress.NewLoop(fmt.Sprintf("Writing partition table to: %s", bd.Name))
+	mesg := fmt.Sprintf("Writing partition table to: %s", bd.Name)
+	prg := progress.NewLoop(mesg)
+	log.Info(mesg)
 	args := []string{
 		"parted",
 		"-s",
@@ -211,7 +213,9 @@ func (bd *BlockDevice) WritePartitionTable() error {
 	}
 	prg.Success()
 
-	prg = progress.MultiStep(len(guids), "Adjusting filesystem configurations")
+	msg := "Adjusting filesystem configurations"
+	prg = progress.MultiStep(len(guids), msg)
+	log.Info(msg)
 	cnt := 1
 	for idx, guid := range guids {
 		args = []string{

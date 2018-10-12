@@ -188,7 +188,7 @@ func main() {
 		if err != nil {
 			fatal(err)
 		} else {
-			log.Debug("Using Swupd Mirror value: %q", url)
+			log.Info("Using Swupd Mirror value: %q", url)
 		}
 	}
 
