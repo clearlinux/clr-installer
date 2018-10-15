@@ -82,12 +82,21 @@ check-coverage: build-local-travis
 
 check: gopath
 	@# Ensure no temp files are left behind
-	@$(eval BEFORESHA = $(shell ls -art /tmp | sha512sum))
-	go test -cover ${GO_PACKAGE_PREFIX}/...
-	@if [ "$(BEFORESHA)" != "$$(ls -art /tmp | sha512sum)" ] ; then \
+	@LSCMD='ls -lart --ignore="." /tmp'; \
+	SHACMD='ls -art --ignore="." /tmp | sha512sum'; \
+	BEFORELS=`eval $$LSCMD`; \
+	BEFORESHA=`eval $$SHACMD`; \
+	go test -cover ${GO_PACKAGE_PREFIX}/...; \
+	AFTERSHA=`eval $$SHACMD`; \
+	AFTERLS=`eval $$LSCMD`; \
+	if [ "$$BEFORESHA" != "$$AFTERSHA" ] ; then \
 		echo "Test Failed: Temporary directory may not be clean!"; \
+		echo "Left-over files:"; \
+		echo "$$BEFORELS" > /tmp/beforels; \
+		echo "$$AFTERLS" > /tmp/afterls; \
+		diff -Nr /tmp/beforels /tmp/afterls; \
 		/bin/false ; \
-	fi \
+	fi; \
 
 check-clean: gopath
 	go clean -testcache
