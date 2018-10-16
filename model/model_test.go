@@ -39,14 +39,15 @@ func TestLoadFile(t *testing.T) {
 		{"no-root-partition-descriptor.yaml", false},
 		{"no-telemetry.yaml", false},
 		{"invalid-no-kernel.yaml", false},
-		{"real-example.yaml", true},
-		{"valid-network.yaml", true},
-		{"valid-minimal.yaml", true},
-		{"valid-with-version.yaml", true},
-		{"block-devices-alias.yaml", true},
 		{"block-device-image.yaml", true},
-		{"valid-with-pre-post-hooks.yaml", true},
+		{"block-devices-alias.yaml", true},
 		{"mixed-block-device.yaml", true},
+		{"real-example.yaml", true},
+		{"user-sshkeys.yaml", true},
+		{"valid-minimal.yaml", true},
+		{"valid-network.yaml", true},
+		{"valid-with-pre-post-hooks.yaml", true},
+		{"valid-with-version.yaml", true},
 	}
 
 	for _, curr := range tests {

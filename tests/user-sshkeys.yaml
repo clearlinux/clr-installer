@@ -1,0 +1,32 @@
+#clear-linux-config
+targetMedia:
+- name: sda
+  size: "30752636928"
+  type: disk
+  children:
+  - name: sda1
+    fstype: vfat
+    mountpoint: /boot
+    size: "157286400"
+    type: part
+  - name: sda2
+    fstype: swap
+    size: "2147483648"
+    type: part
+  - name: sda3
+    fstype: ext4
+    mountpoint: /
+    size: "28447866880"
+    type: part
+bundles: [os-core, os-core-update]
+telemetry: false
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-native
+users:
+- login: foobar
+  username: Foo Bar
+  ssh-keys: [
+    "ssh-rsa xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "ssh-rsa yyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+  ]
