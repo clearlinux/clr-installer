@@ -188,17 +188,19 @@ func (u *User) apply(rootDir string) error {
 		return errors.Wrap(err)
 	}
 
-	args = []string{
-		"chpasswd",
-		"--root",
-		rootDir,
-		"-e",
-	}
+	if u.Password != "" {
+		args = []string{
+			"chpasswd",
+			"--root",
+			rootDir,
+			"-e",
+		}
 
-	pwd := fmt.Sprintf("%s:%s", u.Login, u.Password)
+		pwd := fmt.Sprintf("%s:%s", u.Login, u.Password)
 
-	if err := cmd.PipeRunAndLog(pwd, args...); err != nil {
-		return errors.Wrap(err)
+		if err := cmd.PipeRunAndLog(pwd, args...); err != nil {
+			return errors.Wrap(err)
+		}
 	}
 
 	if len(u.SSHKeys) > 0 {
