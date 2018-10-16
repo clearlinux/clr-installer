@@ -17,7 +17,13 @@ declare -A ccoverage
 
 echo "saving to: $tmp"
 
-make check > $tmp
+make check 2>/dev/null 1>$tmp
+if [ $? != 0 ]; then
+    echo "Error on running \"make check\""
+    cat $tmp
+    rm $tmp
+    exit 1
+fi
 
 load_coverage() {
     grep "coverage:" $1 | while read -r line ; do
