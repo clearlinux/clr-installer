@@ -162,6 +162,7 @@ func TestLogLevelStr(t *testing.T) {
 		level int
 		str   string
 	}{
+		{LogLevelVerbose, "LogLevelVerbose"},
 		{LogLevelDebug, "LogLevelDebug"},
 		{LogLevelInfo, "LogLevelInfo"},
 		{LogLevelWarning, "LogLevelWarning"},

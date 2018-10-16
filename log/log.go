@@ -14,17 +14,21 @@ import (
 )
 
 const (
-	// LogLevelDebug specified the log level as: DEBUG
-	LogLevelDebug = 1
-
-	// LogLevelInfo specified the log level as: INFO
-	LogLevelInfo = 2
+	// LogLevelError specified the log level as: ERROR
+	LogLevelError = 1
 
 	// LogLevelWarning specified the log level as: WARNING
-	LogLevelWarning = 3
+	LogLevelWarning = 2
 
-	// LogLevelError specified the log level as: ERROR
-	LogLevelError = 4
+	// LogLevelInfo specified the log level as: INFO
+	LogLevelInfo = 3
+
+	// LogLevelDebug specified the log level as: DEBUG
+	LogLevelDebug = 4
+
+	// LogLevelVerbose specified the log level as: VERBOSE
+	// This is the same as Debug, but without the repeat filtering
+	LogLevelVerbose = 5
 )
 
 var (
@@ -37,19 +41,20 @@ var (
 )
 
 func init() {
-	levelMap[LogLevelDebug] = "LogLevelDebug"
-	levelMap[LogLevelInfo] = "LogLevelInfo"
-	levelMap[LogLevelWarning] = "LogLevelWarning"
 	levelMap[LogLevelError] = "LogLevelError"
+	levelMap[LogLevelWarning] = "LogLevelWarning"
+	levelMap[LogLevelInfo] = "LogLevelInfo"
+	levelMap[LogLevelDebug] = "LogLevelDebug"
+	levelMap[LogLevelVerbose] = "LogLevelVerbose"
 }
 
 // SetLogLevel sets the default log level to l
 func SetLogLevel(l int) {
-	if l < LogLevelDebug {
-		level = LogLevelDebug
-		logTag("WRN", "Log Level '%d' too low, forcing to %s (%d)", l, levelMap[level], level)
-	} else if l > LogLevelError {
+	if l < LogLevelError {
 		level = LogLevelError
+		logTag("WRN", "Log Level '%d' too low, forcing to %s (%d)", l, levelMap[level], level)
+	} else if l > LogLevelVerbose {
+		level = LogLevelVerbose
 		logTag("WRN", "Log Level '%d' too high, forcing to %s (%d)", l, levelMap[level], level)
 	} else {
 		level = l
@@ -124,6 +129,11 @@ func logTag(tag string, format string, a ...interface{}) {
 	f := fmt.Sprintf("[%s] %s\n", tag, format)
 	output := fmt.Sprintf(f, a...)
 
+	if level >= LogLevelVerbose {
+		log.Printf(output)
+		return
+	}
+
 	if output != lineLast {
 		// output the previous repeated line
 		if lineCount > 0 {
@@ -147,7 +157,7 @@ func logTag(tag string, format string, a ...interface{}) {
 
 // Debug prints a debug log entry with DBG tag
 func Debug(format string, a ...interface{}) {
-	if level > LogLevelDebug {
+	if level < LogLevelDebug {
 		return
 	}
 
@@ -174,7 +184,7 @@ func ErrorError(err error) {
 
 // Info prints an info log entry with INF tag
 func Info(format string, a ...interface{}) {
-	if level > LogLevelInfo {
+	if level < LogLevelInfo {
 		return
 	}
 
@@ -183,7 +193,7 @@ func Info(format string, a ...interface{}) {
 
 // Warning prints an warning log entry with WRN tag
 func Warning(format string, a ...interface{}) {
-	if level > LogLevelWarning {
+	if level < LogLevelWarning {
 		return
 	}
 
