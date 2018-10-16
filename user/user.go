@@ -7,6 +7,7 @@ package user
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -21,10 +22,11 @@ import (
 
 // User abstracts a target system definition
 type User struct {
-	Login    string
-	UserName string
-	Password string
-	Admin    bool
+	Login    string   `yaml:"login,omitempty"`
+	UserName string   `yaml:"username,omitempty,flow"`
+	Password string   `yaml:"password,omitempty,flow"`
+	Admin    bool     `yaml:"admin,omitempty,flow"`
+	SSHKeys  []string `yaml:"ssh-keys,omitempty,flow"`
 }
 
 const (
@@ -197,6 +199,57 @@ func (u *User) apply(rootDir string) error {
 
 	if err := cmd.PipeRunAndLog(pwd, args...); err != nil {
 		return errors.Wrap(err)
+	}
+
+	if len(u.SSHKeys) > 0 {
+		if err := writeSSHKey(rootDir, u); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func writeSSHKey(rootDir string, u *User) error {
+	home := filepath.Join("home", u.Login, ".ssh")
+	dpath := filepath.Join(rootDir, home)
+	fpath := filepath.Join(dpath, "authorized_keys")
+
+	if err := utils.MkdirAll(dpath, 0700); err != nil {
+		return err
+	}
+
+	f, err := os.OpenFile(fpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		_ = f.Close()
+	}()
+
+	cnt := fmt.Sprintf("%s\n", strings.Join(u.SSHKeys, "\n"))
+	bt := []byte(cnt)
+	n, err := f.Write(bt)
+	if err != nil {
+		return err
+	}
+
+	if n != len(bt) {
+		return errors.Errorf("Failed to write ssh key, wrote %d of %d bytes", n, len(bt))
+	}
+
+	args := []string{
+		"chroot",
+		rootDir,
+		"/usr/bin/chown",
+		"-R",
+		fmt.Sprintf("%s:%s", u.Login, u.Login),
+		home,
+	}
+
+	if err := cmd.RunAndLog(args...); err != nil {
+		return err
 	}
 
 	return nil
