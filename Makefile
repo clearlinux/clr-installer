@@ -142,10 +142,11 @@ update-linters:
 	fi \
 
 PHONY += lint
-lint: build install-linters
+lint: build install-linters gopath
 	@echo "Running linters"
 	@rm -rf ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor
 	@cp -af vendor/* ${LOCAL_GOPATH}/src/
+	@go build -race github.com/clearlinux/clr-installer/...
 	@gometalinter.v2 --deadline=10m --tests --vendor \
 	--exclude=vendor --disable-all \
 	--enable=misspell \
