@@ -37,16 +37,22 @@ load_coverage() {
 load_coverage "$tmp" ncoverage
 load_coverage "tests/coverage-curr-status" ccoverage
 
+decreased=0
+
 for key in ${!ccoverage[@]}; do
     ncov=${ncoverage[$key]}
     ccov=${ccoverage[$key]}
 
     if [[ ${ncov/.} -lt ${ccov/.} ]]; then
         echo "FATAL: decreased coverage for: $key - was: $ccov, now: $ncov"
-        rm $tmp
-        exit 1
+        decreased=1
     fi
 done
+
+if [ $decreased -eq 1 ]; then
+    rm $tmp
+    exit 1
+fi
 
 covchanged=$(diff -u tests/coverage-curr-status $tmp | wc -l)
 
