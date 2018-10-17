@@ -180,25 +180,28 @@ func main() {
 	if options.SwupdMirror != "" {
 		md.SwupdMirror = options.SwupdMirror
 	}
-	// Now validate the mirror from the config or command line
-	if md.SwupdMirror != "" {
-		var url string
-		url, err = swupd.SetHostMirror(md.SwupdMirror)
-		if err != nil {
-			fatal(err)
-		} else {
-			log.Info("Using Swupd Mirror value: %q", url)
-		}
-	}
 
-	if md.Keyboard != nil {
-		if err = keyboard.Apply(md.Keyboard); err != nil {
+	if !options.StubImage {
+		// Now validate the mirror from the config or command line
+		if md.SwupdMirror != "" {
+			var url string
+			url, err = swupd.SetHostMirror(md.SwupdMirror)
+			if err != nil {
+				fatal(err)
+			} else {
+				log.Info("Using Swupd Mirror value: %q", url)
+			}
+		}
+
+		if md.Keyboard != nil {
+			if err = keyboard.Apply(md.Keyboard); err != nil {
+				fatal(err)
+			}
+		}
+
+		if err = validateTelemetry(options, md); err != nil {
 			fatal(err)
 		}
-	}
-
-	if err = validateTelemetry(options, md); err != nil {
-		fatal(err)
 	}
 
 	installReboot := false

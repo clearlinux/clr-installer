@@ -58,6 +58,7 @@ type Args struct {
 	ArchiveSet      bool
 	DemoMode        bool
 	BlockDevices    []string
+	StubImage       bool
 }
 
 func (args *Args) setKernelArgs() (err error) {
@@ -143,6 +144,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.BoolVar(
 		&args.Telemetry, "telemetry", args.Telemetry, "Enable Telemetry",
+	)
+
+	flag.BoolVarP(
+		&args.StubImage, "stub-image", "S", args.StubImage, "Creates the filesystems only - dont perform an actual install",
 	)
 
 	flag.StringVar(

@@ -63,21 +63,23 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		return err
 	}
 
-	if err = applyHooks("pre-install", vars, model.PreInstall); err != nil {
-		return err
-	}
-
-	if model.Telemetry.Enabled {
-		if err = model.Telemetry.CreateLocalTelemetryConf(); err != nil {
+	if !options.StubImage {
+		if err = applyHooks("pre-install", vars, model.PreInstall); err != nil {
 			return err
 		}
-		if model.Telemetry.URL != "" {
-			if err = model.Telemetry.UpdateLocalTelemetryServer(); err != nil {
+
+		if model.Telemetry.Enabled {
+			if err = model.Telemetry.CreateLocalTelemetryConf(); err != nil {
 				return err
 			}
-		}
-		if err = model.Telemetry.RestartLocalTelemetryServer(); err != nil {
-			return err
+			if model.Telemetry.URL != "" {
+				if err = model.Telemetry.UpdateLocalTelemetryServer(); err != nil {
+					return err
+				}
+			}
+			if err = model.Telemetry.RestartLocalTelemetryServer(); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -110,7 +112,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	}
 
 	// Using MassInstaller (non-UI) the network will not have been checked yet
-	if !NetworkPassing {
+	if !NetworkPassing && !options.StubImage {
 		if err = ConfigureNetwork(model); err != nil {
 			return err
 		}
@@ -207,6 +209,10 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 				mountPoints = append(mountPoints, ch)
 			}
 		}
+	}
+
+	if options.StubImage {
+		return nil
 	}
 
 	// mount all the prepared partitions
