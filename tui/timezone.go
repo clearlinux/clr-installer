@@ -98,8 +98,14 @@ func newTimezonePage(tui *Tui) (Page, error) {
 		}
 	}
 
-	page.tzListBox.SelectItem(defTimezone)
-	page.activated = page.confirmBtn
+	if len(page.avTimezones) > 0 {
+		page.tzListBox.SelectItem(defTimezone)
+		page.activated = page.confirmBtn
+	} else {
+		page.tzListBox.AddItem("No time zone data found: Defaulting to 'UTC'")
+		page.activated = page.cancelBtn
+		page.confirmBtn.SetEnabled(false)
+	}
 
 	return page, nil
 }
