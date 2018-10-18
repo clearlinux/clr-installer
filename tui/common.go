@@ -382,7 +382,7 @@ func (page *BasePage) newWindow() {
 	// Default all the windows to borderless
 	clui.WindowManager().SetBorder(clui.BorderNone)
 	page.window = clui.AddWindow(x, y, WindowWidth, WindowHeight,
-		" [Clear Linux Installer ("+model.Version+")] ")
+		" [Clear Linux* OS Installer ("+model.Version+")] ")
 
 	page.window.SetTitleButtons(0)
 	page.window.SetSizable(false)

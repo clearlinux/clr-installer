@@ -34,10 +34,9 @@ const (
 	Title = `Enable Telemetry`
 	// Help is a predefined text to display on the Telemetry
 	// screen for interactive installations
-	Help = `Allow the Clear Linux OS for Intel Architecture to collect anonymous
-reports to improve system stability? These reports only relate to
-operating system details - no personally identifiable information is
-collected.
+	Help = `Allow the Clear Linux* OS to collect anonymous reports
+to improve system stability? These reports only relate to operating
+system details - no personally identifiable information is collected.
 
 See http://clearlinux.org/features/telemetry for more information.
 `
