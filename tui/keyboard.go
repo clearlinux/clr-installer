@@ -95,36 +95,42 @@ func newKeyboardPage(tui *Tui) (Page, error) {
 			defKeyboard = idx
 		}
 	}
-	page.kbdListBox.SelectItem(defKeyboard)
-	page.kbdListBox.OnActive(func(active bool) {
-		if active {
-			page.kbdListBox.SetStyle("ListActive")
-			return
-		}
+	if len(page.avKeymaps) > 0 {
+		page.kbdListBox.SelectItem(defKeyboard)
+		page.kbdListBox.OnActive(func(active bool) {
+			if active {
+				page.kbdListBox.SetStyle("ListActive")
+				return
+			}
 
-		page.kbdListBox.SetStyle("List")
+			page.kbdListBox.SetStyle("List")
 
-		idx := page.kbdListBox.SelectedItem()
-		selected := page.avKeymaps[idx]
+			idx := page.kbdListBox.SelectedItem()
+			selected := page.avKeymaps[idx]
 
-		if page.getModel().Language.Code == selected.Code {
-			return
-		}
+			if page.getModel().Language.Code == selected.Code {
+				return
+			}
 
-		if err := keyboard.Apply(selected); err != nil {
-			page.Panic(err)
-		}
-	})
+			if err := keyboard.Apply(selected); err != nil {
+				page.Panic(err)
+			}
+		})
 
-	frame := clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
-	frame.SetPack(clui.Vertical)
+		frame := clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
+		frame.SetPack(clui.Vertical)
 
-	lbl = clui.CreateLabel(frame, AutoSize, 1, "Test keyboard", Fixed)
-	lbl.SetPaddings(0, 1)
+		lbl = clui.CreateLabel(frame, AutoSize, 1, "Test keyboard", Fixed)
+		lbl.SetPaddings(0, 1)
 
-	newEditField(frame, false, nil)
+		newEditField(frame, false, nil)
 
-	page.activated = page.confirmBtn
+		page.activated = page.confirmBtn
+	} else {
+		page.kbdListBox.AddItem("No keyboards found: Defaulting to 'us'")
+		page.activated = page.cancelBtn
+		page.confirmBtn.SetEnabled(false)
+	}
 
 	return page, nil
 }
