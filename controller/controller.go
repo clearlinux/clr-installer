@@ -27,6 +27,7 @@ import (
 	"github.com/clearlinux/clr-installer/progress"
 	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/swupd"
+	"github.com/clearlinux/clr-installer/telemetry"
 	cuser "github.com/clearlinux/clr-installer/user"
 	"github.com/clearlinux/clr-installer/utils"
 )
@@ -243,7 +244,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	}
 
 	if model.Telemetry.Enabled {
-		model.AddBundle("telemetrics")
+		model.AddBundle(telemetry.RequiredBundle)
 	}
 
 	if model.KernelArguments != nil && len(model.KernelArguments.Add) > 0 {
