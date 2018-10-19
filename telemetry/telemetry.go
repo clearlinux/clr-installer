@@ -25,6 +25,9 @@ import (
 )
 
 const (
+	// RequiredBundle the bundle needed to use telemetry on the target
+	RequiredBundle = "telemetrics"
+
 	// Default Telemetry configuration file
 	defaultTelemetryConf = "/usr/share/defaults/telemetrics/telemetrics.conf"
 	customTelemetryConf  = "/etc/telemetrics/telemetrics.conf"
