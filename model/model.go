@@ -259,6 +259,11 @@ func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 		result.Timezone = &timezone.TimeZone{Code: timezone.DefaultTimezone}
 	}
 
+	// Set default Keyboard if not defined
+	if result.Keyboard == nil {
+		result.Keyboard = &keyboard.Keymap{Code: keyboard.DefaultKeyboard}
+	}
+
 	tmp := map[string]*StorageAlias{}
 
 	for _, bds := range result.StorageAlias {

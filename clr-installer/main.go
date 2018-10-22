@@ -194,15 +194,13 @@ func main() {
 			}
 		}
 
-		if md.Keyboard != nil {
-			if err = keyboard.Apply(md.Keyboard); err != nil {
-				fatal(err)
-			}
-		}
-
 		if err = validateTelemetry(options, md); err != nil {
 			fatal(err)
 		}
+	}
+
+	if md.Keyboard != nil && !keyboard.IsValidKeyboard(md.Keyboard) {
+		fatal(fmt.Errorf("Invalid Keyboard '%s'", md.Keyboard.Code))
 	}
 
 	if md.Timezone != nil && !timezone.IsValidTimezone(md.Timezone) {

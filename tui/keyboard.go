@@ -127,7 +127,7 @@ func newKeyboardPage(tui *Tui) (Page, error) {
 
 		page.activated = page.confirmBtn
 	} else {
-		page.kbdListBox.AddItem("No keyboards found: Defaulting to 'us'")
+		page.kbdListBox.AddItem("No keyboards found: Defaulting to '" + keyboard.DefaultKeyboard + "'")
 		page.activated = page.cancelBtn
 		page.confirmBtn.SetEnabled(false)
 	}
