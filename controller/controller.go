@@ -22,6 +22,7 @@ import (
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/hostname"
 	"github.com/clearlinux/clr-installer/keyboard"
+	"github.com/clearlinux/clr-installer/language"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/network"
@@ -257,6 +258,10 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		model.AddBundle(keyboard.RequiredBundle)
 	}
 
+	if model.Language.Code != language.DefaultLanguage {
+		model.AddBundle(language.RequiredBundle)
+	}
+
 	if model.KernelArguments != nil && len(model.KernelArguments.Add) > 0 {
 		cmdlineDir := filepath.Join(rootDir, "etc", "kernel")
 		cmdlineFile := filepath.Join(cmdlineDir, "cmdline")
@@ -298,6 +303,11 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	if err = configureKeyboard(rootDir, model); err != nil {
 		// Just log the error, not setting the keyboard is not reason to fail the install
 		log.Error("Error setting keyboard: %v", err)
+	}
+
+	if err = configureLanguage(rootDir, model); err != nil {
+		// Just log the error, not setting the language is not reason to fail the install
+		log.Error("Error setting language locale: %v", err)
 	}
 
 	if err = cuser.Apply(rootDir, model.Users); err != nil {
@@ -532,6 +542,27 @@ func configureKeyboard(rootDir string, model *model.SystemInstall) error {
 	log.Info(msg)
 
 	err := keyboard.SetTargetKeyboard(rootDir, model.Keyboard.Code)
+	if err != nil {
+		prg.Failure()
+		return err
+	}
+	prg.Success()
+
+	return nil
+}
+
+// configureLanguage applies the model/configured language to the target
+func configureLanguage(rootDir string, model *model.SystemInstall) error {
+	if model.Language.Code == language.DefaultLanguage {
+		log.Debug("Skipping setting language locale " + model.Language.Code)
+		return nil
+	}
+
+	msg := "Setting Language locale to " + model.Language.Code
+	prg := progress.NewLoop(msg)
+	log.Info(msg)
+
+	err := language.SetTargetLanguage(rootDir, model.Language.Code)
 	if err != nil {
 		prg.Failure()
 		return err
