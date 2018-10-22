@@ -26,6 +26,7 @@ import (
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/swupd"
 	"github.com/clearlinux/clr-installer/telemetry"
+	"github.com/clearlinux/clr-installer/timezone"
 	"github.com/clearlinux/clr-installer/tui"
 )
 
@@ -202,6 +203,10 @@ func main() {
 		if err = validateTelemetry(options, md); err != nil {
 			fatal(err)
 		}
+	}
+
+	if md.Timezone != nil && !timezone.IsValidTimezone(md.Timezone) {
+		fatal(fmt.Errorf("Invalid Time Zone '%s'", md.Timezone.Code))
 	}
 
 	installReboot := false

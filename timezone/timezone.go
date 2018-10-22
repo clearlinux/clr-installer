@@ -6,9 +6,13 @@ package timezone
 
 import (
 	"bytes"
+	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/clearlinux/clr-installer/cmd"
+	"github.com/clearlinux/clr-installer/errors"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 // TimeZone represents the system time zone
@@ -16,6 +20,18 @@ type TimeZone struct {
 	Code        string
 	userDefined bool
 }
+
+const (
+	// DefaultTimezone is the default timezone string
+	// This is what is set in os-core
+	DefaultTimezone = "UTC"
+
+	// RequiredBundle the bundle needed to set timezone other than the default
+	RequiredBundle = "tzdata"
+)
+
+// validTimezones stores the list of all valid, known timezones
+var validTimezones []*TimeZone
 
 // IsUserDefined returns true if the configuration was interactively
 // defined by the user
@@ -52,7 +68,10 @@ func (tz *TimeZone) Equals(comp *TimeZone) bool {
 
 // Load uses timedatectl to load the currently available timezones
 func Load() ([]*TimeZone, error) {
-	result := []*TimeZone{}
+	if validTimezones != nil {
+		return validTimezones, nil
+	}
+	validTimezones = []*TimeZone{}
 
 	w := bytes.NewBuffer(nil)
 	err := cmd.Run(w, "timedatectl", "list-timezones")
@@ -70,8 +89,54 @@ func Load() ([]*TimeZone, error) {
 			Code: curr,
 		}
 
-		result = append(result, tz)
+		validTimezones = append(validTimezones, tz)
 	}
 
-	return result, nil
+	return validTimezones, nil
+}
+
+// IsValidTimezone verifies if the given keyboard is valid
+func IsValidTimezone(t *TimeZone) bool {
+	var result = false
+
+	tzs, err := Load()
+	if err != nil {
+		return result
+	}
+
+	for _, curr := range tzs {
+		if curr.Equals(t) {
+			result = true
+		}
+	}
+
+	return result
+}
+
+// SetTargetTimezone uses creates a symlink to set the timezone on the target
+func SetTargetTimezone(rootDir string, timezone string) error {
+
+	tzFile := filepath.Join("/usr/share/zoneinfo", timezone)
+	targetTzFile := filepath.Join(rootDir, tzFile)
+
+	if ok, err := utils.FileExists(targetTzFile); err != nil || !ok {
+		return fmt.Errorf("Target timezone file missing")
+	}
+
+	args := []string{
+		"chroot",
+		rootDir,
+		"ln",
+		"-s",
+		"-r",
+		tzFile,
+		"/etc/localtime",
+	}
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }
