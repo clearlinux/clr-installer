@@ -21,6 +21,7 @@ import (
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/frontend"
 	"github.com/clearlinux/clr-installer/keyboard"
+	"github.com/clearlinux/clr-installer/language"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/massinstall"
 	"github.com/clearlinux/clr-installer/model"
@@ -205,6 +206,10 @@ func main() {
 
 	if md.Timezone != nil && !timezone.IsValidTimezone(md.Timezone) {
 		fatal(fmt.Errorf("Invalid Time Zone '%s'", md.Timezone.Code))
+	}
+
+	if md.Language != nil && !language.IsValidLanguage(md.Language) {
+		fatal(fmt.Errorf("Invalid Language '%s'", md.Language.Code))
 	}
 
 	installReboot := false

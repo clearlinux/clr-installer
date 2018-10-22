@@ -104,7 +104,7 @@ func newLanguagePage(tui *Tui) (Page, error) {
 		page.langListBox.SelectItem(defLanguage)
 		page.activated = page.confirmBtn
 	} else {
-		page.langListBox.AddItem("No language data found: Defaulting to 'en_US.UTF-8'")
+		page.langListBox.AddItem("No language data found: Defaulting to '" + language.DefaultLanguage + "'")
 		page.activated = page.cancelBtn
 		page.confirmBtn.SetEnabled(false)
 	}

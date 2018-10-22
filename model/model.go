@@ -264,6 +264,11 @@ func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 		result.Keyboard = &keyboard.Keymap{Code: keyboard.DefaultKeyboard}
 	}
 
+	// Set default Language if not defined
+	if result.Language == nil {
+		result.Language = &language.Language{Code: language.DefaultLanguage}
+	}
+
 	tmp := map[string]*StorageAlias{}
 
 	for _, bds := range result.StorageAlias {
