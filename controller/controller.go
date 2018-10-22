@@ -21,6 +21,7 @@ import (
 	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/hostname"
+	"github.com/clearlinux/clr-installer/keyboard"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/network"
@@ -252,6 +253,10 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		model.AddBundle(timezone.RequiredBundle)
 	}
 
+	if model.Keyboard.Code != keyboard.DefaultKeyboard {
+		model.AddBundle(keyboard.RequiredBundle)
+	}
+
 	if model.KernelArguments != nil && len(model.KernelArguments.Add) > 0 {
 		cmdlineDir := filepath.Join(rootDir, "etc", "kernel")
 		cmdlineFile := filepath.Join(cmdlineDir, "cmdline")
@@ -288,6 +293,11 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	if err = configureTimezone(rootDir, model); err != nil {
 		// Just log the error, not setting the timezone is not reason to fail the install
 		log.Error("Error setting timezone: %v", err)
+	}
+
+	if err = configureKeyboard(rootDir, model); err != nil {
+		// Just log the error, not setting the keyboard is not reason to fail the install
+		log.Error("Error setting keyboard: %v", err)
 	}
 
 	if err = cuser.Apply(rootDir, model.Users); err != nil {
@@ -501,6 +511,27 @@ func configureTimezone(rootDir string, model *model.SystemInstall) error {
 	log.Info(msg)
 
 	err := timezone.SetTargetTimezone(rootDir, model.Timezone.Code)
+	if err != nil {
+		prg.Failure()
+		return err
+	}
+	prg.Success()
+
+	return nil
+}
+
+// configureKeyboard applies the model/configured keyboard to the target
+func configureKeyboard(rootDir string, model *model.SystemInstall) error {
+	if model.Keyboard.Code == keyboard.DefaultKeyboard {
+		log.Debug("Skipping setting keyboard " + model.Keyboard.Code)
+		return nil
+	}
+
+	msg := "Setting Keyboard to " + model.Keyboard.Code
+	prg := progress.NewLoop(msg)
+	log.Info(msg)
+
+	err := keyboard.SetTargetKeyboard(rootDir, model.Keyboard.Code)
 	if err != nil {
 		prg.Failure()
 		return err
