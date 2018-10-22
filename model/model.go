@@ -182,6 +182,10 @@ func (si *SystemInstall) Validate() error {
 		}
 	}
 
+	if si.Timezone == nil {
+		return errors.ValidationErrorf("Timezone not set")
+	}
+
 	if si.Keyboard == nil {
 		return errors.ValidationErrorf("Keyboard not set")
 	}
@@ -248,6 +252,11 @@ func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 		if err != nil {
 			return nil, errors.Wrap(err)
 		}
+	}
+
+	// Set default Timezone if not defined
+	if result.Timezone == nil {
+		result.Timezone = &timezone.TimeZone{Code: timezone.DefaultTimezone}
 	}
 
 	tmp := map[string]*StorageAlias{}

@@ -28,6 +28,7 @@ import (
 	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/swupd"
 	"github.com/clearlinux/clr-installer/telemetry"
+	"github.com/clearlinux/clr-installer/timezone"
 	cuser "github.com/clearlinux/clr-installer/user"
 	"github.com/clearlinux/clr-installer/utils"
 )
@@ -247,6 +248,10 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		model.AddBundle(telemetry.RequiredBundle)
 	}
 
+	if model.Timezone.Code != timezone.DefaultTimezone {
+		model.AddBundle(timezone.RequiredBundle)
+	}
+
 	if model.KernelArguments != nil && len(model.KernelArguments.Add) > 0 {
 		cmdlineDir := filepath.Join(rootDir, "etc", "kernel")
 		cmdlineFile := filepath.Join(cmdlineDir, "cmdline")
@@ -278,6 +283,11 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	if prg, err = contentInstall(rootDir, version, model, options); err != nil {
 		prg.Failure()
 		return err
+	}
+
+	if err = configureTimezone(rootDir, model); err != nil {
+		// Just log the error, not setting the timezone is not reason to fail the install
+		log.Error("Error setting timezone: %v", err)
 	}
 
 	if err = cuser.Apply(rootDir, model.Users); err != nil {
@@ -477,6 +487,27 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 	prg.Success()
 
 	return nil, nil
+}
+
+// configureTimezone applies the model/configured Timezone to the target
+func configureTimezone(rootDir string, model *model.SystemInstall) error {
+	if model.Timezone.Code == timezone.DefaultTimezone {
+		log.Debug("Skipping setting timezone " + model.Timezone.Code)
+		return nil
+	}
+
+	msg := "Setting Timezone to " + model.Timezone.Code
+	prg := progress.NewLoop(msg)
+	log.Info(msg)
+
+	err := timezone.SetTargetTimezone(rootDir, model.Timezone.Code)
+	if err != nil {
+		prg.Failure()
+		return err
+	}
+	prg.Success()
+
+	return nil
 }
 
 // saveInstallResults saves the results of the installation process
