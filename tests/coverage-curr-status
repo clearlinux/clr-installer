@@ -14,7 +14,7 @@ ok  	github.com/clearlinux/clr-installer/hostname	0.033s	coverage: 100.0% of sta
 ?   	github.com/clearlinux/clr-installer/local-travis	[no test files]
 ok  	github.com/clearlinux/clr-installer/log	0.163s	coverage: 100.0% of statements
 ?   	github.com/clearlinux/clr-installer/massinstall	[no test files]
-ok  	github.com/clearlinux/clr-installer/model	0.013s	coverage: 95.5% of statements
+ok  	github.com/clearlinux/clr-installer/model	0.013s	coverage: 93.7% of statements
 ok  	github.com/clearlinux/clr-installer/network	0.734s	coverage: 23.5% of statements
 ?   	github.com/clearlinux/clr-installer/progress	[no test files]
 ok  	github.com/clearlinux/clr-installer/storage	0.026s	coverage: 29.8% of statements
