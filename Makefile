@@ -216,7 +216,7 @@ PHONY += tag
 tag:
 	@if git diff-index --quiet HEAD &>/dev/null; then \
 		if git diff @{upstream}.. --quiet &>/dev/null; then \
-			VERSION=$$(git show HEAD:src/clr-installer/model/model.go | grep -e 'var Version =' | cut -d '"' -f 2) ; \
+			VERSION=$$(git show HEAD:model/model.go | grep -e 'var Version =' | cut -d '"' -f 2) ; \
 			if [ -z "$$VERSION" ]; then \
 				echo "Couldn't extract version number from the source code"; \
 				exit 1; \
