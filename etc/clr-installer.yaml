@@ -1,5 +1,5 @@
 ---
-bundles: [os-core, os-core-update, sudo]
+bundles: [os-core, os-core-update, openssh-server, sudo]
 keyboard: us
 language: en_US.UTF-8
 timezone: UTC
