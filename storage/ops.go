@@ -201,15 +201,17 @@ func (bd *BlockDevice) WritePartitionTable() error {
 		return errors.Wrap(err)
 	}
 
-	args = []string{
-		"parted",
-		bd.GetDeviceFile(),
-		fmt.Sprintf("set %d boot on", bootPartition),
-	}
+	if bootPartition != -1 {
+		args = []string{
+			"parted",
+			bd.GetDeviceFile(),
+			fmt.Sprintf("set %d boot on", bootPartition),
+		}
 
-	err = cmd.RunAndLog(args...)
-	if err != nil {
-		return errors.Wrap(err)
+		err = cmd.RunAndLog(args...)
+		if err != nil {
+			return errors.Wrap(err)
+		}
 	}
 	prg.Success()
 
