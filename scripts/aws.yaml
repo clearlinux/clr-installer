@@ -1,0 +1,39 @@
+#clear-linux-config
+
+# switch between aliases if you want to install to an actuall block device
+# i.e /dev/sda
+block-devices: [
+   {name: "aws", file: "aws.img"}
+]
+
+targetMedia:
+- name: ${aws}
+  size: "512M"
+  type: disk
+  children:
+  - name: ${aws}1
+    fstype: ext4
+    mountpoint: /
+    options: -b 4096 -O ^64bit
+    size: "512M"
+    type: part
+
+bundles: [
+      openssh-server,
+      os-cloudguest-aws,
+      os-core,
+      os-core-update,
+    ]
+
+postArchive: false
+postReboot: false
+telemetry: false
+legacyBios: true
+
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-aws
+
+post-install: [
+   {cmd: "scripts/aws-disable-root.sh ${chrootDir}"}
+]

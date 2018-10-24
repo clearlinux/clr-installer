@@ -1,0 +1,36 @@
+#clear-linux-config
+
+# switch between aliases if you want to install to an actuall block device
+# i.e /dev/sda
+block-devices: [
+   {name: "bdevice", file: "hyperv.img"}
+]
+
+targetMedia:
+- name: ${bdevice}
+  size: "20G"
+  type: disk
+  children:
+  - name: ${bdevice}1
+    fstype: ext4
+    mountpoint: /
+    size: "20G"
+    type: part
+
+bundles: [
+    bat,
+    openssh-server,
+    os-cloudguest-azure,
+    os-core,
+    os-core-update,
+  ]
+
+autoUpdate: false
+postArchive: false
+postReboot: false
+telemetry: false
+legacyBios: true
+
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-hyperv

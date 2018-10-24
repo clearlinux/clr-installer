@@ -1,0 +1,39 @@
+#clear-linux-config
+
+# switch between aliases if you want to install to an actuall block device
+# i.e /dev/sda
+block-devices: [
+   {name: "azure", file: "azure.img"}
+]
+
+targetMedia:
+- name: ${azure}
+  size: "20G"
+  type: disk
+  children:
+  - name: ${azure}1
+    fstype: ext4
+    mountpoint: /
+    options: -O ^64bit
+    size: "20G"
+    type: part
+
+bundles: [
+    editors,
+    network-basic,
+    openssh-server,
+    os-cloudguest-azure,
+    os-core,
+    os-core-update,
+    storage-utils,
+    sysadmin-basic,
+  ]
+
+postArchive: false
+postReboot: false
+telemetry: false
+legacyBios: true
+
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-hyperv

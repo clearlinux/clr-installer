@@ -1,0 +1,41 @@
+#clear-linux-config
+
+# switch between aliases if you want to install to an actuall block device
+# i.e /dev/sda
+block-devices: [
+   {name: "bdevice", file: "cloud-docker.img"}
+]
+
+targetMedia:
+- name: ${bdevice}
+  size: "2.07G"
+  type: disk
+  children:
+  - name: ${bdevice}1
+    fstype: vfat
+    mountpoint: /boot
+    size: "64M"
+    type: part
+  - name: ${bdevice}2
+    fstype: ext4
+    mountpoint: /
+    size: "2G"
+    type: part
+
+bundles: [
+    bootloader,
+    containers-basic,
+    openssh-server,
+    os-cloudguest,
+    os-core,
+    os-core-update,
+  ]
+
+autoUpdate: false
+postArchive: false
+postReboot: false
+telemetry: false
+
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-kvm
