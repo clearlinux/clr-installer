@@ -128,6 +128,7 @@ func (s *SoftwareUpdater) Update() error {
 	args := []string{
 		filepath.Join(s.rootDir, "/usr/bin/swupd"),
 		"update",
+		"--keepcache",
 		fmt.Sprintf("--path=%s", s.rootDir),
 		fmt.Sprintf("--statedir=%s", s.stateDir),
 	}
