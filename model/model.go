@@ -59,6 +59,7 @@ type SystemInstall struct {
 	PostInstall       []*InstallHook         `yaml:"post-install,omitempty,flow"`
 	Version           uint                   `yaml:"version,omitempty,flow"`
 	StorageAlias      []*StorageAlias        `yaml:"block-devices,omitempty,flow"`
+	LegacyBios        bool                   `yaml:"legacyBios,omitempty,flow"`
 }
 
 // InstallHook is a commands to be executed in a given point of the install process
@@ -177,7 +178,7 @@ func (si *SystemInstall) Validate() error {
 	}
 
 	for _, curr := range si.TargetMedias {
-		if err := curr.Validate(); err != nil {
+		if err := curr.Validate(si.LegacyBios); err != nil {
 			return err
 		}
 	}

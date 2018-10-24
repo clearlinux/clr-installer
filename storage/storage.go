@@ -269,7 +269,7 @@ func (bd *BlockDevice) GetConfiguredStatus() ConfigStatus {
 }
 
 // Validate checks if the minimal requirements for a installation is met
-func (bd *BlockDevice) Validate() error {
+func (bd *BlockDevice) Validate(legacyBios bool) error {
 	bootPartition := false
 	rootPartition := false
 
@@ -283,7 +283,7 @@ func (bd *BlockDevice) Validate() error {
 		}
 	}
 
-	if !bootPartition {
+	if !bootPartition && !legacyBios {
 		return errors.Errorf("Could not find a suitable EFI partition")
 	}
 
