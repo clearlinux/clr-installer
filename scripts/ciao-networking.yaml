@@ -1,0 +1,40 @@
+#clear-linux-config
+
+# switch between aliases if you want to install to an actuall block device
+# i.e /dev/sda
+block-devices: [
+   {name: "bdevice", file: "cloud.img"}
+]
+
+targetMedia:
+- name: ${bdevice}
+  size: "864M"
+  type: disk
+  children:
+  - name: ${bdevice}1
+    fstype: vfat
+    mountpoint: /boot
+    size: "64M"
+    type: part
+  - name: ${bdevice}2
+    fstype: ext4
+    mountpoint: /
+    size: "800M"
+    type: part
+
+bundles: [
+    os-core,
+    os-core-update,
+    os-cloudguest,
+    openssh-server,
+    bootloader,
+  ]
+
+autoUpdate: false
+postArchive: false
+postReboot: false
+telemetry: false
+
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-kvm
