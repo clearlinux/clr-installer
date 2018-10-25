@@ -25,7 +25,7 @@ var (
 	CoreBundles = []string{
 		"os-core",
 		"os-core-update",
-		"sudo",
+		"openssh-server",
 	}
 )
 
