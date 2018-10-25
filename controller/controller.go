@@ -250,6 +250,10 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		model.AddBundle(telemetry.RequiredBundle)
 	}
 
+	if len(model.Users) > 0 {
+		model.AddBundle(cuser.RequiredBundle)
+	}
+
 	if model.Timezone.Code != timezone.DefaultTimezone {
 		model.AddBundle(timezone.RequiredBundle)
 	}

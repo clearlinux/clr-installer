@@ -38,6 +38,9 @@ const (
 	MaxLoginLength = 31
 	// MinPasswordLength is the shortest possible password
 	MinPasswordLength = 8
+
+	// RequiredBundle the bundle needed to enable non-root user accounts
+	RequiredBundle = "sysadmin-basic"
 )
 
 var (
