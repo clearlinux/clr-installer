@@ -15,6 +15,14 @@
 		{
       "name": "dev-utils",
       "desc": "Utilities to assist application development"
+    },
+		{
+      "name": "network-basic",
+      "desc": "Run network utilities and modify network settings"
+    },
+		{
+      "name": "sysadmin-basic",
+      "desc": "Run common utilities useful for managing a system"
     }
   ]
 }
