@@ -8,7 +8,7 @@ block-devices: [
 
 targetMedia:
 - name: ${installer}
-  size: "2.0G"
+  size: "2.4G"
   type: disk
   children:
   - name: ${installer}1
@@ -23,7 +23,7 @@ targetMedia:
   - name: ${installer}3
     fstype: ext4
     mountpoint: /
-    size: "1775M"
+    size: "2187M"
     type: part
 
 bundles: [os-core, os-core-update, telemetrics, os-installer, openssh-server, tzdata, kbd, locales]
