@@ -8,7 +8,7 @@ block-devices: [
 
 targetMedia:
 - name: ${installer}
-  size: "2.4G"
+  size: "2.54G"
   type: disk
   children:
   - name: ${installer}1
@@ -18,7 +18,7 @@ targetMedia:
     type: part
   - name: ${installer}2
     fstype: swap
-    size: "120M"
+    size: "256M"
     type: part
   - name: ${installer}3
     fstype: ext4
