@@ -38,6 +38,8 @@ const (
 	MaxLoginLength = 31
 	// MinPasswordLength is the shortest possible password
 	MinPasswordLength = 8
+	// MaxPasswordLength is the shortest possible password
+	MaxPasswordLength = 255
 
 	// RequiredBundle the bundle needed to enable non-root user accounts
 	RequiredBundle = "sysadmin-basic"
@@ -301,6 +303,11 @@ func IsValidPassword(pwd string) (bool, string) {
 	if len(pwd) < MinPasswordLength {
 		return false, fmt.Sprintf("Password must be at least %d characters long",
 			MinPasswordLength)
+	}
+
+	if len(pwd) > MaxPasswordLength {
+		return false, fmt.Sprintf("Password may be at most %d characters long",
+			MaxPasswordLength)
 	}
 
 	return true, ""
