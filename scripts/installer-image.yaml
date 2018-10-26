@@ -26,7 +26,7 @@ targetMedia:
     size: "2187M"
     type: part
 
-bundles: [os-core, os-core-update, telemetrics, os-installer, openssh-server, tzdata, kbd, locales]
+bundles: [os-core, os-core-update, clr-installer]
 autoUpdate: false
 postArchive: false
 postReboot: false
