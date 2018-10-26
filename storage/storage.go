@@ -944,7 +944,7 @@ func LargestFileSystemName() int {
 // default set of partitions required for an installation
 func NewStandardPartitions(disk *BlockDevice) {
 	bootSize := uint64(150 * (1 << 20))
-	swapSize := uint64(2 * (1 << 30))
+	swapSize := uint64(256 * (1 << 20))
 	rootSize := uint64(disk.Size - bootSize - swapSize)
 
 	disk.Children = nil
