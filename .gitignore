@@ -12,4 +12,3 @@
 .gopath/
 bin/
 pkg/
-*.img
