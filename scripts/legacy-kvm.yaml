@@ -1,0 +1,39 @@
+#clear-linux-config
+
+# switch between aliases if you want to install to an actuall block device
+# i.e /dev/sda
+block-devices: [
+   {name: "bdevice", file: "legacy-kvm.img"}
+]
+
+targetMedia:
+- name: ${bdevice}
+  size: "8G"
+  type: disk
+  children:
+  - name: ${bdevice}1
+    fstype: ext4
+    options: -O ^64bit
+    mountpoint: /
+    size: "8G"
+    type: part
+
+bundles: [
+    bootloader,
+    editors,
+    network-basic,
+    openssh-server,
+    os-core,
+    os-core-update,
+    sysadmin-basic,
+  ]
+
+autoUpdate: false
+postArchive: false
+postReboot: false
+telemetry: false
+legacyBios: true
+
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-kvm
