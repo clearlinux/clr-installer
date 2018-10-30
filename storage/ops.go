@@ -92,7 +92,7 @@ func (bd *BlockDevice) getGUID() (string, error) {
 		return guidMap["efi"], nil
 	}
 
-	return "", errors.Errorf("Could not determine the guid for: %s", bd.Name)
+	return "none", errors.Errorf("Could not determine the guid for: %s", bd.Name)
 }
 
 // Mount will mount a block devices bd considering its mount point and the
@@ -188,12 +188,13 @@ func (bd *BlockDevice) WritePartitionTable() error {
 
 		guid, err = curr.getGUID()
 		if err != nil {
-			return err
+			log.Warning("%s", err)
 		}
 
 		guids[idx+1] = guid
 		args = append(args, cmd)
 		start = end
+
 	}
 
 	err = cmd.RunAndLog(args...)
@@ -220,6 +221,10 @@ func (bd *BlockDevice) WritePartitionTable() error {
 	log.Info(msg)
 	cnt := 1
 	for idx, guid := range guids {
+		if guid == "none" {
+			continue
+		}
+
 		args = []string{
 			"sgdisk",
 			bd.GetDeviceFile(),
