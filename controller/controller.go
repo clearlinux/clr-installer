@@ -411,7 +411,11 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 	prg.Success()
 
 	bundles := model.Bundles
-	bundles = append(bundles, model.Kernel.Bundle)
+
+	if model.Kernel.Bundle != "none" {
+		bundles = append(bundles, model.Kernel.Bundle)
+	}
+
 	for _, bundle := range bundles {
 		// swupd will fail (return exit code 18) if we try to "re-install" a bundle
 		// already installed - with that we need to prevent doing bundle-add for bundles
