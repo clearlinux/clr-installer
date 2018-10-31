@@ -60,6 +60,7 @@ type SystemInstall struct {
 	Version           uint                   `yaml:"version,omitempty,flow"`
 	StorageAlias      []*StorageAlias        `yaml:"block-devices,omitempty,flow"`
 	LegacyBios        bool                   `yaml:"legacyBios,omitempty,flow"`
+	Environment       map[string]string      `yaml:"env,omitempty,flow"`
 }
 
 // InstallHook is a commands to be executed in a given point of the install process
