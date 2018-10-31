@@ -30,7 +30,7 @@ import (
 // Also used by the Makefile for releases.
 // Default to the version of the program
 // but may be overridden for demo/documentation mode.
-var Version = "1.0.0"
+var Version = "1.0.1"
 var testAlias = []string{}
 
 // SystemInstall represents the system install "configuration", the target
