@@ -81,7 +81,7 @@ func run(sw func(cmd *exec.Cmd) error, writer io.Writer, env map[string]string, 
 	cmd := exec.Command(exe, cmdArgs...)
 
 	if httpsProxy != "" {
-		cmd.Env = append(os.Environ(), fmt.Sprintf("https_proxy=%s", httpsProxy))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("https_proxy=%s", httpsProxy))
 	}
 
 	if sw != nil {
@@ -92,12 +92,15 @@ func run(sw func(cmd *exec.Cmd) error, writer io.Writer, env map[string]string, 
 
 	cmd.Stdout = writer
 	cmd.Stderr = writer
+
 	if cmd.Stdin == nil {
 		cmd.Stdin = os.Stdin
 	}
 
 	for k, v := range env {
-		cmd.Args = append(cmd.Args, fmt.Sprintf("%s=%s", k, v))
+		curr := fmt.Sprintf("%s=%s", k, v)
+		cmd.Args = append(cmd.Args, curr)
+		cmd.Env = append(cmd.Env, curr)
 	}
 
 	err := cmd.Run()

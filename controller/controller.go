@@ -61,6 +61,10 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		"chrootDir": rootDir,
 	}
 
+	for k, v := range model.Environment {
+		vars[k] = v
+	}
+
 	// First verify we are running as 'root' user which is required
 	// for most of the Installation commands
 	if err = utils.VerifyRootUser(); err != nil {
