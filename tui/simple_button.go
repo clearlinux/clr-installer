@@ -5,20 +5,22 @@
 package tui
 
 import (
+	"sync/atomic"
+	"time"
+
 	"github.com/VladimirMarkelov/clui"
 	xs "github.com/huandu/xstrings"
 	term "github.com/nsf/termbox-go"
-	"sync/atomic"
-	"time"
 )
 
 // SimpleButton is the implementation of a clui button with simpler
 // visual elements (i.e no shadows).
 type SimpleButton struct {
 	clui.BaseControl
-	pressed          int32
-	onClick          func(clui.Event)
-	forceActiveStyle bool
+	autoWidth, autoHeight bool
+	pressed               int32
+	onClick               func(clui.Event)
+	forceActiveStyle      bool
 }
 
 // CreateSimpleButton returns an instance of SimpleButton
@@ -35,10 +37,12 @@ func CreateSimpleButton(parent clui.Control, width, height int, title string, sc
 	b.SetAlign(clui.AlignCenter)
 
 	if height == clui.AutoSize {
+		b.autoHeight = true
 		height = 1
 	}
 
 	if width == clui.AutoSize {
+		b.autoWidth = true
 		width = xs.Len(title) + 2
 	}
 
@@ -52,6 +56,26 @@ func CreateSimpleButton(parent clui.Control, width, height int, title string, sc
 	}
 
 	return b
+}
+
+// ResizeChildren handles parent window resizing
+func (b *SimpleButton) ResizeChildren() {
+	if !b.Visible() {
+		return
+	}
+
+	width, height := b.Size()
+
+	if b.autoHeight {
+		height = 1
+	}
+
+	if b.autoWidth {
+		width = xs.Len(b.Title()) + 2
+	}
+
+	b.SetSize(width, height)
+	b.SetConstraints(width, height)
 }
 
 // Draw paints the button in the screen and adjust colors depending on the button state
