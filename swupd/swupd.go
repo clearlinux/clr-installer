@@ -103,6 +103,7 @@ func (s *SoftwareUpdater) Verify(version string, mirror string) error {
 	args = []string{
 		"swupd",
 		"bundle-add",
+		"--skip-diskspace-check",
 		fmt.Sprintf("--path=%s", s.rootDir),
 		fmt.Sprintf("--statedir=%s", s.stateDir),
 	}
@@ -341,6 +342,7 @@ func (s *SoftwareUpdater) BundleAdd(bundle string) error {
 	args := []string{
 		filepath.Join(s.rootDir, "/usr/bin/swupd"),
 		"bundle-add",
+		"--skip-diskspace-check",
 		fmt.Sprintf("--path=%s", s.rootDir),
 		fmt.Sprintf("--statedir=%s", s.stateDir),
 		bundle,
