@@ -3,19 +3,19 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7a42ce8053da844e2641c5cc5a24c4ee09aafd267886acd3190a0fcd3acc6274"
+  digest = "1:5ef648f7b8c5b7c2f243937ad447f335c3d2348d8cb1cfe08da61bd037bfebac"
   name = "github.com/VladimirMarkelov/clui"
   packages = ["."]
   pruneopts = "UT"
-  revision = "a2c441f678c37bb24aba09d15da988a892e7d0ae"
+  revision = "80da317c7038ad31a6713f7baa8c151aedc21afd"
 
 [[projects]]
-  digest = "1:dd1417c60900a2be6d1653e90306614657761fc9c3066eccc558ae432b31aa60"
+  digest = "1:1ca95505ec8a6d69762d2b5d9ab7e66ae619365b2e26031e220b675ff6fb010b"
   name = "github.com/atotto/clipboard"
   packages = ["."]
   pruneopts = "UT"
-  revision = "5e2c7bddca04488284428a201e4a15615f7a5074"
-  version = "v0.1.0"
+  revision = "aa9549103943c05f3e8951009cdb6a0bec2c8949"
+  version = "v0.1.1"
 
 [[projects]]
   digest = "1:f9a5e090336881be43cfc1cf468330c1bdd60abdc9dd194e0b1ab69f4b94dd7c"
@@ -35,19 +35,19 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f335d800550786b6f51ddaedb9d1107a7a72f4a2195e5b039dd7c0e103e119bc"
+  digest = "1:01d9e47830ef6077fb6f91033b0e83f324ad5966d11ed3daa4a5822ace876dab"
   name = "github.com/nsf/termbox-go"
   packages = ["."]
   pruneopts = "UT"
-  revision = "b66b20ab708e289ff1eb3e218478302e6aec28ce"
+  revision = "60ab7e3d12ed91bc1b2486559c4b3a6b62297577"
 
 [[projects]]
-  digest = "1:dab83a1bbc7ad3d7a6ba1a1cc1760f25ac38cdf7d96a5cdd55cd915a4f5ceaf9"
+  digest = "1:c1b1102241e7f645bc8e0c22ae352e8f0dc6484b6cb4d132fa9f24174e0119e2"
   name = "github.com/spf13/pflag"
   packages = ["."]
   pruneopts = "UT"
-  revision = "9a97c102cda95a86cec2345a6f09f55a939babf5"
-  version = "v1.0.2"
+  revision = "298182f68c66c05229eb03ac171abe6e309ee79a"
+  version = "v1.0.3"
 
 [[projects]]
   digest = "1:770ae53f0090c9b9ddea5f62c746e61c2adcfb0e877f321e1d07263feffe7a24"
