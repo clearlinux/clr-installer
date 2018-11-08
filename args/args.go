@@ -46,6 +46,9 @@ type Args struct {
 	CfDownloaded    bool
 	SwupdMirror     string
 	SwupdStateDir   string
+	SwupdFormat     string
+	SwupdContentURL string
+	SwupdVersionURL string
 	Telemetry       bool
 	TelemetrySet    bool
 	TelemetryURL    string
@@ -140,6 +143,20 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.StringVar(
 		&args.SwupdStateDir, "swupd-state", args.SwupdMirror, "Swupd state-dir",
+	)
+
+	flag.StringVar(
+		&args.SwupdFormat, "swupd-format", args.SwupdFormat, "Swupd --format argument",
+	)
+
+	flag.StringVar(
+		&args.SwupdContentURL, "swupd-contenturl", args.SwupdContentURL,
+		"Swupd --contenturl argument",
+	)
+
+	flag.StringVar(
+		&args.SwupdVersionURL, "swupd-versionurl", args.SwupdVersionURL,
+		"Swupd --versionurl argument",
 	)
 
 	flag.BoolVar(
