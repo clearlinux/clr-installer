@@ -32,11 +32,12 @@ var (
 
 // SoftwareUpdater abstracts the swupd executable, environment and operations
 type SoftwareUpdater struct {
-	rootDir    string
-	stateDir   string
-	format     string
-	contentURL string
-	versionURL string
+	rootDir            string
+	stateDir           string
+	format             string
+	contentURL         string
+	versionURL         string
+	skipDiskSpaceCheck bool
 }
 
 // Bundle maps a map name and description with the actual checkbox
@@ -69,6 +70,7 @@ func New(rootDir string, options args.Args) *SoftwareUpdater {
 		options.SwupdFormat,
 		options.SwupdContentURL,
 		options.SwupdVersionURL,
+		options.SwupdSkipDiskSpaceCheck,
 	}
 }
 
@@ -134,7 +136,10 @@ func (s *SoftwareUpdater) Verify(version string, mirror string) error {
 	args = []string{
 		"swupd",
 		"bundle-add",
-		"--skip-diskspace-check",
+	}
+
+	if s.skipDiskSpaceCheck {
+		args = append(args, "--skip-diskspace-check")
 	}
 
 	args = s.setExtraFlags(args)
@@ -378,11 +383,19 @@ func (s *SoftwareUpdater) BundleAdd(bundle string) error {
 	args := []string{
 		filepath.Join(s.rootDir, "/usr/bin/swupd"),
 		"bundle-add",
-		"--skip-diskspace-check",
+	}
+
+	if s.skipDiskSpaceCheck {
+		args = append(args, "--skip-diskspace-check")
+	}
+
+	args = s.setExtraFlags(args)
+
+	args = append(args,
 		fmt.Sprintf("--path=%s", s.rootDir),
 		fmt.Sprintf("--statedir=%s", s.stateDir),
 		bundle,
-	}
+	)
 
 	err := cmd.RunAndLog(args...)
 	if err != nil {
