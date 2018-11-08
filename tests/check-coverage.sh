@@ -50,6 +50,7 @@ for key in ${!ccoverage[@]}; do
 done
 
 if [ $decreased -eq 1 ]; then
+    cat $tmp
     rm $tmp
     exit 1
 fi
