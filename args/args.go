@@ -38,30 +38,31 @@ var (
 
 // Args represents the user provided arguments
 type Args struct {
-	Version         bool
-	Reboot          bool
-	RebootSet       bool
-	LogFile         string
-	ConfigFile      string
-	CfDownloaded    bool
-	SwupdMirror     string
-	SwupdStateDir   string
-	SwupdFormat     string
-	SwupdContentURL string
-	SwupdVersionURL string
-	Telemetry       bool
-	TelemetrySet    bool
-	TelemetryURL    string
-	TelemetryTID    string
-	TelemetryPolicy string
-	PamSalt         string
-	LogLevel        int
-	ForceTUI        bool
-	Archive         bool
-	ArchiveSet      bool
-	DemoMode        bool
-	BlockDevices    []string
-	StubImage       bool
+	Version                 bool
+	Reboot                  bool
+	RebootSet               bool
+	LogFile                 string
+	ConfigFile              string
+	CfDownloaded            bool
+	SwupdMirror             string
+	SwupdStateDir           string
+	SwupdFormat             string
+	SwupdContentURL         string
+	SwupdVersionURL         string
+	SwupdSkipDiskSpaceCheck bool
+	Telemetry               bool
+	TelemetrySet            bool
+	TelemetryURL            string
+	TelemetryTID            string
+	TelemetryPolicy         string
+	PamSalt                 string
+	LogLevel                int
+	ForceTUI                bool
+	Archive                 bool
+	ArchiveSet              bool
+	DemoMode                bool
+	BlockDevices            []string
+	StubImage               bool
 }
 
 func (args *Args) setKernelArgs() (err error) {
@@ -157,6 +158,11 @@ func (args *Args) setCommandLineArgs() (err error) {
 	flag.StringVar(
 		&args.SwupdVersionURL, "swupd-versionurl", args.SwupdVersionURL,
 		"Swupd --versionurl argument",
+	)
+
+	flag.BoolVar(
+		&args.SwupdSkipDiskSpaceCheck, "swupd-skip-diskspace-check",
+		true, "Swupd --skip-diskspace-check argument",
 	)
 
 	flag.BoolVar(
