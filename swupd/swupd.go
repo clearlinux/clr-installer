@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/errors"
@@ -31,8 +32,11 @@ var (
 
 // SoftwareUpdater abstracts the swupd executable, environment and operations
 type SoftwareUpdater struct {
-	rootDir  string
-	stateDir string
+	rootDir    string
+	stateDir   string
+	format     string
+	contentURL string
+	versionURL string
 }
 
 // Bundle maps a map name and description with the actual checkbox
@@ -52,12 +56,36 @@ func IsCoreBundle(bundle string) bool {
 }
 
 // New creates a new instance of SoftwareUpdater with the rootDir properly adjusted
-func New(rootDir string, stateDir string) *SoftwareUpdater {
+func New(rootDir string, options args.Args) *SoftwareUpdater {
+	stateDir := options.SwupdStateDir
+
 	if stateDir == "" {
 		stateDir = filepath.Join(rootDir, "/var/lib/swupd")
 	}
 
-	return &SoftwareUpdater{rootDir, stateDir}
+	return &SoftwareUpdater{
+		rootDir,
+		stateDir,
+		options.SwupdFormat,
+		options.SwupdContentURL,
+		options.SwupdVersionURL,
+	}
+}
+
+func (s *SoftwareUpdater) setExtraFlags(args []string) []string {
+	if s.format != "" {
+		args = append(args, fmt.Sprintf("--format=%s", s.format))
+	}
+
+	if s.contentURL != "" {
+		args = append(args, fmt.Sprintf("--contenturl=%s", s.contentURL))
+	}
+
+	if s.versionURL != "" {
+		args = append(args, fmt.Sprintf("--versionurl=%s", s.versionURL))
+	}
+
+	return args
 }
 
 // Verify runs "swupd verify" operation
@@ -66,6 +94,9 @@ func (s *SoftwareUpdater) Verify(version string, mirror string) error {
 		"swupd",
 		"verify",
 	}
+
+	args = s.setExtraFlags(args)
+
 	if mirror != "" {
 		args = append(args, fmt.Sprintf("--url=%s", mirror))
 	}
@@ -104,9 +135,14 @@ func (s *SoftwareUpdater) Verify(version string, mirror string) error {
 		"swupd",
 		"bundle-add",
 		"--skip-diskspace-check",
+	}
+
+	args = s.setExtraFlags(args)
+
+	args = append(args,
 		fmt.Sprintf("--path=%s", s.rootDir),
 		fmt.Sprintf("--statedir=%s", s.stateDir),
-	}
+	)
 
 	// Remove the 'os-core' bundle as it is already
 	// installed and will cause a failure

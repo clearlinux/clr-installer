@@ -391,7 +391,7 @@ func runInstallHook(vars map[string]string, hook *model.InstallHook) error {
 // executed using the target swupd
 func contentInstall(rootDir string, version string, model *model.SystemInstall, options args.Args) (progress.Progress, error) {
 
-	sw := swupd.New(rootDir, options.SwupdStateDir)
+	sw := swupd.New(rootDir, options)
 
 	msg := "Installing the base system"
 	prg := progress.NewLoop(msg)

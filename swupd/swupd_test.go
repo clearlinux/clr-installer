@@ -7,6 +7,7 @@ package swupd
 import (
 	"testing"
 
+	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -84,13 +85,17 @@ func TestParseSwupdMirrorInvalid(t *testing.T) {
 }
 
 func TestNewWithState(t *testing.T) {
-	sw := New("/tmp/test", "/tmp/swupd-state")
+	options := args.Args{
+		SwupdStateDir: "/tmp/swupd-state",
+	}
+
+	sw := New("/tmp/test", options)
 
 	if sw.stateDir != "/tmp/swupd-state" {
 		t.Fatalf("stateDir should be set to /tmp/swupd-state")
 	}
 
-	sw = New("/tmp/test", "")
+	sw = New("/tmp/test", args.Args{})
 	if sw.stateDir != "/tmp/test/var/lib/swupd" {
 		t.Fatalf("stateDir should not be set to: %s", sw.stateDir)
 	}
