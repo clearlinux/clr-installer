@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Install Clear Linux OS
+Comment=Clear Linux OS Installer
+Icon=/usr/share/clr-installer/themes/clr.png
+Exec=/usr/bin/clr-installer-desktop.sh
+Terminal=false
+Categories=Tags;Describing;Application

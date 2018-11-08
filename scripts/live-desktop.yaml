@@ -1,0 +1,58 @@
+#clear-linux-config
+
+# switch between aliases if you want to install to an actuall block device
+# i.e /dev/sda
+block-devices: [
+   {name: "bdevice", file: "live-desktop.img"}
+]
+
+targetMedia:
+- name: ${bdevice}
+  size: "8G"
+  type: disk
+  children:
+  - name: ${bdevice}1
+    fstype: vfat
+    mountpoint: /boot
+    size: "150M"
+    type: part
+  - name: ${bdevice}2
+    fstype: swap
+    size: "256M"
+    type: part
+  - name: ${bdevice}3
+    fstype: ext4
+    mountpoint: /
+    size: "7.59G"
+    type: part
+
+bundles: [
+    bootloader,
+    clr-installer,
+    desktop,
+    desktop-autostart,
+    editors,
+    network-basic,
+    openssh-server,
+    os-core,
+    os-core-update,
+  ]
+
+autoUpdate: false
+postArchive: false
+postReboot: false
+telemetry: false
+
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-native
+
+users:
+- login: clrlinux
+  username: Clear Linux OS
+  admin: true
+
+post-install: [
+   {cmd: "scripts/live-image-post-update-version.py ${chrootDir}"},
+   {cmd: "scripts/live-desktop-post-install.sh ${chrootDir}"},
+]
