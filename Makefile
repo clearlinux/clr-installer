@@ -50,7 +50,7 @@ install: build
 	@mkdir -p $(DESTDIR)/usr/bin
 	@mkdir -p $(SYSTEMD_DIR)
 	@install -m 755 $(top_srcdir)/.gopath/bin/clr-installer $(DESTDIR)/usr/bin/clr-installer
-	@install -m 755 $(top_srcdir)/.gopath/bin/clr-installer-desktop.sh $(DESTDIR)/usr/bin/clr-installer-desktop.sh
+	@install -m 755 $(top_srcdir)/scripts/clr-installer-desktop.sh $(DESTDIR)/usr/bin/clr-installer-desktop.sh
 	@install -m 644  $(top_srcdir)/themes/clr-installer.theme $(THEME_DIR)
 	@install -m 644  $(top_srcdir)/etc/clr-installer.yaml $(CONFIG_DIR)
 	@install -m 644  $(top_srcdir)/etc/bundles.json $(CONFIG_DIR)
