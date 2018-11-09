@@ -49,6 +49,7 @@ install: build
 	@mkdir -p $(CONFIG_DIR)
 	@mkdir -p $(DESTDIR)/usr/bin
 	@mkdir -p $(SYSTEMD_DIR)
+	@mkdir -p $(DESKTOP_DIR)
 	@install -m 755 $(top_srcdir)/.gopath/bin/clr-installer $(DESTDIR)/usr/bin/clr-installer
 	@install -m 755 $(top_srcdir)/scripts/clr-installer-desktop.sh $(DESTDIR)/usr/bin/clr-installer-desktop.sh
 	@install -m 644  $(top_srcdir)/themes/clr-installer.theme $(THEME_DIR)
