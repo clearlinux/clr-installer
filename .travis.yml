@@ -49,6 +49,8 @@ script:
     - docker exec -it clear-test bash -c "chown -R travis:travis /travis"
     - docker exec --user "${DOCKER_USER}" -it clear-test bash -c "cd /travis ; make"
     - travis_retry docker exec --user "${DOCKER_USER}" -it clear-test bash -c "cd /travis ; ./tests/check-coverage.sh"
+    - docker exec -it clear-test bash -c "mkdir -p /opt/test-dest"
+    - docker exec -it clear-test bash -c "cd /travis ; make install DESTDIR=/opt/test-dest"
 
 after_script:
     - docker exec -it clear-test bash -c "cd /travis ; make clean"
