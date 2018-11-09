@@ -24,7 +24,7 @@ CLR_INSTALLER_TEST_HTTP_PORT ?= 8181
 export TEST_HTTP_PORT = ${CLR_INSTALLER_TEST_HTTP_PORT}
 
 THEME_DIR=$(DESTDIR)/usr/share/clr-installer/themes/
-DESKTOP_DIR=$(CHROOTPATH)/usr/share/applications/
+DESKTOP_DIR=$(DESTDIR)/usr/share/applications/
 CONFIG_DIR=$(DESTDIR)/usr/share/defaults/clr-installer/
 SYSTEMD_DIR=$(DESTDIR)/usr/lib/systemd/system/
 
