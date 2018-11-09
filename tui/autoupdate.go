@@ -19,7 +19,7 @@ Automatic OS Updates
 
 Allow the Clear Linux OS to continuously update as new versions are
 released. This is the default, preferred behavior for Clear Linux OS
-to ensure the latest security concerned as always addressed.
+to ensure the latest security concerns are always addressed.
 
 See
 https://clearlinux.org/documentation/clear-linux/concepts/swupd-about
