@@ -48,20 +48,15 @@ gopath:
 endif
 
 install: build
-	@mkdir -p $(THEME_DIR)
-	@mkdir -p $(CONFIG_DIR)
-	@mkdir -p $(DESTDIR)/usr/bin
-	@mkdir -p $(SYSTEMD_DIR)
-	@mkdir -p $(DESKTOP_DIR)
-	@install -m 755 $(top_srcdir)/.gopath/bin/clr-installer $(DESTDIR)/usr/bin/clr-installer
-	@install -m 755 $(top_srcdir)/scripts/clr-installer-desktop.sh $(DESTDIR)/usr/bin/clr-installer-desktop.sh
-	@install -m 644  $(top_srcdir)/themes/clr-installer.theme $(THEME_DIR)
-	@install -m 644  $(top_srcdir)/etc/clr-installer.yaml $(CONFIG_DIR)
-	@install -m 644  $(top_srcdir)/etc/bundles.json $(CONFIG_DIR)
-	@install -m 644  $(top_srcdir)/etc/kernels.json $(CONFIG_DIR)
-	@install -m 644  $(top_srcdir)/etc/clr-installer.desktop $(DESKTOP_DIR)
-	@install -m 644 $(top_srcdir)/etc/systemd/clr-installer.service $(SYSTEMD_DIR)
-	@install -m 644  $(top_srcdir)/etc/chpasswd $(CONFIG_DIR)
+	@install -D -m 755 $(top_srcdir)/.gopath/bin/clr-installer $(DESTDIR)/usr/bin/clr-installer
+	@install -D -m 755 $(top_srcdir)/scripts/clr-installer-desktop.sh $(DESTDIR)/usr/bin/clr-installer-desktop.sh
+	@install -D -m 644  $(top_srcdir)/themes/clr-installer.theme $(THEME_DIR)/clr-installer.theme
+	@install -D -m 644  $(top_srcdir)/etc/clr-installer.yaml $(CONFIG_DIR)/clr-installer.yaml
+	@install -D -m 644  $(top_srcdir)/etc/bundles.json $(CONFIG_DIR)/bundles.json
+	@install -D -m 644  $(top_srcdir)/etc/kernels.json $(CONFIG_DIR)/kernels.json
+	@install -D -m 644  $(top_srcdir)/etc/clr-installer.desktop $(DESKTOP_DIR)/clr-installer.desktop
+	@install -D -m 644 $(top_srcdir)/etc/systemd/clr-installer.service $(SYSTEMD_DIR)/clr-installer.service
+	@install -D -m 644  $(top_srcdir)/etc/chpasswd $(CONFIG_DIR)/chpasswd
 
 build-pkgs: build
 	@for pkg in `find -path ./vendor -prune -o -path ./.gopath -prune -o -name "*.go" \
