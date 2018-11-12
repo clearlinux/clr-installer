@@ -1,0 +1,15 @@
+---
+bundles: [
+    c-basic,
+    desktop-autostart,
+    git,
+    openssh-server,
+    os-core,
+    os-core-update,
+    vim,
+  ]
+
+keyboard: us
+language: en_US.UTF-8
+timezone: UTC
+kernel: kernel-native

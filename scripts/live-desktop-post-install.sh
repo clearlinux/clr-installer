@@ -21,6 +21,7 @@ cp themes/clr.png $THEMES_DIR
 cp etc/clr-installer.desktop $DESKTOP_DIR
 cp etc/custom.conf $GDM_DIR
 cp scripts/clr-installer-desktop.sh $CHROOTPATH/usr/bin/
+cp etc/clr-desktop.yaml $CHROOTPATH/var/lib/clr-installer/clr-installer.yaml
 
 FAVORITE_APPS="['clr-installer.desktop', 'org.gnome.Terminal.desktop', \
        'org.gnome.Nautilus.desktop', 'firefox.desktop', \
