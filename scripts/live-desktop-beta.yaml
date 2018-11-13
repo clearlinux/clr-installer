@@ -3,7 +3,7 @@
 # switch between aliases if you want to install to an actuall block device
 # i.e /dev/sda
 block-devices: [
-   {name: "bdevice", file: "live-desktop.img"}
+   {name: "bdevice", file: "live-desktop-beta.img"}
 ]
 
 targetMedia:
