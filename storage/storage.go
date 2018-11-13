@@ -986,16 +986,33 @@ func (bd *BlockDevice) PartProbe() error {
 }
 
 // DiskSize given a BlockDevice sum's up its size and children sizes
-func (bd *BlockDevice) DiskSize() uint64 {
-	size := bd.Size
+func (bd *BlockDevice) DiskSize() (uint64, error) {
+	diskSize := bd.Size
+
+	// otherwise, sum the children partitions to determine disk size
+	var childSize uint64
 
 	for _, ch := range bd.Children {
 		if len(ch.Children) > 0 {
-			size += ch.DiskSize()
+			size, err := ch.DiskSize()
+			if err != nil {
+				return 0, err
+			}
+			childSize += size
 		} else {
-			size += ch.Size
+			childSize += ch.Size
 		}
 	}
 
-	return size
+	if childSize > diskSize {
+		return 0, errors.Errorf("%s: Partition Sizes %d larger than Device Size: %d",
+			bd.Name, childSize, diskSize)
+	}
+
+	// Return the full disk size if present
+	if diskSize > 0 {
+		return diskSize, nil
+	}
+
+	return childSize, nil
 }
