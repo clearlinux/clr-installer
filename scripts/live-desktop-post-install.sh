@@ -9,6 +9,9 @@ THEMES_DIR=$CHROOTPATH/usr/share/clr-installer/themes
 DESKTOP_DIR=$CHROOTPATH/usr/share/applications/
 
 usermod --root $CHROOTPATH -a -G wheelnopw clrlinux
+usermod --root $CHROOTPATH -u 1001 clrlinux
+passwd --root $CHROOTPATH -d clrlinux
+
 systemctl --root=$CHROOTPATH disable clr-installer
 systemd-machine-id-setup --root=$CHROOTPATH
 
@@ -24,9 +27,5 @@ FAVORITE_APPS="['clr-installer.desktop', 'org.gnome.Terminal.desktop', \
        'org.gnome.Evolution.desktop']"
 
 chroot $CHROOTPATH su - clrlinux -c \
-       "dbus-launch \
+       "dbus-run-session \
         dconf write /org/gnome/shell/favorite-apps \"$FAVORITE_APPS\""
-
-chroot $CHROOTPATH su - clrlinux -c \
-       "dbus-launch \
-        dconf write /org/gnome/desktop/session/idle-delay 0"
