@@ -38,7 +38,6 @@ bundles: [
     os-core-update,
   ]
 
-autoUpdate: false
 postArchive: false
 postReboot: false
 telemetry: false
