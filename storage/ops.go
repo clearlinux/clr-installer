@@ -345,7 +345,11 @@ func vfatMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, err
 
 // MakeImage create an image file considering the total block device size
 func MakeImage(bd *BlockDevice, file string) error {
-	size := bd.DiskSize()
+
+	size, err := bd.DiskSize()
+	if err != nil {
+		return errors.Wrap(err)
+	}
 
 	args := []string{
 		"qemu-img",
@@ -356,7 +360,7 @@ func MakeImage(bd *BlockDevice, file string) error {
 		fmt.Sprintf("%d", size),
 	}
 
-	err := cmd.RunAndLog(args...)
+	err = cmd.RunAndLog(args...)
 	if err != nil {
 		return errors.Wrap(err)
 	}

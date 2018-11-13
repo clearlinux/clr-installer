@@ -536,3 +536,73 @@ func TestWritePartition(t *testing.T) {
 		}
 	}
 }
+
+func TestValidDiskSize(t *testing.T) {
+	lsblkOutput := `{
+   "blockdevices": [
+      {"name": "sda", "maj:min": "8:0", "rm": "0", "size": "223.6G", "ro": "0", "type": "disk", "mountpoint": null,
+         "children": [
+            {"name": "sda1", "maj:min": "8:1", "rm": "0", "size": "223.6G", "ro": "0", "type": "part", "mountpoint": null}
+         ]
+      },
+      {"name": "sdb", "maj:min": "8:16", "rm": "0", "size": "2.0T", "ro": "0", "type": "disk", "mountpoint": null,
+         "children": [
+            {"name": "sdb1", "maj:min": "8:17", "rm": "0", "size": "512M", "ro": "0", "type": "part", "mountpoint": null},
+            {"name": "sdb2", "maj:min": "8:18", "rm": "0", "size": "97.7G", "ro": "0", "type": "part", "mountpoint": null},
+            {"name": "sdb3", "maj:min": "8:19", "rm": "0", "size": "31.9G", "ro": "0", "type": "part", "mountpoint": null},
+            {"name": "sdb4", "maj:min": "8:20", "rm": "0", "size": "97.7G", "ro": "0", "type": "part", "mountpoint": null},
+            {"name": "sdb5", "maj:min": "8:21", "rm": "0", "size": "1.6T", "ro": "0", "type": "part", "mountpoint": null}
+         ]
+      },
+      {"name": "sdc", "maj:min": "8:32", "rm": "0", "size": "2.8T", "ro": "0", "type": "disk", "mountpoint": null,
+         "children": [
+            {"name": "sdc1", "maj:min": "8:33", "rm": null, "size": "1G", "ro": "0", "type": "part", "mountpoint": null},
+            {"name": "sdc2", "maj:min": "8:34", "rm": "0", "size": "1.8T", "ro": "0", "type": "part", "mountpoint": null}
+         ]
+      },
+      {"name": "sr0", "maj:min": "11:0", "rm": "1", "size": "1024M", "ro": "0", "type": "rom", "mountpoint": null}
+   ]
+}`
+
+	bds, err := parseBlockDevicesDescriptor([]byte(lsblkOutput))
+	if err != nil {
+		t.Fatalf("Could not parser block device descriptor: %s", err)
+	}
+
+	for _, bd := range bds {
+		size, err := bd.DiskSize()
+		if err != nil {
+			t.Fatalf("Invalid Disk Size: %s", err)
+		}
+		t.Logf("Disk %s is Size %d", bd.Name, size)
+	}
+}
+
+func TestInvalidDiskSize(t *testing.T) {
+	lsblkOutput := `{
+   "blockdevices": [
+      {"name": "sdb", "maj:min": "8:16", "rm": "0", "size": "1.8T", "ro": "0", "type": "disk", "mountpoint": null,
+         "children": [
+            {"name": "sdb1", "maj:min": "8:17", "rm": "0", "size": "512M", "ro": "0", "type": "part", "mountpoint": null},
+            {"name": "sdb2", "maj:min": "8:18", "rm": "0", "size": "97.7G", "ro": "0", "type": "part", "mountpoint": null},
+            {"name": "sdb3", "maj:min": "8:19", "rm": "0", "size": "31.9G", "ro": "0", "type": "part", "mountpoint": null},
+            {"name": "sdb4", "maj:min": "8:20", "rm": "0", "size": "97.7G", "ro": "0", "type": "part", "mountpoint": null},
+            {"name": "sdb5", "maj:min": "8:21", "rm": "0", "size": "1.6T", "ro": "0", "type": "part", "mountpoint": null}
+         ]
+      }
+   ]
+}`
+
+	bds, err := parseBlockDevicesDescriptor([]byte(lsblkOutput))
+	if err != nil {
+		t.Fatalf("Could not parser block device descriptor: %s", err)
+	}
+
+	for _, bd := range bds {
+		size, err := bd.DiskSize()
+		if err == nil {
+			t.Fatalf("Disk %s Size should be invalid", bd.Name)
+		}
+		t.Logf("Disk %s is Size %d", bd.Name, size)
+	}
+}
