@@ -11,6 +11,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 const (
@@ -28,6 +30,10 @@ const (
 
 	// DefaultConfigDir is the system wide default configuration directory
 	DefaultConfigDir = "/usr/share/defaults/clr-installer"
+
+	// CustomConfigDir directory contains custom configuration files
+	// i.e per image configuration files
+	CustomConfigDir = "/var/lib/clr-installer"
 
 	// KernelListFile is the file describing the available kernel bundles
 	KernelListFile = "kernels.json"
@@ -59,6 +65,12 @@ func lookupDefaultFile(file string) (string, error) {
 	if isSourceTree {
 		sourceRoot := strings.Replace(sourcePath, "bin", filepath.Join(SourcePath, "etc"), 1)
 		return filepath.Join(sourceRoot, file), nil
+	}
+
+	custom := filepath.Join(CustomConfigDir, file)
+
+	if ok, _ := utils.FileExists(custom); ok {
+		return custom, nil
 	}
 
 	return filepath.Join(DefaultConfigDir, file), nil
