@@ -227,7 +227,7 @@ func getMirror(swupdArgs []string, t string) (string, error) {
 // GetHostMirror executes the "swupd mirror" to find the Host's mirror
 func GetHostMirror() (string, error) {
 	args := []string{
-		"/usr/bin/swupd",
+		"swupd",
 		"mirror",
 	}
 
@@ -271,7 +271,7 @@ func SetHostMirror(url string) (string, error) {
 	}
 
 	args := []string{
-		"/usr/bin/swupd",
+		"swupd",
 		"mirror",
 		"--set",
 		url,
@@ -325,7 +325,7 @@ func unSetMirror(swupdArgs []string, t string) (string, error) {
 // UnSetHostMirror executes the "swupd mirror" to unset the Host's mirror
 func UnSetHostMirror() (string, error) {
 	args := []string{
-		"/usr/bin/swupd",
+		"swupd",
 		"mirror",
 		"--unset",
 	}
@@ -360,7 +360,7 @@ func checkHostSwupd() error {
 		"timeout",
 		"--kill-after=5",
 		"5",
-		"/usr/bin/swupd",
+		"swupd",
 		"check-update",
 	}
 
