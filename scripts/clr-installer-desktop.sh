@@ -55,7 +55,8 @@ if [ $configured -eq 0 ]; then
     dconf write $GTERM_PROF/background-color "'rgb(0,0,0)'"
     dconf write $GTERM_PROF/palette "$PALETTE"
     dconf write $GTERM_PROF/font "'Monospace 18'"
+    dconf write $GTERM_PROF/scrollbar-policy "'never'"
     dconf write /org/gnome/shell/favorite-apps "$FAVORITE_APPS"
 fi
 
-gnome-terminal --profile=clr-installer -x sh -c "sudo clr-installer"
+gnome-terminal --hide-menubar --profile=clr-installer -x sh -c "sudo clr-installer"
