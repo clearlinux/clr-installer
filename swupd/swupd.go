@@ -168,7 +168,7 @@ func (s *SoftwareUpdater) Verify(version string, mirror string) error {
 // Update executes the "swupd update" operation
 func (s *SoftwareUpdater) Update() error {
 	args := []string{
-		filepath.Join(s.rootDir, "swupd"),
+		"swupd",
 		"update",
 		"--keepcache",
 		fmt.Sprintf("--path=%s", s.rootDir),
