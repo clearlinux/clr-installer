@@ -36,7 +36,7 @@ export GOPATH := ${LOCAL_GOPATH}
 gopath:
 	@rm -rf ${LOCAL_GOPATH}/src
 	@mkdir -p ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
-	@cp -af * ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
+	@tar cf - `git ls-files` | tar xf - --directory=${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
 else
 LOCAL_GOPATH :=
 GOPATH ?= ${HOME}/go
