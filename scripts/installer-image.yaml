@@ -8,7 +8,6 @@ block-devices: [
 
 targetMedia:
 - name: ${installer}
-  size: "2.9G"
   type: disk
   children:
   - name: ${installer}1
@@ -23,7 +22,7 @@ targetMedia:
   - name: ${installer}3
     fstype: ext4
     mountpoint: /
-    size: "2.63G"
+    size: "2.6G"
     type: part
 
 bundles: [os-core, os-core-update, clr-installer]
