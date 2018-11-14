@@ -62,8 +62,9 @@ func newBundlePage(tui *Tui) (Page, error) {
 
 	clui.CreateLabel(page.content, 2, 2, "Select additional bundles to be added to the system", Fixed)
 
-	frm := clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
+	frm := clui.CreateFrame(page.content, AutoSize, 14, BorderNone, Fixed)
 	frm.SetPack(clui.Vertical)
+	frm.SetScrollable(true)
 
 	lblFrm := clui.CreateFrame(frm, AutoSize, AutoSize, BorderNone, Fixed)
 	lblFrm.SetPack(clui.Vertical)

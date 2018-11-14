@@ -1,28 +1,80 @@
 {
   "bundles": [
-		{
-      "name": "editors",
-      "desc": "Popular text editors (terminal-based)"
+    {
+      "name": "R-extras",
+      "desc": "Common set of prebuilt R libraries"
     },
-		{
-      "name": "user-basic",
-      "desc": "Captures most console work flows"
+    {
+      "name": "cloud-control",
+      "desc": "Run a cloud orchestration server"
     },
-		{
+    {
+      "name": "containers-basic-dev",
+      "desc": "Build the containers-basic bundle"
+    },
+    {
+      "name": "desktop-apps",
+      "desc": "Applications for the desktop"
+    },
+    {
       "name": "desktop-autostart",
       "desc": "UI that automatically starts on boot"
     },
-		{
+    {
       "name": "dev-utils",
       "desc": "Utilities to assist application development"
     },
-		{
-      "name": "network-basic",
-      "desc": "Run network utilities and modify network settings"
+    {
+      "name": "editors",
+      "desc": "Popular text editors (terminal-based)"
     },
-		{
+    {
+      "name": "go-basic",
+      "desc": "Build and run go language programs"
+    },
+    {
+      "name": "java-basic",
+      "desc": "Build and run java language programs"
+    },
+    {
+      "name": "machine-learning-basic",
+      "desc": "Build machine learning applications"
+    },
+    {
+      "name": "network-basic",
+      "desc": "Network utilities and settings"
+    },
+    {
+      "name": "os-clr-on-clr",
+      "desc": "Run any Clear Linux dev. process"
+    },
+    {
+      "name": "perl-basic",
+      "desc": "Run perl language programs"
+    },
+    {
+      "name": "python2-basic",
+      "desc": "Run legacy python language programs"
+    },
+    {
+      "name": "python3-basic",
+      "desc": "Run python language programs"
+    },
+    {
+      "name": "pythons-data-science",
+      "desc": "Python data-science stack http://pydata.org"
+    },
+    {
       "name": "sysadmin-basic",
-      "desc": "Run common utilities useful for managing a system"
+      "desc": "Common utilities to manage a system"
+    },
+    {
+      "name": "user-basic",
+      "desc": "Captures most console work flows"
+    },
+    {
+      "name": "user-basic-dev",
+      "desc": "Packages to build the user-basic bundle"
     }
   ]
 }
