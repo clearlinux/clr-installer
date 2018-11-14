@@ -29,7 +29,6 @@ targetMedia:
 bundles: [
     bootloader,
     clr-installer,
-    desktop,
     desktop-autostart,
     editors,
     network-basic,
