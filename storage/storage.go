@@ -1004,7 +1004,7 @@ func (bd *BlockDevice) DiskSize() (uint64, error) {
 		}
 	}
 
-	if childSize > diskSize {
+	if diskSize > 0 && childSize > diskSize {
 		return 0, errors.Errorf("%s: Partition Sizes %d larger than Device Size: %d",
 			bd.Name, childSize, diskSize)
 	}
