@@ -28,7 +28,7 @@ DESKTOP_DIR=$(DESTDIR)/usr/share/applications/
 CONFIG_DIR=$(DESTDIR)/usr/share/defaults/clr-installer/
 SYSTEMD_DIR=$(DESTDIR)/usr/lib/systemd/system/
 
-VERSION=$(shell git describe --always --tags --dirty)
+VERSION=$(shell git describe --tags --always --dirty  --match '[0-9]*.[0-9]*.[0-9]*' --exclude '[0-9]*.[0-9]*.[0-9]*.*[0-9]')
 BUILDDATE=$(shell date -u "+%Y-%m-%d_%H:%M:%S_%Z")
 
 .PHONY: gopath
