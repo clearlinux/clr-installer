@@ -121,7 +121,8 @@ func main() {
 
 	log.SetLogLevel(options.LogLevel)
 
-	log.Info(path.Base(os.Args[0]) + ": " + model.Version)
+	log.Info(path.Base(os.Args[0]) + ": " + model.Version +
+		", built on " + model.BuildDate)
 
 	if options.PamSalt != "" {
 		hashed, errHash := crypt.Crypt(options.PamSalt)

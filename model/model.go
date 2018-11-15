@@ -30,7 +30,11 @@ import (
 // Also used by the Makefile for releases.
 // Default to the version of the program
 // but may be overridden for demo/documentation mode.
-var Version = "1.0.3"
+// Set by Go linker in the Makefile
+var Version = "undefined"
+
+// BuildDate is set by the Go linker with the build datetime
+var BuildDate = "undefined"
 var testAlias = []string{}
 
 // SystemInstall represents the system install "configuration", the target
