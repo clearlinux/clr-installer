@@ -376,7 +376,7 @@ func runInstallHook(vars map[string]string, hook *model.InstallHook) error {
 	}
 
 	exec := utils.ExpandVariables(vars, hook.Cmd)
-	args = append(args, []string{"bash", "-c", exec}...)
+	args = append(args, []string{"bash", "-l", "-c", exec}...)
 
 	if err := cmd.RunAndLogWithEnv(vars, args...); err != nil {
 		return errors.Wrap(err)
