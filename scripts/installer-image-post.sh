@@ -1,7 +1,5 @@
 #!/bin/bash
 
-make install DESTDIR=$1
-
 echo "Enabling clr-installer on boot for $1"
 systemctl --root=$1 enable clr-installer
 
@@ -19,4 +17,4 @@ sed -i -e '/server=/s/clr.telemetry.intel.com/localhost/' \
 
 echo "timeout 5" >> $1/boot/loader/loader.conf
 
-make clean
+exit 0
