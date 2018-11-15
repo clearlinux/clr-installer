@@ -28,6 +28,9 @@ DESKTOP_DIR=$(DESTDIR)/usr/share/applications/
 CONFIG_DIR=$(DESTDIR)/usr/share/defaults/clr-installer/
 SYSTEMD_DIR=$(DESTDIR)/usr/lib/systemd/system/
 
+VERSION=$(shell git describe --always --tags --dirty)
+BUILDDATE=$(shell date -u "+%Y-%m-%d_%H:%M:%S_%Z")
+
 .PHONY: gopath
 
 ifeq (,$(findstring ${GO_PACKAGE_PREFIX},${CURDIR}))
@@ -76,11 +79,17 @@ build-vendor: build
 
 build: gopath
 	go get -v ${GO_PACKAGE_PREFIX}/clr-installer
-	go install -v ${GO_PACKAGE_PREFIX}/clr-installer
+	go install -v \
+		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
+		-X github.com/clearlinux/clr-installer/model.BuildDate=${BUILDDATE}" \
+		${GO_PACKAGE_PREFIX}/clr-installer
 
 build-local-travis: gopath
 	@go get -v ${GO_PACKAGE_PREFIX}/local-travis
-	@go install -v ${GO_PACKAGE_PREFIX}/local-travis
+	@go install -v \
+		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
+		-X github.com/clearlinux/clr-installer/model.BuildDate=${BUILDDATE}" \
+		${GO_PACKAGE_PREFIX}/local-travis
 
 check-coverage: build-local-travis
 	@echo "local-travis simulation:"
@@ -222,13 +231,9 @@ PHONY += tag
 tag:
 	@if git diff-index --quiet HEAD &>/dev/null; then \
 		if git diff @{upstream}.. --quiet &>/dev/null; then \
-			VERSION=$$(git show HEAD:model/model.go | grep -e 'var Version =' | cut -d '"' -f 2) ; \
-			if [ -z "$$VERSION" ]; then \
-				echo "Couldn't extract version number from the source code"; \
-				exit 1; \
-			fi; \
-			git tag $$VERSION; \
-			git push --tags; \
+			echo "Create and push the Tag to GitHub"; \
+			echo "git tag <version>"; \
+			echo "git push --tags"; \
 		else \
 			echo "Unpushed changes; git push upstream and try again."; \
 			exit 1; \
