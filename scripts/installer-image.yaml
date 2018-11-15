@@ -34,6 +34,10 @@ keyboard: us
 language: en_US.UTF-8
 kernel: kernel-native
 
+kernel-arguments: {
+  add: ["nomodeset", "i915.modeset=0"]
+}
+
 post-install: [
    {cmd: "scripts/installer-image-post.sh ${chrootDir}"}
 ]
