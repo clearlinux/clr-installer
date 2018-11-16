@@ -58,6 +58,18 @@ install: build
 	@install -D -m 644 $(top_srcdir)/etc/systemd/clr-installer.service $(SYSTEMD_DIR)/clr-installer.service
 	@install -D -m 644  $(top_srcdir)/etc/chpasswd $(CONFIG_DIR)/chpasswd
 
+uninstall:
+	@rm -f $(DESTDIR)/usr/bin/clr-installer
+	@rm -f $(DESTDIR)/usr/bin/clr-installer-desktop.sh
+	@rm -f $(THEME_DIR)/clr-installer.theme
+	@rm -f $(CONFIG_DIR)/clr-installer.yaml
+	@rm -f $(CONFIG_DIR)/bundles.json
+	@rm -f $(CONFIG_DIR)/kernels.json
+	@rm -f $(DESKTOP_DIR)/clr-installer.desktop
+	@rm -f $(SYSTEMD_DIR)/clr-installer.service
+	@rm -f $(CONFIG_DIR)/chpasswd
+	@rm -f $(DESTDIR)/var/lib/clr-installer/clr-installer.yaml
+
 build-pkgs: build
 	@for pkg in `find -path ./vendor -prune -o -path ./.gopath -prune -o -name "*.go" \
 	   -printf "%h\n" | sort -u | sed 's/\.\///g'`; do \
