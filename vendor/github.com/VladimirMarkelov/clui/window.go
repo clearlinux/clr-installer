@@ -251,7 +251,7 @@ func (c *Window) ProcessEvent(ev Event) bool {
 
 			if aC != nil && aC.Clipped() {
 				clipped = aC
-			} else if nC != nil {
+			} else {
 				clipped = ClippedParent(nC)
 			}
 
