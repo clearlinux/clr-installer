@@ -3,11 +3,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:5ef648f7b8c5b7c2f243937ad447f335c3d2348d8cb1cfe08da61bd037bfebac"
+  digest = "1:0fddecf082a8430e963125e3bedaf17a765cf978992faf3638d8cab60e7f2cf2"
   name = "github.com/VladimirMarkelov/clui"
   packages = ["."]
   pruneopts = "UT"
-  revision = "80da317c7038ad31a6713f7baa8c151aedc21afd"
+  revision = "403ab186603807804a60862408aa77a6f9a1b168"
 
 [[projects]]
   digest = "1:1ca95505ec8a6d69762d2b5d9ab7e66ae619365b2e26031e220b675ff6fb010b"
