@@ -195,11 +195,11 @@ dep-install:
 	fi \
 
 PHONY += dep-check
-dep-check:
+dep-check: dep-install
 	@cd ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX} ; GOPATH=${LOCAL_GOPATH} dep check
 
 PHONY += dep-update
-dep-update:
+dep-update: dep-install
 	@if dep version &>/dev/null; then \
 		echo "Updating dep..."; \
 		curl https://raw.githubusercontent.com/golang/dep/master/install.sh 2>/dev/null \
