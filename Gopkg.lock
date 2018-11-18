@@ -50,6 +50,25 @@
   version = "v1.0.3"
 
 [[projects]]
+  branch = "master"
+  digest = "1:3f3a05ae0b95893d90b9b3b5afdb79a9b3d96e4e36e099d841ae602e4aca0da8"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  pruneopts = "UT"
+  revision = "3d3f9f413869b949e48070b5bc593aa22cc2b8f2"
+
+[[projects]]
+  branch = "master"
+  digest = "1:a089387bbfcfa884e5aafeebb85929993195bb8959766b1d20102841d47e0b0e"
+  name = "golang.org/x/sys"
+  packages = [
+    "unix",
+    "windows",
+  ]
+  pruneopts = "UT"
+  revision = "93218def8b18e66adbdab3eca8ec334700329f1f"
+
+[[projects]]
   digest = "1:770ae53f0090c9b9ddea5f62c746e61c2adcfb0e877f321e1d07263feffe7a24"
   name = "golang.org/x/text"
   packages = [
@@ -80,6 +99,7 @@
     "github.com/huandu/xstrings",
     "github.com/nsf/termbox-go",
     "github.com/spf13/pflag",
+    "golang.org/x/crypto/ssh/terminal",
     "golang.org/x/text/language",
     "golang.org/x/text/language/display",
     "gopkg.in/yaml.v2",
