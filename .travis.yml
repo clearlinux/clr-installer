@@ -42,6 +42,7 @@ before_script:
 script:
     - docker exec -it clear-test bash -c "cd /travis ; make dist-clean"
     - docker exec -it clear-test bash -c "cd /travis ; make"
+    - docker exec -it clear-test bash -c "cd /travis ; PATH=${PATH}:${GOPATH}:/go/bin make vendor-check"
     - docker exec -it clear-test bash -c "cd /travis ; make lint"
     - travis_retry docker exec -it clear-test bash -c "cd /travis ; make check"
     - docker exec -it clear-test bash -c "cd /travis ; make clean"
