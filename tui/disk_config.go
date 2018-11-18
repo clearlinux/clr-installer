@@ -419,8 +419,13 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 			return pErr
 		}
 
+		label := ""
+		if partition.Label != "" {
+			label = partition.Label
+		}
+
 		partitionTitle := fmt.Sprintf(page.columnFormat,
-			"", partition.Name, partition.FsType, partition.MountPoint, pSize)
+			label, partition.Name, partition.FsType, partition.MountPoint, pSize)
 
 		partitionButton := CreateSimpleButton(rowFrame, 1, 1, partitionTitle, Fixed)
 		partitionButton.SetAlign(AlignLeft)

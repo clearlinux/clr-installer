@@ -18,6 +18,8 @@ import (
 type DiskPartitionPage struct {
 	BasePage
 	fsList        *clui.ListBox
+	labelEdit     *clui.EditField
+	labelWarning  *clui.Label
 	mPointEdit    *clui.EditField
 	mPointWarning *clui.Label
 	sizeEdit      *clui.EditField
@@ -66,6 +68,9 @@ func (page *DiskPartitionPage) setPartitionForm(part *storage.BlockDevice) {
 	idx := page.fsList.FindItem(part.FsType, true)
 	page.fsList.SelectItem(idx)
 
+	page.labelEdit.SetTitle(part.Label)
+	page.validateLabel(part.FsType)
+
 	page.mPointEdit.SetEnabled(true)
 	if part.FsType == "swap" {
 		page.mPointEdit.SetEnabled(false)
@@ -107,6 +112,8 @@ func (page *DiskPartitionPage) Activate() {
 		return
 	}
 
+	page.labelEdit.SetTitle("")
+	page.labelWarning.SetTitle("")
 	page.mPointEdit.SetTitle("")
 	page.mPointWarning.SetTitle("")
 	page.sizeEdit.SetTitle("")
@@ -130,11 +137,20 @@ func (page *DiskPartitionPage) Activate() {
 }
 
 func (page *DiskPartitionPage) setConfirmButton() {
-	if page.mPointWarning.Title() == "" && page.sizeWarning.Title() == "" {
+	if page.labelWarning.Title() == "" &&
+		page.mPointWarning.Title() == "" &&
+		page.sizeWarning.Title() == "" {
 		page.confirmBtn.SetEnabled(true)
 	} else {
 		page.confirmBtn.SetEnabled(false)
 	}
+}
+
+func (page *DiskPartitionPage) validateLabel(fstype string) {
+	page.labelWarning.SetTitle(
+		storage.IsValidLabel(page.labelEdit.Title(), fstype))
+
+	page.setConfirmButton()
 }
 
 func (page *DiskPartitionPage) validateMountPoint() {
@@ -163,7 +179,10 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 	lbl = clui.CreateLabel(lblFrm, AutoSize, 4, "File System:", Fixed)
 	lbl.SetAlign(AlignRight)
 
-	lbl = clui.CreateLabel(lblFrm, AutoSize, 3, "Mount Point:", Fixed)
+	lbl = clui.CreateLabel(lblFrm, AutoSize, 2, "[Optional] Label:", Fixed)
+	lbl.SetAlign(AlignRight)
+
+	lbl = clui.CreateLabel(lblFrm, AutoSize, 2, "Mount Point:", Fixed)
 	lbl.SetAlign(AlignRight)
 
 	lbl = clui.CreateLabel(lblFrm, AutoSize, 2, "Size:", Fixed)
@@ -172,7 +191,11 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 	fldFrm := clui.CreateFrame(frm, 30, AutoSize, BorderNone, Fixed)
 	fldFrm.SetPack(clui.Vertical)
 
-	page.fsList = clui.CreateListBox(fldFrm, 1, 3, Fixed)
+	partFrm := clui.CreateFrame(fldFrm, 4, 4, BorderNone, Fixed)
+	partFrm.SetPack(clui.Vertical)
+	partFrm.SetPaddings(0, 0)
+
+	page.fsList = clui.CreateListBox(partFrm, 1, 3, Fixed)
 	page.fsList.SetAlign(AlignLeft)
 	page.fsList.SetStyle("List")
 
@@ -189,9 +212,23 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 	}
 	page.fsList.SelectItem(0)
 
-	mPointFrm := clui.CreateFrame(fldFrm, 4, AutoSize, BorderNone, Fixed)
+	labelFrm := clui.CreateFrame(fldFrm, 4, 2, BorderNone, Fixed)
+	labelFrm.SetPack(clui.Vertical)
+	labelFrm.SetPaddings(0, 0)
+
+	page.labelEdit = clui.CreateEditField(labelFrm, 3, "", Fixed)
+	page.labelEdit.OnChange(func(ev clui.Event) {
+		page.validateLabel(page.fsList.SelectedItemText())
+	})
+
+	page.labelWarning = clui.CreateLabel(labelFrm, 1, 1, "", Fixed)
+	page.labelWarning.SetMultiline(true)
+	page.labelWarning.SetBackColor(errorLabelBg)
+	page.labelWarning.SetTextColor(errorLabelFg)
+
+	mPointFrm := clui.CreateFrame(fldFrm, 4, 2, BorderNone, Fixed)
 	mPointFrm.SetPack(clui.Vertical)
-	mPointFrm.SetPaddings(0, 1)
+	mPointFrm.SetPaddings(0, 0)
 
 	page.mPointEdit = clui.CreateEditField(mPointFrm, 3, "", Fixed)
 	page.mPointEdit.OnChange(func(ev clui.Event) {
@@ -211,9 +248,11 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 			page.mPointEdit.SetTitle("")
 			page.mPointWarning.SetTitle("")
 		}
+
+		page.validateLabel(page.fsList.SelectedItemText())
 	})
 
-	sizeFrm := clui.CreateFrame(fldFrm, 5, AutoSize, BorderNone, Fixed)
+	sizeFrm := clui.CreateFrame(fldFrm, 5, 3, BorderNone, Fixed)
 	sizeFrm.SetPack(clui.Vertical)
 
 	page.sizeEdit = clui.CreateEditField(sizeFrm, 3, "", Fixed)
@@ -241,7 +280,7 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 
 	page.sizeInfo = clui.CreateLabel(sizeFrm, 1, 1, "", Fixed)
 	page.sizeInfo.SetMultiline(false)
-	page.sizeWarning = clui.CreateLabel(sizeFrm, 1, 3, "", Fixed)
+	page.sizeWarning = clui.CreateLabel(sizeFrm, 1, 1, "", Fixed)
 	page.sizeWarning.SetMultiline(true)
 	page.sizeWarning.SetBackColor(errorLabelBg)
 	page.sizeWarning.SetTextColor(errorLabelFg)
@@ -257,6 +296,7 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 
 		if sel.part != nil {
 			sel.part.FsType = page.fsList.SelectedItemText()
+			sel.part.Label = page.labelEdit.Title()
 			sel.part.MountPoint = page.mPointEdit.Title()
 			if page.sizeEdit.Title() == page.sizeOriginal {
 				// Use the actual size, not the human readable

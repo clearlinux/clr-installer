@@ -18,6 +18,7 @@ import (
 
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/errors"
+	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -30,6 +31,7 @@ type BlockDevice struct {
 	UUID            string           // filesystem uuid
 	Serial          string           // device serial number
 	MountPoint      string           // where the device is mounted
+	Label           string           // label for the partition; set with mkfs
 	Size            uint64           // size of the device
 	Type            BlockDeviceType  // device type
 	State           BlockDeviceState // device state (running, live etc)
@@ -51,6 +53,7 @@ type blockDeviceYAMLMarshal struct {
 	UUID            string         `yaml:"uuid,omitempty"`
 	Serial          string         `yaml:"serial,omitempty"`
 	MountPoint      string         `yaml:"mountpoint,omitempty"`
+	Label           string         `yaml:"label,omitempty"`
 	Size            string         `yaml:"size,omitempty"`
 	ReadOnly        string         `yaml:"ro,omitempty"`
 	RemovableDevice string         `yaml:"rm,omitempty"`
@@ -105,6 +108,7 @@ var (
 	avBlockDevices      []*BlockDevice
 	lsblkBinary         = "lsblk"
 	storageExp          = regexp.MustCompile(`^([0-9]*(\.)?[0-9]*)([bkmgtp]{1}){0,1}$`)
+	labelExp            = regexp.MustCompile(`^([[:word:]-+_]+)$`)
 	mountExp            = regexp.MustCompile(`^(/|(/[[:word:]-+_]+)+)$`)
 	blockDeviceStateMap = map[BlockDeviceState]string{
 		BlockDeviceStateRunning: "running",
@@ -195,6 +199,7 @@ func (bd *BlockDevice) Clone() *BlockDevice {
 		UUID:            bd.UUID,
 		Serial:          bd.Serial,
 		MountPoint:      bd.MountPoint,
+		Label:           bd.Label,
 		Size:            bd.Size,
 		Type:            bd.Type,
 		State:           bd.State,
@@ -607,6 +612,24 @@ func (bd *BlockDevice) MaxParitionSize() uint64 {
 	return 0
 }
 
+// IsValidLabel returns empty string if label is valid
+func IsValidLabel(label string, fstype string) string {
+	if label == "" {
+		return ""
+	}
+
+	max := MaxLabelLength(fstype)
+	if len(label) > max {
+		return fmt.Sprintf("Label too long, max is %d", max)
+	}
+
+	if !labelExp.MatchString(label) {
+		return "Invalid label characters"
+	}
+
+	return ""
+}
+
 // IsValidMount returns empty string if mount point is a valid directory for mounting
 func IsValidMount(str string) string {
 	if !mountExp.MatchString(str) {
@@ -798,6 +821,15 @@ func (bd *BlockDevice) UnmarshalJSON(b []byte) error {
 			}
 
 			bd.MountPoint = mpoint
+		case "label":
+			var label string
+
+			label, err = getNextStrToken(dec, "label")
+			if err != nil {
+				return err
+			}
+
+			bd.Label = label
 		case "ro":
 			bd.ReadOnly, err = getNextBoolToken(dec, "ro")
 			if err != nil {
@@ -832,6 +864,7 @@ func (bd *BlockDevice) MarshalYAML() (interface{}, error) {
 	bdm.UUID = bd.UUID
 	bdm.Serial = bd.Serial
 	bdm.MountPoint = bd.MountPoint
+	bdm.Label = bd.Label
 	bdm.Size = strconv.FormatUint(bd.Size, 10)
 	bdm.ReadOnly = strconv.FormatBool(bd.ReadOnly)
 	bdm.RemovableDevice = strconv.FormatBool(bd.RemovableDevice)
@@ -860,6 +893,7 @@ func (bd *BlockDevice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	bd.UUID = unmarshBlockDevice.UUID
 	bd.Serial = unmarshBlockDevice.Serial
 	bd.MountPoint = unmarshBlockDevice.MountPoint
+	bd.Label = unmarshBlockDevice.Label
 	bd.Children = unmarshBlockDevice.Children
 	bd.options = unmarshBlockDevice.Options
 	// Convert String to Uint64
@@ -938,6 +972,30 @@ func LargestFileSystemName() int {
 	return res
 }
 
+// MaxLabelLength returns the maximum length of a label for
+// the given file system type
+func MaxLabelLength(fstype string) int {
+	var maxLen int
+
+	switch fstype {
+	case "ext2", "ext3", "ext4":
+		maxLen = 16
+	case "swap":
+		maxLen = 15
+	case "xfs":
+		maxLen = 12
+	case "btrfs":
+		maxLen = 255
+	case "vfat":
+		maxLen = 11
+	default:
+		maxLen = 11
+		log.Warning("Unknown file system type %s, defaulting to %d character label", fstype, maxLen)
+	}
+
+	return maxLen
+}
+
 // NewStandardPartitions will add to disk a new set of partitions representing a
 // default set of partitions required for an installation
 func NewStandardPartitions(disk *BlockDevice) {
@@ -953,12 +1011,14 @@ func NewStandardPartitions(disk *BlockDevice) {
 		Type:       BlockDeviceTypePart,
 		FsType:     "vfat",
 		MountPoint: "/boot",
+		Label:      "boot",
 	})
 
 	disk.AddChild(&BlockDevice{
 		Size:   swapSize,
 		Type:   BlockDeviceTypePart,
 		FsType: "swap",
+		Label:  "swap",
 	})
 
 	disk.AddChild(&BlockDevice{
@@ -966,6 +1026,7 @@ func NewStandardPartitions(disk *BlockDevice) {
 		Type:       BlockDeviceTypePart,
 		FsType:     "ext4",
 		MountPoint: "/",
+		Label:      "root",
 	})
 }
 

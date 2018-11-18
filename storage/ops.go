@@ -21,19 +21,20 @@ import (
 )
 
 type blockDeviceOps struct {
+	makeFsCommand   func(bd *BlockDevice, args []string) ([]string, error)
 	makeFsArgs      []string
 	makePartCommand func(bd *BlockDevice, start uint64, end uint64) (string, error)
 }
 
 var (
 	bdOps = map[string]*blockDeviceOps{
-		"ext2":  {[]string{"mkfs.ext2", "-v", "-F"}, commonMakePartCommand},
-		"ext3":  {[]string{"mkfs.ext3", "-v", "-F"}, commonMakePartCommand},
-		"ext4":  {[]string{"mkfs.ext4", "-v", "-F", "-b", "4096"}, commonMakePartCommand},
-		"btrfs": {[]string{"mkfs.btrfs", "-f"}, commonMakePartCommand},
-		"xfs":   {[]string{"mkfs.xfs", "-f"}, commonMakePartCommand},
-		"swap":  {[]string{"mkswap"}, swapMakePartCommand},
-		"vfat":  {[]string{"mkfs.vfat", "-F32"}, vfatMakePartCommand},
+		"ext2":  {commonMakeFsCommand, []string{"-v", "-F"}, commonMakePartCommand},
+		"ext3":  {commonMakeFsCommand, []string{"-v", "-F"}, commonMakePartCommand},
+		"ext4":  {commonMakeFsCommand, []string{"-v", "-F", "-b", "4096"}, commonMakePartCommand},
+		"btrfs": {commonMakeFsCommand, []string{"-f"}, commonMakePartCommand},
+		"xfs":   {commonMakeFsCommand, []string{"-f"}, commonMakePartCommand},
+		"swap":  {swapMakeFsCommand, []string{}, swapMakePartCommand},
+		"vfat":  {commonMakeFsCommand, []string{"-F32"}, vfatMakePartCommand},
 	}
 
 	guidMap = map[string]string{
@@ -54,7 +55,9 @@ func (bd *BlockDevice) MakeFs() error {
 	}
 
 	if op, ok := bdOps[bd.FsType]; ok {
-		return makeFs(bd, op.makeFsArgs)
+		if cmd, err := op.makeFsCommand(bd, op.makeFsArgs); err == nil {
+			return makeFs(bd, cmd)
+		}
 	}
 
 	return errors.Errorf("MakeFs() not implemented for filesystem: %s", bd.FsType)
@@ -309,6 +312,45 @@ func mountProcFs(rootDir string) error {
 	return mountFs("/proc", mPointPath, "proc", syscall.MS_BIND)
 }
 
+func getMakeFsLabel(bd *BlockDevice) []string {
+	label := []string{}
+	labelArg := "-L"
+
+	if bd.Label != "" {
+		maxLen := MaxLabelLength(bd.FsType)
+
+		if bd.FsType == "vfat" {
+			labelArg = "-n"
+		}
+
+		if len(bd.Label) > maxLen {
+			shortLabel := string(bd.Label[0:(maxLen - 1)])
+			log.Warning("Truncating file system label '%s' to %d character label '%s'",
+				bd.FsType, maxLen, shortLabel)
+			bd.Label = shortLabel
+		}
+
+		label = append(label, labelArg, bd.Label)
+	}
+
+	return label
+}
+
+func commonMakeFsCommand(bd *BlockDevice, args []string) ([]string, error) {
+	cmd := []string{
+		fmt.Sprintf("mkfs.%s", bd.FsType),
+	}
+
+	label := getMakeFsLabel(bd)
+	if len(label) > 0 {
+		cmd = append(cmd, label...)
+	}
+
+	cmd = append(cmd, args...)
+
+	return cmd, nil
+}
+
 func commonMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, error) {
 	args := []string{
 		"mkpart",
@@ -318,6 +360,21 @@ func commonMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, e
 	}
 
 	return strings.Join(args, " "), nil
+}
+
+func swapMakeFsCommand(bd *BlockDevice, args []string) ([]string, error) {
+	cmd := []string{
+		"mkswap",
+	}
+
+	label := getMakeFsLabel(bd)
+	if len(label) > 0 {
+		cmd = append(cmd, label...)
+	}
+
+	cmd = append(cmd, args...)
+
+	return cmd, nil
 }
 
 func swapMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, error) {
