@@ -234,6 +234,17 @@ vendor-update: dep-install
 	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor ${top_srcdir}
 	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/Gopkg.* ${top_srcdir}
 
+PHONY += vendor-add
+vendor-add: dep-install
+	@# Copy the updated files from revision control area
+	@cp -a ${top_srcdir}/Gopkg.* ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
+	@# Pull updates
+	@cd ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX} ; GOPATH=${LOCAL_GOPATH} dep ensure -add ${GOADD}
+	@# Copy results back to revision control area
+	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor ${top_srcdir}
+	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/Gopkg.* ${top_srcdir}
+
+
 PHONY += tag
 tag:
 	@if git diff-index --quiet HEAD &>/dev/null; then \
