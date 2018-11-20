@@ -168,7 +168,7 @@ func (s *SoftwareUpdater) Verify(version string, mirror string) error {
 // Update executes the "swupd update" operation
 func (s *SoftwareUpdater) Update() error {
 	args := []string{
-		filepath.Join(s.rootDir, "/usr/bin/swupd"),
+		"swupd",
 		"update",
 		"--keepcache",
 		fmt.Sprintf("--path=%s", s.rootDir),
@@ -237,7 +237,7 @@ func GetHostMirror() (string, error) {
 // GetTargetMirror executes the "swupd mirror" to find the Target's mirror
 func (s *SoftwareUpdater) GetTargetMirror() (string, error) {
 	args := []string{
-		filepath.Join(s.rootDir, "/usr/bin/swupd"),
+		"swupd",
 		"mirror",
 		fmt.Sprintf("--path=%s", s.rootDir),
 	}
@@ -293,7 +293,7 @@ func SetHostMirror(url string) (string, error) {
 // verified as functional on the currently running Host
 func (s *SoftwareUpdater) SetTargetMirror(url string) (string, error) {
 	args := []string{
-		filepath.Join(s.rootDir, "/usr/bin/swupd"),
+		"swupd",
 		"mirror",
 		fmt.Sprintf("--path=%s", s.rootDir),
 		"--set",
@@ -381,7 +381,7 @@ func parseSwupdMirror(data []byte) (string, error) {
 // BundleAdd executes the "swupd bundle-add" operation for a single bundle
 func (s *SoftwareUpdater) BundleAdd(bundle string) error {
 	args := []string{
-		filepath.Join(s.rootDir, "/usr/bin/swupd"),
+		"swupd",
 		"bundle-add",
 	}
 
