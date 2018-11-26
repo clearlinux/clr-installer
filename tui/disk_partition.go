@@ -18,6 +18,7 @@ import (
 type DiskPartitionPage struct {
 	BasePage
 	fsList        *clui.ListBox
+	encryptCheck  *clui.CheckBox
 	labelEdit     *clui.EditField
 	labelWarning  *clui.Label
 	mPointEdit    *clui.EditField
@@ -67,6 +68,12 @@ func (page *DiskPartitionPage) setPartitionButtonsVisible(visible bool, mask int
 func (page *DiskPartitionPage) setPartitionForm(part *storage.BlockDevice) {
 	idx := page.fsList.FindItem(part.FsType, true)
 	page.fsList.SelectItem(idx)
+
+	if part.Type == storage.BlockDeviceTypeCrypt {
+		page.encryptCheck.SetState(1)
+	} else {
+		page.encryptCheck.SetState(0)
+	}
 
 	page.labelEdit.SetTitle(part.Label)
 	page.validateLabel(part.FsType)
@@ -191,11 +198,17 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 	fldFrm := clui.CreateFrame(frm, 30, AutoSize, BorderNone, Fixed)
 	fldFrm.SetPack(clui.Vertical)
 
-	partFrm := clui.CreateFrame(fldFrm, 4, 4, BorderNone, Fixed)
+	partWrapperFrm := clui.CreateFrame(fldFrm, 30, 4, BorderNone, Fixed)
+	partWrapperFrm.SetPack(clui.Vertical)
+	partWrapperFrm.SetPaddings(0, 0)
+	partWrapperFrm.SetGaps(0, 0)
+
+	partFrm := clui.CreateFrame(partWrapperFrm, 30, 3, BorderNone, Fixed)
 	partFrm.SetPack(clui.Vertical)
 	partFrm.SetPaddings(0, 0)
+	partFrm.SetGaps(2, 1)
 
-	page.fsList = clui.CreateListBox(partFrm, 1, 3, Fixed)
+	page.fsList = clui.CreateListBox(partFrm, 20, 3, Fixed)
 	page.fsList.SetAlign(AlignLeft)
 	page.fsList.SetStyle("List")
 
@@ -211,6 +224,21 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 		page.fsList.AddItem(fs)
 	}
 	page.fsList.SelectItem(0)
+
+	partFrm.SetPack(clui.Horizontal)
+	page.encryptCheck = clui.CreateCheckBox(partFrm, AutoSize, "Encrypt", AutoSize)
+
+	page.encryptCheck.OnChange(func(state int) {
+		if state != 0 {
+			if dialog, err := CreateEncryptPassphraseDialogBox(page.getModel()); err == nil {
+				dialog.OnClose(func() {
+					if !dialog.Confirmed {
+						page.encryptCheck.SetState(0)
+					}
+				})
+			}
+		}
+	})
 
 	labelFrm := clui.CreateFrame(fldFrm, 4, 2, BorderNone, Fixed)
 	labelFrm.SetPack(clui.Vertical)
@@ -233,6 +261,13 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 	page.mPointEdit = clui.CreateEditField(mPointFrm, 3, "", Fixed)
 	page.mPointEdit.OnChange(func(ev clui.Event) {
 		page.validateMountPoint()
+
+		if page.mPointEdit.Title() == "/boot" {
+			page.encryptCheck.SetState(0)
+			page.encryptCheck.SetEnabled(false)
+		} else {
+			page.encryptCheck.SetEnabled(true)
+		}
 	})
 
 	page.mPointWarning = clui.CreateLabel(mPointFrm, 1, 1, "", Fixed)
@@ -296,6 +331,9 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 
 		if sel.part != nil {
 			sel.part.FsType = page.fsList.SelectedItemText()
+			if page.encryptCheck.State() != 0 {
+				sel.part.Type = storage.BlockDeviceTypeCrypt
+			}
 			sel.part.Label = page.labelEdit.Title()
 			sel.part.MountPoint = page.mPointEdit.Title()
 			if page.sizeEdit.Title() == page.sizeOriginal {

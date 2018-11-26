@@ -56,6 +56,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	var version string
 	var versionBuf []byte
 	var prg progress.Progress
+	var encryptedUsed bool
 
 	vars := map[string]string{
 		"chrootDir": rootDir,
@@ -63,6 +64,13 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 
 	for k, v := range model.Environment {
 		vars[k] = v
+	}
+
+	if model.EncryptionRequiresPassphrase() && model.CryptPass == "" {
+		model.CryptPass = storage.GetPassPhrase()
+		if model.CryptPass == "" {
+			return errors.Errorf("Can not create encrypted file system, no passphrase")
+		}
 	}
 
 	if !options.StubImage {
@@ -198,7 +206,24 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 
 		// prepare the blockdevice's partitions filesystem
 		for _, ch := range curr.Children {
+			if ch.Type == storage.BlockDeviceTypeCrypt {
+				encryptedUsed = true
+
+				if ch.FsTypeNotSwap() {
+					msg := fmt.Sprintf("Mapping %s partition to an encrypted partition", ch.Name)
+					prg = progress.NewLoop(msg)
+					log.Info(msg)
+					if err = ch.MapEncrypted(model.CryptPass); err != nil {
+						return err
+					}
+					prg.Success()
+				}
+			}
+
 			msg := fmt.Sprintf("Writing %s file system to %s", ch.FsType, ch.Name)
+			if ch.MountPoint != "" {
+				msg = msg + fmt.Sprintf(" '%s'", ch.MountPoint)
+			}
 			prg = progress.NewLoop(msg)
 			log.Info(msg)
 			if err = ch.MakeFs(); err != nil {
@@ -211,6 +236,11 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 				mountPoints = append(mountPoints, ch)
 			}
 		}
+	}
+
+	// Update the target devices current labels and UUIDs
+	if scanErr := storage.UpdateBlockDevices(model.TargetMedias); scanErr != nil {
+		return scanErr
 	}
 
 	if options.StubImage {
@@ -263,6 +293,18 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	if model.Language.Code != language.DefaultLanguage {
 		model.AddBundle(language.RequiredBundle)
 	}
+
+	if encryptedUsed {
+		model.AddBundle(storage.RequiredBundle)
+	}
+
+	msg := fmt.Sprintf("Writing mount files")
+	prg = progress.NewLoop(msg)
+	log.Info(msg)
+	if err = storage.GenerateTabFiles(rootDir, model.TargetMedias); err != nil {
+		return err
+	}
+	prg.Success()
 
 	if model.KernelArguments != nil && len(model.KernelArguments.Add) > 0 {
 		cmdlineDir := filepath.Join(rootDir, "etc", "kernel")
@@ -332,7 +374,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		return err
 	}
 
-	msg := "Saving the installation results"
+	msg = "Saving the installation results"
 	prg = progress.NewLoop(msg)
 	log.Info(msg)
 	if err = saveInstallResults(rootDir, model); err != nil {

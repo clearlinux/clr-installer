@@ -423,9 +423,13 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 		if partition.Label != "" {
 			label = partition.Label
 		}
+		encrypt := ""
+		if partition.Type == storage.BlockDeviceTypeCrypt {
+			encrypt = "*"
+		}
 
 		partitionTitle := fmt.Sprintf(page.columnFormat,
-			label, partition.Name, partition.FsType, partition.MountPoint, pSize)
+			label, partition.Name, partition.FsType+encrypt, partition.MountPoint, pSize)
 
 		partitionButton := CreateSimpleButton(rowFrame, 1, 1, partitionTitle, Fixed)
 		partitionButton.SetAlign(AlignLeft)

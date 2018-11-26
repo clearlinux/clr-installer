@@ -7,6 +7,7 @@ package storage
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -18,6 +19,7 @@ import (
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/progress"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 type blockDeviceOps struct {
@@ -45,7 +47,8 @@ var (
 		"efi":   "C12A7328-F81F-11D2-BA4B-00A0C93EC93B",
 	}
 
-	mountedPoints []string
+	mountedPoints   []string
+	mountedEncrypts []string
 )
 
 // MakeFs runs mkfs.* commands for a BlockDevice definition
@@ -68,7 +71,7 @@ func makeFs(bd *BlockDevice, args []string) error {
 		args = append(args, strings.Split(bd.options, " ")...)
 	}
 
-	args = append(args, bd.GetDeviceFile())
+	args = append(args, bd.GetMappedDeviceFile())
 
 	err := cmd.RunAndLog(args...)
 	if err != nil {
@@ -98,16 +101,32 @@ func (bd *BlockDevice) getGUID() (string, error) {
 	return "none", errors.Errorf("Could not determine the guid for: %s", bd.Name)
 }
 
+func (bd *BlockDevice) isStandardMount() bool {
+	standard := false
+
+	for mnt := range guidMap {
+		if bd.MountPoint == mnt {
+			standard = true
+		}
+	}
+
+	if bd.MountPoint == "/boot" {
+		standard = true
+	}
+
+	return standard
+}
+
 // Mount will mount a block devices bd considering its mount point and the
 // root directory
 func (bd *BlockDevice) Mount(root string) error {
 	if bd.Type == BlockDeviceTypeDisk {
-		return errors.Errorf("Trying to run MakeFs() against a disk, partition required")
+		return errors.Errorf("Trying to run mountFs() against a disk, partition required")
 	}
 
 	targetPath := filepath.Join(root, bd.MountPoint)
 
-	return mountFs(bd.GetDeviceFile(), targetPath, bd.FsType, syscall.MS_RELATIME)
+	return mountFs(bd.GetMappedDeviceFile(), targetPath, bd.FsType, syscall.MS_RELATIME)
 }
 
 // UmountAll unmounts all previously mounted devices
@@ -125,6 +144,16 @@ func UmountAll() error {
 			fails = append(fails, point)
 		} else {
 			log.Debug("Unmounted ok: %s", point)
+		}
+	}
+
+	for _, point := range mountedEncrypts {
+		if err := unMapEncrypted(point); err != nil {
+			err = fmt.Errorf("unmap encrypted %s: %v", point, err)
+			log.ErrorError(err)
+			fails = append(fails, "e-"+point)
+		} else {
+			log.Debug("Encrypted partition %q unmapped", point)
 		}
 	}
 
@@ -194,10 +223,12 @@ func (bd *BlockDevice) WritePartitionTable() error {
 			log.Warning("%s", err)
 		}
 
-		guids[idx+1] = guid
+		if curr.FsType != "swap" || curr.Type != BlockDeviceTypeCrypt {
+			guids[idx+1] = guid
+		}
+
 		args = append(args, cmd)
 		start = end
-
 	}
 
 	err = cmd.RunAndLog(args...)
@@ -362,25 +393,71 @@ func commonMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, e
 	return strings.Join(args, " "), nil
 }
 
+func makeEncryptedSwap(bd *BlockDevice) error {
+
+	args := []string{
+		"wipefs",
+		bd.GetDeviceFile(),
+	}
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	args = []string{
+		"mkfs.ext2",
+		"-L",
+		filepath.Base(bd.GetMappedDeviceFile()),
+		bd.GetDeviceFile(),
+		"1M",
+	}
+
+	err = cmd.RunAndLog(args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
+}
+
 func swapMakeFsCommand(bd *BlockDevice, args []string) ([]string, error) {
 	cmd := []string{
 		"mkswap",
 	}
 
-	label := getMakeFsLabel(bd)
-	if len(label) > 0 {
-		cmd = append(cmd, label...)
-	}
+	if bd.FsType == "swap" && bd.Type == BlockDeviceTypeCrypt {
+		// Fake the standard command, and call the special function
+		cmd = []string{
+			"/bin/true",
+		}
+		if err := makeEncryptedSwap(bd); err != nil {
+			return cmd, err
+		}
+	} else {
+		label := getMakeFsLabel(bd)
+		if len(label) > 0 {
+			cmd = append(cmd, label...)
+		}
 
-	cmd = append(cmd, args...)
+		cmd = append(cmd, args...)
+	}
 
 	return cmd, nil
 }
 
 func swapMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, error) {
+	partName := "linux-swap"
+
+	if bd.FsType == "swap" && bd.Type == BlockDeviceTypeCrypt {
+		mapped := fmt.Sprintf("eswap%d", start)
+		bd.MappedName = filepath.Join("mapper", mapped)
+		partName = mapped
+	}
+
 	args := []string{
 		"mkpart",
-		"linux-swap",
+		partName,
 		fmt.Sprintf("%dM", start),
 		fmt.Sprintf("%dM", end),
 	}
@@ -458,4 +535,87 @@ func DetachLoopDevice(file string) {
 	}
 
 	_ = cmd.RunAndLog(args...)
+}
+
+// GenerateTabFiles creates the /etc mounting files if needed
+func GenerateTabFiles(rootDir string, medias []*BlockDevice) error {
+	var crypttab []string
+	var fstab []string
+	var errFound bool
+
+	for _, curr := range medias {
+		for _, ch := range curr.Children {
+			// Handle Encrypted partitions
+			var ctab []string
+			var ftab []string
+
+			if ch.Type == BlockDeviceTypeCrypt {
+				if ch.FsType == "swap" {
+					ctab = append(ctab, filepath.Base(ch.MappedName), ch.GetDeviceID(),
+						"/dev/urandom",
+						fmt.Sprintf("swap,offset=2048,cipher=%s,size=%d",
+							EncryptCipher, EncryptKeySize))
+
+					ftab = append(ftab, ch.GetMappedDeviceFile(), "none",
+						"swap", "defaults", "0", "0")
+				} else {
+					if !ch.isStandardMount() {
+						ctab = append(ctab, filepath.Base(ch.MappedName), ch.GetDeviceID())
+						ftab = append(ftab, ch.GetMappedDeviceFile(), ch.MountPoint,
+							ch.FsType, "defaults", "0", "2")
+					}
+				}
+			} else {
+				if !ch.isStandardMount() && ch.MountPoint != "" {
+					ftab = append(ftab, ch.GetDeviceID(), ch.MountPoint,
+						ch.FsType, "defaults", "0", "2")
+				}
+			}
+
+			if len(ctab) > 0 {
+				crypttab = append(crypttab, strings.Join(ctab, " "))
+			}
+			if len(ftab) > 0 {
+				fstab = append(fstab, strings.Join(ftab, " "))
+			}
+		}
+	}
+
+	if len(crypttab) > 0 {
+		etcDir := filepath.Join(rootDir, "etc")
+		crypttabFile := filepath.Join(rootDir, "etc", "crypttab")
+		lines := strings.Join(crypttab, "\n") + "\n"
+
+		if err := utils.MkdirAll(etcDir, 0755); err != nil {
+			log.Error("Failed to create %s dir: %v", etcDir, err)
+			errFound = true
+		}
+
+		if err := ioutil.WriteFile(crypttabFile, []byte(lines), 0644); err != nil {
+			log.Error("Failed to write crypttab: %v", err)
+			errFound = true
+		}
+	}
+
+	if len(fstab) > 0 {
+		etcDir := filepath.Join(rootDir, "etc")
+		fstabFile := filepath.Join(rootDir, "etc", "fstab")
+		lines := strings.Join(fstab, "\n") + "\n"
+
+		if err := utils.MkdirAll(etcDir, 0755); err != nil {
+			log.Error("Failed to create %s dir: %v", etcDir, err)
+			errFound = true
+		}
+
+		if err := ioutil.WriteFile(fstabFile, []byte(lines), 0644); err != nil {
+			log.Error("Failed to write fstab: %v", err)
+			errFound = true
+		}
+	}
+
+	if errFound {
+		return errors.Errorf("Error while creating mount files")
+	}
+
+	return nil
 }
