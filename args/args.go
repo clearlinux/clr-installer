@@ -44,6 +44,7 @@ type Args struct {
 	LogFile                 string
 	ConfigFile              string
 	CfDownloaded            bool
+	CryptPassFile           string
 	SwupdMirror             string
 	SwupdStateDir           string
 	SwupdFormat             string
@@ -136,6 +137,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.StringVarP(
 		&args.ConfigFile, "config", "c", args.ConfigFile, "Installation configuration file",
+	)
+
+	flag.StringVar(
+		&args.CryptPassFile, "crypt-file", args.CryptPassFile, "File containing the cryptsetup password",
 	)
 
 	flag.StringVar(

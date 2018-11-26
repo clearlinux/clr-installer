@@ -25,6 +25,7 @@ import (
 // A BlockDevice describes a block device and its partitions
 type BlockDevice struct {
 	Name            string           // device name
+	MappedName      string           // mapped device name
 	Model           string           // device model
 	MajorMinor      string           // major:minor device number
 	FsType          string           // filesystem type
@@ -85,6 +86,9 @@ const (
 	// BlockDeviceTypeLVM2Volume identifies a BlockDevice as a lvm2 volume
 	BlockDeviceTypeLVM2Volume
 
+	// BlockDeviceTypeCrypt identifies a BlockDevice as an encrypted partition (created with cryptsetup)
+	BlockDeviceTypeCrypt
+
 	// BlockDeviceTypeLoop identifies a BlockDevice as a loop device (created with losetup)
 	BlockDeviceTypeLoop
 
@@ -118,6 +122,7 @@ var (
 	blockDeviceTypeMap = map[BlockDeviceType]string{
 		BlockDeviceTypeDisk:       "disk",
 		BlockDeviceTypePart:       "part",
+		BlockDeviceTypeCrypt:      "crypt",
 		BlockDeviceTypeLoop:       "loop",
 		BlockDeviceTypeRom:        "rom",
 		BlockDeviceTypeLVM2Group:  "LVM2_member",
@@ -161,6 +166,32 @@ func (bd BlockDevice) GetDeviceFile() string {
 	return filepath.Join("/dev/", bd.Name)
 }
 
+// GetMappedDeviceFile formats the block device's file path
+// using the mapped device name
+func (bd BlockDevice) GetMappedDeviceFile() string {
+
+	if bd.MappedName != "" {
+		return filepath.Join("/dev/", bd.MappedName)
+	}
+
+	return filepath.Join("/dev/", bd.Name)
+}
+
+// GetDeviceID returns an identifier for the block device
+// First trying, label, then UUID, then finally the raw device
+// String is suitable for the /etc/fstab
+func (bd BlockDevice) GetDeviceID() string {
+	if bd.Label != "" {
+		return "LABEL=" + bd.Label
+	}
+
+	if bd.UUID != "" {
+		return "UUID=" + bd.UUID
+	}
+
+	return bd.GetDeviceFile()
+}
+
 func (bt BlockDeviceType) String() string {
 	return blockDeviceTypeMap[bt]
 }
@@ -193,6 +224,7 @@ func parseBlockDeviceState(bds string) (BlockDeviceState, error) {
 func (bd *BlockDevice) Clone() *BlockDevice {
 	clone := &BlockDevice{
 		Name:            bd.Name,
+		MappedName:      bd.MappedName,
 		Model:           bd.Model,
 		MajorMinor:      bd.MajorMinor,
 		FsType:          bd.FsType,
@@ -273,18 +305,32 @@ func (bd *BlockDevice) GetConfiguredStatus() ConfigStatus {
 	return status
 }
 
+// FsTypeNotSwap returns true if the file system type is not swap
+func (bd *BlockDevice) FsTypeNotSwap() bool {
+	return bd.FsType != "swap"
+}
+
 // Validate checks if the minimal requirements for a installation is met
-func (bd *BlockDevice) Validate(legacyBios bool) error {
+func (bd *BlockDevice) Validate(legacyBios bool, cryptPass string) error {
 	bootPartition := false
 	rootPartition := false
+	encrypted := false
 
 	for _, ch := range bd.Children {
 		if ch.FsType == "vfat" && ch.MountPoint == "/boot" {
 			bootPartition = true
+
+			if ch.Type == BlockDeviceTypeCrypt {
+				return errors.Errorf("Encryption of /boot is not supported")
+			}
 		}
 
 		if ch.MountPoint == "/" {
 			rootPartition = true
+		}
+
+		if ch.Type == BlockDeviceTypeCrypt && ch.FsTypeNotSwap() {
+			encrypted = true
 		}
 	}
 
@@ -294,6 +340,10 @@ func (bd *BlockDevice) Validate(legacyBios bool) error {
 
 	if !rootPartition {
 		return errors.Errorf("Could not find a root partition")
+	}
+
+	if encrypted && cryptPass == "" {
+		return errors.Errorf("Encrypted file system enabled, but missing passphase")
 	}
 
 	return nil
@@ -491,6 +541,40 @@ func listBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
 	}
 
 	return merged, nil
+}
+
+// UpdateBlockDevices updates the Label and UUID information only
+// for existing available block devices
+func UpdateBlockDevices(medias []*BlockDevice) error {
+
+	bds, err := listBlockDevices(nil)
+	if err != nil {
+		return err
+	}
+
+	// Loop though all used media devices and update
+	// the labels and uuid
+	for _, media := range medias {
+		updateBlockDevices(media, bds)
+	}
+
+	return nil
+}
+
+func updateBlockDevices(toBeUpdated *BlockDevice, updates []*BlockDevice) {
+	for _, update := range updates {
+		if toBeUpdated.Name == update.Name {
+			if toBeUpdated.Children == nil {
+				toBeUpdated.Label = update.Label
+				toBeUpdated.UUID = update.UUID
+				return
+			}
+
+			for _, child := range toBeUpdated.Children {
+				updateBlockDevices(child, update.Children)
+			}
+		}
+	}
 }
 
 // RescanBlockDevices Clear current list available block devices and rescans
