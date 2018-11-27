@@ -558,11 +558,13 @@ func TestWritePartition(t *testing.T) {
 		bd.Name = path.Base(file)
 		part1 := &BlockDevice{Name: bd.Name + "p1", FsType: "vfat", Size: 157286400, Type: BlockDeviceTypePart, MountPoint: "/boot"}
 		part2 := &BlockDevice{Name: bd.Name + "p2", FsType: "swap", Size: 125829120, Type: BlockDeviceTypePart, MountPoint: ""}
-		part3 := &BlockDevice{Name: bd.Name + "p3", FsType: "ext4", Size: 1004535808, Type: BlockDeviceTypePart, MountPoint: "/"}
+		part3 := &BlockDevice{Name: bd.Name + "p3", FsType: "ext4", Size: 502267904, Type: BlockDeviceTypePart, MountPoint: "/"}
+		part4 := &BlockDevice{Name: bd.Name + "p4", FsType: "ext4", Size: 502267904, Type: BlockDeviceTypeCrypt, MountPoint: "/home"}
 
 		children = append(children, part1)
 		children = append(children, part2)
 		children = append(children, part3)
+		children = append(children, part4)
 		bd.Children = children
 
 		//write the partition table
@@ -572,10 +574,25 @@ func TestWritePartition(t *testing.T) {
 
 		// prepare the blockdevice's partitions filesystem
 		for _, ch := range bd.Children {
+			if ch.Type == BlockDeviceTypeCrypt {
+				if ch.FsType != "swap" {
+					t.Logf("Mapping %s partition to an encrypted partition", ch.Name)
+					if err = ch.MapEncrypted("P@ssW0rd"); err != nil {
+						t.Fatalf("Could not Map Encrypted  partition (%s): %s", ch.Name, err)
+					}
+				}
+			}
 			if err = ch.MakeFs(); err != nil {
 				t.Fatalf("Could not MakeFs partition (%s): %s", ch.Name, err)
 			}
+		}
+		bds := []*BlockDevice{bd}
+		if scanErr := UpdateBlockDevices(bds); scanErr != nil {
+			t.Fatalf("Could not UpdateBlockDevices: %s", scanErr)
+		}
 
+		if UmountAll() != nil {
+			t.Fatalf("Could not unmount volumes")
 		}
 	}
 }
@@ -603,6 +620,16 @@ func TestValidDiskSize(t *testing.T) {
             {"name": "sdc2", "maj:min": "8:34", "rm": "0", "size": "1.8T", "ro": "0", "type": "part", "mountpoint": null}
          ]
       },
+      {"name": "sde", "maj:min": "8:128", "rm": "0", "size": "2.0T", "rw": "0", "type": "disk", "mountpoint": null,
+         "children": [
+            {"name": "sde1", "maj:min": "8:129", "rm": "0", "size": "512M", "rw": "0", "type": "part", "mountpoint": "/boot"},
+            {"name": "sde2", "maj:min": "8:130", "rm": "0", "size": "97.7G", "rw": "0", "type": "part", "mountpoint": null},
+            {"name": "sde3", "maj:min": "8:131", "rm": "0", "size": "31.9G", "rw": "0", "type": "crypt", "mountpoint": "/"},
+            {"name": "sde4", "maj:min": "8:132", "rm": "0", "size": "97.7G", "rw": "0", "type": "crypt", "mountpoint": "/home"},
+            {"name": "sde5", "maj:min": "8:133", "rm": "0", "size": "0.6T", "rw": "0", "type": "crypt", "mountpoint": "/secure"},
+            {"name": "sde6", "maj:min": "8:134", "rm": "0", "size": "1.0T", "rw": "0", "type": "part", "mountpoint": "/db"}
+         ]
+      },
       {"name": "sr0", "maj:min": "11:0", "rm": "1", "size": "1024M", "ro": "0", "type": "rom", "mountpoint": null}
    ]
 }`
@@ -618,6 +645,21 @@ func TestValidDiskSize(t *testing.T) {
 			t.Fatalf("Invalid Disk Size: %s", err)
 		}
 		t.Logf("Disk %s is Size %d", bd.Name, size)
+
+		if bd.Name == "sde" {
+			for _, ch := range bd.Children {
+				isStandard := ch.isStandardMount()
+				if ch.Name == "sde2" || ch.Name == "sde5" || ch.Name == "sde6" {
+					if isStandard {
+						t.Fatalf("Partition %s should NOT be standard [%s]", ch.Name, ch.MountPoint)
+					}
+				} else {
+					if !isStandard {
+						t.Fatalf("Partition %s should be standard [%s]", ch.Name, ch.MountPoint)
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -647,5 +689,189 @@ func TestInvalidDiskSize(t *testing.T) {
 			t.Fatalf("Disk %s Size should be invalid", bd.Name)
 		}
 		t.Logf("Disk %s is Size %d", bd.Name, size)
+	}
+}
+
+func TestValidLabels(t *testing.T) {
+	labelInfo := []struct {
+		fstype string
+		label  string
+	}{
+		{"ext2", "a"},
+		{"ext2", "root"},
+		{"ext2", "1234567890123456"},
+		{"ext3", "a"},
+		{"ext3", "Root"},
+		{"ext3", "1234567890123456"},
+		{"ext4", "a"},
+		{"ext4", "ROOT"},
+		{"ext4", "1234567890123456"},
+		{"swap", "SWAP"},
+		{"swap", "123456789012345"},
+		{"xfs", "home"},
+		{"xfs", "123456789012"},
+		{"btrfs", "home"},
+		{"btrfs", "12345678901234567890123456789012345678901234567890" +
+			"12345678901234567890123456789012345678901234567890" +
+			"12345678901234567890123456789012345678901234567890" +
+			"12345678901234567890123456789012345678901234567890" +
+			"12345678901234567890123456789012345678901234567890" +
+			"12345"},
+		{"vfat", "BOOT"},
+		{"vfat", "12345678901"},
+		{"unknown", "BOOT"},
+		{"unknown", "12345678901"},
+	}
+
+	for _, curr := range labelInfo {
+		if result := IsValidLabel(curr.label, curr.fstype); result != "" {
+			t.Fatalf("Label %q should be valid for fstype %q: %s", curr.label, curr.fstype, result)
+		}
+	}
+}
+
+func TestInvalidLabels(t *testing.T) {
+	labelInfo := []struct {
+		fstype string
+		label  string
+	}{
+		{"ext2", "!"},
+		{"ext2", "12345678901234567"},
+		{"ext3", "@"},
+		{"ext3", "12345678901234567890"},
+		{"ext4", "$"},
+		{"ext4", "1234567890123456789012345"},
+		{"swap", "	"},
+		{"swap", "1234567890123456"},
+		{"xfs", "*"},
+		{"xfs", "1234567890123"},
+		{"btrfs", "("},
+		{"btrfs", ")"},
+		{"btrfs", "="},
+		{"btrfs", "12345678901234567890123456789012345678901234567890" +
+			"12345678901234567890123456789012345678901234567890" +
+			"12345678901234567890123456789012345678901234567890" +
+			"12345678901234567890123456789012345678901234567890" +
+			"12345678901234567890123456789012345678901234567890" +
+			"123456"},
+		{"vfat", "#"},
+		{"vfat", "123456789012"},
+		{"unknown", "~"},
+		{"unknown", "123456789012"},
+	}
+
+	for _, curr := range labelInfo {
+		if result := IsValidLabel(curr.label, curr.fstype); result == "" {
+			t.Fatalf("Label %q should be INVALID for fstype %q", curr.label, curr.fstype)
+		}
+	}
+}
+
+func TestValidPassphrase(t *testing.T) {
+	passphrases := []string{
+		"password",
+		"P@ssW0rd",
+		"1234567890123456789012345678901234567890" +
+			"1234567890123456789012345678901234567890" +
+			"12345678901234",
+		"~!@#$%^&*()_+=][",
+	}
+
+	for _, curr := range passphrases {
+		if valid, result := IsValidPassphrase(curr); !valid {
+			t.Fatalf("Passphrase %q should be valid: %s ", curr, result)
+		}
+	}
+}
+
+func TestInvalidPassphrase(t *testing.T) {
+	passphrases := []string{
+		"",
+		"@ssW0rd",
+		"								",
+		"1234567890123456789012345678901234567890" +
+			"1234567890123456789012345678901234567890" +
+			"123456789012345",
+		"~!)_+][",
+	}
+
+	for _, curr := range passphrases {
+		if valid, _ := IsValidPassphrase(curr); valid {
+			t.Fatalf("Passphrase %q should be INVALID", curr)
+		}
+	}
+}
+
+func TestValidMakeFsCommand(t *testing.T) {
+	lsblkOutput := `{
+   "blockdevices": [
+      {"name": "sde", "maj:min": "8:128", "rm": "0", "size": "2.0T", "rw": "0", "type": "disk", "mountpoint": null,
+         "children": [
+            {"name": "sde1", "maj:min": "8:129", "rm": "0", "fstype": "vfat", "label": "boot", "size": "512M", "rw": "0", "type": "part", "mountpoint": "/boot"},
+            {"name": "sde2", "maj:min": "8:130", "rm": "0", "fstype": "swap", "label": "swap", "size": "128M", "rw": "0", "type": "part", "mountpoint": null},
+            {"name": "sde3", "maj:min": "8:131", "rm": "0", "fstype": "ext4", "label": "root", "size": "6G", "rw": "0", "type": "crypt", "mountpoint": "/"},
+            {"name": "sde4", "maj:min": "8:132", "rm": "0", "fstype": "ext4", "label": "home", "size": "1G", "rw": "0", "type": "crypt", "mountpoint": "/home"},
+            {"name": "sde5", "maj:min": "8:133", "rm": "0", "fstype": "xfs", "label": "secure", "size": "1.6T", "rw": "0", "type": "crypt", "mountpoint": "/secure"}
+         ]
+      }
+   ]
+}`
+
+	bds, err := parseBlockDevicesDescriptor([]byte(lsblkOutput))
+	extraCmds := []string{}
+
+	if err != nil {
+		t.Fatalf("Could not parser block device descriptor: %s", err)
+	}
+
+	for _, bd := range bds {
+		if bd.FsTypeNotSwap() {
+			if cmd, err := commonMakeFsCommand(bd, extraCmds); err != nil {
+				t.Fatalf("Could not discover the mkfs command: %s", err)
+			} else {
+				t.Logf("Disk %s uses %s", bd.Name, cmd)
+			}
+		} else {
+			if cmd, err := swapMakeFsCommand(bd, extraCmds); err != nil {
+				t.Fatalf("Could not discover the swap command: %s", err)
+			} else {
+				t.Logf("Disk %s uses %s", bd.Name, cmd)
+			}
+		}
+	}
+}
+
+func TestWriteConfigFiles(t *testing.T) {
+	lsblkOutput := `{
+   "blockdevices": [
+      {"name": "sde", "maj:min": "8:128", "rm": "0", "size": "2.0T", "rw": "0", "type": "disk", "mountpoint": null,
+         "children": [
+            {"name": "sde1", "maj:min": "8:129", "rm": "0", "fstype": "vfat", "label": "boot", "size": "512M", "rw": "0", "type": "part", "mountpoint": "/boot"},
+            {"name": "sde2", "maj:min": "8:130", "rm": "0", "fstype": "swap", "label": "swap", "size": "128M", "rw": "0", "type": "crypt", "mountpoint": null},
+            {"name": "sde3", "maj:min": "8:131", "rm": "0", "fstype": "ext4", "label": "root", "size": "6G", "rw": "0", "type": "crypt", "mountpoint": "/"},
+            {"name": "sde4", "maj:min": "8:132", "rm": "0", "fstype": "ext4", "label": "share", "size": "1G", "rw": "0", "type": "part", "mountpoint": "/share"},
+            {"name": "sde5", "maj:min": "8:133", "rm": "0", "fstype": "xfs", "label": "secure", "size": "1.6T", "rw": "0", "type": "crypt", "mountpoint": "/secure"}
+         ]
+      }
+   ]
+}`
+
+	bds, bdsErr := parseBlockDevicesDescriptor([]byte(lsblkOutput))
+
+	if bdsErr != nil {
+		t.Fatalf("Could not parser block device descriptor: %s", bdsErr)
+	}
+
+	rootDir, err := ioutil.TempDir("", "clr-installer-storage-test")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() {
+		_ = os.RemoveAll(rootDir)
+	}()
+
+	if err := GenerateTabFiles(rootDir, bds); err != nil {
+		t.Fatalf("Failed to create directories to write config file: %v\n", err)
 	}
 }

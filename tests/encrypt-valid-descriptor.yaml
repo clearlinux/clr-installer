@@ -1,0 +1,29 @@
+---
+targetMedia:
+- name: sda
+  type: disk
+  children:
+  - name: sda1
+    size: 150M
+    type: part
+    fstype: vfat
+    mountpoint: "/boot"
+  - name: sda2
+    size: 1.364G
+    type: crypt
+    fstype: swap
+  - name: sda3
+    size: 2G
+    type: crypt
+    fstype: ext4
+    mountpoint: "/home"
+  - name: sda4
+    size: 4G
+    type: crypt
+    fstype: ext4
+    mountpoint: "/"
+bundles: [os-core, os-core-update]
+keyboard: us
+language: us.UTF-8
+telemetry: true
+kernel: native-native
