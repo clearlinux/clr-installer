@@ -270,6 +270,11 @@ func TestAddTargetMedia(t *testing.T) {
 	clone := loaded.TargetMedias[0].Clone()
 	clone.Name = clone.Name + "-cloned"
 
+	// Check for encryption passphrase needed; should not
+	if nm.EncryptionRequiresPassphrase() {
+		t.Fatal("nm.EncryptionRequiresPassphrase() should NOT be true")
+	}
+
 	nm.AddTargetMedia(clone)
 	if len(nm.TargetMedias) == cl {
 		t.Fatal("AddTargetMedia() failed to add a cloned and modified target media")
@@ -409,5 +414,35 @@ func TestRemoveKernelArguments(t *testing.T) {
 
 	if l < len(si.KernelArguments.Remove) {
 		t.Fatal("The duplication check has failed")
+	}
+}
+
+func TestAddEncryptedTargetMedia(t *testing.T) {
+	path := filepath.Join(testsDir, "encrypt-valid-descriptor.yaml")
+	loaded, err := LoadFile(path, args.Args{})
+
+	if err != nil {
+		t.Fatal("Failed to load a valid descriptor")
+	}
+
+	nm := &SystemInstall{}
+	nm.AddTargetMedia(loaded.TargetMedias[0])
+	if len(nm.TargetMedias) != 1 {
+		t.Fatal("Failed to add target media to model")
+	}
+	cl := len(nm.TargetMedias)
+
+	// AddTargetMedia() should always add non equal medias
+	clone := loaded.TargetMedias[0].Clone()
+	clone.Name = clone.Name + "-cloned"
+
+	// Check for encryption passphrase needed; should not
+	if !nm.EncryptionRequiresPassphrase() {
+		t.Fatal("nm.EncryptionRequiresPassphrase() must always be true")
+	}
+
+	nm.AddTargetMedia(clone)
+	if len(nm.TargetMedias) == cl {
+		t.Fatal("AddTargetMedia() failed to add a cloned and modified target media")
 	}
 }
