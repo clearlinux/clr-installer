@@ -296,6 +296,8 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 
 	if encryptedUsed {
 		model.AddBundle(storage.RequiredBundle)
+		kernelArgs := []string{storage.KernelArgument}
+		model.AddExtraKernelArguments(kernelArgs)
 	}
 
 	msg := fmt.Sprintf("Writing mount files")
