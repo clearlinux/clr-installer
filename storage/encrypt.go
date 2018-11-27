@@ -27,6 +27,8 @@ const (
 
 	// RequiredBundle the bundle needed if encrypted partitions are used
 	RequiredBundle = "boot-encrypted"
+	// KernelArgument is kernel argument needed if encrypted partitions are used
+	KernelArgument = "rootflags=x-systemd.device-timeout=0"
 
 	// EncryptHash use for LUKS encryption
 	EncryptHash = "sha256"
