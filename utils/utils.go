@@ -81,22 +81,22 @@ func FileExists(filePath string) (bool, error) {
 }
 
 // VerifyRootUser returns an error if we're not running as root
-func VerifyRootUser() error {
+func VerifyRootUser() string {
 	// ProgName is the short name of this executable
 	progName := path.Base(os.Args[0])
 
 	user, err := user.Current()
 	if err != nil {
-		return errors.Errorf("%s MUST run as 'root' user to install! (user=%s)",
+		return fmt.Sprintf("%s MUST run as 'root' user to install! (user=%s)",
 			progName, "UNKNOWN")
 	}
 
 	if user.Uid != "0" {
-		return errors.Errorf("%s MUST run as 'root' user to install! (user=%s)",
+		return fmt.Sprintf("%s MUST run as 'root' user to install! (user=%s)",
 			progName, user.Uid)
 	}
 
-	return nil
+	return ""
 }
 
 // IsClearLinux checks if the current OS is Clear by looking for Swupd
