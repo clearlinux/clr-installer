@@ -90,7 +90,13 @@ func (page *DiskConfigPage) GetConfiguredValue() string {
 
 	for _, curr := range page.getModel().TargetMedias {
 		for _, part := range curr.Children {
-			tks := []string{part.Name, part.FsType}
+			tks := []string{part.Name}
+
+			if part.Type == storage.BlockDeviceTypeCrypt {
+				tks = append(tks, part.FsType+"*")
+			} else {
+				tks = append(tks, part.FsType)
+			}
 
 			if part.MountPoint != "" {
 				tks = append(tks, part.MountPoint)
