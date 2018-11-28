@@ -5,10 +5,13 @@
 package storage
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -79,17 +82,9 @@ func (bd *BlockDevice) MapEncrypted(passphrase string) error {
 		return errors.Wrap(err)
 	}
 
-	var mapped string
-
-	// Special case for mapping 'root'
-	if bd.MountPoint == "/" {
-		mapped = "root"
-	} else {
-		// make the mapped device all lower case
-		// drop the leading '/'
-		mapped = strings.TrimPrefix(strings.ToLower(bd.MountPoint), "/")
-		// replace '/' with '_'
-		mapped = strings.Replace(mapped, "/", "_", -1)
+	mapped, err := bd.getMappedName()
+	if err != nil {
+		return errors.Wrap(err)
 	}
 
 	args = []string{
@@ -128,6 +123,99 @@ func unMapEncrypted(mapped string) error {
 	}
 
 	return nil
+}
+
+// getMappedName uses dmsetup to find already mapped encrypted
+// names and return and available, unique name
+func (bd *BlockDevice) getMappedName() (string, error) {
+	var mapped string
+
+	// Special case for mapping 'root'
+	if bd.MountPoint == "/" {
+		mapped = "root"
+	} else {
+		// make the mapped device all lower case
+		// drop the leading '/'
+		mapped = strings.TrimPrefix(strings.ToLower(bd.MountPoint), "/")
+		// replace '/' with '_'
+		mapped = strings.Replace(mapped, "/", "_", -1)
+	}
+
+	args := []string{
+		"dmsetup",
+		"ls",
+		"--target",
+		"crypt",
+	}
+
+	w := bytes.NewBuffer(nil)
+	err := cmd.Run(w, args...)
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+
+	lines := strings.Split(w.String(), "\n")
+	nameOkay := false
+	try := 0
+	for !nameOkay && try < 5 {
+		try++
+		inList := false
+
+		for _, curr := range lines {
+			log.Debug("line is: %s", curr)
+			parts := strings.Fields(curr)
+			if len(parts) < 1 {
+				continue
+			}
+
+			log.Debug("Comparing: %s", parts[0])
+
+			if mapped == parts[0] {
+				inList = true
+				log.Debug("Found InList: %s", mapped)
+			}
+		}
+
+		if inList {
+			log.Debug("Still Found InList: %s", mapped)
+			mapped = getNewMappedName(mapped)
+			log.Debug("New Mapped Name is : %s", mapped)
+		} else {
+			nameOkay = true
+		}
+	}
+
+	if try >= 5 && !nameOkay {
+		return "", errors.Errorf("Tried 5 times, but could not map encrypted name")
+	}
+
+	return mapped, nil
+}
+
+// getNewMappedName converts the ending string to an integer and increment
+func getNewMappedName(input string) string {
+	if input == "" {
+		return input
+	}
+
+	matchLabel := regexp.MustCompile(`^(.*?)([0-9]{0,})$`)
+
+	matches := matchLabel.FindStringSubmatch(input)
+
+	mapped := ""
+	if len(matches) == 3 {
+		suffix, err := strconv.ParseUint(matches[2], 10, 64)
+		if err == nil {
+			suffix = suffix + 1
+		} else {
+			suffix = 1
+		}
+		mapped = matches[1] + strconv.FormatUint(suffix, 10)
+	} else {
+		mapped = input
+	}
+
+	return mapped
 }
 
 // IsValidPassphrase checks the minimum passphrase requirements
