@@ -456,11 +456,9 @@ func listBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
 		return nil, err
 	}
 
-	if err = utils.VerifyRootUser(); err == nil {
-		for _, bd := range bds {
-			if err = bd.PartProbe(); err != nil {
-				return nil, err
-			}
+	for _, bd := range bds {
+		if err = bd.PartProbe(); err != nil {
+			return nil, err
 		}
 	}
 

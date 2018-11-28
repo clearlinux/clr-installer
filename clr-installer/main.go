@@ -29,6 +29,7 @@ import (
 	"github.com/clearlinux/clr-installer/telemetry"
 	"github.com/clearlinux/clr-installer/timezone"
 	"github.com/clearlinux/clr-installer/tui"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 var (
@@ -136,6 +137,14 @@ func main() {
 
 	if options.Version {
 		fmt.Println(path.Base(os.Args[0]) + ": " + model.Version)
+		return
+	}
+
+	// First verify we are running as 'root' user which is required
+	// for most of the Installation commands
+	if errString := utils.VerifyRootUser(); errString != "" {
+		fmt.Println(errString)
+		log.Error("Not running as root: %v", errString)
 		return
 	}
 

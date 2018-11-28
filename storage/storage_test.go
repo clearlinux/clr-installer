@@ -250,13 +250,17 @@ func TestSizeUnits(t *testing.T) {
 }
 
 func TestListBlockDevices(t *testing.T) {
-	bd, err := ListBlockDevices(nil)
-	if err != nil {
-		t.Fatalf("Should have listed block devices: %s", err)
-	}
+	if !utils.IsRoot() {
+		t.Log("Not running as 'root', not using Loopback device")
+	} else {
+		bd, err := ListBlockDevices(nil)
+		if err != nil {
+			t.Fatalf("Should have listed block devices: %s", err)
+		}
 
-	if len(bd) == 0 {
-		t.Fatalf("At least one block device should be listed")
+		if len(bd) == 0 {
+			t.Fatalf("At least one block device should be listed")
+		}
 	}
 }
 
