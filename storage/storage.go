@@ -575,10 +575,61 @@ func getNextStrToken(dec *json.Decoder, name string) (string, error) {
 	return str, nil
 }
 
+func getNextByteToken(dec *json.Decoder, name string) (uint64, error) {
+	var byteSize uint64
+	var err error
+
+	dec.UseNumber()
+	token, _ := dec.Token()
+	if token == nil {
+		return 0, nil
+	}
+
+	switch t := token.(type) {
+	case json.Number:
+		// Is it an unsigned int value (lsblk >= 2.33)
+		var n int64
+
+		n, err = t.Int64()
+		if err != nil {
+			return 0, err
+		}
+
+		byteSize = uint64(n)
+
+	case string:
+		// Is it a string value (lsblk < 2.33)
+
+		str, sValid := token.(string)
+		if !sValid {
+			return 0, errors.Errorf("\"%s\" token is neither an uint64 nor a string value", name)
+		}
+
+		byteSize, err = ParseVolumeSize(str)
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return byteSize, nil
+}
+
 func getNextBoolToken(dec *json.Decoder, name string) (bool, error) {
-	str, err := getNextStrToken(dec, name)
-	if err != nil {
-		return false, err
+	t, _ := dec.Token()
+	if t == nil {
+		return false, nil
+	}
+
+	// Is it a boolean value (lsblk >= 2.33)
+	b, bValid := t.(bool)
+	if bValid {
+		return b, nil
+	}
+
+	// Is it a string value (lsblk < 2.33)
+	str, sValid := t.(string)
+	if !sValid {
+		return false, errors.Errorf("\"%s\" token is neither a boolean nor a string value", name)
 	}
 
 	if str == "0" {
@@ -727,17 +778,14 @@ func (bd *BlockDevice) UnmarshalJSON(b []byte) error {
 
 			bd.MajorMinor = majMin
 		case "size":
-			var size string
+			var size uint64
 
-			size, err = getNextStrToken(dec, "size")
+			size, err = getNextByteToken(dec, "size")
 			if err != nil {
 				return err
 			}
 
-			bd.Size, err = ParseVolumeSize(size)
-			if err != nil {
-				return err
-			}
+			bd.Size = size
 		case "fstype":
 			var fstype string
 
