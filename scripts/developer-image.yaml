@@ -22,7 +22,7 @@ targetMedia:
   - name: ${installer}3
     fstype: ext4
     mountpoint: /
-    size: "2.6G"
+    size: "3.0G"
     type: part
 
 bundles: [os-core, os-core-update, clr-installer]
@@ -33,6 +33,7 @@ telemetry: false
 keyboard: us
 language: en_US.UTF-8
 kernel: kernel-native
+kernel-arguments: {add: [clri.loglevel=4], remove: [console=ttyS0,115200n8]}
 
 pre-install: [
    {cmd: "scripts/developer-image-pre.sh"}
