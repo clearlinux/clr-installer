@@ -28,22 +28,56 @@ DESKTOP_DIR=$(DESTDIR)/usr/share/applications/
 CONFIG_DIR=$(DESTDIR)/usr/share/defaults/clr-installer/
 SYSTEMD_DIR=$(DESTDIR)/usr/lib/systemd/system/
 
-VERSION=$(shell git describe --tags --always --dirty  --match '[0-9]*.[0-9]*.[0-9]*' --exclude '[0-9]*.[0-9]*.[0-9]*.*[0-9]')
 BUILDDATE=$(shell date -u "+%Y-%m-%d_%H:%M:%S_%Z")
+# Are we running from a Git Repo?
+$(shell [ -d .git ] || git rev-parse --is-inside-work-tree > /dev/null 2>&1)
+ifeq ($(.SHELLSTATUS),0)
+IS_GIT_REPO=1
+else
+IS_GIT_REPO=0
+endif
+
+ifeq ($(IS_GIT_REPO),1)
+# Use the git tag and SHA
+# Standard build case from Git repo
+VERSION=$(shell git describe --tags --always --dirty  --match '[0-9]*.[0-9]*.[0-9]*' --exclude '[0-9]*.[0-9]*.[0-9]*.*[0-9]')
+else
+# If VERSION is defined in the environment, use it; otherwise...
+ifeq ($(VERSION),)
+# Attempt to parse from the directory name
+# Building from a versioned source archive
+mkfile_dir=$(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
+VERSION=$(shell basename $(mkfile_dir) | awk -F- '{print $$NF}')
+endif
+endif
+
+# Validate the Version
+validate_version:
+ifeq ($(IS_GIT_REPO),0)
+ifeq (,$(shell echo $(VERSION) | egrep '^[0-9]+.[0-9]+.[0-9]+$$' 2> /dev/null))
+	@echo "Invalid version string: $(VERSION)"
+	@exit 1
+endif
+endif
 
 .PHONY: gopath
-
 ifeq (,$(findstring ${GO_PACKAGE_PREFIX},${CURDIR}))
 LOCAL_GOPATH := ${CURDIR}/.gopath
 export GOPATH := ${LOCAL_GOPATH}
 gopath:
 	@rm -rf ${LOCAL_GOPATH}/src
 	@mkdir -p ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
+ifeq ($(IS_GIT_REPO),1)
+# Smart copy only files under version control
 	@tar cf - `git ls-files` | tar xf - --directory=${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
+else
+	@cp -af * ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
+endif
 else
 LOCAL_GOPATH :=
 GOPATH ?= ${HOME}/go
 gopath:
+	@echo "GRS: $(GRS)"
 	@echo "Code already in existing GOPATH=${GOPATH}"
 endif
 
@@ -84,14 +118,14 @@ build-vendor: build
    done
 	@rm -rf .gopath/src/*
 
-build: gopath
+build: validate_version gopath
 	go get -v ${GO_PACKAGE_PREFIX}/clr-installer
 	go install -v \
 		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
 		-X github.com/clearlinux/clr-installer/model.BuildDate=${BUILDDATE}" \
 		${GO_PACKAGE_PREFIX}/clr-installer
 
-build-local-travis: gopath
+build-local-travis: validate_version gopath
 	@go get -v ${GO_PACKAGE_PREFIX}/local-travis
 	@go install -v \
 		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
@@ -246,12 +280,13 @@ vendor-add: dep-install
 
 
 PHONY += tag
+ifeq ($(IS_GIT_REPO),1)
 tag:
 	@if git diff-index --quiet HEAD &>/dev/null; then \
 		if git diff @{upstream}.. --quiet &>/dev/null; then \
 			echo "Create and push the Tag to GitHub"; \
 			echo "git tag <version>"; \
-			echo "git push --tags"; \
+			echo "git push <remote> <version>"; \
 		else \
 			echo "Unpushed changes; git push upstream and try again."; \
 			exit 1; \
@@ -259,14 +294,25 @@ tag:
 	else \
 		echo "Uncomiited changes; git commit and try again."; \
 		exit 1; \
-	fi \
+	fi
+else
+tag:
+	@echo "Not running from Git Repo; tag will not work."
+	@exit 1
+endif
 
 PHONY += clean
+ifeq ($(IS_GIT_REPO),1)
 clean:
 	@go clean -i -r
 	@git clean -fdXq
+else
+clean:
+	@go clean -i -r
+endif
 
 PHONY += distclean
+ifeq ($(IS_GIT_REPO),1)
 dist-clean: clean
 	@if [ "$$(git status -s)" = "" ]; then \
 		git clean -fdxq; \
@@ -276,7 +322,11 @@ dist-clean: clean
 		echo "There are pending changes in the repository!"; \
 		git status -s; \
 		echo "Please check in changes or stash, and try again."; \
-	fi \
+	fi
+else
+dist-clean: clean
+	@go clean -testcache
+endif
 
 all: build
 
