@@ -493,6 +493,7 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 		addButton.OnClick(func(ev clui.Event) {
 			newPart := &storage.BlockDevice{
 				FsType:     "ext4",
+				Type:       storage.BlockDeviceTypePart,
 				MountPoint: "",
 				Size:       freeSpace,
 				Parent:     bd,
