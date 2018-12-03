@@ -333,6 +333,8 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 			sel.part.FsType = page.fsList.SelectedItemText()
 			if page.encryptCheck.State() != 0 {
 				sel.part.Type = storage.BlockDeviceTypeCrypt
+			} else {
+				sel.part.Type = storage.BlockDeviceTypePart
 			}
 			sel.part.Label = page.labelEdit.Title()
 			sel.part.MountPoint = page.mPointEdit.Title()
