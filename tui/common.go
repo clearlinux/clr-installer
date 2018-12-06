@@ -151,6 +151,9 @@ const (
 	// TuiPageAutoUpdate is the id for the Auto Update Enablement page
 	TuiPageAutoUpdate
 
+	// TuiPageSaveConfig is the id for the save YAML configuration file page
+	TuiPageSaveConfig
+
 	// ConfigDefinedByUser is used to determine a configuration was interactively
 	// defined by the user
 	ConfigDefinedByUser = iota
@@ -205,7 +208,7 @@ func getColumnFormat(info columnInfo) (int, string) {
 
 // Is the page id a PopUp page
 func isPopUpPage(id int) bool {
-	if id == TuiPageNetworkValidate {
+	if id == TuiPageNetworkValidate || id == TuiPageSaveConfig {
 		return true
 	}
 
