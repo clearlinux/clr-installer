@@ -130,6 +130,7 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 		{"swupd mirror", newSwupdMirrorPage},
 		{"hostname", newHostnamePage},
 		{"autoupdate", newAutoUpdatePage},
+		{"save config", newSaveConfigPage},
 	}
 
 	for _, menu := range menus {
