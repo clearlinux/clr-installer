@@ -25,6 +25,7 @@ type Tui struct {
 	currPage      Page
 	prevPage      Page
 	model         *model.SystemInstall
+	options       args.Args
 	rootDir       string
 	paniced       chan error
 	installReboot bool
@@ -89,6 +90,7 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 	defer clui.DeinitLibrary()
 
 	tui.model = md
+	tui.options = options
 	themeDir, err := lookupThemeDir()
 	if err != nil {
 		return false, err
