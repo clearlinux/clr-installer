@@ -7,7 +7,6 @@ package tui
 import (
 	"time"
 
-	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/controller"
 	"github.com/clearlinux/clr-installer/progress"
 
@@ -90,7 +89,7 @@ func (page *InstallPage) Activate() {
 	go func() {
 		progress.Set(page)
 
-		err := controller.Install(page.tui.rootDir, page.getModel(), args.Args{})
+		err := controller.Install(page.tui.rootDir, page.getModel(), page.tui.options)
 		if err != nil {
 			page.Panic(err)
 			return // In a panic state, do not continue
