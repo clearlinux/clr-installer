@@ -994,7 +994,6 @@ func (bd *BlockDevice) MarshalYAML() (interface{}, error) {
 	bdm.MajorMinor = bd.MajorMinor
 	bdm.FsType = bd.FsType
 	bdm.UUID = bd.UUID
-	bdm.Serial = bd.Serial
 	bdm.MountPoint = bd.MountPoint
 	bdm.Label = bd.Label
 	bdm.Size = strconv.FormatUint(bd.Size, 10)
