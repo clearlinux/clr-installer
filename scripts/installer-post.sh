@@ -15,6 +15,11 @@ sed -i -e '/server=/s/clr.telemetry.intel.com/localhost/' \
     -e '/record_retention_enabled/s/=false/=true/' \
     $1/etc/telemetrics/telemetrics.conf
 
+# Ensure telemetry is not enabled
+touch $1/etc/telemetrics/opt-out
+
+# Have the installer image wait 5 seconds before launch
+# Useful for users to change the boot command for debug
 echo "timeout 5" >> $1/boot/loader/loader.conf
 
 exit 0
