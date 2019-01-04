@@ -60,6 +60,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 
 	vars := map[string]string{
 		"chrootDir": rootDir,
+		"yamlDir":   filepath.Dir(options.ConfigFile),
 	}
 
 	for k, v := range model.Environment {
