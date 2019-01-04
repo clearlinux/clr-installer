@@ -165,7 +165,7 @@ func UmountAll() error {
 }
 
 // WritePartitionTable writes the defined partitions to the actual block device
-func (bd *BlockDevice) WritePartitionTable() error {
+func (bd *BlockDevice) WritePartitionTable(legacyBios bool) error {
 	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop {
 		return errors.Errorf("Type is partition, disk required")
 	}
@@ -196,7 +196,18 @@ func (bd *BlockDevice) WritePartitionTable() error {
 
 	var start uint64
 	bootPartition := -1
+	bootStyle := "boot"
 	guids := map[int]string{}
+
+	for idx, curr := range bd.Children {
+		// We have a /boot partition, use this
+		if curr.MountPoint == "/boot" {
+			bootPartition = idx + 1
+			if legacyBios {
+				bootStyle = "legacy_boot"
+			}
+		}
+	}
 
 	for idx, curr := range bd.Children {
 		var cmd string
@@ -214,8 +225,12 @@ func (bd *BlockDevice) WritePartitionTable() error {
 			return err
 		}
 
-		if curr.MountPoint == "/boot" {
-			bootPartition = idx + 1
+		if curr.MountPoint == "/" {
+			// If legacyBios mode and we do not have a boot, use root
+			if legacyBios && bootPartition == -1 {
+				bootPartition = idx + 1
+				bootStyle = "legacy_boot"
+			}
 		}
 
 		guid, err = curr.getGUID()
@@ -234,19 +249,6 @@ func (bd *BlockDevice) WritePartitionTable() error {
 	err = cmd.RunAndLog(args...)
 	if err != nil {
 		return errors.Wrap(err)
-	}
-
-	if bootPartition != -1 {
-		args = []string{
-			"parted",
-			bd.GetDeviceFile(),
-			fmt.Sprintf("set %d boot on", bootPartition),
-		}
-
-		err = cmd.RunAndLog(args...)
-		if err != nil {
-			return errors.Wrap(err)
-		}
 	}
 	prg.Success()
 
@@ -272,6 +274,19 @@ func (bd *BlockDevice) WritePartitionTable() error {
 
 		prg.Partial(cnt)
 		cnt = cnt + 1
+	}
+
+	if bootPartition != -1 {
+		args = []string{
+			"parted",
+			bd.GetDeviceFile(),
+			fmt.Sprintf("set %d %s on", bootPartition, bootStyle),
+		}
+
+		err = cmd.RunAndLog(args...)
+		if err != nil {
+			return errors.Wrap(err)
+		}
 	}
 
 	if err = bd.PartProbe(); err != nil {
