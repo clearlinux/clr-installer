@@ -654,6 +654,11 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 	cleanModel.HTTPSProxy = ""  // Remove user defined Proxy
 	cleanModel.SwupdMirror = "" // Remove user defined Swupd Mirror
 
+	// Remove the Serial number from the target media
+	for _, bd := range cleanModel.TargetMedias {
+		bd.Serial = ""
+	}
+
 	var payload string
 	confBytes, bytesErr = yaml.Marshal(cleanModel)
 	if bytesErr != nil {
