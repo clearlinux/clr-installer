@@ -649,10 +649,11 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 	}
 	// Sanitize the config data to remove any potential
 	// Personal Information from the data set
-	cleanModel.Users = nil      // Remove User Info
-	cleanModel.Hostname = ""    // Remove user defined hostname
-	cleanModel.HTTPSProxy = ""  // Remove user defined Proxy
-	cleanModel.SwupdMirror = "" // Remove user defined Swupd Mirror
+	cleanModel.Users = nil             // Remove User Info
+	cleanModel.Hostname = ""           // Remove user defined hostname
+	cleanModel.HTTPSProxy = ""         // Remove user defined Proxy
+	cleanModel.SwupdMirror = ""        // Remove user defined Swupd Mirror
+	cleanModel.NetworkInterfaces = nil // Remove Network information
 
 	// Remove the Serial number from the target media
 	for _, bd := range cleanModel.TargetMedias {
