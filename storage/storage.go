@@ -130,8 +130,9 @@ var (
 		BlockDeviceTypeUnknown:    "",
 	}
 	aliasPrefixTable = map[string]string{
-		"/dev/loop": "p",
-		"/dev/nvme": "p",
+		"/dev/loop":   "p",
+		"/dev/nvme":   "p",
+		"/dev/mmcblk": "p",
 	}
 )
 
@@ -377,7 +378,9 @@ func (bd *BlockDevice) AddChild(child *BlockDevice) {
 
 	partPrefix := ""
 
-	if bd.Type == BlockDeviceTypeLoop || strings.Contains(bd.Name, "nvme") {
+	if bd.Type == BlockDeviceTypeLoop ||
+		strings.Contains(bd.Name, "nvme") ||
+		strings.Contains(bd.Name, "mmcblk") {
 		partPrefix = "p"
 	}
 
