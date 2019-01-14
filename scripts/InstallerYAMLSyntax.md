@@ -1,18 +1,18 @@
 # Installer YAML Syntax
 
-This document explains the syntax for constructing an clr-installer configuration file.
+This document describes the syntax for constructing a clr-installer configuration file.
 
 ## Environment Variables
-Environment variable can be defined which we be used when installation commands are executed. These are most commonly used for `pre-install` and `post-install` hooks.
+Environment variables can be defined which will be used when installation commands are executed. These are most commonly used for `pre-install` and `post-install` hooks.
 ```yaml
 env:
   <variable>: <value>
 ```
 
 ## Device Aliases
-To avoid change a device name in multiple locations in the `targetMedia`, device aliases can be used to simply changes between image files and physical devices.
+To avoid changing a device name in multiple locations in the `targetMedia`, device aliases can be used to simply change between image files and physical devices.
 ```yaml
-# switch between aliases if you want to install to an actuall block device
+# switch between aliases in order to install to an actual block device
 # i.e /dev/sda
 block-devices: [
    {name: "bdevice", file: "os-image.img"}
@@ -72,7 +72,7 @@ targetMedia:
 ```
 
 ## Clear Linux Bundles
-This is a list of the Clear Linux OS Bundles that should be installed when during the installation of the OS on the target media.
+This is a list of the Clear Linux OS Bundles that should be installed during the installation of the OS on the target media.
 
 ```yaml
 bundles: [os-core, os-core-update, clr-installer]
@@ -83,7 +83,7 @@ https://github.com/clearlinux/clr-bundles
 
 
 ## Users
-A set of user accounts can be created at the time of installations.
+A set of user accounts can be created at the time of installation.
 
 Item | Description | Required?
 ------------ | ------------- | ------------- 
@@ -138,7 +138,7 @@ telemetry: false
 
 
 ## Kernel Arguments
-Clear Linux OS Installer configuration file supports adding additional kernel arguments or removing from the existing kernel arguments. There is NO support for directly defining the entire kernel command line to avoid non-bootable configurations.
+Supports adding or removing kernel arguments. There is NO support for directly defining the entire kernel command line in order to avoid non-bootable configurations.
 
 Item | Description | Required?
 ------------ | ------------- | ------------- 
