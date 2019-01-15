@@ -700,20 +700,26 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 		log.Info("Skipping archiving of Installation results")
 	}
 
-	// Give Telemetry a chance to send before we shutdown and copy
-	time.Sleep(2 * time.Second)
+	if md.IsTelemetryEnabled() {
+		// Give Telemetry a chance to send before we shutdown and copy
+		time.Sleep(2 * time.Second)
 
-	if err := md.Telemetry.StopLocalTelemetryServer(); err != nil {
-		log.Warning("Failed to stop image Telemetry server")
-		errMsgs = append(errMsgs, "Failed to stop image Telemetry server")
-	}
-	if err := md.Telemetry.CopyTelemetryRecords(rootDir); err != nil {
-		log.Warning("Failed to copy image Telemetry data")
-		errMsgs = append(errMsgs, "Failed to copy image Telemetry data")
-	}
+		if err := md.Telemetry.StopLocalTelemetryServer(); err != nil {
+			log.Warning("Failed to stop image Telemetry server")
+			errMsgs = append(errMsgs, "Failed to stop image Telemetry server")
+		}
 
-	if len(errMsgs) > 0 {
-		return errors.Errorf("%s", strings.Join(errMsgs, ";"))
+		log.Info("Copying telemetry records to target system.")
+		if err := md.Telemetry.CopyTelemetryRecords(rootDir); err != nil {
+			log.Warning("Failed to copy image Telemetry data")
+			errMsgs = append(errMsgs, "Failed to copy image Telemetry data")
+		}
+
+		if len(errMsgs) > 0 {
+			return errors.Errorf("%s", strings.Join(errMsgs, ";"))
+		}
+	} else {
+		log.Info("Telemetry disabled, skipping record collection.")
 	}
 
 	return nil

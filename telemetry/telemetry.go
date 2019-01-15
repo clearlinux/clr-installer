@@ -309,9 +309,8 @@ func (tl *Telemetry) StopLocalTelemetryServer() error {
 }
 
 // CopyTelemetryRecords copies the local spooled telemetry records
-// to the target system. If records could not be sent or telemetry
-// was disable, place the unpublished records on the target system
-// to be upload if telemetry is installed and enabled.
+// to the target system to be uploaded when the target system is
+// booted and telemetry is enabled.
 func (tl *Telemetry) CopyTelemetryRecords(rootDir string) error {
 	err := filepath.Walk(telemetrySpoolDir,
 		func(path string, info os.FileInfo, err error) error {
