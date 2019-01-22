@@ -115,7 +115,7 @@ Item | Description | Default
 `httpsProxy` | HTTPS Proxy as a string | `-UNDEFINED-`
 `swupdMirror` | URL of the swupd stream to use. Useful for installing from a local mirror or from a locally published mix. | `-UNDEFINED-`
 `hostname` | Name of the host system | `-UNIQUE RANDOM-`
-`version` | Version of Clear Linux OS to installer | `-LATEST-`
+`version` | Version of Clear Linux OS to install | `-VERSION_ON_BUILD_SYSTEM-`
 `autoUpdate` | Should the system automatically update to the latest release of Clear Linux OS as part of the installation?; true or false | true
 `postReboot` | Should the system reboot after the installation completes?; true or false | true
 `postArchive` | Should the system archive the log and configuration file on the target media?; true or false | true
