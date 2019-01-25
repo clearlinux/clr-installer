@@ -44,6 +44,16 @@ system details - no personally identifiable information is collected.
 See http://clearlinux.org/features/telemetry for more information.
 `
 
+	// HelpMarkdown is a predefined text to display on the Telemetry
+	// screen for interactive installations
+	// This version supports markdown
+	HelpMarkdown = `Allow the Clear Linux* OS to collect anonymous reports
+to improve system stability? These reports only relate to operating
+system details - no personally identifiable information is collected.
+
+See <a href="http://clearlinux.org/features/telemetry">http://clearlinux.org/features/telemetry</a> for more information.
+`
+
 	// RequestNotice is a common text string to be displayed when enabling
 	// telemetry by default on local networks
 	RequestNotice = "NOTICE: Enabling Telemetry preferred by default on internal networks"

@@ -22,6 +22,7 @@ import (
 	"github.com/clearlinux/clr-installer/crypt"
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/frontend"
+	"github.com/clearlinux/clr-installer/gui"
 	"github.com/clearlinux/clr-installer/keyboard"
 	"github.com/clearlinux/clr-installer/language"
 	"github.com/clearlinux/clr-installer/log"
@@ -47,6 +48,7 @@ func fatal(err error) {
 func initFrontendList() {
 	frontEndImpls = []frontend.Frontend{
 		massinstall.New(),
+		gui.New(),
 		tui.New(),
 	}
 }
