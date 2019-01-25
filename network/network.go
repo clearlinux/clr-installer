@@ -220,7 +220,8 @@ func (i *Interface) GetGateway() (string, error) {
 	var metric uint32 = maxUint32
 
 	w := bytes.NewBuffer(nil)
-	err := cmd.Run(w, "ip", "-j", "route", "show", "dev", i.Name)
+	// TODO: Should we remove the absolute path? Absolute file path is used to ensure pkexec doesn't mess up PATH.
+	err := cmd.Run(w, "/usr/bin/ip", "-j", "route", "show", "dev", i.Name)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
@@ -297,7 +298,7 @@ func (a *Addr) VersionString() string {
 
 func isDHCP(iface string) (bool, error) {
 	w := bytes.NewBuffer(nil)
-	err := cmd.Run(w, "ip", "route", "show")
+	err := cmd.Run(w, "/usr/bin/ip", "route", "show")
 	if err != nil {
 		return false, errors.Wrap(err)
 	}
@@ -510,8 +511,10 @@ func Apply(root string, ifaces []*Interface) error {
 
 // Restart restarts the network services
 func Restart() error {
-	err := cmd.RunAndLog("systemctl", "restart", "systemd-networkd",
+	// TODO: Should we remove the absolute path? Absolute file path is used to ensure pkexec doesn't mess up PATH.
+	err := cmd.RunAndLog("/usr/bin/systemctl", "restart", "systemd-networkd",
 		"systemd-resolved", "pacdiscovery")
+
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -534,10 +537,10 @@ func VerifyConnectivity() error {
 // CheckURL tests if the given URL is accessible
 func CheckURL(url string) error {
 	args := []string{
-		"timeout",
+		"/usr/bin/timeout",
 		"--kill-after=10s",
 		"10s",
-		"curl",
+		"/usr/bin/curl",
 		"--no-sessionid",
 		"-o",
 		"/dev/null",
