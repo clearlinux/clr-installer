@@ -138,7 +138,7 @@ func (a *Addr) VersionString() string {
 // Gateway return the current default gateway addr
 func Gateway() (string, error) {
 	w := bytes.NewBuffer(nil)
-	err := cmd.Run(w, "ip", "route", "show", "default")
+	err := cmd.Run(w, "/usr/bin/ip", "route", "show", "default")
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
@@ -177,7 +177,7 @@ func DNSServer() (string, error) {
 
 func isDHCP(iface string) (bool, error) {
 	w := bytes.NewBuffer(nil)
-	err := cmd.Run(w, "ip", "route", "show")
+	err := cmd.Run(w, "/usr/bin/ip", "route", "show")
 	if err != nil {
 		return false, errors.Wrap(err)
 	}
@@ -378,7 +378,7 @@ func Apply(root string, ifaces []*Interface) error {
 
 // Restart restarts the network services
 func Restart() error {
-	err := cmd.RunAndLog("systemctl", "restart", "systemd-networkd", "systemd-resolved")
+	err := cmd.RunAndLog("/usr/bin/systemctl", "restart", "systemd-networkd", "systemd-resolved")
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -401,10 +401,10 @@ func VerifyConnectivity() error {
 // CheckURL tests if the given URL is accessible
 func CheckURL(url string) error {
 	args := []string{
-		"timeout",
+		"/usr/bin/timeout",
 		"--kill-after=10s",
 		"10s",
-		"curl",
+		"/usr/bin/curl",
 		"--no-sessionid",
 		"-o",
 		"/dev/null",
