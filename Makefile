@@ -27,6 +27,7 @@ THEME_DIR=$(DESTDIR)/usr/share/clr-installer/themes/
 DESKTOP_DIR=$(DESTDIR)/usr/share/applications/
 CONFIG_DIR=$(DESTDIR)/usr/share/defaults/clr-installer/
 SYSTEMD_DIR=$(DESTDIR)/usr/lib/systemd/system/
+PKIT_DIR=$(DESTDIR)/usr/share/polkit-1/actions/
 
 BUILDDATE=$(shell date -u "+%Y-%m-%d_%H:%M:%S_%Z")
 # Are we running from a Git Repo?
@@ -83,8 +84,9 @@ endif
 
 install: build
 	@install -D -m 755 $(top_srcdir)/.gopath/bin/clr-installer $(DESTDIR)/usr/bin/clr-installer
-	@install -D -m 755 $(top_srcdir)/scripts/clr-installer-desktop.sh $(DESTDIR)/usr/bin/clr-installer-desktop.sh
+	@install -D -m 755 $(top_srcdir)/etc/org.freedesktop.policykit.pkexec.policy $(PKIT_DIR)/org.freedesktop.policykit.pkexec.policy
 	@install -D -m 644  $(top_srcdir)/themes/clr-installer.theme $(THEME_DIR)/clr-installer.theme
+	@install -D -m 644  $(top_srcdir)/themes/clr.png $(THEME_DIR)/clr.png
 	@install -D -m 644  $(top_srcdir)/etc/clr-installer.yaml $(CONFIG_DIR)/clr-installer.yaml
 	@install -D -m 644  $(top_srcdir)/etc/bundles.json $(CONFIG_DIR)/bundles.json
 	@install -D -m 644  $(top_srcdir)/etc/kernels.json $(CONFIG_DIR)/kernels.json
@@ -94,8 +96,9 @@ install: build
 
 uninstall:
 	@rm -f $(DESTDIR)/usr/bin/clr-installer
-	@rm -f $(DESTDIR)/usr/bin/clr-installer-desktop.sh
+	@rm -f $(PKIT_DIR)/org.freedesktop.policykit.pkexec.policy
 	@rm -f $(THEME_DIR)/clr-installer.theme
+	@rm -f $(THEME_DIR)/clr.png
 	@rm -f $(CONFIG_DIR)/clr-installer.yaml
 	@rm -f $(CONFIG_DIR)/bundles.json
 	@rm -f $(CONFIG_DIR)/kernels.json
