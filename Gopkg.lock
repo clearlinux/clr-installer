@@ -18,6 +18,14 @@
   version = "v0.1.1"
 
 [[projects]]
+  branch = "master"
+  digest = "1:e289d5e7048337880ec469bf6e419b16852db7c214e810d6d3840e42d3adfa5b"
+  name = "github.com/digitalocean/go-smbios"
+  packages = ["smbios"]
+  pruneopts = "UT"
+  revision = "390a4f403a8e94ca0acdcf609eb18eeae9d6d1ac"
+
+[[projects]]
   digest = "1:f9a5e090336881be43cfc1cf468330c1bdd60abdc9dd194e0b1ab69f4b94dd7c"
   name = "github.com/huandu/xstrings"
   packages = ["."]
@@ -96,6 +104,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/VladimirMarkelov/clui",
+    "github.com/digitalocean/go-smbios/smbios",
     "github.com/huandu/xstrings",
     "github.com/nsf/termbox-go",
     "github.com/spf13/pflag",
