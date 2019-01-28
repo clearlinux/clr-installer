@@ -16,6 +16,8 @@ import (
 	"syscall"
 	"unsafe"
 
+	"github.com/digitalocean/go-smbios/smbios"
+
 	"github.com/clearlinux/clr-installer/errors"
 )
 
@@ -180,4 +182,45 @@ func ExpandVariables(vars map[string]string, str string) string {
 
 	// if no variables are expanded return the original string
 	return str
+}
+
+// IsVirtualBox returns true if the running system is executed
+// from within VirtualBox
+// Attempt to parse the System Management BIOS (SMBIOS) and
+// Desktop Management Interface (DMI) to determine if we are
+// executing inside a VirtualBox. Ignoring error conditions and
+// assuming we are not VirtualBox.
+func IsVirtualBox() bool {
+	virtualBox := false
+
+	// Find SMBIOS data in operating system-specific location.
+	rc, _, err := smbios.Stream()
+	if err != nil {
+		return virtualBox
+	}
+
+	// Be sure to close the stream!
+	defer func() { _ = rc.Close() }()
+
+	// Decode SMBIOS structures from the stream.
+	// https://www.dmtf.org/sites/default/files/standards/documents/DSP0134_3.1.1.pdf
+	d := smbios.NewDecoder(rc)
+	ss, err := d.Decode()
+	if err != nil {
+		return virtualBox
+	}
+
+	for _, s := range ss {
+		// 7.2 System Information (Type 1)
+		if s.Header.Type == 1 {
+			for _, str := range s.Strings {
+				if strings.Contains(strings.ToLower(str), "virtualbox") {
+					virtualBox = true
+					return virtualBox
+				}
+			}
+		}
+	}
+
+	return virtualBox
 }

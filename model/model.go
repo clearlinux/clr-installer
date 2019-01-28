@@ -288,6 +288,13 @@ func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 		result.Language = &language.Language{Code: language.DefaultLanguage}
 	}
 
+	// Running in VirtualBox force the default to 'kernel-lts' if
+	// we are using the system default configuration file
+	// See https://github.com/clearlinux/clr-installer/issues/203
+	if options.ConfigFile == "" && utils.IsVirtualBox() {
+		result.Kernel = &kernel.Kernel{Bundle: "kernel-lts"}
+	}
+
 	tmp := map[string]*StorageAlias{}
 
 	for _, bds := range result.StorageAlias {
