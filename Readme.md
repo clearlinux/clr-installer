@@ -16,7 +16,7 @@ Make sure there is extra storage space, such as a USB memory stick, and choose i
 ## Clone this repository
 
 ```
-git clone https://github.com/clearnlinux/clr-installer.git
+git clone https://github.com/clearlinux/clr-installer.git
 ```
 
 ## Build the installer
