@@ -176,9 +176,9 @@ func Apply(rootDir string, users []*User) error {
 // apply applies the user configuration to the target install
 func (u *User) apply(rootDir string) error {
 	args := []string{
-		"useradd",
-		"--root",
+		"chroot",
 		rootDir,
+		"useradd",
 		"--comment",
 		u.UserName,
 		u.Login,
@@ -197,9 +197,9 @@ func (u *User) apply(rootDir string) error {
 
 	if u.Password != "" {
 		args = []string{
-			"chpasswd",
-			"--root",
+			"chroot",
 			rootDir,
+			"chpasswd",
 			"-e",
 		}
 
