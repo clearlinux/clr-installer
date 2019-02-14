@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -426,4 +427,17 @@ func LoadBundleList() ([]*Bundle, error) {
 	}
 
 	return root.Bundles, nil
+}
+
+// CleanUpState removes the swupd state content directory
+func (s *SoftwareUpdater) CleanUpState() error {
+
+	log.Debug("Removing swupd state directory: %s", s.stateDir)
+
+	err := os.RemoveAll(s.stateDir)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
 }

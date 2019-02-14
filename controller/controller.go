@@ -504,6 +504,17 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 	}
 	prg.Success()
 
+	// Clean-up State Directory content
+	if options.SwupdStateClean {
+		msg = "Cleaning Swupd state directory"
+		prg = progress.NewLoop(msg)
+		log.Info(msg)
+		if err = sw.CleanUpState(); err != nil {
+			log.ErrorError(err)
+		}
+		prg.Success()
+	}
+
 	return nil, nil
 }
 
