@@ -5,12 +5,14 @@
 package user
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/conf"
@@ -161,9 +163,43 @@ func Apply(rootDir string, users []*User) error {
 		return err
 	}
 
+	// Should we lock out the root account?
+	haveAdmins := false
+	rootPassSet := false
+	rootSSHOnly := false
+
 	for _, usr := range users {
 		log.Info("Adding extra user '%s'", usr.Login)
 		if err := usr.apply(rootDir); err != nil {
+			prg.Failure()
+			return err
+		}
+
+		if usr.Admin {
+			haveAdmins = true
+		}
+
+		// This should not be possible in the TUI as all system accounts
+		// are not allowed to be defined, but is possible via the command
+		// line (aka mass installer)
+		if usr.Login == "root" {
+			if usr.Password == "" {
+				if len(usr.SSHKeys) > 0 {
+					rootSSHOnly = true
+				}
+			} else {
+				rootPassSet = true
+			}
+		}
+	}
+
+	// If the root account is not defined with an encrypted password and
+	// we have user account which are Admin (sudo)
+	// OR
+	// The root account is defined with SSH Keys, no password
+	if (!rootPassSet && haveAdmins) || rootSSHOnly {
+		log.Info("Disabling the 'root' account.")
+		if err := disableRoot(rootDir); err != nil {
 			prg.Failure()
 			return err
 		}
@@ -173,30 +209,147 @@ func Apply(rootDir string, users []*User) error {
 	return nil
 }
 
-// apply applies the user configuration to the target install
-func (u *User) apply(rootDir string) error {
+// disableRoot will lockout the root account
+// should be called only when adding an account which
+// has been granted admin privileges (sudo)
+func disableRoot(rootDir string) error {
+	// Lock the account
 	args := []string{
 		"chroot",
 		rootDir,
-		"useradd",
-		"--comment",
-		u.UserName,
-		u.Login,
-	}
-
-	if u.Admin {
-		args = append(args, []string{
-			"-G",
-			"wheel",
-		}...)
+		"usermod",
+		"--lock",
+		"root",
 	}
 
 	if err := cmd.RunAndLog(args...); err != nil {
 		return errors.Wrap(err)
 	}
 
+	// How many days since the beginning of (UNIX) time
+	beginning := time.Date(1970, time.Month(1), 1, 0, 0, 0, 0, time.UTC)
+	now := time.Now()
+	days := fmt.Sprintf("%d", int64(now.Sub(beginning).Hours()/24))
+
+	// Set a password change date so we are not prompted
+	// when sudo'ing to root account or when ssh'ing at root
+	args = []string{
+		"chroot",
+		rootDir,
+		"chage",
+		"--lastday",
+		days,
+		"root",
+	}
+
+	if err := cmd.RunAndLog(args...); err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
+}
+
+// userExist will lockout the root account
+// should be called only when adding an account which
+// has been granted admin privileges (sudo)
+func (u *User) userExist(rootDir string) bool {
+	exists := true
+
+	args := []string{
+		"chroot",
+		rootDir,
+		"getent",
+		"passwd",
+		u.Login,
+	}
+
+	if err := cmd.RunAndLog(args...); err != nil {
+		exists = false
+	}
+
+	return exists
+}
+
+// getUserHome returns the home directory of the user
+// on the installation target
+func (u *User) getUserHome(rootDir string) string {
+	home := filepath.Join("/home", u.Login)
+
+	// Ask for the accounts passwd entry and parse the home directory
+	args := []string{
+		"chroot",
+		rootDir,
+		"getent",
+		"passwd",
+		u.Login,
+	}
+
+	w := bytes.NewBuffer(nil)
+
+	err := cmd.Run(w, args...)
+	if err != nil {
+		return home
+	}
+
+	getent := bytes.Split(w.Bytes(), []byte(":"))
+	homeDir := string(getent[len(getent)-2])
+	if len(homeDir) > 0 {
+		home = homeDir
+	}
+
+	return home
+}
+
+// apply applies the user configuration to the target install
+func (u *User) apply(rootDir string) error {
+	accountAdded := false
+
+	if u.userExist(rootDir) {
+		log.Info("Account '%s' already a defined system account, skipping add.", u.Login)
+	} else {
+		args := []string{
+			"chroot",
+			rootDir,
+			"useradd",
+			"--comment",
+			u.UserName,
+			u.Login,
+		}
+
+		if u.Admin {
+			args = append(args, []string{
+				"-G",
+				"wheel",
+			}...)
+		}
+
+		if err := cmd.RunAndLog(args...); err != nil {
+			return errors.Wrap(err)
+		}
+
+		accountAdded = true
+	}
+
 	if u.Password != "" {
-		args = []string{
+		if !accountAdded {
+			// Unlock the account
+			// This is hack to ensure the account gets added to the
+			// /etc/passwd file before trying to set the password with
+			// chpasswd as the ch* commands only look in /etc
+			args := []string{
+				"chroot",
+				rootDir,
+				"usermod",
+				"--unlock",
+				u.Login,
+			}
+
+			if err := cmd.RunAndLog(args...); err != nil {
+				return errors.Wrap(err)
+			}
+		}
+
+		args := []string{
 			"chroot",
 			rootDir,
 			"chpasswd",
@@ -220,8 +373,8 @@ func (u *User) apply(rootDir string) error {
 }
 
 func writeSSHKey(rootDir string, u *User) error {
-	home := filepath.Join("home", u.Login, ".ssh")
-	dpath := filepath.Join(rootDir, home)
+	sshDir := filepath.Join(u.getUserHome(rootDir), ".ssh")
+	dpath := filepath.Join(rootDir, sshDir)
 	fpath := filepath.Join(dpath, "authorized_keys")
 
 	if err := utils.MkdirAll(dpath, 0700); err != nil {
@@ -254,7 +407,7 @@ func writeSSHKey(rootDir string, u *User) error {
 		"/usr/bin/chown",
 		"-R",
 		fmt.Sprintf("%s:%s", u.Login, u.Login),
-		home,
+		sshDir,
 	}
 
 	if err := cmd.RunAndLog(args...); err != nil {
