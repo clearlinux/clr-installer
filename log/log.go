@@ -86,7 +86,29 @@ func SetOutputFilename(logFile string) (*os.File, error) {
 	return filehandle, nil
 }
 
-// GetPreConfFile ... get the filename log output to filename instead of stdout/stderr
+// RequestCrashInfo prints information for the user on how to properly report the
+// crash of the installer and how to gather more information
+func RequestCrashInfo() {
+	fmt.Println("Please report this crash using GitHub Issues:")
+	fmt.Println("\thttps://github.com/clearlinux/clr-installer/issues")
+
+	fmt.Println("")
+
+	fmt.Println("Include the following as attachments to enable diagnosis:")
+	fmt.Printf("\t%s\n", preConfName)
+	fmt.Printf("\t%s\n", logFileName)
+
+	fmt.Println("")
+
+	fmt.Println("If the problem persists, enabling additional logging will be helpful in")
+	fmt.Println("diagnosing the issue. At the OS Boot screen, hit 'e' to edit the kernel")
+	fmt.Println("command line. Add the following to the end of the line:")
+	fmt.Println("\tclri.loglevel=4")
+
+	fmt.Println("")
+}
+
+// GetPreConfFile ... returns the filename of where to store the pre-configuration file
 func GetPreConfFile() string {
 	return preConfName
 }

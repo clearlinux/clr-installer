@@ -255,6 +255,7 @@ func main() {
 					fmt.Printf("  %s\n", err)
 					os.Exit(1)
 				} else {
+					log.RequestCrashInfo()
 					fatal(err)
 				}
 			}
@@ -287,5 +288,6 @@ func main() {
 			}
 			fatal(err)
 		}
+		log.RequestCrashInfo()
 	}
 }
