@@ -280,3 +280,13 @@ func TestFailedToSetOutput(t *testing.T) {
 		t.Fatal("Should have failed to open log file")
 	}
 }
+
+func TestGetPreConfFile(t *testing.T) {
+	if GetPreConfFile() != preConfName {
+		t.Fatal("log.GetPreConfFile() should always match log.preConfName")
+	}
+}
+
+func TestRequestCrashInfo(t *testing.T) {
+	RequestCrashInfo()
+}
