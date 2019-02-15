@@ -9,7 +9,9 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 
+	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/errors"
 )
 
@@ -29,12 +31,18 @@ const (
 	// LogLevelVerbose specified the log level as: VERBOSE
 	// This is the same as Debug, but without the repeat filtering
 	LogLevelVerbose = 5
+
+	// configFilePreInstalPrefix is the prefix to create a configuration// file name
+	configFilePreInstalPrefix = "pre-install-"
 )
 
 var (
 	level      = LogLevelInfo
 	levelMap   = map[int]string{}
 	filehandle *os.File
+
+	logFileName string
+	preConfName string
 
 	lineLast  string
 	lineCount int
@@ -64,6 +72,7 @@ func SetLogLevel(l int) {
 
 // SetOutputFilename ... sets the default log output to filename instead of stdout/stderr
 func SetOutputFilename(logFile string) (*os.File, error) {
+	logFileName = logFile
 	var err error
 	filehandle, err = os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
@@ -72,7 +81,14 @@ func SetOutputFilename(logFile string) (*os.File, error) {
 
 	log.SetOutput(filehandle)
 
+	preConfName = filepath.Join(filepath.Dir(logFileName), configFilePreInstalPrefix+conf.ConfigFile)
+
 	return filehandle, nil
+}
+
+// GetPreConfFile ... get the filename log output to filename instead of stdout/stderr
+func GetPreConfFile() string {
+	return preConfName
 }
 
 // ArchiveLogFile copies the contents of the log to the given filename

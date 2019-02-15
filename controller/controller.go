@@ -67,7 +67,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		vars[k] = v
 	}
 
-	preConfFile := filepath.Join(filepath.Dir(options.LogFile), "pre-install-"+conf.ConfigFile)
+	preConfFile := log.GetPreConfFile()
 
 	if err = model.WriteFile(preConfFile); err != nil {
 		log.Error("Failed to write pre-install YAML file (%v) %q", err, preConfFile)
