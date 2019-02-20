@@ -194,7 +194,7 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool) error {
 		"--script",
 	}
 
-	var start uint64
+	var start uint64 = 1
 	bootPartition := -1
 	bootStyle := "boot"
 	guids := map[int]string{}
