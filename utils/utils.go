@@ -38,10 +38,10 @@ func MkdirAll(path string, perm os.FileMode) error {
 
 // CopyFile copies src file to dest
 func CopyFile(src string, dest string) error {
-	var err error
 	destDir := filepath.Dir(dest)
 
-	if _, err = os.Stat(src); err != nil {
+	srcInfo, err := os.Stat(src)
+	if err != nil {
 		if os.IsNotExist(err) {
 			return errors.Errorf("no such file: %s", src)
 		}
@@ -60,7 +60,7 @@ func CopyFile(src string, dest string) error {
 		return err
 	}
 
-	if err = ioutil.WriteFile(dest, data, 0644); err != nil {
+	if err = ioutil.WriteFile(dest, data, srcInfo.Mode()&os.ModePerm); err != nil {
 		return err
 	}
 
