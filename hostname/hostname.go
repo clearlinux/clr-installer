@@ -20,6 +20,7 @@ var (
 )
 
 // IsValidHostname returns error message or nil if is valid
+// https://en.wikipedia.org/wiki/Hostname
 func IsValidHostname(hostname string) string {
 
 	if !startsWithExp.MatchString(hostname) {
