@@ -146,6 +146,11 @@ func validateIPEdit(k term.Key, ch rune) bool {
 		return false
 	}
 
+	if k == term.KeyArrowUp || k == term.KeyArrowDown ||
+		k == term.KeyArrowLeft || k == term.KeyArrowRight {
+		return false
+	}
+
 	for _, curr := range validKeys {
 		if curr == ch {
 			return false
