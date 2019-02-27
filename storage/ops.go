@@ -25,7 +25,7 @@ import (
 type blockDeviceOps struct {
 	makeFsCommand   func(bd *BlockDevice, args []string) ([]string, error)
 	makeFsArgs      []string
-	makePartCommand func(bd *BlockDevice, start uint64, end uint64) (string, error)
+	makePartCommand func(bd *BlockDevice) (string, error)
 }
 
 var (
@@ -164,6 +164,21 @@ func UmountAll() error {
 	return mountError
 }
 
+func getStartEnd(start uint64, end uint64) string {
+
+	strStart := fmt.Sprintf("%dM", start)
+	if start < 1 {
+		strStart = "0%"
+	}
+
+	strEnd := fmt.Sprintf("%dM", end)
+	if end < 1 {
+		strEnd = "-1"
+	}
+
+	return strStart + " " + strEnd
+}
+
 // WritePartitionTable writes the defined partitions to the actual block device
 func (bd *BlockDevice) WritePartitionTable(legacyBios bool) error {
 	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop {
@@ -192,6 +207,7 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool) error {
 		"optimal",
 		bd.GetDeviceFile(),
 		"--script",
+		"--",
 	}
 
 	var start uint64
@@ -209,6 +225,8 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool) error {
 		}
 	}
 
+	maxFound := false
+
 	for idx, curr := range bd.Children {
 		var cmd string
 		var guid string
@@ -219,11 +237,22 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool) error {
 				curr.FsType)
 		}
 
-		end := start + (uint64(curr.Size) >> 20)
-		cmd, err = op.makePartCommand(curr, start, end)
+		cmd, err = op.makePartCommand(curr)
 		if err != nil {
 			return err
 		}
+
+		size := uint64(curr.Size)
+		end := start + (size >> 20)
+		if size < 1 {
+			if maxFound {
+				return errors.Errorf("Found more than one partition with size 0 for %s!", bd.Name)
+			}
+			maxFound = true
+			end = 0
+		}
+
+		cmd = cmd + " " + getStartEnd(start, end)
 
 		if curr.MountPoint == "/" {
 			// If legacyBios mode and we do not have a boot, use root
@@ -397,12 +426,10 @@ func commonMakeFsCommand(bd *BlockDevice, args []string) ([]string, error) {
 	return cmd, nil
 }
 
-func commonMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, error) {
+func commonMakePartCommand(bd *BlockDevice) (string, error) {
 	args := []string{
 		"mkpart",
 		bd.MountPoint,
-		fmt.Sprintf("%dM", start),
-		fmt.Sprintf("%dM", end),
 	}
 
 	return strings.Join(args, " "), nil
@@ -461,11 +488,11 @@ func swapMakeFsCommand(bd *BlockDevice, args []string) ([]string, error) {
 	return cmd, nil
 }
 
-func swapMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, error) {
+func swapMakePartCommand(bd *BlockDevice) (string, error) {
 	partName := "linux-swap"
 
 	if bd.FsType == "swap" && bd.Type == BlockDeviceTypeCrypt {
-		mapped := fmt.Sprintf("eswap%d", start)
+		mapped := fmt.Sprintf("eswap-%s", bd.Name)
 		bd.MappedName = filepath.Join("mapper", mapped)
 		partName = mapped
 	}
@@ -473,20 +500,16 @@ func swapMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, err
 	args := []string{
 		"mkpart",
 		partName,
-		fmt.Sprintf("%dM", start),
-		fmt.Sprintf("%dM", end),
 	}
 
 	return strings.Join(args, " "), nil
 }
 
-func vfatMakePartCommand(bd *BlockDevice, start uint64, end uint64) (string, error) {
+func vfatMakePartCommand(bd *BlockDevice) (string, error) {
 	args := []string{
 		"mkpart",
 		"EFI",
 		"fat32",
-		fmt.Sprintf("%dM", start),
-		fmt.Sprintf("%dM", end),
 	}
 
 	return strings.Join(args, " "), nil
