@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -141,6 +142,18 @@ func main() {
 		return
 	}
 
+	if options.ConvertConfigFile != "" {
+		if filepath.Ext(options.ConvertConfigFile) == ".json" {
+			_, err = model.JSONtoYAMLConfig(options.ConvertConfigFile)
+			if err != nil {
+				fatal(err)
+			}
+		} else {
+			fatal(errors.Errorf("Config file '%s' must end in '.json'", options.ConvertConfigFile))
+		}
+		return
+	}
+
 	// First verify we are running as 'root' user which is required
 	// for most of the Installation commands
 	if errString := utils.VerifyRootUser(); errString != "" {
@@ -174,6 +187,13 @@ func main() {
 	}
 	if options.CfDownloaded {
 		defer func() { _ = os.Remove(cf) }()
+	}
+
+	if filepath.Ext(cf) == ".json" {
+		cf, err = model.JSONtoYAMLConfig(cf)
+		if err != nil {
+			fatal(err)
+		}
 	}
 
 	log.Debug("Loading config file: %s", cf)

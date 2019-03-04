@@ -1,0 +1,12 @@
+{
+    "DestinationType" : "virtual",
+    "PartitionLayout" : [ { "disk" : "test.img", "partition" : 1, "size" : "512M", "type" : "EFI" },
+			  { "disk" : "test.img", "partition" : 2, "size" : "1G", "type" : "linux" } ],
+    "FilesystemTypes" : [ { "disk" : "test.img", "partition" : 1, "type" : "vfat" },
+			  { "disk" : "test.img", "partition" : 2, "type" : "ext4" } ],
+    "PartitionMountPoints" : [ { "disk" : "test.img", "partition" : 1, "mount" : "/boot" },
+			       { "disk" : "test.img", "partition" : 2, "mount" : "/" } ],
+    "Users" : [ { "username" : "test", "key" : "key.pub", "uid" : 1000, "sudo" : true } ],
+    "Version": 930,
+    "Bundles": ["kernel-kvm"]
+}

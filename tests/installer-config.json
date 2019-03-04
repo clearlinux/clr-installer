@@ -1,0 +1,12 @@
+{
+    "DestinationType" : "virtual",
+    "PartitionLayout" : [ { "disk" : "installer.img", "partition" : 1, "size" : "64M", "type" : "EFI" },
+                          { "disk" : "installer.img", "partition" : 2, "size" : "2G", "type" : "linux" } ],
+    "FilesystemTypes" : [ { "disk" : "installer.img", "partition" : 1, "type" : "vfat" },
+                          { "disk" : "installer.img", "partition" : 2, "type" : "ext4" } ],
+    "PartitionMountPoints" : [ { "disk" : "installer.img", "partition" : 1, "mount" : "/boot" },
+			       { "disk" : "installer.img", "partition" : 2, "mount" : "/" } ],
+    "Version": "latest",
+    "Bundles": ["kernel-native", "os-installer", "os-core-update", "os-core", "bootloader"],
+    "PostNonChroot": ["./installation-image-post-update-version.py"]
+}
