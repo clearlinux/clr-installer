@@ -243,6 +243,10 @@ func TestFailedToArchiveUnwritableFile(t *testing.T) {
 	}
 
 	defer func() {
+		err = os.Chmod(rootDir, 0700)
+		if err != nil {
+			t.Fatal(err)
+		}
 		_ = os.RemoveAll(dir)
 	}()
 
@@ -272,6 +276,10 @@ func TestFailedToSetOutput(t *testing.T) {
 	}
 
 	defer func() {
+		err = os.Chmod(rootDir, 0700)
+		if err != nil {
+			t.Fatal(err)
+		}
 		_ = os.RemoveAll(dir)
 	}()
 
