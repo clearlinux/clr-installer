@@ -113,6 +113,10 @@ func TestFailedToCreateDir(t *testing.T) {
 	}
 
 	defer func() {
+		err = os.Chmod(rootDir, 0700)
+		if err != nil {
+			t.Fatal(err)
+		}
 		_ = os.RemoveAll(dir)
 	}()
 
@@ -142,6 +146,10 @@ func TestFailedToWrite(t *testing.T) {
 	}
 
 	defer func() {
+		err = os.Chmod(etcDir, 0700)
+		if err != nil {
+			t.Fatal(err)
+		}
 		_ = os.RemoveAll(dir)
 	}()
 
