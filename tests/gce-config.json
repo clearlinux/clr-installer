@@ -1,0 +1,23 @@
+{
+    "DestinationType" : "virtual",
+    "PartitionLayout" : [ { "disk" : "disk.raw", 
+	                    "partition" : 1, 
+			    "size" : "2G", 
+			    "type" : "linux" } ],
+    "FilesystemTypes" : [ { "disk" : "disk.raw", 
+	                    "partition" : 1,
+			    "type" : "ext4",
+                            "options" : "-b 4096 -O ^64bit"} ],
+    "PartitionMountPoints" : [ { "disk" : "disk.raw",
+	                         "partition" : 1,
+				 "mount" : "/" } ],
+    "Version": "latest",
+    "Bundles": [
+	    "kernel-gce",
+	    "os-core",
+	    "os-core-update",
+	    "os-cloudguest-gce",
+	    "openssh-server" ],
+    "PostNonChroot": ["/home/clrbuilder/projects/clr-release-tools/config/image/gce-image-google-sudoers-setup.sh"],
+    "LegacyBios": true
+}

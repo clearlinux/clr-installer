@@ -1,0 +1,21 @@
+{
+    "DestinationType" : "virtual",
+    "PartitionLayout" : [ { "disk" : "hyperv-test.img",
+                            "partition" : 1,
+                            "size" : "20G",
+                            "type" : "linux" } ],
+    "FilesystemTypes" : [ { "disk" : "hyperv-test.img",
+                            "partition" : 1,
+                            "type" : "ext4" } ],
+    "PartitionMountPoints" : [ { "disk" : "hyperv-test.img",
+                                 "partition" : 1,
+                                 "mount" : "/" } ],
+    "Version": 7777,
+    "Bundles": ["kernel-hyperv",
+                "os-core",
+                "os-core-update",
+                "openssh-server",
+                "os-cloudguest-azure",
+                "bat"],
+    "LegacyBios": true
+}

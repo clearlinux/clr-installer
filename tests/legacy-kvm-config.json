@@ -1,0 +1,26 @@
+{
+    "DestinationType" : "virtual",
+    "PartitionLayout" : [ { "disk" : "legacy-kvm.img",
+                            "partition" : 1,
+                            "size" : "8G",
+                            "type" : "linux" } ],
+    "FilesystemTypes" : [ { "disk" : "legacy-kvm.img",
+                            "partition" : 1,
+                            "type" : "ext4",
+                            "options" : "-O ^64bit" } ],
+    "PartitionMountPoints" : [ { "disk" : "legacy-kvm.img",
+                                 "partition" : 1,
+                                 "mount" : "/" } ],
+    "Version": 7777,
+    "Bundles": [
+        "bootloader",
+        "editors",
+        "kernel-kvm",
+        "network-basic",
+        "openssh-server",
+        "os-core",
+        "os-core-update",
+        "sysadmin-basic"
+    ],
+    "LegacyBios": true
+}

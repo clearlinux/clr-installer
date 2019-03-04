@@ -42,7 +42,7 @@ type BlockDevice struct {
 	Parent          *BlockDevice     // Parent block device; nil for disk
 	userDefined     bool             // was this value set by user?
 	available       bool             // was it mounted the moment we loaded?
-	options         string           // arbitrary mkfs.* options
+	Options         string           // arbitrary mkfs.* options
 }
 
 // Version used for reading and writing YAML
@@ -332,6 +332,10 @@ func (bd *BlockDevice) Validate(legacyBios bool, cryptPass string) error {
 
 		if ch.Type == BlockDeviceTypeCrypt && ch.FsTypeNotSwap() {
 			encrypted = true
+		}
+
+		if bd.Type != BlockDeviceTypeDisk && bd.Size == 0 && ch.Size == 0 {
+			return errors.Errorf("Both image size and partition size cannot be 0")
 		}
 	}
 
@@ -1006,7 +1010,7 @@ func (bd *BlockDevice) MarshalYAML() (interface{}, error) {
 	bdm.Type = bd.Type.String()
 	bdm.State = bd.State.String()
 	bdm.Children = bd.Children
-	bdm.Options = bd.options
+	bdm.Options = bd.Options
 
 	return bdm, nil
 }
@@ -1030,7 +1034,7 @@ func (bd *BlockDevice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	bd.MountPoint = unmarshBlockDevice.MountPoint
 	bd.Label = unmarshBlockDevice.Label
 	bd.Children = unmarshBlockDevice.Children
-	bd.options = unmarshBlockDevice.Options
+	bd.Options = unmarshBlockDevice.Options
 	// Convert String to Uint64
 	if unmarshBlockDevice.Size != "" {
 		uSize, err := ParseVolumeSize(unmarshBlockDevice.Size)

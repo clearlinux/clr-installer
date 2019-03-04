@@ -1,0 +1,9 @@
+{
+    "DestinationType" : "virtual",
+    "PartitionLayout" : [ { "disk" : "mbr.img", "partition" : 1, "size" : "20G", "type" : "linux" } ],
+    "FilesystemTypes" : [ { "disk" : "mbr.img", "partition" : 1, "type" : "ext4" } ],
+    "PartitionMountPoints" : [ { "disk" : "mbr.img", "partition" : 1, "mount" : "/" } ],
+    "Version": "latest",
+    "Bundles": ["kernel-native", "os-core", "os-core-update"],
+    "LegacyBios": true
+}

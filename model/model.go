@@ -42,7 +42,7 @@ var testAlias = []string{}
 // medias, bundles to install and whatever state a install may require
 type SystemInstall struct {
 	TargetMedias      []*storage.BlockDevice `yaml:"targetMedia"`
-	NetworkInterfaces []*network.Interface   `yaml:"networkInterfaces"`
+	NetworkInterfaces []*network.Interface   `yaml:"networkInterfaces,omitempty,flow"`
 	Keyboard          *keyboard.Keymap       `yaml:"keyboard,omitempty,flow"`
 	Language          *language.Language     `yaml:"language,omitempty,flow"`
 	Bundles           []string               `yaml:"bundles,omitempty,flow"`
@@ -85,7 +85,7 @@ type InstallHook struct {
 type StorageAlias struct {
 	Name       string `yaml:"name,omitempty,flow"`
 	File       string `yaml:"file,omitempty,flow"`
-	DeviceFile bool
+	DeviceFile bool   `yaml:"devicefile,omitempty,flow"`
 }
 
 // AddExtraKernelArguments adds a set of custom extra kernel arguments to be added to the

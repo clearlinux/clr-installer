@@ -1,0 +1,24 @@
+{
+    "DestinationType" : "virtual",
+    "PartitionLayout" : [ { "disk" : "aws.img",
+                            "partition" : 1,
+                            "size" : "512M",
+                            "type" : "linux" } ],
+    "FilesystemTypes" : [ { "disk" : "aws.img",
+                            "partition" : 1,
+                            "type" : "ext4",
+                            "options" : "-b 4096 -O ^64bit" } ],
+    "PartitionMountPoints" : [ { "disk" : "aws.img",
+                                 "partition" : 1,
+                                 "mount" : "/" } ],
+    "Version": 20370,
+    "Bundles": [
+        "kernel-aws",
+        "os-cloudguest-aws",
+        "os-core",
+        "os-core-update",
+        "openssh-server"
+    ],
+    "LegacyBios": true,
+    "PostNonChroot": ["/home/clrbuilder/projects/clr-release-tools/config/image/aws-disable-root.sh"]
+}

@@ -67,8 +67,8 @@ func (bd *BlockDevice) MakeFs() error {
 }
 
 func makeFs(bd *BlockDevice, args []string) error {
-	if bd.options != "" {
-		args = append(args, strings.Split(bd.options, " ")...)
+	if bd.Options != "" {
+		args = append(args, strings.Split(bd.Options, " ")...)
 	}
 
 	args = append(args, bd.GetMappedDeviceFile())

@@ -1,0 +1,13 @@
+{
+    "DestinationType": "virtual",
+    "PartitionLayout": [{"disk": "test.img", "partition": 1, "size": "512M", "type": "EFI"},
+                        {"disk": "test.img", "partition": 2, "size": "4G", "type": "swap"},
+                        {"disk": "test.img", "partition": 3, "size": "rest", "type": "linux"}],
+    "FilesystemTypes": [{"disk": "test.img", "partition": 1, "type": "vfat"},
+                        {"disk": "test.img", "partition": 2, "type": "swap"},
+                        {"disk": "test.img", "partition": 3, "type": "ext4"}],
+    "PartitionMountPoints": [{"disk": "test.img", "partition": 1, "mount": "/boot"},
+                             {"disk": "test.img", "partition": 3, "mount": "/"}],
+    "Version": 930,
+    "Bundles": ["kernel-kvm"]
+}

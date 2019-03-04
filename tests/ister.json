@@ -1,0 +1,13 @@
+{
+    "DestinationType": "physical",
+    "PartitionLayout": [{"disk": "sdb", "partition": 1, "size": "512M", "type": "EFI"},
+                        {"disk": "sdb", "partition": 2, "size": "4G", "type": "swap"},
+                        {"disk": "sdb", "partition": 3, "size": "rest", "type": "linux"}],
+    "FilesystemTypes": [{"disk": "sdb", "partition": 1, "type": "vfat", "label" : "boot"},
+                        {"disk": "sdb", "partition": 2, "type": "swap", "label" : "root"},
+                        {"disk": "sdb", "partition": 3, "type": "ext4", "label" : "swap"}],
+    "PartitionMountPoints": [{"disk": "sdb", "partition": 1, "mount": "/boot"},
+                             {"disk": "sdb", "partition": 3, "mount": "/"}],
+    "Version": 0,
+    "Bundles": ["kernel-kvm"]
+}

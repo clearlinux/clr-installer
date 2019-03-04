@@ -65,6 +65,7 @@ type Args struct {
 	DemoMode                bool
 	BlockDevices            []string
 	StubImage               bool
+	ConvertConfigFile       string
 }
 
 func (args *Args) setKernelArgs() (err error) {
@@ -182,6 +183,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.BoolVarP(
 		&args.StubImage, "stub-image", "S", args.StubImage, "Creates the filesystems only - dont perform an actual install",
+	)
+
+	flag.StringVarP(
+		&args.ConvertConfigFile, "json-yaml", "j", args.ConvertConfigFile, "Converts ister JSON config to clr-installer YAML config",
 	)
 
 	flag.StringVar(

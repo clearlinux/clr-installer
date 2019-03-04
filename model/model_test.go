@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/clearlinux/clr-installer/args"
@@ -48,10 +49,53 @@ func TestLoadFile(t *testing.T) {
 		{"valid-network.yaml", true},
 		{"valid-with-pre-post-hooks.yaml", true},
 		{"valid-with-version.yaml", true},
+		{"azure-config.json", true},
+		{"azure-docker-config.json", true},
+		{"azure-machine-learning-config.json", true},
+		{"ciao-networking-config.json", true},
+		{"cloud-config.json", true},
+		{"cloud-docker-config.json", true},
+		{"gce-config.json", true},
+		{"hyperv-config.json", true},
+		{"hyperv-mini-config.json", true},
+		{"hyperv-test-config.json", true},
+		{"kvm-config.json", true},
+		{"legacy-kvm-config.json", true},
+		{"live-config.json", true},
+		{"live-docker-config.json", true},
+		{"provision-config.json", true},
+		{"vmware-config.json", true},
+		{"mbr.json", true},
+		{"min-good.json", false},
+		{"release-image-config.json", true},
+		{"full-good.json", true},
+		{"installer-config.json", true},
+		{"installer-config-vm.json", true},
+		{"ister.json", true},
+		{"valid-ister-full-virtual.json", true},
+		{"valid-ister-full-physical.json", true},
+		{"invalid-ister-basic-descriptor.json", false},
+		{"invalid-ister-no-kernel.json", false},
+		{"invalid-ister-malformed-descriptor.json", false},
+		{"invalid-ister-dt.json", false},
+		{"invalid-ister-missing-pl.json", false},
+		{"invalid-ister-duplicate-pl.json", false},
+		{"invalid-ister-disk-ft.json", false},
+		{"invalid-ister-partition-ft.json", false},
+		{"invalid-ister-disk-pmp.json", false},
+		{"invalid-ister-partition-pmp.json", false},
 	}
 
 	for _, curr := range tests {
 		path := filepath.Join(testsDir, curr.file)
+		var err error
+		if filepath.Ext(curr.file) == ".json" {
+			path, err = JSONtoYAMLConfig(path)
+			if curr.valid && err != nil {
+				t.Fatalf("%s is a valid test and shouldn't return an error: %v", curr.file, err)
+			}
+		}
+
 		model, err := LoadFile(path, args.Args{})
 
 		if curr.valid && err != nil {
@@ -444,5 +488,34 @@ func TestAddEncryptedTargetMedia(t *testing.T) {
 	nm.AddTargetMedia(clone)
 	if len(nm.TargetMedias) == cl {
 		t.Fatal("AddTargetMedia() failed to add a cloned and modified target media")
+	}
+}
+
+func TestBackupFile(t *testing.T) {
+	var err error
+	path := filepath.Join(testsDir, "valid-ister-full-physical.json")
+	cf := strings.TrimSuffix(path, filepath.Ext(path)) + ".yaml"
+	info, err := os.Stat(cf)
+	if os.IsNotExist(err) {
+		t.Fatalf("%s should already exist and shouldn't return an error: %v", cf, err)
+	}
+
+	mt := info.ModTime()
+	suffix := fmt.Sprintf("-%d-%02d-%02d-%02d%02d%02d",
+		mt.Year(), mt.Month(), mt.Day(),
+		mt.Hour(), mt.Minute(), mt.Second())
+	bf := strings.TrimSuffix(cf, filepath.Ext(cf)) + suffix + ".yaml"
+
+	path, err = JSONtoYAMLConfig(path)
+	if err != nil {
+		t.Fatalf("%s is a valid test and shouldn't return an error: %v", path, err)
+	}
+	info, err = os.Stat(cf)
+	if os.IsNotExist(err) {
+		t.Fatalf("%s should still exist and shouldn't return an error: %v", cf, err)
+	}
+	info, err = os.Stat(bf)
+	if os.IsNotExist(err) {
+		t.Fatalf("%s should exist and shouldn't return an error: %v", cf, err)
 	}
 }

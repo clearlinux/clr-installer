@@ -1,0 +1,12 @@
+{
+    "DestinationType" : "virtual",
+    "PartitionLayout" : [ { "disk" : "release.img", "partition" : 1, "size" : "32M", "type" : "EFI" },
+                          { "disk" : "release.img", "partition" : 3, "size" : "5G", "type" : "linux" } ],
+    "FilesystemTypes" : [ { "disk" : "release.img", "partition" : 1, "type" : "vfat" },
+                          { "disk" : "release.img", "partition" : 2, "type" : "swap" },
+                          { "disk" : "release.img", "partition" : 3, "type" : "ext4" } ],
+    "PartitionMountPoints" : [ { "disk" : "release.img", "partition" : 1, "mount" : "/boot" },
+			       { "disk" : "release.img", "partition" : 3, "mount" : "/" } ],
+    "Version": "latest",
+    "Bundles": ["kernel-native", "os-core", "os-core-update"]
+}
