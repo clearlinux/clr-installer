@@ -281,6 +281,11 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		return err
 	}
 
+	// Add in the User Defined bundles
+	for _, curr := range model.UserBundles {
+		model.AddBundle(curr)
+	}
+
 	if model.Telemetry.Enabled {
 		model.AddBundle(telemetry.RequiredBundle)
 	}

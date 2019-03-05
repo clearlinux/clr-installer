@@ -46,6 +46,7 @@ type SystemInstall struct {
 	Keyboard          *keyboard.Keymap       `yaml:"keyboard,omitempty,flow"`
 	Language          *language.Language     `yaml:"language,omitempty,flow"`
 	Bundles           []string               `yaml:"bundles,omitempty,flow"`
+	UserBundles       []string               `yaml:"userBundles,omitempty,flow"`
 	HTTPSProxy        string                 `yaml:"httpsProxy,omitempty,flow"`
 	Telemetry         *telemetry.Telemetry   `yaml:"telemetry,omitempty,flow"`
 	Timezone          *timezone.TimeZone     `yaml:"timezone,omitempty,flow"`
@@ -154,6 +155,41 @@ func (si *SystemInstall) AddBundle(bundle string) {
 	}
 
 	si.Bundles = append(si.Bundles, bundle)
+}
+
+// ContainsUserBundle returns true if the data model has a user bundle and false otherwise
+func (si *SystemInstall) ContainsUserBundle(bundle string) bool {
+	for _, curr := range si.UserBundles {
+		if curr == bundle {
+			return true
+		}
+	}
+
+	return false
+}
+
+// RemoveUserBundle removes a user bundle from the data model
+func (si *SystemInstall) RemoveUserBundle(bundle string) {
+	bundles := []string{}
+
+	for _, curr := range si.UserBundles {
+		if curr != bundle {
+			bundles = append(bundles, curr)
+		}
+	}
+
+	si.UserBundles = bundles
+}
+
+// AddUserBundle adds a new user bundle to the data model, we make sure to not duplicate entries
+func (si *SystemInstall) AddUserBundle(bundle string) {
+	for _, curr := range si.UserBundles {
+		if curr == bundle {
+			return
+		}
+	}
+
+	si.UserBundles = append([]string{bundle}, si.UserBundles...)
 }
 
 // RemoveAllUsers remove from the data model all previously added user
