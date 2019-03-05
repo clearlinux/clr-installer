@@ -29,7 +29,13 @@ var (
 
 // GetConfiguredValue Returns the string representation of currently value set
 func (bp *BundlePage) GetConfiguredValue() string {
-	return strings.Join(bp.getModel().Bundles, ", ")
+	bundles := bp.getModel().UserBundles
+
+	if len(bundles) == 0 {
+		return "No bundles selected"
+	}
+
+	return strings.Join(bundles, ", ")
 }
 
 // Activate marks the checkbox selections based on the data model
@@ -39,7 +45,7 @@ func (bp *BundlePage) Activate() {
 	for _, curr := range bundles {
 		state := 0
 
-		if model.ContainsBundle(curr.bundle.Name) {
+		if model.ContainsUserBundle(curr.bundle.Name) {
 			state = 1
 		}
 
@@ -58,7 +64,7 @@ func newBundlePage(tui *Tui) (Page, error) {
 	}
 
 	page := &BundlePage{}
-	page.setupMenu(tui, TuiPageBundle, "Bundle Selection", NoButtons, TuiPageMenu)
+	page.setupMenu(tui, TuiPageBundle, "Additional Bundle Selection", NoButtons, TuiPageMenu)
 
 	clui.CreateLabel(page.content, 2, 2, "Select additional bundles to be added to the system", Fixed)
 
@@ -89,10 +95,10 @@ func newBundlePage(tui *Tui) (Page, error) {
 		anySelected := false
 		for _, curr := range bundles {
 			if curr.check.State() == 1 {
-				page.getModel().AddBundle(curr.bundle.Name)
+				page.getModel().AddUserBundle(curr.bundle.Name)
 				anySelected = true
 			} else {
-				page.getModel().RemoveBundle(curr.bundle.Name)
+				page.getModel().RemoveUserBundle(curr.bundle.Name)
 			}
 		}
 

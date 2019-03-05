@@ -289,6 +289,34 @@ func TestBundle(t *testing.T) {
 	}
 }
 
+func TestUserBundle(t *testing.T) {
+	si := &SystemInstall{}
+
+	if si.ContainsUserBundle("test-ubundle") {
+		t.Fatal("Should return false since test-ubundle wasn't added to si")
+	}
+
+	si.AddUserBundle("test-ubundle")
+	si.AddUserBundle("test-ubundle-2")
+	if !si.ContainsUserBundle("test-ubundle") {
+		t.Fatal("Should return true since test-ubundle was added to si")
+	}
+
+	si.RemoveUserBundle("test-ubundle")
+	if si.ContainsUserBundle("test-ubundle") {
+		t.Fatal("Should return false since test-ubundle was removed from si")
+	}
+
+	si.RemoveUserBundle("test-ubundle-2")
+
+	// duplicated
+	si.AddUserBundle("test-ubundle")
+	si.AddUserBundle("test-ubundle")
+	if len(si.UserBundles) > 1 {
+		t.Fatal("We should have handled the duplication")
+	}
+}
+
 func TestAddTargetMedia(t *testing.T) {
 	path := filepath.Join(testsDir, "basic-valid-descriptor.yaml")
 	loaded, err := LoadFile(path, args.Args{})
