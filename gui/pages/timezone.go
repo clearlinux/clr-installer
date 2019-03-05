@@ -55,7 +55,9 @@ func NewTimezonePage(controller Controller, model *model.SystemInstall) (Page, e
 	}
 	t.list.SetSelectionMode(gtk.SELECTION_SINGLE)
 	t.list.SetActivateOnSingleClick(true)
-	t.list.Connect("row-activated", t.onRowActivated)
+	if _, err := t.list.Connect("row-activated", t.onRowActivated); err != nil {
+		return nil, err
+	}
 	t.scroll.Add(t.list)
 	// Remove background
 	st, _ := t.list.GetStyleContext()

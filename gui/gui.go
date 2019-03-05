@@ -47,11 +47,15 @@ func (gui *Gui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 	gui.installReboot = false
 
 	// Use dark theming if available to differentiate from other apps
-	if st, err := gtk.SettingsGetDefault(); err == nil {
-		st.SetProperty("gtk-application-prefer-dark-theme", true)
+	st, err := gtk.SettingsGetDefault()
+	if err != nil {
+		return false, err
 	}
-
+	if err := st.SetProperty("gtk-application-prefer-dark-theme", true); err != nil {
+		return false, err
+	}
 	sc, _ := gtk.CssProviderNew()
+
 	customCSS := `
 .scroller-special {
 	background-image: none;
@@ -118,7 +122,9 @@ window {
 }
 `
 
-	sc.LoadFromData(customCSS)
+	if err := sc.LoadFromData(customCSS); err != nil {
+		return false, err
+	}
 	screen, _ := gdk.ScreenGetDefault()
 	gtk.AddProviderForScreen(screen, sc, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 

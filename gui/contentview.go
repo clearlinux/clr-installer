@@ -55,7 +55,10 @@ func NewContentView(controller pages.Controller) (*ContentView, error) {
 	// Ensure navigation works properly
 	view.list.SetSelectionMode(gtk.SELECTION_SINGLE)
 	view.list.SetActivateOnSingleClick(true)
-	view.list.Connect("row-activated", view.onRowActivated)
+	_, err = view.list.Connect("row-activated", view.onRowActivated)
+	if err != nil {
+		return nil, err
+	}
 	view.scroll.Add(view.list)
 
 	return view, nil

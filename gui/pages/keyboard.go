@@ -55,7 +55,9 @@ func NewKeyboardPage(controller Controller, model *model.SystemInstall) (Page, e
 	}
 	keyboard.list.SetSelectionMode(gtk.SELECTION_SINGLE)
 	keyboard.list.SetActivateOnSingleClick(true)
-	keyboard.list.Connect("row-activated", keyboard.onRowActivated)
+	if _, err := keyboard.list.Connect("row-activated", keyboard.onRowActivated); err != nil {
+		return nil, err
+	}
 	keyboard.scroll.Add(keyboard.list)
 	// Remove background
 	st, _ := keyboard.list.GetStyleContext()

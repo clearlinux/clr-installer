@@ -45,8 +45,9 @@ func NewInstallWidget(desc string) (*InstallWidget, error) {
 	widget.label.SetHAlign(gtk.ALIGN_START)
 	widget.image.SetVAlign(gtk.ALIGN_CENTER)
 	widget.layout.PackEnd(widget.image, false, false, 0)
-	widget.layout.SetProperty("margin", 4)
-
+	if err := widget.layout.SetProperty("margin", 4); err != nil {
+		return nil, err
+	}
 	widget.layout.ShowAll()
 
 	return widget, nil
