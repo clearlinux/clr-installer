@@ -187,6 +187,12 @@ install-linters:
 		GOPATH=${orig_go_path} gometalinter.v2 --install; \
 	fi \
 
+PHONY += install-linters-force
+install-linters-force:
+	echo "Force Installing linters..."
+	GOPATH=${orig_go_path} go get -u gopkg.in/alecthomas/gometalinter.v2
+	GOPATH=${orig_go_path} gometalinter.v2 --install
+
 PHONY += update-linters
 update-linters:
 	@if gometalinter.v2 --version &>/dev/null; then \
@@ -318,6 +324,7 @@ dist-clean: clean
 		git clean -fdxq; \
 		git reset HEAD; \
 		go clean -testcache; \
+		go clean -modcache; \
 	else \
 		echo "There are pending changes in the repository!"; \
 		git status -s; \
@@ -326,6 +333,7 @@ dist-clean: clean
 else
 dist-clean: clean
 	@go clean -testcache
+	@go clean -modcache
 endif
 
 all: build
