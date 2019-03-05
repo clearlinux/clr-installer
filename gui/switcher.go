@@ -57,7 +57,9 @@ func NewSwitcher(stack *gtk.Stack) (*Switcher, error) {
 		return nil, err
 	}
 	switcher.buttons.required.SetActive(true)
-	switcher.buttons.required.Connect("toggled", func() { switcher.switchTo(switcher.buttons.required, "required") })
+	if _, err := switcher.buttons.required.Connect("toggled", func() { switcher.switchTo(switcher.buttons.required, "required") }); err != nil {
+		return nil, err
+	}
 	switcher.box.PackStart(switcher.buttons.required, true, true, 0)
 
 	// Advanced options
@@ -66,7 +68,9 @@ func NewSwitcher(stack *gtk.Stack) (*Switcher, error) {
 		return nil, err
 	}
 	switcher.buttons.advanced.JoinGroup(switcher.buttons.required)
-	switcher.buttons.advanced.Connect("toggled", func() { switcher.switchTo(switcher.buttons.advanced, "advanced") })
+	if _, err := switcher.buttons.advanced.Connect("toggled", func() { switcher.switchTo(switcher.buttons.advanced, "advanced") }); err != nil {
+		return nil, err
+	}
 	switcher.box.PackStart(switcher.buttons.advanced, true, true, 0)
 
 	return switcher, nil
