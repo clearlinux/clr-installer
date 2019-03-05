@@ -11,6 +11,7 @@ import (
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+	"log"
 )
 
 // PageConstructor is a typedef of the constructors for our pages
@@ -161,12 +162,17 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 	window.rootStack.AddTitled(window.menu.stack, "menu", "Menu")
 
 	// Temporary for development testing: Close window when asked
-	window.handle.Connect("destroy", func() {
+	_, err = window.handle.Connect("destroy", func() {
 		gtk.MainQuit()
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	// On map, expose the revealer
-	window.handle.Connect("map", window.handleMap)
+	if _, err = window.handle.Connect("map", window.handleMap); err != nil {
+		return nil, err
+	}
 
 	// Set up primary content views
 	if err = window.InitScreens(); err != nil {
@@ -323,15 +329,17 @@ func (window *Window) CreateFooter(store *gtk.Box) error {
 	if window.buttons.install, err = createNavButton("INSTALL"); err != nil {
 		return err
 	}
-	window.buttons.install.Connect("clicked", func() { window.beginInstall() })
+	if _, err = window.buttons.install.Connect("clicked", func() { window.beginInstall() }); err != nil {
+		return err
+	}
 
 	// Exit button
 	if window.buttons.quit, err = createNavButton("EXIT"); err != nil {
 		return err
 	}
-	window.buttons.quit.Connect("clicked", func() {
-		gtk.MainQuit()
-	})
+	if _, err = window.buttons.quit.Connect("clicked", func() { gtk.MainQuit() }); err != nil {
+		return err
+	}
 
 	// Create box for secondary buttons
 	if window.buttons.boxSecondary, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0); err != nil {
@@ -342,13 +350,17 @@ func (window *Window) CreateFooter(store *gtk.Box) error {
 	if window.buttons.confirm, err = createNavButton("CONFIRM"); err != nil {
 		return err
 	}
-	window.buttons.confirm.Connect("clicked", func() { window.pageClosed(true) })
+	if _, err = window.buttons.confirm.Connect("clicked", func() { window.pageClosed(true) }); err != nil {
+		return err
+	}
 
 	// Cancel button
 	if window.buttons.cancel, err = createNavButton("CANCEL"); err != nil {
 		return err
 	}
-	window.buttons.cancel.Connect("clicked", func() { window.pageClosed(false) })
+	if _, err = window.buttons.cancel.Connect("clicked", func() { window.pageClosed(false) }); err != nil {
+		return err
+	}
 
 	// Pack the buttons
 	window.buttons.boxPrimary.PackEnd(window.buttons.install, false, false, 4)
@@ -368,7 +380,7 @@ func (window *Window) handleMap() {
 	if window.didInit {
 		return
 	}
-	glib.TimeoutAdd(200, func() bool {
+	_, err := glib.TimeoutAdd(200, func() bool {
 		if !window.didInit {
 			window.banner.ShowFirst()
 			window.menu.switcher.Show()
@@ -377,6 +389,9 @@ func (window *Window) handleMap() {
 		}
 		return false
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 // pageClosed handles closure of a page. We're interested in whether

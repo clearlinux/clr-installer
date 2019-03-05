@@ -8,6 +8,7 @@ import (
 	"github.com/clearlinux/clr-installer/args"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+	"log"
 	"math"
 )
 
@@ -82,7 +83,7 @@ const (
 // is correctly performed, and that we have valid constraints in which to
 // scroll.
 func scrollToView(scroll *gtk.ScrolledWindow, container gtk.IWidget, widget *gtk.Widget) {
-	glib.TimeoutAdd(100, func() bool {
+	_, err := glib.TimeoutAdd(100, func() bool {
 		adjustment := scroll.GetVAdjustment()
 		_, y, err := widget.TranslateCoordinates(container, 0, 0)
 		if err != nil {
@@ -92,4 +93,7 @@ func scrollToView(scroll *gtk.ScrolledWindow, container gtk.IWidget, widget *gtk
 		adjustment.SetValue(math.Min(float64(y), maxSize))
 		return false
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
 }

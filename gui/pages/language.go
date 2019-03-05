@@ -55,7 +55,9 @@ func NewLanguagePage(controller Controller, model *model.SystemInstall) (Page, e
 	}
 	language.list.SetSelectionMode(gtk.SELECTION_SINGLE)
 	language.list.SetActivateOnSingleClick(true)
-	language.list.Connect("row-activated", language.onRowActivated)
+	if _, err := language.list.Connect("row-activated", language.onRowActivated); err != nil {
+		return nil, err
+	}
 	language.scroll.Add(language.list)
 	// Remove background
 	st, _ := language.list.GetStyleContext()

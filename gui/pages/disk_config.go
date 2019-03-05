@@ -57,7 +57,9 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	}
 	disk.list.SetSelectionMode(gtk.SELECTION_SINGLE)
 	disk.list.SetActivateOnSingleClick(true)
-	disk.list.Connect("row-activated", disk.onRowActivated)
+	if _, err := disk.list.Connect("row-activated", disk.onRowActivated); err != nil {
+		return nil, err
+	}
 	disk.scroll.Add(disk.list)
 	// Remove background
 	st, _ := disk.list.GetStyleContext()
