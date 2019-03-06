@@ -6,9 +6,11 @@ block-devices: [
    {name: "bdevice", file: "live-desktop-beta.img"}
 ]
 
+# Ensure this fits on an 8GB USB driver by sizing
+# to 8 billion bytes like manufactures
 targetMedia:
 - name: ${bdevice}
-  size: "8G"
+  size: "7800000000"
   type: disk
   children:
   - name: ${bdevice}1
@@ -23,7 +25,7 @@ targetMedia:
   - name: ${bdevice}3
     fstype: ext4
     mountpoint: /
-    size: "7.82G"
+    size: "0"  # Fill the test of the image
     type: part
 
 bundles: [
