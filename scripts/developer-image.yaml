@@ -39,5 +39,6 @@ pre-install: [
    {cmd: "scripts/developer-image-pre.sh"}
 ]
 post-install: [
-   {cmd: "scripts/developer-image-post.sh ${chrootDir}"}
+   {cmd: "scripts/developer-image-post.sh ${chrootDir}"},
+   {cmd: "systemctl enable clr-installer", chroot: true}
 ]

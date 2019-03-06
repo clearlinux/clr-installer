@@ -2,9 +2,6 @@
 
 CHROOTPATH=$1
 
-# Enable the installer on boot
-scripts/enable-installer-post.sh ${CHROOTPATH}
-
 # Force Telemetry to use local host server
 scripts/local-telemetry-post.sh ${CHROOTPATH}
 
