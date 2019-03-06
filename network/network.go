@@ -6,6 +6,7 @@ package network
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -19,6 +20,7 @@ import (
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/log"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 // Interface is a network interface representation and wraps the net' package Interface struct
@@ -26,18 +28,21 @@ type Interface struct {
 	Name        string
 	Addrs       []*Addr
 	DHCP        bool
-	Gateway     string
-	DNS         string
-	userDefined bool
+	Gateway     string `json:"gateway,omitempty"`
+	DNSServer   string
+	DNSDomain   string
+	UserDefined bool
+	Metric      uint32 `json:"metric,omitempty"`
 }
 
 // Version used for reading and writing YAML
 type interfaceYAMLMarshal struct {
-	Name    string  `yaml:"name,omitempty"`
-	Addrs   []*Addr `yaml:"addrs,omitempty"`
-	DHCP    string  `yaml:"dhcp,omitempty"`
-	Gateway string  `yaml:"gateway,omitempty"`
-	DNS     string  `yaml:"dns,omitempty"`
+	Name      string  `yaml:"name,omitempty"`
+	Addrs     []*Addr `yaml:"addrs,omitempty"`
+	DHCP      string  `yaml:"dhcp,omitempty"`
+	Gateway   string  `yaml:"gateway,omitempty"`
+	DNSServer string  `yaml:"dns,omitempty"`
+	DNSDomain string  `yaml:"domain,omitempty"`
 }
 
 // Addr wraps the net' package Addr struct
@@ -60,15 +65,71 @@ const (
 )
 
 var (
+	startsWithExp = regexp.MustCompile(`^[0-9A-Za-z]`)
+	endsWithExp   = regexp.MustCompile(`[0-9A-Za-z]$`)
+	domainNameExp = regexp.MustCompile(`^[0-9A-Za-z]+[0-9A-Za-z-]*$`)
+
+	numericOnlyExp = regexp.MustCompile(`^[0-9]+[0-9]*$`)
+
 	validIPExp = regexp.MustCompile(`^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.{1})){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?){1}$`)
-	gwExp      = regexp.MustCompile(`(default via )(.*)( dev.*)`)
-	dnsExp     = regexp.MustCompile("(nameserver) (.*)")
+	dnsExp     = regexp.MustCompile(`Current DNS Server:(.*)`)
+	domainExp  = regexp.MustCompile(`DNS Domain:(.*)`)
+
+	needPacDiscover = false
 )
+
+// IsValidDomainName returns error message or nil if is valid
+func IsValidDomainName(domain string) string {
+	// https://en.wikipedia.org/wiki/Domain_Name_System#Domain_name_syntax,_internationalization
+
+	if len(domain) < 1 {
+		return "Required field"
+	}
+
+	if len(domain) > 253 {
+		return "Domain too long (> 253)"
+	}
+
+	labels := strings.Split(domain, ".")
+
+	// This might be 127?
+	if len(labels) > 126 {
+		return "Domain has too many sub-domains"
+	}
+
+	top := labels[len(labels)-1]
+	// never end on a dot
+	if top == "" {
+		return "Dot not allowed as last character"
+	}
+	// top level domain may not be all-numeric
+	if numericOnlyExp.MatchString(top) {
+		return "Top level domain can not be numeric"
+	}
+
+	for _, label := range labels {
+		if len(label) > 63 {
+			return fmt.Sprintf("too long (> 63) '%s'", label)
+		}
+
+		if !startsWithExp.MatchString(label) {
+			return fmt.Sprintf("'%s' may only start with alpha-numeric", label)
+		}
+		if !endsWithExp.MatchString(label) {
+			return fmt.Sprintf("'%s' may only end with alpha-numeric", label)
+		}
+		if !domainNameExp.MatchString(label) {
+			return fmt.Sprintf("sub-domain '%s' may only contain alpha-numeric hyphen", label)
+		}
+	}
+
+	return ""
+}
 
 // IsUserDefined returns true if the configuration was interactively
 // defined by the user
 func (i *Interface) IsUserDefined() bool {
-	return i.userDefined
+	return i.UserDefined
 }
 
 // MarshalYAML marshals Interface into YAML format
@@ -79,7 +140,8 @@ func (i *Interface) MarshalYAML() (interface{}, error) {
 	im.Addrs = i.Addrs
 	im.DHCP = strconv.FormatBool(i.DHCP)
 	im.Gateway = i.Gateway
-	im.DNS = i.DNS
+	im.DNSServer = i.DNSServer
+	im.DNSDomain = i.DNSDomain
 
 	return im, nil
 }
@@ -95,8 +157,9 @@ func (i *Interface) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	i.Name = im.Name
 	i.Addrs = im.Addrs
 	i.Gateway = im.Gateway
-	i.DNS = im.DNS
-	i.userDefined = false
+	i.DNSServer = im.DNSServer
+	i.DNSDomain = im.DNSDomain
+	i.UserDefined = false
 
 	if im.DHCP != "" {
 		dhcp, err := strconv.ParseBool(im.DHCP)
@@ -115,7 +178,7 @@ func (i *Interface) AddAddr(IP string, NetMask string, Version int) {
 	i.Addrs = append(i.Addrs, &Addr{IP: IP, NetMask: NetMask, Version: Version})
 }
 
-// HasIPv4Addr will loopup an addr with Version set to ipv4
+// HasIPv4Addr will lookup an addr with Version set to ipv4
 func (i *Interface) HasIPv4Addr() bool {
 	for _, curr := range i.Addrs {
 		if curr.Version == IPv4 {
@@ -126,6 +189,81 @@ func (i *Interface) HasIPv4Addr() bool {
 	return false
 }
 
+// GetGateway returns the best gateway for the interface
+func (i *Interface) GetGateway() (string, error) {
+	const (
+		maxUint32 = 1<<32 - 1
+	)
+	var gateway string
+	var metric uint32 = maxUint32
+
+	w := bytes.NewBuffer(nil)
+	err := cmd.Run(w, "ip", "-j", "route", "show", "dev", i.Name)
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+
+	var interfaces []*Interface //`json:"interfaces"`
+
+	err = json.Unmarshal(w.Bytes(), &interfaces)
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+
+	for _, inet := range interfaces {
+		if inet.Gateway != "" {
+			if inet.Metric <= metric {
+				gateway = inet.Gateway
+				metric = inet.Metric
+			}
+		}
+	}
+
+	return gateway, nil
+}
+
+// GetDNSInfo returns the DNS Server and Domain
+func (i *Interface) GetDNSInfo() (string, string, error) {
+	var dns string
+	var domain string
+
+	w := bytes.NewBuffer(nil)
+	err := cmd.Run(w, "resolvectl", "--no-pager", "status", i.Name)
+	if err != nil {
+		return dns, domain, errors.Wrap(err)
+	}
+
+	lines := strings.Split(w.String(), "\n")
+	for _, curr := range lines {
+		if curr == "" {
+			continue
+		}
+
+		if dnsExp.MatchString(curr) {
+			dns = strings.TrimSpace(dnsExp.ReplaceAllString(curr, `$1`))
+			continue
+		}
+
+		if domainExp.MatchString(curr) {
+			domain = strings.TrimSpace(domainExp.ReplaceAllString(curr, `$1`))
+			continue
+		}
+	}
+
+	if dns == "" && domain == "" {
+		log.Debug("Could not parse DNS Server nor Domain for %s", i.Name)
+	} else {
+		if domain == "" {
+			log.Debug("Could not parse DNS Server for %s", i.Name)
+		}
+		if dns == "" {
+			log.Debug("Could not parse DNS Domain for %s", i.Name)
+		}
+	}
+
+	return dns, domain, err
+}
+
 // VersionString returns a string representation for a given addr version (ipv4/ipv6)
 func (a *Addr) VersionString() string {
 	if a.Version == IPv4 {
@@ -133,46 +271,6 @@ func (a *Addr) VersionString() string {
 	}
 
 	return "ipv6"
-}
-
-// Gateway return the current default gateway addr
-func Gateway() (string, error) {
-	w := bytes.NewBuffer(nil)
-	err := cmd.Run(w, "ip", "route", "show", "default")
-	if err != nil {
-		return "", errors.Wrap(err)
-	}
-
-	result := w.String()
-	if result == "" {
-		return "", nil
-	}
-
-	if !gwExp.MatchString(result) {
-		return "", errors.Errorf("Could not parse gateway configuration")
-	}
-
-	return strings.TrimSpace(gwExp.ReplaceAllString(result, `$2`)), nil
-}
-
-// DNSServer returns the current configured resolver address
-func DNSServer() (string, error) {
-	var buff []byte
-	var err error
-
-	if buff, err = ioutil.ReadFile("/etc/resolv.conf"); err != nil {
-		return "", errors.Wrap(err)
-	}
-
-	for _, line := range strings.Split(string(buff), "\n") {
-		if !dnsExp.MatchString(line) {
-			continue
-		}
-
-		return strings.TrimSpace(dnsExp.ReplaceAllString(line, `$2`)), nil
-	}
-
-	return "", nil
 }
 
 func isDHCP(iface string) (bool, error) {
@@ -237,12 +335,12 @@ func Interfaces() ([]*Interface, error) {
 			return nil, err
 		}
 
-		iface.Gateway, err = Gateway()
+		iface.Gateway, err = iface.GetGateway()
 		if err != nil {
 			return nil, err
 		}
 
-		iface.DNS, err = DNSServer()
+		iface.DNSServer, iface.DNSDomain, err = iface.GetDNSInfo()
 		if err != nil {
 			return nil, err
 		}
@@ -280,13 +378,16 @@ func netMaskToCIDR(mask string) (num int, err error) {
 }
 
 func (i *Interface) applyStatic(root string, file *os.File) error {
+	needPacDiscover = true
+
 	config := `[Match]
 Name={{.Name}}
 
 [Network]
-DNS={{.DNS}}
+DNS={{.DNSServer}}
 Address={{.Address}}
 Gateway={{.Gateway}}
+Domains={{.DNSDomain}}
 `
 
 	var address string
@@ -306,15 +407,17 @@ Gateway={{.Gateway}}
 
 	template := template.Must(template.New("").Parse(config))
 	err := template.Execute(file, struct {
-		Name    string
-		DNS     string
-		Address string
-		Gateway string
+		Name      string
+		DNSServer string
+		Address   string
+		Gateway   string
+		DNSDomain string
 	}{
-		Name:    i.Name,
-		DNS:     i.DNS,
-		Gateway: i.Gateway,
-		Address: address,
+		Name:      i.Name,
+		DNSServer: i.DNSServer,
+		Gateway:   i.Gateway,
+		DNSDomain: i.DNSDomain,
+		Address:   address,
 	})
 
 	if err != nil {
@@ -356,18 +459,25 @@ func Apply(root string, ifaces []*Interface) error {
 	}
 
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {
-		if err = os.MkdirAll(configDir, 0777); err != nil {
+		if err = os.MkdirAll(configDir, 0755); err != nil {
 			return errors.Wrap(err)
 		}
 	}
 
 	for _, curr := range ifaces {
 		if !curr.IsUserDefined() {
-			log.Info("Interface %s was not changed, skipping config apply.")
+			log.Info("Interface %s was not changed, skipping config apply.", curr.Name)
 			continue
 		}
 
 		err := curr.Apply(root)
+		if err != nil {
+			return err
+		}
+	}
+
+	if needPacDiscover {
+		err := EnablePacDiscovery(root)
 		if err != nil {
 			return err
 		}
@@ -378,7 +488,8 @@ func Apply(root string, ifaces []*Interface) error {
 
 // Restart restarts the network services
 func Restart() error {
-	err := cmd.RunAndLog("systemctl", "restart", "systemd-networkd", "systemd-resolved")
+	err := cmd.RunAndLog("systemctl", "restart", "systemd-networkd",
+		"systemd-resolved", "pacdiscovery")
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -424,8 +535,78 @@ func CheckURL(url string) error {
 // IsValidIP returns empty string if IP address is valid
 func IsValidIP(str string) string {
 	if !validIPExp.MatchString(str) {
-		return "Invalid"
+		return "Invalid IP Addr"
 	}
 
 	return ""
+}
+
+// EnablePacDiscovery turns on the pacdiscovery service
+// Normally this service is enabled by a DHCP lease path, but
+// it must be manually enabled if we set a static IP
+func EnablePacDiscovery(rootDir string) error {
+	args := []string{
+		"chroot",
+		rootDir,
+		"systemctl",
+		"enable",
+		"pacdiscovery",
+	}
+
+	// Make sure we have an installation environment
+	// and not a test environment
+	systemctl := filepath.Join(rootDir, "/usr/sbin/systemctl")
+	if _, err := os.Stat(systemctl); os.IsNotExist(err) {
+		return nil
+	}
+
+	if err := cmd.RunAndLog(args...); err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
+}
+
+// CopyNetworkInterfaces transfer the user defined network interface files
+// to the target installation media
+func CopyNetworkInterfaces(rootDir string) error {
+	const (
+		systemNetworkPath = "/etc/systemd/network"
+	)
+
+	if _, err := os.Stat(systemNetworkPath); err != nil {
+		if os.IsNotExist(err) {
+			log.Info("No updated network interfaces to install to target")
+			return nil
+		}
+		return errors.Wrap(err)
+	}
+
+	fileInfos, err := ioutil.ReadDir(systemNetworkPath)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	if err = utils.MkdirAll(filepath.Join(rootDir, systemNetworkPath), 0755); err != nil {
+		return errors.Wrap(err)
+	}
+
+	for _, fileInfo := range fileInfos {
+		src := filepath.Join(systemNetworkPath, fileInfo.Name())
+		dest := filepath.Join(rootDir, src)
+		log.Debug("Copying network interface file '%s' to '%s'", src, dest)
+		copyErr := utils.CopyFile(src, dest)
+		if copyErr != nil {
+			// Only log an error, do not stop
+			log.Error("Copy error: %s", copyErr)
+		}
+	}
+
+	// We likely copied a static IP, so enable PacDiscovery
+	err = EnablePacDiscovery(rootDir)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

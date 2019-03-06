@@ -80,6 +80,7 @@ func (page *NetworkPage) showInterface(frm *clui.Frame, iface *network.Interface
 	btn.SetAlign(AlignLeft)
 
 	btn.OnClick(func(ev clui.Event) {
+		iface.UserDefined = true
 		page.data = iface
 		page.GotoPage(TuiPageInterface)
 	})

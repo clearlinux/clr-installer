@@ -373,6 +373,10 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		}
 	}
 
+	if err = network.CopyNetworkInterfaces(rootDir); err != nil {
+		return err
+	}
+
 	if model.Telemetry.URL != "" {
 		if err = model.Telemetry.CreateTelemetryConf(rootDir); err != nil {
 			return err

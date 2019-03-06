@@ -39,17 +39,6 @@ func TestBadURL(t *testing.T) {
 	}
 }
 
-func TestGatewayLoading(t *testing.T) {
-	gw, err := Gateway()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if gw == "" {
-		t.Fatal("Should have returned a gateway address")
-	}
-}
-
 func TestIpAddress(t *testing.T) {
 	tests := []struct {
 		addr     string
@@ -59,8 +48,8 @@ func TestIpAddress(t *testing.T) {
 		{"192.168.10.1", ""},
 		{"10.0.0.0", ""},
 		{"0.0.0.0", ""},
-		{"0.0.0.0.0", "Invalid"},
-		{"0.0.0", "Invalid"},
+		{"0.0.0.0.0", "Invalid IP Addr"},
+		{"0.0.0", "Invalid IP Addr"},
 	}
 
 	for _, curr := range tests {
@@ -118,6 +107,18 @@ func TestAddAddr(t *testing.T) {
 	}
 
 	iface := list[0]
+
+	// Check for a gateway
+	_, err = iface.GetGateway()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Check for a DNS
+	_, _, err = iface.GetDNSInfo()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	ac := len(iface.Addrs)
 
 	iface.AddAddr("10.0.0.1", "255.255.255.0", IPv4)
@@ -210,15 +211,15 @@ func TestApply(t *testing.T) {
 		},
 		DHCP:        false,
 		Gateway:     "10.0.0.101",
-		DNS:         "10.0.0.101",
-		userDefined: false,
+		DNSServer:   "10.0.0.101",
+		UserDefined: false,
 	}
 
 	list = append(list, static)
 
 	// force apply
 	for _, curr := range list {
-		curr.userDefined = true
+		curr.UserDefined = true
 	}
 
 	// Apply again and test the non-interface Apply method
@@ -243,5 +244,67 @@ func TestHasIPv4Addr(t *testing.T) {
 	iface = &Interface{}
 	if iface.HasIPv4Addr() == true {
 		t.Fatalf("Interface has no ipv4 but HasIPv4Addr() returned true")
+	}
+}
+
+func TestGoodDomains(t *testing.T) {
+	tests := []struct {
+		domain string
+	}{
+		{"intel.com"},
+		{"com"},
+		{"domain.google.com"},
+		{"long.domain.google.com"},
+	}
+
+	for _, curr := range tests {
+		if IsValidDomainName(curr.domain) != "" {
+			t.Fatalf("'%s' should be a valid domain", curr.domain)
+		}
+	}
+}
+
+func TestBadDomains(t *testing.T) {
+	tests := []struct {
+		domain string
+	}{
+		{"intel.com."},
+		{"foobar.11"},
+		{"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com"},
+		{"a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.com"},
+		{""},
+		{"domain.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com"},
+		{"-google.com"},
+		{"google-.com"},
+		{"goo%gle.com"},
+		{"g#oogle.com"},
+		{"g!oogle.com"},
+		{"go^ogle.com"},
+	}
+
+	for _, curr := range tests {
+		if IsValidDomainName(curr.domain) == "" {
+			t.Fatalf("'%s' should be an invalid domain", curr.domain)
+		}
+	}
+}
+
+func TestCopyNetwork(t *testing.T) {
+	dir, err := ioutil.TempDir("", "clr-installer-utest")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	etcDir := filepath.Join(dir, "/etc/systemd/network")
+	if err = utils.MkdirAll(etcDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() {
+		_ = os.RemoveAll(dir)
+	}()
+
+	if err := CopyNetworkInterfaces(dir); err != nil {
+		t.Fatalf("CopyNetworkInterfaces should not fail: '%s'", err)
 	}
 }
