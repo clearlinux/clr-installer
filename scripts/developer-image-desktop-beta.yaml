@@ -57,5 +57,6 @@ pre-install: [
 post-install: [
    {cmd: "scripts/live-image-post-update-version.py ${chrootDir}"},
    {cmd: "scripts/live-desktop-post-install.sh ${chrootDir}"},
-   {cmd: "scripts/developer-image-post.sh ${chrootDir}"}
+   {cmd: "scripts/developer-image-post.sh ${chrootDir}"},
+   {cmd: "systemctl enable clr-installer", chroot: true}
 ]

@@ -44,5 +44,6 @@ kernel-arguments: {
 }
 
 post-install: [
-   {cmd: "scripts/installer-post.sh ${chrootDir}"}
+   {cmd: "scripts/installer-post.sh ${chrootDir}"},
+   {cmd: "systemctl enable clr-installer", chroot: true}
 ]
