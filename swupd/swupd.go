@@ -191,10 +191,10 @@ func (s *SoftwareUpdater) Update() error {
 // See Issue https://github.com/clearlinux/swupd-client/issues/527
 func (s *SoftwareUpdater) DisableUpdate() error {
 	args := []string{
-		filepath.Join(s.rootDir, "/usr/bin/systemctl"),
-		fmt.Sprintf("--root=%s", s.rootDir),
+		"chroot",
+		s.rootDir,
+		"systemctl",
 		"mask",
-		"--now",
 		"swupd-update.service",
 		"swupd-update.timer",
 	}
