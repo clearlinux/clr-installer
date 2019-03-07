@@ -9,11 +9,6 @@
       "bundle": "kernel-lts",
       "name": "LTS",
       "desc": "The Long Term Support (LTS) Linux Kernel"
-    },
- 		{
-      "bundle": "kernel-pk",
-      "name": "PK",
-      "desc": "The Intel Production Kernel (PK)"
     }
   ]
 }
