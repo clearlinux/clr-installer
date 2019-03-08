@@ -60,3 +60,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/digitalocean/go-smbios"
+
+[[constraint]]
+  name = "github.com/gotk3/gotk3"
+  version= "GOTK3_0_3_0"

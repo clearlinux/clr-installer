@@ -26,6 +26,20 @@
   revision = "390a4f403a8e94ca0acdcf609eb18eeae9d6d1ac"
 
 [[projects]]
+  digest = "1:029f2edf9b624ed24f9dc20ef3fd518ba060b7207da48e0bee4a84a9f0e2b389"
+  name = "github.com/gotk3/gotk3"
+  packages = [
+    "cairo",
+    "gdk",
+    "glib",
+    "gtk",
+    "pango",
+  ]
+  pruneopts = "UT"
+  revision = "8deb6b3f8d38fbdc31ec733fdbd24bf491a5979b"
+  version = "GOTK3_0_3_0"
+
+[[projects]]
   digest = "1:f9a5e090336881be43cfc1cf468330c1bdd60abdc9dd194e0b1ab69f4b94dd7c"
   name = "github.com/huandu/xstrings"
   packages = ["."]
@@ -105,6 +119,9 @@
   input-imports = [
     "github.com/VladimirMarkelov/clui",
     "github.com/digitalocean/go-smbios/smbios",
+    "github.com/gotk3/gotk3/gtk",
+    "github.com/gotk3/gotk3/gdk",
+    "github.com/gotk3/gotk3/glib",
     "github.com/huandu/xstrings",
     "github.com/nsf/termbox-go",
     "github.com/spf13/pflag",
