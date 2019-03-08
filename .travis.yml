@@ -9,7 +9,7 @@ services:
 # This is just here for Travis CI to report correctly
 language: go
 go:
-    - "1.10" # quote this or 1.10 is treated as 1.1 (floating point number)
+    - "1.12" # quote this
 
 # Not need as we are not running GO in this image, but the Docker image
 # go_import_path: github.com/clearlinux/clr-installer
@@ -18,12 +18,13 @@ before_install:
     - docker pull clearlinux/clr-installer-ci
     - docker run --network=host --name clear-test -v $(pwd):/travis -v /dev:/dev  -v /var/tmp/test:/tmp -v /sys/fs/cgroup:/sys/fs/cgroup:ro -e container=docker --privileged --tmpfs /run --tmpfs /run/lock -dit --rm clearlinux/clr-installer-ci:latest /sbin/init
     - docker ps
+    - docker exec -it clear-test bash -c "swupd bundle-add devpkg-gtk3" # TODO: Remove this when the GUI dependencies are installed in the clr-installer-ci image
 
 # Do NOT use -l (login) for the bash shell or the default profile
 # (/usr/share/defaults/etc/profile) will reset PATH removing the
 # GOPATH/bin added to the clr-installer-ci Docker image.
 
-# Just use the latest Docker image build for nwo
+# Just use the latest Docker image build for now
 #install:
 #      - docker exec -it clear-test bash -c "swupd update"
 
