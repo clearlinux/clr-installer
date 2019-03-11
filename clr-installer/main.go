@@ -22,16 +22,13 @@ import (
 	"github.com/clearlinux/clr-installer/crypt"
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/frontend"
-	"github.com/clearlinux/clr-installer/gui"
 	"github.com/clearlinux/clr-installer/keyboard"
 	"github.com/clearlinux/clr-installer/language"
 	"github.com/clearlinux/clr-installer/log"
-	"github.com/clearlinux/clr-installer/massinstall"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/swupd"
 	"github.com/clearlinux/clr-installer/telemetry"
 	"github.com/clearlinux/clr-installer/timezone"
-	"github.com/clearlinux/clr-installer/tui"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -43,14 +40,6 @@ var (
 func fatal(err error) {
 	log.ErrorError(err)
 	panic(err)
-}
-
-func initFrontendList() {
-	frontEndImpls = []frontend.Frontend{
-		massinstall.New(),
-		gui.New(),
-		tui.New(),
-	}
 }
 
 func validateTelemetry(options args.Args, md *model.SystemInstall) error {

@@ -82,17 +82,24 @@ gopath:
 	@echo "Code already in existing GOPATH=${GOPATH}"
 endif
 
-install: build
-	@install -D -m 755 $(top_srcdir)/.gopath/bin/clr-installer $(DESTDIR)/usr/bin/clr-installer
-	@install -D -m 755 $(top_srcdir)/etc/org.freedesktop.policykit.pkexec.policy $(PKIT_DIR)/org.freedesktop.policykit.pkexec.policy
+install: install-tui install-gui
+
+install-common:
 	@install -D -m 644  $(top_srcdir)/themes/clr-installer.theme $(THEME_DIR)/clr-installer.theme
-	@install -D -m 644  $(top_srcdir)/themes/clr.png $(THEME_DIR)/clr.png
 	@install -D -m 644  $(top_srcdir)/etc/clr-installer.yaml $(CONFIG_DIR)/clr-installer.yaml
 	@install -D -m 644  $(top_srcdir)/etc/bundles.json $(CONFIG_DIR)/bundles.json
 	@install -D -m 644  $(top_srcdir)/etc/kernels.json $(CONFIG_DIR)/kernels.json
-	@install -D -m 644  $(top_srcdir)/etc/clr-installer.desktop $(DESKTOP_DIR)/clr-installer.desktop
 	@install -D -m 644 $(top_srcdir)/etc/systemd/clr-installer.service $(SYSTEMD_DIR)/clr-installer.service
 	@install -D -m 644  $(top_srcdir)/etc/chpasswd $(CONFIG_DIR)/chpasswd
+
+install-tui: build-tui install-common
+	@install -D -m 755 $(top_srcdir)/.gopath/bin/clr-installer-tui $(DESTDIR)/usr/bin/clr-installer
+
+install-gui: build-gui install-common
+	@install -D -m 755 $(top_srcdir)/.gopath/bin/clr-installer-gui $(DESTDIR)/usr/bin/clr-installer-gui
+	@install -D -m 755 $(top_srcdir)/etc/org.freedesktop.policykit.pkexec.policy $(PKIT_DIR)/org.freedesktop.policykit.pkexec.policy
+	@install -D -m 644  $(top_srcdir)/themes/clr.png $(THEME_DIR)/clr.png
+	@install -D -m 644  $(top_srcdir)/etc/clr-installer.desktop $(DESKTOP_DIR)/clr-installer.desktop
 
 uninstall:
 	@rm -f $(DESTDIR)/usr/bin/clr-installer
@@ -121,12 +128,24 @@ build-vendor: build
    done
 	@rm -rf .gopath/src/*
 
-build: validate_version gopath
+build: build-tui build-gui
+	ln ${GOPATH}/bin/clr-installer-tui ${GOPATH}/bin/clr-installer
+
+build-tui: validate_version gopath
 	go get -v ${GO_PACKAGE_PREFIX}/clr-installer
 	go install -v \
 		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
 		-X github.com/clearlinux/clr-installer/model.BuildDate=${BUILDDATE}" \
 		${GO_PACKAGE_PREFIX}/clr-installer
+	mv ${GOPATH}/bin/clr-installer ${GOPATH}/bin/clr-installer-tui
+
+build-gui: validate_version gopath
+	go get -v -tags guiBuild ${GO_PACKAGE_PREFIX}/clr-installer
+	go install -v -tags guiBuild \
+		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
+		-X github.com/clearlinux/clr-installer/model.BuildDate=${BUILDDATE}" \
+		${GO_PACKAGE_PREFIX}/clr-installer
+	mv ${GOPATH}/bin/clr-installer ${GOPATH}/bin/clr-installer-gui
 
 build-local-travis: validate_version gopath
 	@go get -v ${GO_PACKAGE_PREFIX}/local-travis
