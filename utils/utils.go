@@ -11,6 +11,7 @@ import (
 	"os/user"
 	"path"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"syscall"
@@ -20,6 +21,32 @@ import (
 
 	"github.com/clearlinux/clr-installer/errors"
 )
+
+// ClearVersion is running version of the OS
+var ClearVersion string
+
+// ParseOSClearVersion parses the current version of the Clear Linux OS
+func ParseOSClearVersion() error {
+	var versionBuf []byte
+	var err error
+
+	// in order to avoid issues raised by format bumps between installers image
+	// version and the latest released we assume the installers host version
+	// in other words we use the same version swupd is based on
+	if versionBuf, err = ioutil.ReadFile("/usr/lib/os-release"); err != nil {
+		return errors.Errorf("Read version file /usr/lib/os-release: %v", err)
+	}
+	versionExp := regexp.MustCompile(`VERSION_ID=([0-9][0-9]*)`)
+	match := versionExp.FindSubmatch(versionBuf)
+
+	if len(match) < 2 {
+		return errors.Errorf("Version not found in /usr/lib/os-release")
+	}
+
+	ClearVersion = string(match[1])
+
+	return nil
+}
 
 // MkdirAll similar to go's standard os.MkdirAll() this function creates a directory
 // named path, along with any necessary parents but also checks if path exists and

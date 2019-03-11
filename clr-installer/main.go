@@ -201,6 +201,11 @@ func main() {
 		fatal(err)
 	}
 
+	log.Info("Querying Clear Linux version")
+	if err := utils.ParseOSClearVersion(); err != nil {
+		fatal(err)
+	}
+
 	if options.CryptPassFile != "" {
 		content, cryptErr := ioutil.ReadFile(options.CryptPassFile)
 		if cryptErr != nil {

@@ -7,11 +7,12 @@ package tui
 import (
 	"time"
 
-	"github.com/clearlinux/clr-installer/controller"
-	"github.com/clearlinux/clr-installer/progress"
-
 	"github.com/VladimirMarkelov/clui"
 	term "github.com/nsf/termbox-go"
+
+	"github.com/clearlinux/clr-installer/controller"
+	"github.com/clearlinux/clr-installer/network"
+	"github.com/clearlinux/clr-installer/progress"
 )
 
 // InstallPage is the Page implementation for installation progress page, it also implements
@@ -95,6 +96,10 @@ func (page *InstallPage) Activate() {
 			return // In a panic state, do not continue
 		}
 
+		go func() {
+			_ = network.DownloadInstallerMessage("Post-Installation",
+				network.PostInstallConf)
+		}()
 		page.prgLabel.SetTitle("Installation complete")
 		page.rebootBtn.SetEnabled(true)
 		page.exitBtn.SetEnabled(true)

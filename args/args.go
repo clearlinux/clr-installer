@@ -22,6 +22,7 @@ import (
 
 	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/log"
+	"github.com/clearlinux/clr-installer/network"
 	flag "github.com/spf13/pflag"
 )
 
@@ -98,7 +99,7 @@ func (args *Args) setKernelArgs() (err error) {
 	if url != "" {
 		var ffile string
 
-		if ffile, err = conf.FetchRemoteConfigFile(url); err != nil {
+		if ffile, err = network.FetchRemoteConfigFile(url); err != nil {
 			return err
 		}
 

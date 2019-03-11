@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -54,7 +53,6 @@ func sortMountPoint(bds []*storage.BlockDevice) []*storage.BlockDevice {
 func Install(rootDir string, model *model.SystemInstall, options args.Args) error {
 	var err error
 	var version string
-	var versionBuf []byte
 	var prg progress.Progress
 	var encryptedUsed bool
 
@@ -101,22 +99,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	}
 
 	if model.Version == 0 {
-		log.Info("Querying Clear Linux version")
-
-		// in order to avoid issues raised by format bumps between installers image
-		// version and the latest released we assume the installers host version
-		// in other words we use the same version swupd is based on
-		if versionBuf, err = ioutil.ReadFile("/usr/lib/os-release"); err != nil {
-			return errors.Errorf("Read version file /usr/lib/os-release: %v", err)
-		}
-		versionExp := regexp.MustCompile(`VERSION_ID=([0-9][0-9]*)`)
-		match := versionExp.FindSubmatch(versionBuf)
-
-		if len(match) < 2 {
-			return errors.Errorf("Version not found in /usr/lib/os-release")
-		}
-
-		version = string(match[1])
+		version = utils.ClearVersion
 	} else {
 		version = fmt.Sprintf("%d", model.Version)
 	}

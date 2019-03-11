@@ -276,7 +276,7 @@ func TestKernelCmdLogError(t *testing.T) {
 	}
 }
 
-func TestKernelCmdInvalidProtocol(t *testing.T) {
+func TestKernelCmdFileProtocol(t *testing.T) {
 	var testArgs Args
 	var kernelCmd string
 	var err error
@@ -296,8 +296,8 @@ func TestKernelCmdInvalidProtocol(t *testing.T) {
 	if testArgs.CfDownloaded && testArgs.ConfigFile != "" {
 		defer func() { _ = os.Remove(testArgs.ConfigFile) }()
 	}
-	if err == nil {
-		t.Errorf("setKernelArgs() should fail with unsupported protocol")
+	if err != nil {
+		t.Errorf("setKernelArgs() should not fail with FILE protocol")
 		return
 	}
 }

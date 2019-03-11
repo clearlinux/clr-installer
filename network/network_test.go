@@ -308,3 +308,20 @@ func TestCopyNetwork(t *testing.T) {
 		t.Fatalf("CopyNetworkInterfaces should not fail: '%s'", err)
 	}
 }
+
+func TestGoodDownload(t *testing.T) {
+
+	installDataURLBase = "https://cdn.download.clearlinux.org/releases/%s/clear/config/image/.data/%s"
+
+	if msg := DownloadInstallerMessage("Pre", PreInstallConf); msg != "" {
+		t.Fatalf("Good HTTP URL failed: %s", msg)
+	}
+
+	if err := CheckURL("https://www.google.com"); err != nil {
+		t.Fatalf("Good HTTPS URL failed: %s", err)
+	}
+
+	if err := CheckURL("https://cdn.download.clearlinux.org/update/"); err != nil {
+		t.Fatalf("Good Clear Linux HTTPS URL failed: %s", err)
+	}
+}
