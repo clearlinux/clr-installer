@@ -17,6 +17,8 @@ import (
 	"strings"
 	"text/template"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/log"
@@ -52,6 +54,19 @@ type Addr struct {
 	Version int
 }
 
+// LangString hold strings for each translated language
+// and one for default if the current language is unavailable
+type LangString struct {
+	Default string `yaml:"default,omitempty"`
+	EnUs    string `yaml:"en_US,omitempty"`
+}
+
+// Messenger is an array of language string used to create
+// an end user message for display
+type Messenger struct {
+	Messages []*LangString `yaml:"install-msg,omitempty"`
+}
+
 const (
 	// IPv4 identifies the addr version as ipv4
 	IPv4 = iota
@@ -62,6 +77,11 @@ const (
 	configDir = "/etc/systemd/network/"
 
 	versionURLPath = "/usr/share/defaults/swupd/contenturl"
+
+	// PreInstallConf is the name of the pre-installation message file
+	PreInstallConf = "pre-install-msg.yaml"
+	// PostInstallConf is the name of the pre-installation message file
+	PostInstallConf = "post-install-msg.yaml"
 )
 
 var (
@@ -76,6 +96,8 @@ var (
 	domainExp  = regexp.MustCompile(`DNS Domain:(.*)`)
 
 	needPacDiscover = false
+
+	installDataURLBase = "https://cdn.download.clearlinux.org/releases/%s/clear/config/image/.data/%s"
 )
 
 // IsValidDomainName returns error message or nil if is valid
@@ -530,6 +552,92 @@ func CheckURL(url string) error {
 	}
 
 	return nil
+}
+
+// FetchRemoteConfigFile given an config url fetches it from the network. This function
+// currently supports only http/https protocol. After success return the local file path.
+func FetchRemoteConfigFile(url string) (string, error) {
+	// Get a temp filename to download to
+	out, err := ioutil.TempFile("", "clr-installer-yaml-")
+	if err != nil {
+		return "", err
+	}
+	_ = out.Close()
+
+	// Since Clear Linux automatically proxy are not support in golang via
+	// the patch to libcurl, we need to use a system call to curl for now.
+	// TODO: Change this back to native http.Get(url) once a better
+	// proxy solution is deployed in the OS
+	args := []string{
+		"timeout",
+		"--kill-after=30s",
+		"30s",
+		"curl",
+		"--no-sessionid",
+		"-o",
+		out.Name(),
+		"-s",
+		"-f",
+		url,
+	}
+
+	if err := cmd.Run(nil, args...); err != nil {
+		log.Debug("FetchRemoteConfigFile failed : %q", err)
+		defer func() { _ = os.Remove(out.Name()) }()
+		return "", err
+	}
+
+	return out.Name(), nil
+}
+
+// DownloadInstallerMessage pulls down a message from a URL
+// Intended for getting a message to display before or after
+// the installation process
+func DownloadInstallerMessage(header string, installConf string) string {
+	var result Messenger
+
+	downloadURL := fmt.Sprintf(installDataURLBase, utils.ClearVersion, installConf)
+	msgFile, err := FetchRemoteConfigFile(downloadURL)
+	if err != nil {
+		log.Debug("Failed to download the %s message: %s", header, err)
+		return ""
+	}
+	defer func() { _ = os.Remove(msgFile) }()
+
+	configStr, err := ioutil.ReadFile(msgFile)
+	if err != nil {
+		log.Debug("Failed to read the %s file: %s", header, err)
+		return ""
+	}
+
+	if err := yaml.Unmarshal(configStr, &result); err != nil {
+		log.Debug("Failed to parse the %s YAML file: %s", header, err)
+		return ""
+	}
+
+	if result.Messages == nil {
+		log.Debug("%s has no message content", header)
+		return ""
+	}
+
+	var lines []string
+	found := false
+	for _, message := range result.Messages {
+		line := strings.TrimSpace(message.Default)
+		if len(line) > 0 {
+			// We found at least one line with non-whitespace
+			found = true
+		}
+		lines = append(lines, strings.TrimSuffix(message.Default, "\n"))
+	}
+
+	msg := ""
+	if found {
+		msg = strings.Join(lines, "\n")
+		log.Debug("%s message: %s", header, msg)
+	}
+
+	return msg
 }
 
 // IsValidIP returns empty string if IP address is valid

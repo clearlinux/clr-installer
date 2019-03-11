@@ -7,9 +7,10 @@ package tui
 import (
 	"time"
 
-	"github.com/clearlinux/clr-installer/controller"
-
 	"github.com/VladimirMarkelov/clui"
+
+	"github.com/clearlinux/clr-installer/controller"
+	"github.com/clearlinux/clr-installer/network"
 )
 
 // MenuPage is the Page implementation for the main menu page
@@ -175,6 +176,10 @@ func newMenuPage(tui *Tui) (Page, error) {
 				dialog.OnClose(func() {
 					if dialog.Confirmed {
 						page.GotoPage(TuiPageInstall)
+						go func() {
+							_ = network.DownloadInstallerMessage("Pre-Installation",
+								network.PreInstallConf)
+						}()
 					}
 				})
 			}
