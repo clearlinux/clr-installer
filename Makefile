@@ -212,7 +212,7 @@ lint: build install-linters gopath
 	@rm -rf ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor
 	@cp -af vendor/* ${LOCAL_GOPATH}/src/
 	@go build -race github.com/clearlinux/clr-installer/...
-	@gometalinter.v2 --deadline=10m --tests --vendor \
+	@gometalinter.v2 --deadline=30m --tests --vendor \
 	--exclude=vendor --disable-all \
 	--enable=misspell \
 	--enable=vet \
