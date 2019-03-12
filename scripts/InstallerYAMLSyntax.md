@@ -119,7 +119,8 @@ Item | Description | Default
 `autoUpdate` | Should the system automatically update to the latest release of Clear Linux OS as part of the installation?; true or false | true
 `postReboot` | Should the system reboot after the installation completes?; true or false | true
 `postArchive` | Should the system archive the log and configuration file on the target media?; true or false | true
-`LegacyBios` | Is the install using the Legacy boot from BIOS?; true or false | false
+`legacyBios` | Is the install using the Legacy boot from BIOS?; true or false | false
+`copyNetwork` | Copy the locally configured network interfaces to target; `/etc/systemd/network` | false
 `telemetry` | Should telemetry be enabled by default; true or false | false
 `telemetryURL` | URL of where the telemetry records should publish | `-UNDEFINED-`
 `telemetryPolicy` | Policy string displayed to users during interactive installs | `-UNDEFINED-`
