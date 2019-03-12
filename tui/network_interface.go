@@ -361,6 +361,7 @@ func newNetworkInterfacePage(tui *Tui) (Page, error) {
 				page.GotoPage(TuiPageNetwork)
 			})
 			if dialog.RunNetworkTest() {
+				page.getModel().CopyNetwork = true
 				page.tui.getPage(TuiPageNetwork).SetDone(true)
 
 				// Automatically close if it worked
