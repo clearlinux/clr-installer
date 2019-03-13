@@ -74,6 +74,9 @@ const (
 
 	// PageIDInstall is the special installation page key
 	PageIDInstall = iota
+
+	// PageIDHostname is the hostname page key
+	PageIDHostname = iota
 )
 
 // Private helper to assist in the ugliness of forcibly scrolling a GtkListBox

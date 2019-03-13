@@ -195,6 +195,7 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 
 		// advanced
 		pages.NewBundlePage,
+		pages.NewHostnamePage,
 
 		// Always last
 		pages.NewInstallPage,

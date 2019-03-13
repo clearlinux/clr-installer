@@ -62,10 +62,12 @@ func (gui *Gui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 	background-color: #414449;
 	color: #71C2E3;
 }
+
 window {
 	background-color: #414449;
 	border: none;
 }
+
 .installer-welcome-banner {
 	background-color: transparent;
 	border: none;
@@ -116,9 +118,14 @@ window {
 	color: black;
 	border-radius: 1px;
 }
+
 .nav-button:disabled {
 	color: lighter(grey);
 	background-color: lighter(#5ECBF2);
+}
+
+.installer-warning-msg {
+	color: red;
 }
 `
 
