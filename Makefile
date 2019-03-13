@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
-.NOTPARALLEL:
-
 top_srcdir = $(abspath .)
 MAKEFLAGS += -r --no-print-directory
 
@@ -12,6 +10,7 @@ build_bin_dir = $(build_dir)/bin
 pkg_dir = $(top_srcdir)
 cov_dir = $(top_srcdir)/.coverage
 
+nproc = $(shell nproc)
 orig_go_path = $(shell go env GOPATH)
 export GOPATH=$(pkg_dir)
 export GO_PACKAGE_PREFIX := github.com/clearlinux/clr-installer
@@ -117,39 +116,42 @@ uninstall:
 build-pkgs: build
 	@for pkg in `find -path ./vendor -prune -o -path ./.gopath -prune -o -name "*.go" \
 	   -printf "%h\n" | sort -u | sed 's/\.\///g'`; do \
-	   go install -v $${GO_PACKAGE_PREFIX}/$$pkg; \
+	   go install -p ${nproc} -v $${GO_PACKAGE_PREFIX}/$$pkg; \
    done
 
 build-vendor: build
 	@cp -a vendor/* .gopath/src/
 	@for pkg in `find ./vendor -name "*.go" \
 	   -printf "%h\n" | sort -u | sed 's/\.\/vendor\///g'`; do \
-	   go install -v $$pkg; \
+	   go install -p ${nproc} -v $$pkg; \
    done
 	@rm -rf .gopath/src/*
 
 build: build-tui build-gui
 	ln ${GOPATH}/bin/clr-installer-tui ${GOPATH}/bin/clr-installer
 
-build-tui: validate_version gopath
-	go get -v ${GO_PACKAGE_PREFIX}/clr-installer
-	go install -v \
+build-go-get-tui: validate_version gopath
+	go get -p ${nproc} -v ${GO_PACKAGE_PREFIX}/clr-installer
+
+build-tui: build-go-get-tui
+	@echo "MAKEFLAGS=${MAKEFLAGS}"
+	go install -p ${nproc} -v \
 		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
 		-X github.com/clearlinux/clr-installer/model.BuildDate=${BUILDDATE}" \
 		${GO_PACKAGE_PREFIX}/clr-installer
 	mv ${GOPATH}/bin/clr-installer ${GOPATH}/bin/clr-installer-tui
 
-build-gui: validate_version gopath
-	go get -v -tags guiBuild ${GO_PACKAGE_PREFIX}/clr-installer
-	go install -v -tags guiBuild \
+build-gui: build-go-get-tui
+	go get -p ${nproc} -v -tags guiBuild ${GO_PACKAGE_PREFIX}/clr-installer
+	go install -p ${nproc} -v -tags guiBuild \
 		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
 		-X github.com/clearlinux/clr-installer/model.BuildDate=${BUILDDATE}" \
 		${GO_PACKAGE_PREFIX}/clr-installer
 	mv ${GOPATH}/bin/clr-installer ${GOPATH}/bin/clr-installer-gui
 
 build-local-travis: validate_version gopath
-	@go get -v ${GO_PACKAGE_PREFIX}/local-travis
-	@go install -v \
+	@go get -p ${nproc} -v ${GO_PACKAGE_PREFIX}/local-travis
+	@go install -p ${nproc} -v \
 		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
 		-X github.com/clearlinux/clr-installer/model.BuildDate=${BUILDDATE}" \
 		${GO_PACKAGE_PREFIX}/local-travis
@@ -205,14 +207,14 @@ PHONY += install-linters
 install-linters:
 	@if ! gometalinter.v2 --version &>/dev/null; then \
 		echo "Installing linters..."; \
-		GOPATH=${orig_go_path} go get -u gopkg.in/alecthomas/gometalinter.v2; \
+		GOPATH=${orig_go_path} go get -p ${nproc} -u gopkg.in/alecthomas/gometalinter.v2; \
 		GOPATH=${orig_go_path} gometalinter.v2 --install; \
-	fi \
+	fi
 
 PHONY += install-linters-force
 install-linters-force:
 	echo "Force Installing linters..."
-	GOPATH=${orig_go_path} go get -u gopkg.in/alecthomas/gometalinter.v2
+	GOPATH=${orig_go_path} go get -p ${nproc} -u gopkg.in/alecthomas/gometalinter.v2
 	GOPATH=${orig_go_path} gometalinter.v2 --install
 
 PHONY += update-linters
@@ -223,41 +225,149 @@ update-linters:
 	else \
 		echo "Linters not installed"; \
 		exit 1; \
-	fi \
+	fi
 
 PHONY += lint
-lint: build install-linters gopath
-	@echo "Running linters"
+lint: lint-checkers
+	@echo "Linters complete"
+
+PHONY += lint-core
+lint-core: build install-linters gopath
 	@rm -rf ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor
 	@cp -af vendor/* ${LOCAL_GOPATH}/src/
 	@go build -race github.com/clearlinux/clr-installer/...
-	@gometalinter.v2 --deadline=10m --tests --vendor \
-	--exclude=vendor --disable-all \
+	@echo "Running linters"
+
+PHONY += lint-checkers
+lint-checkers: lint-mispell lint-vet lint-ineffassign lint-gocyclo lint-gofmt \
+lint-golint lint-deadcode lint-varcheck lint-structcheck \
+lint-unused lint-vetshadow lint-errcheck
+
+PHONY += lint-mispell
+lint-mispell: lint-core
+	@echo "Running linter lint-mispell"
+	@gometalinter.v2 --deadline=10m --tests \
+	--vendor --exclude=vendor --skip=vendor \
+	--disable-all \
 	--enable=misspell \
+	./...
+
+PHONY += lint-vet
+lint-vet: lint-core
+	@echo "Running linter lint-vet"
+	@gometalinter.v2 --deadline=10m --tests \
+	--vendor --exclude=vendor --skip=vendor \
+	--disable-all \
 	--enable=vet \
+	./...
+
+PHONY += lint-ineffassign
+lint-ineffassign: lint-core
+	@echo "Running linter lint-ineffassign"
+	@gometalinter.v2 --deadline=10m --tests \
+	--vendor --exclude=vendor --skip=vendor \
+	--disable-all \
 	--enable=ineffassign \
-	--enable=gofmt \
+	./...
+
+PHONY += lint-gocyclo
+lint-gocyclo: lint-core
+	@echo "Running linter lint-gocyclo"
+	@gometalinter.v2 --deadline=10m --tests \
+	--vendor --exclude=vendor --skip=vendor \
+	--disable-all \
 	$${CYCLO_MAX:+--enable=gocyclo --cyclo-over=$${CYCLO_MAX}} \
+	./...
+
+PHONY += lint-gofmt
+lint-gofmt: lint-core
+	@echo "Running linter lint-gofmt"
+	@gometalinter.v2 --deadline=10m --tests \
+	--vendor --exclude=vendor --skip=vendor \
+	--disable-all \
+	--enable=gofmt \
+	./...
+
+PHONY += lint-golint
+lint-golint: lint-core
+	@echo "Running linter lint-golint"
+	@gometalinter.v2 --deadline=10m --tests \
+	--vendor --exclude=vendor --skip=vendor \
+	--disable-all \
 	--enable=golint \
+	./...
+
+PHONY += lint-deadcode
+lint-deadcode: lint-core
+	@echo "Running linter lint-deadcode"
+	@gometalinter.v2 --deadline=10m --tests \
+	--vendor --exclude=vendor --skip=vendor \
+	--disable-all \
 	--enable=deadcode \
+	./...
+
+PHONY += lint-varcheck
+lint-varcheck: lint-core
+	@echo "Running linter lint-varcheck"
+	@gometalinter.v2 --deadline=10m --tests \
+	--vendor --exclude=vendor --skip=vendor \
+	--disable-all \
 	--enable=varcheck \
+	./...
+
+PHONY += lint-structcheck
+lint-structcheck: lint-core
+	@echo "Running linter lint-structcheck"
+	@gometalinter.v2 --deadline=10m --tests \
+	--vendor --exclude=vendor --skip=vendor \
+	--disable-all \
 	--enable=structcheck \
+	./...
+
+PHONY += lint-unused
+lint-unused: lint-core
+	@echo "Running linter lint-unused"
+	@gometalinter.v2 --deadline=10m --tests \
+	--vendor --exclude=vendor --skip=vendor \
+	--disable-all \
 	--enable=unused \
+	./...
+
+PHONY += lint-vetshadow
+lint-vetshadow: lint-core
+	@echo "Running linter lint-vetshadow"
+	@gometalinter.v2 --deadline=10m --tests \
+	--vendor --exclude=vendor --skip=vendor \
+	--disable-all \
 	--enable=vetshadow \
+	./...
+
+PHONY += lint-errcheck
+lint-errcheck: lint-core
+	@echo "Running linter lint-errcheck"
+	@gometalinter.v2 --deadline=10m --tests \
+	--vendor --exclude=vendor --skip=vendor \
+	--disable-all \
 	--enable=errcheck \
 	./...
 
 PHONY += dep-install
-dep-install:
+dep-install: gopath
 	@if ! dep version &>/dev/null; then \
 		echo "Installing dep..."; \
 		mkdir -p ${orig_go_path}/bin; \
 		curl https://raw.githubusercontent.com/golang/dep/master/install.sh 2>/dev/null \
 		| GOPATH=${orig_go_path} bash; \
-	fi \
+	fi
 
 PHONY += dep-check
 dep-check: dep-install
+	@if ! dep version &>/dev/null; then \
+		echo "Installing dep..."; \
+		mkdir -p ${orig_go_path}/bin; \
+		curl https://raw.githubusercontent.com/golang/dep/master/install.sh 2>/dev/null \
+		| GOPATH=${orig_go_path} bash; \
+	fi
 	@cd ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX} ; GOPATH=${LOCAL_GOPATH} dep check
 
 PHONY += dep-update
@@ -269,7 +379,7 @@ dep-update: dep-install
 	else \
 		echo "Dep not installed"; \
 		exit 1; \
-	fi \
+	fi
 
 PHONY += vendor-init
 vendor-init: gopath dep-install
@@ -280,14 +390,14 @@ vendor-init: gopath dep-install
 	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/Gopkg.* ${top_srcdir}
 
 PHONY += vendor-status
-vendor-status: dep-install
+vendor-status: gopath dep-install
 	@cd ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX} ; GOPATH=${LOCAL_GOPATH} dep status
 
 PHONY += vendor-check
 vendor-check: dep-check
 
 PHONY += vendor-update
-vendor-update: dep-install
+vendor-update: gopath dep-install
 	@# Copy the updated files from revision control area
 	@cp -a ${top_srcdir}/Gopkg.* ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
 	@# Pull updates
@@ -297,7 +407,7 @@ vendor-update: dep-install
 	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/Gopkg.* ${top_srcdir}
 
 PHONY += vendor-add
-vendor-add: dep-install
+vendor-add: gopath dep-install
 	@# Copy the updated files from revision control area
 	@cp -a ${top_srcdir}/Gopkg.* ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
 	@# Pull updates
