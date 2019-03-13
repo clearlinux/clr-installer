@@ -186,7 +186,7 @@ func (bundle *Bundle) GetRootWidget() gtk.IWidget {
 
 // GetSummary will return the summary for this page
 func (bundle *Bundle) GetSummary() string {
-	return "Bundle selection"
+	return "Select Additional Bundles"
 }
 
 // GetTitle will return the title for this page

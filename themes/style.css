@@ -1,0 +1,125 @@
+window {
+    background-color: #414449;
+    border: none;
+}
+
+.welcome-banner {
+    background-color: transparent;
+    border: none;
+    background-image: url('/usr/share/backgrounds/clearlinux/color_logo_wire_2560x1440.png');
+}
+
+.invisible-titlebar {
+    background-image: none;
+    background-color: transparent;
+    border: none;
+}
+
+.switcher button {
+    background-image: none;
+    border-image: none;
+    border: none;
+    background-color: #272B2E;
+    border: 1px solid #272B2E;
+    border-radius: 0px;
+    box-shadow: none;
+}
+
+.switcher button:checked {
+    background-image: none;
+    border-image: none;
+    border: none;
+    background-color: #414449;
+    border: 1px solid #414449;
+    border-radius: 0px;
+    box-shadow: none;
+}
+
+.scroller-main {
+    background-image: none;
+    background-color: #414449;
+    color: #71C2E3;
+}
+
+.summary-widget .configured-value {
+    font-size: 90%;
+    color: white;
+}
+
+.box-header {
+    background-color: #2D3237;
+}
+
+.box-header image {
+    color: #71C2E3;
+}
+
+.button-confirm,
+.button-cancel {
+    background-image: none;
+    font-weight: bold;
+    font-size: 12px;
+    border-radius: 24px;
+    border-style: none;
+    margin-bottom: 10px;
+    color: white;
+}
+
+.button-confirm {
+    background-color: #00AEFF;
+}
+
+.button-cancel {
+    background-color: #33383D;
+}
+
+.button-confirm:disabled,
+.button-cancel:disabled {
+    opacity: 0.6;
+}
+
+.box-page {
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.box-list-label {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.search-entry,
+.entry,
+.scroller,
+.list-scroller {
+    background-image: none;
+    background-color: #2D3237;
+    margin-bottom: 10px;
+}
+
+.search-entry {
+    border-radius: 24px;
+    margin-top: 10px;
+}
+
+.entry {
+    margin-top: 10px;
+}
+
+.list-label-description,
+.list-label-code {
+    color: white;
+    padding-left: 20px;
+}
+
+.list-label-description {
+    font-weight: bold;
+}
+
+.list-label-code {
+    font-size: 80%;
+}
+
+.label-warning {
+    color: red;
+}

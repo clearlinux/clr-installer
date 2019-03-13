@@ -50,7 +50,7 @@ func NewContentView(controller pages.Controller) (*ContentView, error) {
 
 	// Remove background
 	st, _ := view.list.GetStyleContext()
-	st.AddClass("scroller-special")
+	st.AddClass("scroller-main")
 
 	// Ensure navigation works properly
 	view.list.SetSelectionMode(gtk.SELECTION_SINGLE)

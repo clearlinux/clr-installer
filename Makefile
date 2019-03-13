@@ -97,14 +97,16 @@ install-tui: build-tui install-common
 install-gui: build-gui install-common
 	@install -D -m 755 $(top_srcdir)/.gopath/bin/clr-installer-gui $(DESTDIR)/usr/bin/clr-installer-gui
 	@install -D -m 755 $(top_srcdir)/etc/org.freedesktop.policykit.pkexec.policy $(PKIT_DIR)/org.freedesktop.policykit.pkexec.policy
-	@install -D -m 644  $(top_srcdir)/themes/clr.png $(THEME_DIR)/clr.png
-	@install -D -m 644  $(top_srcdir)/etc/clr-installer.desktop $(DESKTOP_DIR)/clr-installer.desktop
+	@install -D -m 644 $(top_srcdir)/themes/clr.png $(THEME_DIR)/clr.png
+	@install -D -m 644 $(top_srcdir)/themes/style.css $(THEME_DIR)/style.css
+	@install -D -m 644 $(top_srcdir)/etc/clr-installer.desktop $(DESKTOP_DIR)/clr-installer.desktop
 
 uninstall:
 	@rm -f $(DESTDIR)/usr/bin/clr-installer
 	@rm -f $(PKIT_DIR)/org.freedesktop.policykit.pkexec.policy
 	@rm -f $(THEME_DIR)/clr-installer.theme
 	@rm -f $(THEME_DIR)/clr.png
+	@rm -f $(THEME_DIR)/style.css
 	@rm -f $(CONFIG_DIR)/clr-installer.yaml
 	@rm -f $(CONFIG_DIR)/bundles.json
 	@rm -f $(CONFIG_DIR)/kernels.json
