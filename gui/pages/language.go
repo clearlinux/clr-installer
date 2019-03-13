@@ -5,155 +5,214 @@
 package pages
 
 import (
+	"strings"
+
+	"github.com/gotk3/gotk3/gtk"
+
 	"github.com/clearlinux/clr-installer/language"
 	"github.com/clearlinux/clr-installer/model"
-	"github.com/gotk3/gotk3/gtk"
 )
 
-// Language is a simple page to help with Language settings
-type Language struct {
-	controller Controller
-	model      *model.SystemInstall
-	langs      []*language.Language
-	selected   *language.Language
-	box        *gtk.Box
-	scroll     *gtk.ScrolledWindow
-	list       *gtk.ListBox
+// LanguagePage is a simple page to help with LanguagePage settings
+type LanguagePage struct {
+	controller  Controller
+	model       *model.SystemInstall
+	data        []*language.Language
+	selected    *language.Language
+	box         *gtk.Box
+	searchEntry *gtk.SearchEntry
+	scroll      *gtk.ScrolledWindow
+	list        *gtk.ListBox
 }
 
 // NewLanguagePage returns a new LanguagePage
 func NewLanguagePage(controller Controller, model *model.SystemInstall) (Page, error) {
-	langs, err := language.Load()
+	data, err := language.Load()
 	if err != nil {
 		return nil, err
 	}
 
-	language := &Language{
+	page := &LanguagePage{
 		controller: controller,
 		model:      model,
-		langs:      langs,
+		data:       data,
 	}
 
-	language.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	// Box
+	page.box, err = setBox(gtk.ORIENTATION_VERTICAL, 0, "box-page")
 	if err != nil {
 		return nil, err
 	}
-	language.box.SetBorderWidth(8)
 
-	// Build storage for listbox
-	language.scroll, err = gtk.ScrolledWindowNew(nil, nil)
+	// SearchEntry
+	page.searchEntry, err = setSearchEntry("search-entry")
 	if err != nil {
 		return nil, err
 	}
-	language.box.PackStart(language.scroll, true, true, 0)
-	language.scroll.SetPolicy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+	page.box.PackStart(page.searchEntry, false, false, 0)
+	if _, err := page.searchEntry.Connect("search-changed", page.onChange); err != nil {
+		return nil, err
+	}
 
-	// Build listbox
-	language.list, err = gtk.ListBoxNew()
+	// ScrolledWindow
+	page.scroll, err = setScrolledWindow(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC, "scroller")
 	if err != nil {
 		return nil, err
 	}
-	language.list.SetSelectionMode(gtk.SELECTION_SINGLE)
-	language.list.SetActivateOnSingleClick(true)
-	if _, err := language.list.Connect("row-activated", language.onRowActivated); err != nil {
+	page.box.PackStart(page.scroll, true, true, 5)
+
+	// ListBox
+	page.list, err = setListBox(gtk.SELECTION_SINGLE, true, "list-scroller")
+	if err != nil {
 		return nil, err
 	}
-	language.scroll.Add(language.list)
-	// Remove background
-	st, _ := language.list.GetStyleContext()
-	st.AddClass("scroller-special")
+	if _, err := page.list.Connect("row-activated", page.onRowActivated); err != nil {
+		return nil, err
+	}
+	page.scroll.Add(page.list)
 
-	for _, lang := range language.langs {
-		lab, err := gtk.LabelNew("<big>" + lang.Code + "</big>")
+	// Create list data
+	for _, v := range page.data {
+		split := strings.Split(v.String(), "  ")
+		desc := strings.Trim(split[0], " ")
+		code := strings.Trim(v.Code, " ")
+
+		box, err := setBox(gtk.ORIENTATION_VERTICAL, 0, "box-list-label")
 		if err != nil {
 			return nil, err
 		}
-		lab.SetUseMarkup(true)
-		lab.SetHAlign(gtk.ALIGN_START)
-		lab.SetXAlign(0.0)
-		lab.ShowAll()
-		language.list.Add(lab)
+
+		labelDesc, err := setLabel(desc, "list-label-description", 0.0)
+		if err != nil {
+			return nil, err
+		}
+		box.PackStart(labelDesc, false, false, 0)
+
+		labelCode, err := setLabel(code, "list-label-code", 0.0)
+		if err != nil {
+			return nil, err
+		}
+		box.PackStart(labelCode, false, false, 0)
+
+		page.list.Add(box)
 	}
 
-	return language, nil
+	return page, nil
 }
 
-func (l *Language) onRowActivated(box *gtk.ListBox, row *gtk.ListBoxRow) {
-	if row == nil {
-		l.controller.SetButtonState(ButtonConfirm, false)
-		l.selected = nil
-		return
+func (page *LanguagePage) getCode() string {
+	code := page.GetConfiguredValue()
+	if code == "" {
+		code = language.DefaultLanguage
 	}
-	// Go activate this.
-	l.selected = l.langs[row.GetIndex()]
-	l.controller.SetButtonState(ButtonConfirm, true)
+	return code
 }
 
-// IsRequired will return true as we always need a Language
-func (l *Language) IsRequired() bool {
+func (page *LanguagePage) onRowActivated(box *gtk.ListBox, row *gtk.ListBoxRow) {
+	page.selected = page.data[row.GetIndex()]
+	page.controller.SetButtonState(ButtonConfirm, true)
+}
+
+// Select row in the box, activate it and scroll to it
+func (page *LanguagePage) activateRow(index int) {
+	row := page.list.GetRowAtIndex(index)
+	page.list.SelectRow(row)
+	page.onRowActivated(page.list, row)
+	scrollToView(page.scroll, page.list, &row.Widget)
+}
+
+func (page *LanguagePage) onChange(entry *gtk.SearchEntry) error {
+	search, err := getTextFromSearchEntry(entry)
+	if err != nil {
+		return err
+	}
+
+	var setIndex bool
+	var index int
+	code := page.getCode() // Get current language
+	for i, v := range page.data {
+		if search != "" && !strings.HasPrefix(strings.ToLower(v.String()), strings.ToLower(search)) {
+			page.list.GetRowAtIndex(i).Hide()
+		} else {
+			page.list.GetRowAtIndex(i).Show()
+			if search == "" { // Get index of current language
+				if v.Code == code {
+					index = i
+					setIndex = true
+				}
+			} else { // Get index of first item in list
+				if setIndex == false {
+					index = i
+					setIndex = true
+				}
+			}
+		}
+	}
+	if setIndex == true {
+		page.activateRow(index)
+	} else {
+		page.selected = nil
+		page.controller.SetButtonState(ButtonConfirm, false)
+	}
+	return nil
+}
+
+// IsRequired will return true as we always need a LanguagePage
+func (page *LanguagePage) IsRequired() bool {
 	return true
 }
 
 // IsDone checks if all the steps are completed
-func (l *Language) IsDone() bool {
-	return l.GetConfiguredValue() != ""
+func (page *LanguagePage) IsDone() bool {
+	return page.GetConfiguredValue() != ""
 }
 
 // GetID returns the ID for this page
-func (l *Language) GetID() int {
+func (page *LanguagePage) GetID() int {
 	return PageIDLanguage
 }
 
 // GetIcon returns the icon for this page
-func (l *Language) GetIcon() string {
+func (page *LanguagePage) GetIcon() string {
 	return "preferences-desktop-locale"
 }
 
 // GetRootWidget returns the root embeddable widget for this page
-func (l *Language) GetRootWidget() gtk.IWidget {
-	return l.box
+func (page *LanguagePage) GetRootWidget() gtk.IWidget {
+	return page.box
 }
 
 // GetSummary will return the summary for this page
-func (l *Language) GetSummary() string {
+func (page *LanguagePage) GetSummary() string {
 	return "Choose Language"
 }
 
 // GetTitle will return the title for this page
-func (l *Language) GetTitle() string {
-	return l.GetSummary()
+func (page *LanguagePage) GetTitle() string {
+	return page.GetSummary()
 }
 
 // StoreChanges will store this pages changes into the model
-func (l *Language) StoreChanges() {
-	l.model.Language = l.selected
+func (page *LanguagePage) StoreChanges() {
+	page.model.Language = page.selected
 }
 
 // ResetChanges will reset this page to match the model
-func (l *Language) ResetChanges() {
-	code := language.DefaultLanguage
-	if l.model.Language.Code != "" {
-		code = l.model.Language.Code
-	}
-
-	// Preselect the timezone here
-	for n, lang := range l.langs {
-		if lang.Code != code {
-			continue
+func (page *LanguagePage) ResetChanges() {
+	code := page.getCode()
+	for i, v := range page.data {
+		if v.Code == code {
+			page.activateRow(i)
+			break
 		}
-
-		// Select row in the box, activate it and scroll to it
-		row := l.list.GetRowAtIndex(n)
-		l.list.SelectRow(row)
-		l.onRowActivated(l.list, row)
-		scrollToView(l.scroll, l.list, &row.Widget)
 	}
+	page.searchEntry.SetText("")
 }
 
 // GetConfiguredValue returns our current config
-func (l *Language) GetConfiguredValue() string {
-	if l.model.Language == nil {
+func (page *LanguagePage) GetConfiguredValue() string {
+	if page.model.Language == nil {
 		return ""
 	}
-	return l.model.Language.Code
+	return page.model.Language.Code
 }

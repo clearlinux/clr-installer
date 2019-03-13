@@ -72,7 +72,7 @@ func NewInstallPage(controller Controller, model *model.SystemInstall) (Page, er
 	if err != nil {
 		return nil, err
 	}
-	st.AddClass("scroller-special")
+	st.AddClass("scroller-main")
 
 	// Create progressbar
 	page.pbar, err = gtk.ProgressBarNew()

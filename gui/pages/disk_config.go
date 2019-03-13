@@ -63,7 +63,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	disk.scroll.Add(disk.list)
 	// Remove background
 	st, _ := disk.list.GetStyleContext()
-	st.AddClass("scroller-special")
+	st.AddClass("list-scroller")
 
 	// Set placeholder
 	placeholder, err = gtk.LabelNew("No usable devices found")

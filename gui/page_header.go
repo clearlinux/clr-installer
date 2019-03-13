@@ -51,7 +51,7 @@ func PageHeaderNew(page pages.Page) (*PageHeader, error) {
 	}
 
 	// Style the header now
-	st.AddClass("installer-header-box")
+	st.AddClass("box-header")
 
 	// Header layout
 	header.layout, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)

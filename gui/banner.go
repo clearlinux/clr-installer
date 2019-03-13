@@ -46,7 +46,7 @@ func NewBanner() (*Banner, error) {
 	if st, err = banner.ebox.GetStyleContext(); err != nil {
 		return nil, err
 	}
-	st.AddClass("installer-welcome-banner")
+	st.AddClass("welcome-banner")
 	banner.revealer.Add(banner.ebox)
 
 	// Create the root box
