@@ -5,155 +5,204 @@
 package pages
 
 import (
+	"strings"
+
+	"github.com/gotk3/gotk3/gtk"
+
 	"github.com/clearlinux/clr-installer/keyboard"
 	"github.com/clearlinux/clr-installer/model"
-	"github.com/gotk3/gotk3/gtk"
 )
 
-// Keyboard is a simple page to help with Keyboard settings
-type Keyboard struct {
-	controller Controller
-	model      *model.SystemInstall
-	keymaps    []*keyboard.Keymap
-	selected   *keyboard.Keymap
-	box        *gtk.Box
-	scroll     *gtk.ScrolledWindow
-	list       *gtk.ListBox
+// KeyboardPage is a simple page to help with KeyboardPage settings
+type KeyboardPage struct {
+	controller  Controller
+	model       *model.SystemInstall
+	data        []*keyboard.Keymap
+	selected    *keyboard.Keymap
+	box         *gtk.Box
+	searchEntry *gtk.SearchEntry
+	scroll      *gtk.ScrolledWindow
+	list        *gtk.ListBox
 }
 
 // NewKeyboardPage returns a new KeyboardPage
 func NewKeyboardPage(controller Controller, model *model.SystemInstall) (Page, error) {
-	keymaps, err := keyboard.LoadKeymaps()
+	data, err := keyboard.LoadKeymaps()
 	if err != nil {
 		return nil, err
 	}
 
-	keyboard := &Keyboard{
+	page := &KeyboardPage{
 		controller: controller,
 		model:      model,
-		keymaps:    keymaps,
+		data:       data,
 	}
 
-	keyboard.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	// Box
+	page.box, err = setBox(gtk.ORIENTATION_VERTICAL, 0, "box-page")
 	if err != nil {
 		return nil, err
 	}
-	keyboard.box.SetBorderWidth(8)
 
-	// Build storage for listbox
-	keyboard.scroll, err = gtk.ScrolledWindowNew(nil, nil)
+	// SearchEntry
+	page.searchEntry, err = setSearchEntry("search-entry")
 	if err != nil {
 		return nil, err
 	}
-	keyboard.box.PackStart(keyboard.scroll, true, true, 0)
-	keyboard.scroll.SetPolicy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+	page.box.PackStart(page.searchEntry, false, false, 0)
+	if _, err := page.searchEntry.Connect("search-changed", page.onChange); err != nil {
+		return nil, err
+	}
 
-	// Build listbox
-	keyboard.list, err = gtk.ListBoxNew()
+	// ScrolledWindow
+	page.scroll, err = setScrolledWindow(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC, "scroller")
 	if err != nil {
 		return nil, err
 	}
-	keyboard.list.SetSelectionMode(gtk.SELECTION_SINGLE)
-	keyboard.list.SetActivateOnSingleClick(true)
-	if _, err := keyboard.list.Connect("row-activated", keyboard.onRowActivated); err != nil {
+	page.box.PackStart(page.scroll, true, true, 5)
+
+	// ListBox
+	page.list, err = setListBox(gtk.SELECTION_SINGLE, true, "list-scroller")
+	if err != nil {
 		return nil, err
 	}
-	keyboard.scroll.Add(keyboard.list)
-	// Remove background
-	st, _ := keyboard.list.GetStyleContext()
-	st.AddClass("scroller-special")
+	if _, err := page.list.Connect("row-activated", page.onRowActivated); err != nil {
+		return nil, err
+	}
+	page.scroll.Add(page.list)
 
-	for _, kmap := range keyboard.keymaps {
-		lab, err := gtk.LabelNew("<big>" + kmap.Code + "</big>")
+	// Create list data
+	for _, v := range page.data {
+		box, err := setBox(gtk.ORIENTATION_VERTICAL, 0, "box-list-label")
 		if err != nil {
 			return nil, err
 		}
-		lab.SetUseMarkup(true)
-		lab.SetHAlign(gtk.ALIGN_START)
-		lab.SetXAlign(0.0)
-		lab.ShowAll()
-		keyboard.list.Add(lab)
+
+		labelDesc, err := setLabel(v.Code, "list-label-description", 0.0)
+		if err != nil {
+			return nil, err
+		}
+		box.PackStart(labelDesc, false, false, 0)
+
+		page.list.Add(box)
 	}
 
-	return keyboard, nil
+	return page, nil
 }
 
-func (k *Keyboard) onRowActivated(box *gtk.ListBox, row *gtk.ListBoxRow) {
-	if row == nil {
-		k.controller.SetButtonState(ButtonConfirm, false)
-		k.selected = nil
-		return
+func (page *KeyboardPage) getCode() string {
+	code := page.GetConfiguredValue()
+	if code == "" {
+		code = keyboard.DefaultKeyboard
 	}
-	// Go activate this.
-	k.selected = k.keymaps[row.GetIndex()]
-	k.controller.SetButtonState(ButtonConfirm, true)
+	return code
 }
 
-// IsRequired will return true as we always need a Keyboard
-func (k *Keyboard) IsRequired() bool {
+func (page *KeyboardPage) onRowActivated(box *gtk.ListBox, row *gtk.ListBoxRow) {
+	page.selected = page.data[row.GetIndex()]
+	page.controller.SetButtonState(ButtonConfirm, true)
+}
+
+// Select row in the box, activate it and scroll to it
+func (page *KeyboardPage) activateRow(index int) {
+	row := page.list.GetRowAtIndex(index)
+	page.list.SelectRow(row)
+	page.onRowActivated(page.list, row)
+	scrollToView(page.scroll, page.list, &row.Widget)
+}
+
+func (page *KeyboardPage) onChange(entry *gtk.SearchEntry) error {
+	search, err := getTextFromSearchEntry(entry)
+	if err != nil {
+		return err
+	}
+
+	var setIndex bool
+	var index int
+	code := page.getCode() // Get current keyboard
+	for i, v := range page.data {
+		if search != "" && !strings.HasPrefix(strings.ToLower(v.Code), strings.ToLower(search)) {
+			page.list.GetRowAtIndex(i).Hide()
+		} else {
+			page.list.GetRowAtIndex(i).Show()
+			if search == "" { // Get index of current keyboard
+				if v.Code == code {
+					index = i
+					setIndex = true
+				}
+			} else { // Get index of first item in list
+				if setIndex == false {
+					index = i
+					setIndex = true
+				}
+			}
+		}
+	}
+	if setIndex == true {
+		page.activateRow(index)
+	} else {
+		page.selected = nil
+		page.controller.SetButtonState(ButtonConfirm, false)
+	}
+	return nil
+}
+
+// IsRequired will return true as we always need a KeyboardPage
+func (page *KeyboardPage) IsRequired() bool {
 	return true
 }
 
 // IsDone checks if all the steps are completed
-func (k *Keyboard) IsDone() bool {
-	return k.GetConfiguredValue() != ""
+func (page *KeyboardPage) IsDone() bool {
+	return page.GetConfiguredValue() != ""
 }
 
 // GetID returns the ID for this page
-func (k *Keyboard) GetID() int {
+func (page *KeyboardPage) GetID() int {
 	return PageIDKeyboard
 }
 
 // GetIcon returns the icon for this page
-func (k *Keyboard) GetIcon() string {
+func (page *KeyboardPage) GetIcon() string {
 	return "preferences-desktop-keyboard-shortcuts"
 }
 
 // GetRootWidget returns the root embeddable widget for this page
-func (k *Keyboard) GetRootWidget() gtk.IWidget {
-	return k.box
+func (page *KeyboardPage) GetRootWidget() gtk.IWidget {
+	return page.box
 }
 
 // GetSummary will return the summary for this page
-func (k *Keyboard) GetSummary() string {
-	return "Configure the Keyboard"
+func (page *KeyboardPage) GetSummary() string {
+	return "Choose Keyboard"
 }
 
 // GetTitle will return the title for this page
-func (k *Keyboard) GetTitle() string {
-	return k.GetSummary()
+func (page *KeyboardPage) GetTitle() string {
+	return page.GetSummary()
 }
 
 // StoreChanges will store this pages changes into the model
-func (k *Keyboard) StoreChanges() {
-	k.model.Keyboard = k.selected
+func (page *KeyboardPage) StoreChanges() {
+	page.model.Keyboard = page.selected
 }
 
 // ResetChanges will reset this page to match the model
-func (k *Keyboard) ResetChanges() {
-	code := keyboard.DefaultKeyboard
-	if k.model.Keyboard.Code != "" {
-		code = k.model.Keyboard.Code
-	}
-
-	// Preselect the timezone here
-	for n, kb := range k.keymaps {
-		if kb.Code != code {
-			continue
+func (page *KeyboardPage) ResetChanges() {
+	code := page.getCode()
+	for i, v := range page.data {
+		if v.Code == code {
+			page.activateRow(i)
+			break
 		}
-
-		// Select row in the box, activate it and scroll to it
-		row := k.list.GetRowAtIndex(n)
-		k.list.SelectRow(row)
-		k.onRowActivated(k.list, row)
-		scrollToView(k.scroll, k.list, &row.Widget)
 	}
+	page.searchEntry.SetText("")
 }
 
 // GetConfiguredValue returns our current config
-func (k *Keyboard) GetConfiguredValue() string {
-	if k.model.Keyboard == nil {
+func (page *KeyboardPage) GetConfiguredValue() string {
+	if page.model.Keyboard == nil {
 		return ""
 	}
-	return k.model.Keyboard.Code
+	return page.model.Keyboard.Code
 }

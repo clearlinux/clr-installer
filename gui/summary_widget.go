@@ -48,7 +48,7 @@ func NewSummaryWidget(page pages.Page) (*SummaryWidget, error) {
 	if err != nil {
 		return nil, err
 	}
-	st.AddClass("installer-summary-widget")
+	st.AddClass("summary-widget")
 
 	// Create layout box
 	s.layout, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)

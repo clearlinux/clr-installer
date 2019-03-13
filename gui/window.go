@@ -195,6 +195,7 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 
 		// advanced
 		pages.NewBundlePage,
+		pages.NewHostnamePage,
 
 		// Always last
 		pages.NewInstallPage,
@@ -288,18 +289,20 @@ func (window *Window) AddPage(page pages.Page) error {
 }
 
 // createNavButton creates specialised navigation button
-func createNavButton(label string) (*gtk.Button, error) {
-	var st *gtk.StyleContext
+func createNavButton(label, style string) (*gtk.Button, error) {
 	button, err := gtk.ButtonNewWithLabel(label)
 	if err != nil {
 		return nil, err
 	}
 
-	st, err = button.GetStyleContext()
+	sc, err := button.GetStyleContext()
 	if err != nil {
 		return nil, err
 	}
-	st.AddClass("nav-button")
+	// Not able to set size using CSS
+	button.SetSizeRequest(100, 36)
+	sc.AddClass(style)
+
 	return button, nil
 }
 
@@ -326,7 +329,7 @@ func (window *Window) CreateFooter(store *gtk.Box) error {
 	}
 
 	// Install button
-	if window.buttons.install, err = createNavButton("INSTALL"); err != nil {
+	if window.buttons.install, err = createNavButton("INSTALL", "button-confirm"); err != nil {
 		return err
 	}
 	if _, err = window.buttons.install.Connect("clicked", func() { window.beginInstall() }); err != nil {
@@ -334,7 +337,7 @@ func (window *Window) CreateFooter(store *gtk.Box) error {
 	}
 
 	// Exit button
-	if window.buttons.quit, err = createNavButton("EXIT"); err != nil {
+	if window.buttons.quit, err = createNavButton("EXIT", "button-cancel"); err != nil {
 		return err
 	}
 	if _, err = window.buttons.quit.Connect("clicked", func() { gtk.MainQuit() }); err != nil {
@@ -347,7 +350,7 @@ func (window *Window) CreateFooter(store *gtk.Box) error {
 	}
 
 	// Confirm button
-	if window.buttons.confirm, err = createNavButton("CONFIRM"); err != nil {
+	if window.buttons.confirm, err = createNavButton("CONFIRM", "button-confirm"); err != nil {
 		return err
 	}
 	if _, err = window.buttons.confirm.Connect("clicked", func() { window.pageClosed(true) }); err != nil {
@@ -355,7 +358,7 @@ func (window *Window) CreateFooter(store *gtk.Box) error {
 	}
 
 	// Cancel button
-	if window.buttons.cancel, err = createNavButton("CANCEL"); err != nil {
+	if window.buttons.cancel, err = createNavButton("CANCEL", "button-cancel"); err != nil {
 		return err
 	}
 	if _, err = window.buttons.cancel.Connect("clicked", func() { window.pageClosed(false) }); err != nil {
