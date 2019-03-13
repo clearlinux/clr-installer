@@ -41,19 +41,19 @@ before_script:
     - docker exec -it clear-test bash -c "journalctl|cat"
 
 script:
-    - docker exec -it clear-test bash -c "cd /travis ; make dist-clean"
-    - docker exec -it clear-test bash -c "cd /travis ; make"
-    - docker exec -it clear-test bash -c "cd /travis ; PATH=${PATH}:${GOPATH}:/go/bin make vendor-check"
-    - docker exec -it clear-test bash -c "cd /travis ; make lint"
-    - travis_retry docker exec -it clear-test bash -c "cd /travis ; make check"
-    - docker exec -it clear-test bash -c "cd /travis ; make clean"
-    - docker exec -it clear-test bash -c "cd /travis ; make check-clean"
+    - docker exec -it clear-test bash -c "cd /travis ; MAKEFLAGS=-j$(nproc) make dist-clean"
+    - docker exec -it clear-test bash -c "cd /travis ; MAKEFLAGS=-j$(nproc) make"
+    - docker exec -it clear-test bash -c "cd /travis ; MAKEFLAGS=-j$(nproc) PATH=${PATH}:${GOPATH}:/go/bin make vendor-check"
+    - travis_wait 30 sleep infinity & docker exec -it clear-test bash -c "cd /travis ; MAKEFLAGS=-j$(nproc) make lint"
+    - travis_retry docker exec -it clear-test bash -c "cd /travis ; MAKEFLAGS=-j$(nproc) make check"
+    - docker exec -it clear-test bash -c "cd /travis ; MAKEFLAGS=-j$(nproc) make clean"
+    - docker exec -it clear-test bash -c "cd /travis ; MAKEFLAGS=-j$(nproc) make check-clean"
     - docker exec -it clear-test bash -c "chown -R travis:travis /travis"
-    - docker exec --user "${DOCKER_USER}" -it clear-test bash -c "cd /travis ; make"
+    - docker exec --user "${DOCKER_USER}" -it clear-test bash -c "cd /travis ; MAKEFLAGS=-j$(nproc) make"
     - travis_retry docker exec --user "${DOCKER_USER}" -it clear-test bash -c "cd /travis ; ./tests/check-coverage.sh"
     - docker exec -it clear-test bash -c "mkdir -p /opt/test-dest"
-    - docker exec -it clear-test bash -c "cd /travis ; make install DESTDIR=/opt/test-dest"
+    - docker exec -it clear-test bash -c "cd /travis ; MAKEFLAGS=-j$(nproc) make install DESTDIR=/opt/test-dest"
 
 after_script:
-    - docker exec -it clear-test bash -c "cd /travis ; make clean"
+    - docker exec -it clear-test bash -c "cd /travis ; MAKEFLAGS=-j$(nproc) make clean"
     - docker container stop clear-test
