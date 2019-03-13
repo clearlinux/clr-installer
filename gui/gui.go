@@ -5,10 +5,14 @@
 package gui
 
 import (
-	"github.com/clearlinux/clr-installer/args"
-	"github.com/clearlinux/clr-installer/model"
+	"path/filepath"
+
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
+
+	"github.com/clearlinux/clr-installer/args"
+	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 const (
@@ -17,9 +21,12 @@ const (
 
 	// ContentViewAdvanced is defined to map to the Advanced contentview
 	ContentViewAdvanced = false
+
+	// styleFile contains the style information of the installer
+	styleFile = "style.css"
 )
 
-// Gui is the main tui data struct and holds data about the higher level data for this
+// Gui is the main gui data struct and holds data about the higher level data for this
 // front end, it also implements the Frontend interface
 type Gui struct {
 	window        *Window
@@ -54,78 +61,25 @@ func (gui *Gui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 	if err := st.SetProperty("gtk-application-prefer-dark-theme", true); err != nil {
 		return false, err
 	}
-	sc, _ := gtk.CssProviderNew()
-
-	customCSS := `
-.scroller-special {
-	background-image: none;
-	background-color: #414449;
-	color: #71C2E3;
-}
-window {
-	background-color: #414449;
-	border: none;
-}
-.installer-welcome-banner {
-	background-color: transparent;
-	border: none;
-	background-image: url('/usr/share/backgrounds/clearlinux/color_logo_wire_2560x1440.png');
-}
-
-.invisible-titlebar {
-	background-image: none;
-	background-color: transparent;
-	border: none;
-}
-
-.installer-header-box {
-	background-color: #272B2E;
-}
-
-.installer-header-box image {
-	color: #71C2E3;
-}
-
-.installer-switcher button {
-	background-image: none;
-	border-image: none;
-	border: none;
-	background-color: #272B2E;
-	border: 1px solid #272B2E;
-	border-radius: 0px;
-	box-shadow: none;
-}
-
-.installer-switcher button:checked {
-	background-image: none;
-	border-image: none;
-	border: none;
-	background-color: #414449;
-	border: 1px solid #414449;
-	border-radius: 0px;
-	box-shadow: none;
-}
-
-.installer-summary-widget .configured-value {
-	font-size: 90%;
-	color: white;
-}
-
-.nav-button {
-	background-color: #5ECBF2;
-	color: black;
-	border-radius: 1px;
-}
-.nav-button:disabled {
-	color: lighter(grey);
-	background-color: lighter(#5ECBF2);
-}
-`
-
-	if err := sc.LoadFromData(customCSS); err != nil {
+	sc, err := gtk.CssProviderNew()
+	if err != nil {
 		return false, err
 	}
-	screen, _ := gdk.ScreenGetDefault()
+
+	themeDir, err := utils.LookupThemeDir()
+	if err != nil {
+		return false, err
+	}
+
+	if err := sc.LoadFromPath(filepath.Join(themeDir, styleFile)); err != nil {
+		return false, err
+	}
+
+	screen, err := gdk.ScreenGetDefault()
+	if err != nil {
+		return false, err
+	}
+
 	gtk.AddProviderForScreen(screen, sc, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 	// Construct main window

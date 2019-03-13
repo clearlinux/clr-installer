@@ -5,155 +5,204 @@
 package pages
 
 import (
+	"strings"
+
+	"github.com/gotk3/gotk3/gtk"
+
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/timezone"
-	"github.com/gotk3/gotk3/gtk"
 )
 
-// Timezone is a simple page to help with timezone settings
-type Timezone struct {
-	controller Controller
-	model      *model.SystemInstall
-	timezones  []*timezone.TimeZone
-	box        *gtk.Box
-	scroll     *gtk.ScrolledWindow
-	list       *gtk.ListBox
-	selected   *timezone.TimeZone
+// TimezonePage is a simple page to help with TimezonePage settings
+type TimezonePage struct {
+	controller  Controller
+	model       *model.SystemInstall
+	data        []*timezone.TimeZone
+	selected    *timezone.TimeZone
+	box         *gtk.Box
+	searchEntry *gtk.SearchEntry
+	scroll      *gtk.ScrolledWindow
+	list        *gtk.ListBox
 }
 
 // NewTimezonePage returns a new TimezonePage
 func NewTimezonePage(controller Controller, model *model.SystemInstall) (Page, error) {
-	tzones, err := timezone.Load()
+	data, err := timezone.Load()
 	if err != nil {
 		return nil, err
 	}
 
-	t := &Timezone{
+	page := &TimezonePage{
 		controller: controller,
 		model:      model,
-		timezones:  tzones,
+		data:       data,
 	}
 
-	t.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	// Box
+	page.box, err = setBox(gtk.ORIENTATION_VERTICAL, 0, "box-page")
 	if err != nil {
 		return nil, err
 	}
-	t.box.SetBorderWidth(8)
 
-	// Build storage for listbox
-	t.scroll, err = gtk.ScrolledWindowNew(nil, nil)
+	// SearchEntry
+	page.searchEntry, err = setSearchEntry("search-entry")
 	if err != nil {
 		return nil, err
 	}
-	t.box.PackStart(t.scroll, true, true, 0)
-	t.scroll.SetPolicy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+	page.box.PackStart(page.searchEntry, false, false, 0)
+	if _, err := page.searchEntry.Connect("search-changed", page.onChange); err != nil {
+		return nil, err
+	}
 
-	// Build listbox
-	t.list, err = gtk.ListBoxNew()
+	// ScrolledWindow
+	page.scroll, err = setScrolledWindow(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC, "scroller")
 	if err != nil {
 		return nil, err
 	}
-	t.list.SetSelectionMode(gtk.SELECTION_SINGLE)
-	t.list.SetActivateOnSingleClick(true)
-	if _, err := t.list.Connect("row-activated", t.onRowActivated); err != nil {
+	page.box.PackStart(page.scroll, true, true, 5)
+
+	// ListBox
+	page.list, err = setListBox(gtk.SELECTION_SINGLE, true, "list-scroller")
+	if err != nil {
 		return nil, err
 	}
-	t.scroll.Add(t.list)
-	// Remove background
-	st, _ := t.list.GetStyleContext()
-	st.AddClass("scroller-special")
+	if _, err := page.list.Connect("row-activated", page.onRowActivated); err != nil {
+		return nil, err
+	}
+	page.scroll.Add(page.list)
 
-	for _, zone := range t.timezones {
-		lab, err := gtk.LabelNew("<big>" + zone.Code + "</big>")
+	// Create list data
+	for _, v := range page.data {
+		box, err := setBox(gtk.ORIENTATION_VERTICAL, 0, "box-list-label")
 		if err != nil {
 			return nil, err
 		}
-		lab.SetUseMarkup(true)
-		lab.SetHAlign(gtk.ALIGN_START)
-		lab.SetXAlign(0.0)
-		lab.ShowAll()
-		t.list.Add(lab)
+
+		labelDesc, err := setLabel(v.Code, "list-label-description", 0.0)
+		if err != nil {
+			return nil, err
+		}
+		box.PackStart(labelDesc, false, false, 0)
+
+		page.list.Add(box)
 	}
 
-	return t, nil
+	return page, nil
 }
 
-func (t *Timezone) onRowActivated(box *gtk.ListBox, row *gtk.ListBoxRow) {
-	if row == nil {
-		t.controller.SetButtonState(ButtonConfirm, false)
-		t.selected = nil
-		return
+func (page *TimezonePage) getCode() string {
+	code := page.GetConfiguredValue()
+	if code == "" {
+		code = timezone.DefaultTimezone
 	}
-	// Go activate this.
-	t.selected = t.timezones[row.GetIndex()]
-	t.controller.SetButtonState(ButtonConfirm, true)
+	return code
 }
 
-// IsRequired will return true as we always need a timezone
-func (t *Timezone) IsRequired() bool {
+func (page *TimezonePage) onRowActivated(box *gtk.ListBox, row *gtk.ListBoxRow) {
+	page.selected = page.data[row.GetIndex()]
+	page.controller.SetButtonState(ButtonConfirm, true)
+}
+
+// Select row in the box, activate it and scroll to it
+func (page *TimezonePage) activateRow(index int) {
+	row := page.list.GetRowAtIndex(index)
+	page.list.SelectRow(row)
+	page.onRowActivated(page.list, row)
+	scrollToView(page.scroll, page.list, &row.Widget)
+}
+
+func (page *TimezonePage) onChange(entry *gtk.SearchEntry) error {
+	search, err := getTextFromSearchEntry(entry)
+	if err != nil {
+		return err
+	}
+
+	var setIndex bool
+	var index int
+	code := page.getCode() // Get current timezone
+	for i, v := range page.data {
+		if search != "" && !strings.HasPrefix(strings.ToLower(v.Code), strings.ToLower(search)) {
+			page.list.GetRowAtIndex(i).Hide()
+		} else {
+			page.list.GetRowAtIndex(i).Show()
+			if search == "" { // Get index of current timezone
+				if v.Code == code {
+					index = i
+					setIndex = true
+				}
+			} else { // Get index of first item in list
+				if setIndex == false {
+					index = i
+					setIndex = true
+				}
+			}
+		}
+	}
+	if setIndex == true {
+		page.activateRow(index)
+	} else {
+		page.selected = nil
+		page.controller.SetButtonState(ButtonConfirm, false)
+	}
+	return nil
+}
+
+// IsRequired will return true as we always need a TimezonePage
+func (page *TimezonePage) IsRequired() bool {
 	return true
 }
 
 // IsDone checks if all the steps are completed
-func (t *Timezone) IsDone() bool {
-	return t.GetConfiguredValue() != ""
+func (page *TimezonePage) IsDone() bool {
+	return page.GetConfiguredValue() != ""
 }
 
 // GetID returns the ID for this page
-func (t *Timezone) GetID() int {
+func (page *TimezonePage) GetID() int {
 	return PageIDTimezone
 }
 
 // GetIcon returns the icon for this page
-func (t *Timezone) GetIcon() string {
+func (page *TimezonePage) GetIcon() string {
 	return "preferences-system-time"
 }
 
 // GetRootWidget returns the root embeddable widget for this page
-func (t *Timezone) GetRootWidget() gtk.IWidget {
-	return t.box
+func (page *TimezonePage) GetRootWidget() gtk.IWidget {
+	return page.box
 }
 
 // GetSummary will return the summary for this page
-func (t *Timezone) GetSummary() string {
+func (page *TimezonePage) GetSummary() string {
 	return "Choose Timezone"
 }
 
 // GetTitle will return the title for this page
-func (t *Timezone) GetTitle() string {
-	return t.GetSummary()
+func (page *TimezonePage) GetTitle() string {
+	return page.GetSummary()
 }
 
 // StoreChanges will store this pages changes into the model
-func (t *Timezone) StoreChanges() {
-	t.model.Timezone = t.selected
+func (page *TimezonePage) StoreChanges() {
+	page.model.Timezone = page.selected
 }
 
 // ResetChanges will reset this page to match the model
-func (t *Timezone) ResetChanges() {
-	code := timezone.DefaultTimezone
-	if t.model.Timezone.Code != "" {
-		code = t.model.Timezone.Code
-	}
-
-	// Preselect the timezone here
-	for n, tz := range t.timezones {
-		if tz.Code != code {
-			continue
+func (page *TimezonePage) ResetChanges() {
+	code := page.getCode()
+	for i, v := range page.data {
+		if v.Code == code {
+			page.activateRow(i)
+			break
 		}
-
-		// Select row in the box, activate it and scroll to it
-		row := t.list.GetRowAtIndex(n)
-		t.list.SelectRow(row)
-		scrollToView(t.scroll, t.list, &row.Widget)
-		t.onRowActivated(t.list, row)
 	}
+	page.searchEntry.SetText("")
 }
 
 // GetConfiguredValue returns our current config
-func (t *Timezone) GetConfiguredValue() string {
-	if t.model.Timezone == nil {
+func (page *TimezonePage) GetConfiguredValue() string {
+	if page.model.Timezone == nil {
 		return ""
 	}
-	return t.model.Timezone.Code
+	return page.model.Timezone.Code
 }
