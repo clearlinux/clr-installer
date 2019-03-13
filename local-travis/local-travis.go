@@ -216,11 +216,26 @@ func runBatch(cfg travisConfig, batch []string) error {
 			return err
 		}
 
-		fmt.Printf("running: [%s]\n", strings.Join(args, " "))
-
 		if args[0] == "travis_retry" {
+			fmt.Printf("ignoring: [%s]\n", args[0])
 			args = args[1:]
 		}
+
+		// travis_wait 30 sleep infinity &
+		// Drop all args through &
+		if args[0] == "travis_wait" {
+			drop := []string{}
+			for args[0] != "&" {
+				drop = append(drop, args[0])
+				args = args[1:]
+			}
+
+			drop = append(drop, args[0])
+			args = args[1:]
+			fmt.Printf("ignoring: [%s]\n", strings.Join(drop, " "))
+		}
+
+		fmt.Printf("running: [%s]\n", strings.Join(args, " "))
 
 		if args[0] == "docker" && dockerCommandSupportsEnv(args[1]) {
 			args = addEnvVarsToDocker(args)
