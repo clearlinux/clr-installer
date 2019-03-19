@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -1097,7 +1097,7 @@ func SupportedFileSystems() []string {
 	return res
 }
 
-// LargestFileSystemName returns the lengh of the largest supported file system name
+// LargestFileSystemName returns the length of the largest supported file system name
 func LargestFileSystemName() int {
 	res := 0
 
