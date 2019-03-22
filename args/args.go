@@ -67,6 +67,10 @@ type Args struct {
 	BlockDevices            []string
 	StubImage               bool
 	ConvertConfigFile       string
+	MakeISO                 bool
+	MakeISOSet              bool
+	KeepImage               bool
+	KeepImageSet            bool
 }
 
 func (args *Args) setKernelArgs() (err error) {
@@ -244,6 +248,14 @@ func (args *Args) setCommandLineArgs() (err error) {
 		&args.LogFile, "log-file", defaultLogFile, "The log file path",
 	)
 
+	flag.BoolVar(
+		&args.MakeISO, "iso", false, "Generate Hybrid ISO image (Legacy/UEFI bootable)",
+	)
+
+	flag.BoolVar(
+		&args.KeepImage, "keep-image", true, "Keep the generated image file (when creating ISO)",
+	)
+
 	flag.ErrHelp = errors.New("Clear Linux Installer program")
 
 	saveConfigFile := args.ConfigFile
@@ -271,6 +283,19 @@ func (args *Args) setCommandLineArgs() (err error) {
 	if fflag != nil {
 		if fflag.Changed {
 			args.ArchiveSet = true
+		}
+	}
+
+	fflag = flag.Lookup("iso")
+	if fflag != nil {
+		if fflag.Changed {
+			args.MakeISOSet = true
+		}
+	}
+	fflag = flag.Lookup("keep-image")
+	if fflag != nil {
+		if fflag.Changed {
+			args.KeepImageSet = true
 		}
 	}
 

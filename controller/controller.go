@@ -120,6 +120,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 
 	expandMe := []*storage.BlockDevice{}
 	detachMe := []string{}
+	removeMe := []string{}
 	aliasMap := map[string]string{}
 
 	// prepare image file, case the user has declared image alias then create
@@ -149,6 +150,9 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 
 		aliasMap[alias.Name] = filepath.Base(file)
 		detachMe = append(detachMe, file)
+		if !model.KeepImage {
+			removeMe = append(removeMe, alias.File)
+		}
 
 		retry := 5
 
@@ -177,6 +181,12 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	defer func() {
 		for _, file := range detachMe {
 			storage.DetachLoopDevice(file)
+		}
+		for _, file := range removeMe {
+			log.Debug("Removing raw image file: %s", file)
+			if err = os.Remove(file); err != nil {
+				log.Warning("Failed to remove image file: %s", file)
+			}
 		}
 	}()
 
@@ -384,6 +394,16 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		log.ErrorError(err)
 	}
 	prg.Success()
+
+	if model.MakeISO {
+		msg = "Generating ISO image"
+		prg = progress.NewLoop(msg)
+		log.Info(msg)
+		if err = generateISO(rootDir, model); err != nil {
+			log.ErrorError(err)
+		}
+		prg.Success()
+	}
 
 	return nil
 }
@@ -729,4 +749,11 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 	}
 
 	return nil
+}
+
+// generateISO creates an ISO image from the just created raw image
+func generateISO(rootDir string, md *model.SystemInstall) error {
+	var err error
+
+	return err
 }
