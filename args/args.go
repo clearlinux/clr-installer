@@ -151,7 +151,7 @@ func (args *Args) setCommandLineArgs() (err error) {
 	)
 
 	flag.StringVar(
-		&args.SwupdStateDir, "swupd-state", args.SwupdMirror, "Swupd state-dir",
+		&args.SwupdStateDir, "swupd-state", args.SwupdStateDir, "Swupd state-dir",
 	)
 
 	flag.BoolVar(
