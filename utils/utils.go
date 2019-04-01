@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -292,4 +292,42 @@ func IsVirtualBox() bool {
 	}
 
 	return virtualBox
+}
+
+// LookupThemeDir return the directory to use for reading
+// theme files for the UI. It will look in the local developers
+// build area first, or the ENV variable, and finally the standard
+// system install location
+func LookupThemeDir() (string, error) {
+	var result string
+
+	themeDirs := []string{
+		os.Getenv("CLR_INSTALLER_THEME_DIR"),
+	}
+
+	src, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		return "", err
+	}
+
+	if strings.Contains(src, "/.gopath/bin") {
+		themeDirs = append(themeDirs, strings.Replace(src, "bin", "../themes", 1))
+	}
+
+	themeDirs = append(themeDirs, "/usr/share/clr-installer/themes/")
+
+	for _, curr := range themeDirs {
+		if _, err := os.Stat(curr); os.IsNotExist(err) {
+			continue
+		}
+
+		result = curr
+		break
+	}
+
+	if result == "" {
+		panic(errors.Errorf("Could not find a theme dir"))
+	}
+
+	return result, nil
 }
