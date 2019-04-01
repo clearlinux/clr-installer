@@ -1,17 +1,21 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package gui
 
 import (
-	"github.com/clearlinux/clr-installer/model"
+	"path/filepath"
+
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
+
+	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 const (
-	clearLinuxImage = "/usr/share/clr-installer/themes/clr.png"
+	clearLinuxImage = "clr.png"
 )
 
 // Banner is used to add a nice banner widget to the front of the installer
@@ -58,12 +62,19 @@ func NewBanner() (*Banner, error) {
 	banner.box.SetMarginEnd(24)
 	banner.box.SetMarginStart(40)
 
+	themeDir, err := utils.LookupThemeDir()
+	if err != nil {
+		return nil, err
+	}
+
 	// Construct the image
 	if banner.img, err = gtk.ImageNew(); err != nil {
 		return nil, err
 	}
 
-	if pbuf, err = gdk.PixbufNewFromFileAtSize(clearLinuxImage, 128, 128); err != nil {
+	if pbuf, err = gdk.PixbufNewFromFileAtSize(
+		filepath.Join(themeDir, clearLinuxImage),
+		128, 128); err != nil {
 		return nil, err
 	}
 	banner.img.SetFromPixbuf(pbuf)
