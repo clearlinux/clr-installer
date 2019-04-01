@@ -20,6 +20,7 @@ import (
 	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/hostname"
+	"github.com/clearlinux/clr-installer/isoutils"
 	"github.com/clearlinux/clr-installer/keyboard"
 	"github.com/clearlinux/clr-installer/language"
 	"github.com/clearlinux/clr-installer/log"
@@ -766,6 +767,23 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 // generateISO creates an ISO image from the just created raw image
 func generateISO(rootDir string, md *model.SystemInstall) error {
 	var err error
+	msg := "Building ISO image"
+	prg := progress.NewLoop(msg)
+	log.Info(msg)
 
+	if !md.LegacyBios {
+		for _, alias := range md.StorageAlias {
+			if err = isoutils.MakeIso(rootDir, strings.TrimSuffix(alias.File, filepath.Ext(alias.File)), md); err != nil {
+				return err
+			}
+		}
+	} else {
+		err = fmt.Errorf("cannot create ISO images for configurations with LegacyBios enabled")
+		log.ErrorError(err)
+		prg.Failure()
+		return err
+	}
+
+	prg.Success()
 	return err
 }
