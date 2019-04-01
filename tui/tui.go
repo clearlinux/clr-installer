@@ -1,18 +1,14 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package tui
 
 import (
-	"os"
-	"path/filepath"
-	"strings"
-
 	"github.com/clearlinux/clr-installer/args"
-	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/utils"
 
 	"github.com/VladimirMarkelov/clui"
 	"github.com/nsf/termbox-go"
@@ -50,40 +46,6 @@ func (tui *Tui) MustRun(args *args.Args) bool {
 	return true
 }
 
-func lookupThemeDir() (string, error) {
-	var result string
-
-	themeDirs := []string{
-		os.Getenv("CLR_INSTALLER_THEME_DIR"),
-	}
-
-	src, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		return "", err
-	}
-
-	if strings.Contains(src, "/.gopath/bin") {
-		themeDirs = append(themeDirs, strings.Replace(src, "bin", "../themes", 1))
-	}
-
-	themeDirs = append(themeDirs, "/usr/share/clr-installer/themes/")
-
-	for _, curr := range themeDirs {
-		if _, err := os.Stat(curr); os.IsNotExist(err) {
-			continue
-		}
-
-		result = curr
-		break
-	}
-
-	if result == "" {
-		panic(errors.Errorf("Could not find a theme dir"))
-	}
-
-	return result, nil
-}
-
 // Run is part of the Frontend interface implementation and is the tui frontend main entry point
 func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) (bool, error) {
 	clui.InitLibrary()
@@ -91,7 +53,7 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 
 	tui.model = md
 	tui.options = options
-	themeDir, err := lookupThemeDir()
+	themeDir, err := utils.LookupThemeDir()
 	if err != nil {
 		return false, err
 	}
