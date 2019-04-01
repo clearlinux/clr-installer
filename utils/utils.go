@@ -318,3 +318,41 @@ func SetLocale(language string) {
 		Locale.AddDomain("clr-installer")
 	}
 }
+
+// LookupISOTemplateDir returns the directory to use for reading
+// template files for ISO creation. It will look in the local developers
+// build area first, or the ENV variable, and finally the standard
+// system install location
+func LookupISOTemplateDir() (string, error) {
+	var result string
+
+	isoTemplateDirs := []string{
+		os.Getenv("CLR_INSTALLER_ISO_TEMPLATE_DIR"),
+	}
+
+	src, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		return "", err
+	}
+
+	if strings.Contains(src, "/.gopath/bin") {
+		isoTemplateDirs = append(isoTemplateDirs, strings.Replace(src, "bin", "../iso_templates", 1))
+	}
+
+	isoTemplateDirs = append(isoTemplateDirs, "/usr/share/clr-installer/iso_templates/")
+
+	for _, curr := range isoTemplateDirs {
+		if _, err := os.Stat(curr); os.IsNotExist(err) {
+			continue
+		}
+
+		result = curr
+		break
+	}
+
+	if result == "" {
+		panic(errors.Errorf("Could not find a ISO templates dir"))
+	}
+
+	return result, nil
+}
