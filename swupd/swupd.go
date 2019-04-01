@@ -92,7 +92,7 @@ func (s *SoftwareUpdater) setExtraFlags(args []string) []string {
 }
 
 // Verify runs "swupd verify" operation
-func (s *SoftwareUpdater) Verify(version string, mirror string) error {
+func (s *SoftwareUpdater) Verify(version string, mirror string, verifyOnly bool) error {
 	args := []string{
 		"swupd",
 		"verify",
@@ -132,6 +132,10 @@ func (s *SoftwareUpdater) Verify(version string, mirror string) error {
 		if err != nil {
 			return errors.Wrap(err)
 		}
+	}
+
+	if verifyOnly {
+		return nil
 	}
 
 	args = []string{
