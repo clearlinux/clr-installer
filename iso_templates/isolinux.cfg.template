@@ -1,0 +1,10 @@
+DISPLAY boot.txt
+DEFAULT menu.c32
+TIMEOUT 50
+
+LABEL clear
+  MENU DEFAULT
+  MENU LABEL Clear Linux OS for Intel Architecture
+  LINUX /kernel/kernel.xz
+  INITRD /images/initrd.gz
+  APPEND {{.Options}}

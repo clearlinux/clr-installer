@@ -1,0 +1,150 @@
+#!/bin/sh
+
+# Mount temp filesystem
+mount -t proc none /proc
+mount -t sysfs none /sys
+mount -t devtmpfs none /dev
+mount -t tmpfs none /run
+
+shell_trap() {
+    local msg="$1"
+    while true; do
+        echo "<1>Unable to boot Clear Linux." |tee /dev/kmsg
+        echo "<1>FATAL: $msg"|tee /dev/kmsg
+        sleep 30
+    done
+}
+
+get_cpuinfo() { # return details of the first CPU only
+    cat /proc/cpuinfo | awk 'BEGIN { RS = "" ; } { printf ("%s\n", $0); exit(0); }'
+}
+
+have_cpu_feature() {
+    local feature="$1"
+    get_cpuinfo | egrep -q "^flags.*\<$feature\>"
+}
+
+check_result() {
+    local ret="$1"
+    local msg="$2"
+    [ "$ret" -ne 0 ] && { echo "<1>FAIL: $msg"|tee /dev/kmsg; shell_trap "Detected Missing Required CPU Feature: $msg"; }
+    echo "<1>SUCCESS: $msg" |tee /dev/kmsg
+}
+
+have_vmx() {
+    local feature="vmx"
+    local desc="Virtualisation support"
+    local need="$desc ($feature)"
+    have_cpu_feature "$feature"
+    check_result "$?" "$need"
+}
+
+have_ssse3_cpu_feature () {
+    local feature="ssse3"
+    local desc="Supplemental Streaming SIMD Extensions 3"
+    local need="$desc ($feature)"
+    have_cpu_feature "$feature"
+    check_result "$?" "$need"
+}
+
+have_aes_cpu_feature () {
+    local feature="aes"
+    local desc="Advanced Encryption Standard instruction set"
+    local need="$desc ($feature)"
+    have_cpu_feature "$feature"
+    check_result "$?" "$need"
+}
+
+have_pclmul_cpu_feature () {
+    local feature="pclmulqdq"
+    local desc="Carry-less Multiplication extensions"
+    local need="$desc ($feature)"
+    have_cpu_feature "$feature"
+    check_result "$?" "$need"
+}
+
+have_sse41_cpu_feature () {
+    local feature="sse4_1"
+    local desc="Streaming SIMD Extensions v4.1"
+    local need="$desc ($feature)"
+    have_cpu_feature "$feature"
+    check_result "$?" "$need"
+}
+
+have_sse42_cpu_feature () {
+    local feature="sse4_2"
+    local desc="Streaming SIMD Extensions v4.2"
+    local need="$desc ($feature)"
+    have_cpu_feature "$feature"
+    check_result "$?" "$need"
+}
+
+have_64bit_cpu() {
+    local feature="lm" # "Long mode"
+    local desc="64-bit CPU"
+    local need="$desc ($feature)"
+    have_cpu_feature "$feature"
+    check_result "$?" "$need"
+}
+
+#Verify CPU features needed to run Clear exist
+echo "<1>Checking if system is capable of running Clear Linux..." |tee /dev/kmsg
+have_64bit_cpu
+have_ssse3_cpu_feature
+have_sse41_cpu_feature
+have_sse42_cpu_feature
+have_aes_cpu_feature
+have_pclmul_cpu_feature
+
+#insmod required modules
+{{range .Modules}}
+insmod {{.}}
+{{end}}
+
+mount_root() {
+    local installer=${1}
+    mkdir /mnt/media
+    mount --read-only -t iso9660 $installer /mnt/media
+    rootfsloop=$(losetup -fP --show /mnt/media/images/rootfs.img)
+    if [ -n "${rootfsloop}" ]; then
+        mkdir /mnt/rootfs
+        mount --read-only ${rootfsloop} /mnt/rootfs
+    else
+        echo "<1>Failed to initalize loopback device for rootfs.img." |tee /dev/kmsg
+    fi
+}
+
+find_and_mount_installer() {
+    local retries=0
+
+    while [ $retries -le 5 ]; do
+        installer=$(blkid -L CLR_ISO)
+        if [ -n "${installer}" ]; then
+            echo "<1>Found installer media, continuing boot..."|tee /dev/kmsg
+            mount_root ${installer}
+            break
+        else
+            echo "<1>Failed to find installer media, retrying..."|tee /dev/kmsg
+            sleep 1
+            (( retries++ ))
+        fi
+    done
+
+    if [ $retries -ge 5 ]; then
+        shell_trap "Failed to find installer media, retries exhausted, failed to boot Clear Linux."
+    fi
+}
+
+overlay_and_switch() {
+    mkdir /mnt/ramfs
+    mount -t tmpfs -o size=512M none /mnt/ramfs
+    mkdir -p /mnt/ramfs/w_root /mnt/ramfs/workdir /mnt/ramfs/rw_root
+    mount -t overlay -o lowerdir=/mnt/rootfs,upperdir=/mnt/ramfs/w_root,workdir=/mnt/ramfs/workdir none /mnt/ramfs/rw_root
+}
+
+find_and_mount_installer
+overlay_and_switch
+
+# Switch root
+exec switch_root /mnt/ramfs/rw_root /sbin/init
+
