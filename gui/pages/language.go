@@ -131,7 +131,7 @@ func (page *LanguagePage) onChange(entry *gtk.SearchEntry) error {
 	var index int
 	code := page.getCode() // Get current language
 	for i, v := range page.data {
-		if search != "" && !strings.HasPrefix(strings.ToLower(v.String()), strings.ToLower(search)) {
+		if search != "" && !strings.Contains(strings.ToLower(v.String()), strings.ToLower(search)) {
 			page.list.GetRowAtIndex(i).Hide()
 		} else {
 			page.list.GetRowAtIndex(i).Show()
