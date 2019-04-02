@@ -121,7 +121,7 @@ func (page *TimezonePage) onChange(entry *gtk.SearchEntry) error {
 	var index int
 	code := page.getCode() // Get current timezone
 	for i, v := range page.data {
-		if search != "" && !strings.HasPrefix(strings.ToLower(v.Code), strings.ToLower(search)) {
+		if search != "" && !strings.Contains(strings.ToLower(v.Code), strings.ToLower(search)) {
 			page.list.GetRowAtIndex(i).Hide()
 		} else {
 			page.list.GetRowAtIndex(i).Show()
