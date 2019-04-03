@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -27,10 +27,11 @@ const (
 	userManagerTitle = `User Manager`
 )
 const (
-	columnLogin = iota
-	columnUserName
-	columnPassword
-	columnAdmin
+	userColumnLogin = iota
+	userColumnUserName
+	userColumnPassword
+	userColumnAdmin
+	userColumnCount
 )
 
 var (
@@ -38,19 +39,19 @@ var (
 )
 
 func init() {
-	userColumns = make([]columnInfo, columnCount)
+	userColumns = make([]columnInfo, userColumnCount)
 
-	userColumns[columnLogin].title = "Login"
-	userColumns[columnLogin].minWidth = 12
+	userColumns[userColumnLogin].title = "Login"
+	userColumns[userColumnLogin].minWidth = 12
 
-	userColumns[columnUserName].title = "User Name"
-	userColumns[columnUserName].minWidth = -1 // This column get all free space
+	userColumns[userColumnUserName].title = "User Name"
+	userColumns[userColumnUserName].minWidth = -1 // This column get all free space
 
-	userColumns[columnPassword].title = "Password"
-	userColumns[columnPassword].minWidth = 8
+	userColumns[userColumnPassword].title = "Password"
+	userColumns[userColumnPassword].minWidth = 8
 
-	userColumns[columnAdmin].title = "Admin"
-	userColumns[columnAdmin].minWidth = 5
+	userColumns[userColumnAdmin].title = "Admin"
+	userColumns[userColumnAdmin].minWidth = 5
 }
 
 // UserManagerPage is the Page implementation for the disk partitioning menu page
