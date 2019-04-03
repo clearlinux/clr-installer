@@ -1177,7 +1177,7 @@ func (bd *BlockDevice) PartProbe() error {
 	}
 
 	if err := cmd.RunAndLog(args...); err != nil {
-		return errors.Wrap(err)
+		log.Warning("PartProbe has non-zero exit status: %s", err)
 	}
 
 	return nil
