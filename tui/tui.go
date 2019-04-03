@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -162,7 +162,8 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 		if errLog := md.Telemetry.LogRecord("tuipanic", 3, paniced.Error()); errLog != nil {
 			log.Error("Failed to log Telemetry fail record: %s", "tuipanic")
 		}
-		panic(paniced)
+		log.RequestCrashInfo()
+		return false, paniced
 	}
 
 	return tui.installReboot, nil
