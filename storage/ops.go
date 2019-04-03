@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -360,7 +360,7 @@ func mountFs(device string, mPointPath string, fsType string, flags uintptr) err
 	}
 
 	if err = syscall.Mount(device, mPointPath, fsType, flags, ""); err != nil {
-		return errors.Errorf("mount %s: %v", mPointPath, err)
+		return errors.Errorf("mount %s %s %s: %v", device, mPointPath, fsType, err)
 	}
 	log.Debug("Mounted ok: %s", mPointPath)
 	// Store the mount point for later unmounting
