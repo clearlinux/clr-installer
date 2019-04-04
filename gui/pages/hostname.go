@@ -11,6 +11,7 @@ import (
 
 	"github.com/clearlinux/clr-installer/hostname"
 	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 // HostnamePage is a simple page to enter the hostname
@@ -46,7 +47,7 @@ func NewHostnamePage(controller Controller, model *model.SystemInstall) (Page, e
 	page.box.PackStart(page.entry, false, false, 0)
 
 	// Rules label
-	page.rules, err = setLabel("You can use alpha-numeric characters and hyphens with a maximum of 63 characters", "", 0.0)
+	page.rules, err = setLabel(utils.Locale.Get("You can use alpha-numeric characters and hyphens with a maximum of 63 characters"), "", 0.0)
 	if err != nil {
 		return nil, err
 	}
@@ -112,12 +113,12 @@ func (page *HostnamePage) GetRootWidget() gtk.IWidget {
 
 // GetSummary will return the summary for this page
 func (page *HostnamePage) GetSummary() string {
-	return "Assign Hostname"
+	return utils.Locale.Get("Assign Hostname")
 }
 
 // GetTitle will return the title for this page
 func (page *HostnamePage) GetTitle() string {
-	return "Assign Hostname"
+	return page.GetSummary()
 }
 
 // StoreChanges will store this pages changes into the model
@@ -142,7 +143,7 @@ func (page *HostnamePage) ResetChanges() {
 // GetConfiguredValue returns our current config
 func (page *HostnamePage) GetConfiguredValue() string {
 	if page.model.Hostname == "" {
-		return "No target system hostname assigned"
+		return utils.Locale.Get("No target system hostname assigned")
 	}
 	return page.model.Hostname
 }

@@ -1,12 +1,14 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package gui
 
 import (
-	"github.com/clearlinux/clr-installer/gui/pages"
 	"github.com/gotk3/gotk3/gtk"
+
+	"github.com/clearlinux/clr-installer/gui/pages"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 // SummaryWidget is used within the ContentView to represent
@@ -50,7 +52,7 @@ func NewSummaryWidget(page pages.Page) (*SummaryWidget, error) {
 	}
 	st.AddClass("summary-widget")
 
-	// Create layout box
+	// Create mainLayout box
 	s.layout, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
 		return nil, err
@@ -149,6 +151,6 @@ func (s *SummaryWidget) Update() {
 		s.layout.SetTooltipText("")
 	} else {
 		s.tick.SetFromIconName("task-due-symbolic", gtk.ICON_SIZE_BUTTON)
-		s.layout.SetTooltipText("This task has not yet completed.")
+		s.layout.SetTooltipText(utils.Locale.Get("This task has not yet completed"))
 	}
 }

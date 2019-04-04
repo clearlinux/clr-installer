@@ -1,12 +1,13 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package gui
 
 import (
-	"github.com/clearlinux/clr-installer/gui/pages"
 	"github.com/gotk3/gotk3/gtk"
+
+	"github.com/clearlinux/clr-installer/gui/pages"
 )
 
 // PageHeader provides a wrapper around a page, with a consistent
@@ -53,7 +54,7 @@ func PageHeaderNew(page pages.Page) (*PageHeader, error) {
 	// Style the header now
 	st.AddClass("box-header")
 
-	// Header layout
+	// Header mainLayout
 	header.layout, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
 		return nil, err

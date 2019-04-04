@@ -1,4 +1,4 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -82,7 +82,7 @@ func (gui *Gui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 
 	gtk.AddProviderForScreen(screen, sc, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
-	// Construct main window
+	// Construct window
 	win, err := NewWindow(md, rootDir, options)
 	if err != nil {
 		return false, err

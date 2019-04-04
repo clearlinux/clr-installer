@@ -1,13 +1,14 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package pages
 
 import (
-	"github.com/clearlinux/clr-installer/model"
-	"github.com/clearlinux/clr-installer/telemetry"
 	"github.com/gotk3/gotk3/gtk"
+
+	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 // Telemetry is a simple page to help with Telemetry settings
@@ -27,14 +28,20 @@ func NewTelemetryPage(controller Controller, model *model.SystemInstall) (Page, 
 	}
 	box.SetVAlign(gtk.ALIGN_CENTER)
 
-	lab, err := gtk.LabelNew(telemetry.HelpMarkdown)
+	label, err := gtk.LabelNew(GetTelemetryMessage())
 	if err != nil {
 		return nil, err
 	}
-	lab.SetUseMarkup(true)
-	box.PackStart(lab, false, false, 0)
+	label.SetUseMarkup(true)
+	label.SetHAlign(gtk.ALIGN_CENTER)
+	label.SetVAlign(gtk.ALIGN_CENTER)
+	label.SetLineWrap(true)
+	label.SetMaxWidthChars(70)
+	label.SetHExpand(false)
+	label.SetMarginBottom(20)
+	box.PackStart(label, false, false, 0)
 
-	check, err := gtk.CheckButtonNewWithLabel("Enable telemetry")
+	check, err := gtk.CheckButtonNewWithLabel(utils.Locale.Get("Enable Telemetry"))
 	if err != nil {
 		return nil, err
 	}
@@ -77,12 +84,12 @@ func (t *Telemetry) GetRootWidget() gtk.IWidget {
 
 // GetSummary will return the summary for this page
 func (t *Telemetry) GetSummary() string {
-	return "Telemetry"
+	return utils.Locale.Get("Telemetry")
 }
 
 // GetTitle will return the title for this page
 func (t *Telemetry) GetTitle() string {
-	return telemetry.Title
+	return utils.Locale.Get("Enable Telemetry")
 }
 
 // StoreChanges will store this pages changes into the model
@@ -100,7 +107,20 @@ func (t *Telemetry) ResetChanges() {
 // GetConfiguredValue returns our current config
 func (t *Telemetry) GetConfiguredValue() string {
 	if t.model.IsTelemetryEnabled() {
-		return "Enabled"
+		return utils.Locale.Get("Enabled")
 	}
-	return "Disabled"
+	return utils.Locale.Get("Disabled")
+}
+
+// GetTelemetryMessage gets the telemetry message
+func GetTelemetryMessage() string {
+	text := utils.Locale.Get(""+
+		"Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "+
+		"These reports only relate to operating system details. No personally identifiable information is collected.") +
+		"\n\n\n" +
+		utils.Locale.Get("Intel's privacy policy can be found at: http://www.intel.com/privacy.") +
+		"\n\n\n" +
+		utils.Locale.Get("NOTICE: Enabling Telemetry preferred by default on internal networks.")
+
+	return text
 }

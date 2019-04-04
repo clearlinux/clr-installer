@@ -1,15 +1,17 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package pages
 
 import (
-	"github.com/clearlinux/clr-installer/args"
-	"github.com/gotk3/gotk3/glib"
-	"github.com/gotk3/gotk3/gtk"
 	"log"
 	"math"
+
+	"github.com/gotk3/gotk3/glib"
+	"github.com/gotk3/gotk3/gtk"
+
+	"github.com/clearlinux/clr-installer/args"
 )
 
 // Button allows us to flag up different buttons
@@ -22,9 +24,17 @@ const (
 	// ButtonConfirm enables the confirm button
 	ButtonConfirm Button = 1 << iota
 
-	// ButtonQuit is only visible on the main view and install page
-	// Normal pages should not modify this button!
+	// ButtonQuit enables the quit button
 	ButtonQuit Button = 1 << iota
+
+	// ButtonBack enables the back button
+	ButtonBack Button = 1 << iota
+
+	// ButtonNext enables the next button
+	ButtonNext Button = 1 << iota
+
+	// ButtonExit enables the exit button
+	ButtonExit Button = 1 << iota
 )
 
 // Page interface provides a common definition that other
@@ -54,11 +64,11 @@ type Controller interface {
 }
 
 const (
+	// PageIDWelcome is the language page key
+	PageIDWelcome = iota
+
 	// PageIDTimezone is the timezone page key
 	PageIDTimezone = iota
-
-	// PageIDLanguage is the language page key
-	PageIDLanguage = iota
 
 	// PageIDKeyboard is the keyboard page key
 	PageIDKeyboard = iota
@@ -72,11 +82,11 @@ const (
 	// PageIDDiskConfig is the disk configuration page key
 	PageIDDiskConfig = iota
 
-	// PageIDInstall is the special installation page key
-	PageIDInstall = iota
-
 	// PageIDHostname is the hostname page key
 	PageIDHostname = iota
+
+	// PageIDInstall is the special installation page key
+	PageIDInstall = iota
 )
 
 // Private helper to assist in the ugliness of forcibly scrolling a GtkListBox

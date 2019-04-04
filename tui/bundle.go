@@ -64,9 +64,9 @@ func newBundlePage(tui *Tui) (Page, error) {
 	}
 
 	page := &BundlePage{}
-	page.setupMenu(tui, TuiPageBundle, "Additional Bundle Selection", NoButtons, TuiPageMenu)
+	page.setupMenu(tui, TuiPageBundle, "Select additional bundles", NoButtons, TuiPageMenu)
 
-	clui.CreateLabel(page.content, 2, 2, "Select additional bundles to be added to the system", Fixed)
+	clui.CreateLabel(page.content, 2, 2, "Select additional bundles", Fixed)
 
 	frm := clui.CreateFrame(page.content, AutoSize, 14, BorderNone, Fixed)
 	frm.SetPack(clui.Vertical)

@@ -1,4 +1,4 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -6,13 +6,16 @@ package pages
 
 import (
 	"fmt"
-	"github.com/clearlinux/clr-installer/model"
-	"github.com/clearlinux/clr-installer/swupd"
-	"github.com/gotk3/gotk3/gdk"
-	"github.com/gotk3/gotk3/gtk"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gotk3/gotk3/gdk"
+	"github.com/gotk3/gotk3/gtk"
+
+	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/swupd"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 const (
@@ -186,12 +189,12 @@ func (bundle *Bundle) GetRootWidget() gtk.IWidget {
 
 // GetSummary will return the summary for this page
 func (bundle *Bundle) GetSummary() string {
-	return "Select Additional Bundles"
+	return utils.Locale.Get("Select Additional Bundles")
 }
 
 // GetTitle will return the title for this page
 func (bundle *Bundle) GetTitle() string {
-	return "Select additional bundles to be added to the system"
+	return bundle.GetSummary()
 }
 
 // StoreChanges will store this pages changes into the model
@@ -219,7 +222,7 @@ func (bundle *Bundle) ResetChanges() {
 // GetConfiguredValue returns our current config
 func (bundle *Bundle) GetConfiguredValue() string {
 	if len(bundle.model.UserBundles) == 0 {
-		return "No bundles selected"
+		return utils.Locale.Get("No additional bundles selected")
 	}
 	return " • " + strings.Join(bundle.model.UserBundles, "\n • ")
 }

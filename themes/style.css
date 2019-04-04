@@ -3,7 +3,7 @@ window {
     border: none;
 }
 
-.welcome-banner {
+.ebox-banner {
     background-color: transparent;
     border: none;
     background-image: url('/usr/share/backgrounds/clearlinux/color_logo_wire_2560x1440.png');
@@ -15,7 +15,7 @@ window {
     border: none;
 }
 
-.switcher button {
+.box-switcher button {
     background-image: none;
     border-image: none;
     border: none;
@@ -25,7 +25,7 @@ window {
     box-shadow: none;
 }
 
-.switcher button:checked {
+.box-switcher button:checked {
     background-image: none;
     border-image: none;
     border: none;
@@ -33,6 +33,11 @@ window {
     border: 1px solid #414449;
     border-radius: 0px;
     box-shadow: none;
+}
+
+.label-switcher {
+    font-weight: bold;
+    font-size: 110%;
 }
 
 .scroller-main {

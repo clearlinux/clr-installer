@@ -14,6 +14,7 @@ import (
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/network"
 	"github.com/clearlinux/clr-installer/progress"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 var (
@@ -113,12 +114,12 @@ func (install *InstallPage) GetID() int {
 
 // GetSummary will return the summary for this page
 func (install *InstallPage) GetSummary() string {
-	return "Installing Clear Linux OS"
+	return utils.Locale.Get("Installing Clear Linux OS")
 }
 
 // GetTitle will return the title for this page
 func (install *InstallPage) GetTitle() string {
-	return "Installing Clear Linux OS"
+	return utils.Locale.Get("Installing Clear Linux OS")
 }
 
 // GetIcon returns the icon for this page
@@ -143,7 +144,7 @@ func (install *InstallPage) StoreChanges() {}
 // to get called when showing our page.
 func (install *InstallPage) ResetChanges() {
 	// Disable quit button
-	install.controller.SetButtonState(ButtonQuit, false)
+	install.controller.SetButtonState(ButtonBack, false)
 
 	// Validate the model
 	err := install.model.Validate()
@@ -152,7 +153,7 @@ func (install *InstallPage) ResetChanges() {
 		return
 	}
 
-	fmt.Println("Validation passed")
+	utils.Locale.Get("Validation passed")
 
 	// TODO: Disable closing of the installer
 	go func() {
@@ -180,8 +181,8 @@ func (install *InstallPage) ResetChanges() {
 			_ = network.DownloadInstallerMessage("Post-Installation",
 				network.PostGuiInstallConf)
 		}()
-		fmt.Println("Installation completed")
-		install.controller.SetButtonState(ButtonQuit, true)
+		utils.Locale.Get("Installation completed")
+		install.controller.SetButtonState(ButtonBack, true)
 	}()
 
 }
@@ -219,12 +220,12 @@ func (install *InstallPage) Desc(desc string) {
 // Failure handles failure to install
 func (install *InstallPage) Failure() {
 	install.widgets[install.selection].MarkStatus(false)
-	fmt.Println("Failure")
+	utils.Locale.Get("Failure")
 }
 
 // Success notes the install was successful
 func (install *InstallPage) Success() {
-	fmt.Println("Success")
+	utils.Locale.Get("Success")
 	install.widgets[install.selection].MarkStatus(true)
 }
 

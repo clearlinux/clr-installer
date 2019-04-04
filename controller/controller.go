@@ -210,7 +210,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 				}
 			}
 
-			msg := fmt.Sprintf("Writing %s file system to %s", ch.FsType, ch.Name)
+			msg := utils.Locale.Get("Writing %s file system to %s", ch.FsType, ch.Name)
 			if ch.MountPoint != "" {
 				msg = msg + fmt.Sprintf(" '%s'", ch.MountPoint)
 			}
@@ -295,7 +295,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		model.AddExtraKernelArguments(kernelArgs)
 	}
 
-	msg := fmt.Sprintf("Writing mount files")
+	msg := utils.Locale.Get("Writing mount files")
 	prg = progress.NewLoop(msg)
 	log.Info(msg)
 	if err = storage.GenerateTabFiles(rootDir, model.TargetMedias); err != nil {
@@ -377,7 +377,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		return err
 	}
 
-	msg = "Saving the installation results"
+	msg = utils.Locale.Get("Saving the installation results")
 	prg = progress.NewLoop(msg)
 	log.Info(msg)
 	if err = saveInstallResults(rootDir, model); err != nil {
@@ -389,7 +389,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 }
 
 func applyHooks(name string, vars map[string]string, hooks []*model.InstallHook) error {
-	msg := fmt.Sprintf("Running %s hooks", name)
+	msg := utils.Locale.Get("Running %s hooks", name)
 	prg := progress.MultiStep(len(hooks), msg)
 	log.Info(msg)
 
@@ -432,7 +432,7 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 
 	sw := swupd.New(rootDir, options)
 
-	msg := "Installing the base system"
+	msg := utils.Locale.Get("Installing the base system")
 	prg := progress.NewLoop(msg)
 	log.Info(msg)
 	if err := sw.Verify(version, model.SwupdMirror); err != nil {
@@ -468,7 +468,7 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 			continue
 		}
 
-		msg = fmt.Sprintf("Installing bundle: %s", bundle)
+		msg = utils.Locale.Get("Installing bundle: %s", bundle)
 		prg = progress.NewLoop(msg)
 		log.Info(msg)
 		if err := sw.BundleAdd(bundle); err != nil {
@@ -483,7 +483,7 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 		}
 	}
 
-	msg = "Installing boot loader"
+	msg = utils.Locale.Get("Installing boot loader")
 	prg = progress.NewLoop(msg)
 	log.Info(msg)
 	args := []string{
@@ -500,7 +500,7 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 
 	// Clean-up State Directory content
 	if options.SwupdStateClean {
-		msg = "Cleaning Swupd state directory"
+		msg = utils.Locale.Get("Cleaning Swupd state directory")
 		prg = progress.NewLoop(msg)
 		log.Info(msg)
 		if err = sw.CleanUpState(); err != nil {
@@ -538,7 +538,7 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 		}
 		prg.Success()
 
-		msg = "Restarting network interfaces"
+		msg = utils.Locale.Get("Restarting network interfaces")
 		prg = progress.NewLoop(msg)
 		log.Info(msg)
 		if err := network.Restart(); err != nil {
@@ -547,7 +547,7 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 		prg.Success()
 	}
 
-	msg := "Testing connectivity"
+	msg := utils.Locale.Get("Testing connectivity")
 	prg := progress.NewLoop(msg)
 	ok := false
 
@@ -620,11 +620,12 @@ func configureLanguage(rootDir string, model *model.SystemInstall) error {
 		return nil
 	}
 
-	msg := "Setting Language locale to " + model.Language.Code
+	msg := utils.Locale.Get("Setting Language locale to " + model.Language.Code)
 	prg := progress.NewLoop(msg)
 	log.Info(msg)
 
 	err := language.SetTargetLanguage(rootDir, model.Language.Code)
+	//utils.SetLocale(model.Language.Code)
 	if err != nil {
 		prg.Failure()
 		return err

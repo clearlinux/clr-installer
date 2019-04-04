@@ -5,6 +5,7 @@
 package hostname
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
@@ -24,13 +25,13 @@ var (
 func IsValidHostname(hostname string) string {
 
 	if !startsWithExp.MatchString(hostname) {
-		return "Hostname may only start with alpha-numeric"
+		return "Hostname can only start with alpha-numeric"
 	}
 	if !hostnameExp.MatchString(hostname) {
-		return "Hostname may only contain alpha-numeric and hyphen"
+		return "Hostname can only contain alpha-numeric and hyphen"
 	}
 	if len(hostname) > 63 {
-		return "Hostname may only be 63 or less characters in length"
+		return fmt.Sprintf("Hostname can only have a maximum of %d characters", 63)
 	}
 
 	return ""
