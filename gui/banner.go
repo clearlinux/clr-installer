@@ -10,7 +10,6 @@ import (
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 
-	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -20,11 +19,11 @@ const (
 
 // Banner is used to add a nice banner widget to the front of the installer
 type Banner struct {
-	revealer *gtk.Revealer // For animations
-	ebox     *gtk.EventBox // To allow styling
-	box      *gtk.Box      // Main layout
-	img      *gtk.Image    // Our image widget
-	label    *gtk.Label    // Display label
+	revealer  *gtk.Revealer // For animations
+	ebox      *gtk.EventBox // To allow styling
+	box       *gtk.Box      // Main mainLayout
+	img       *gtk.Image    // Our image widget
+	labelText *gtk.Label    // Display label
 }
 
 // NewBanner constructs the header component
@@ -46,7 +45,7 @@ func NewBanner() (*Banner, error) {
 	if st, err = banner.ebox.GetStyleContext(); err != nil {
 		return nil, err
 	}
-	st.AddClass("welcome-banner")
+	st.AddClass("ebox-banner")
 	banner.revealer.Add(banner.ebox)
 
 	// Create the root box
@@ -57,10 +56,11 @@ func NewBanner() (*Banner, error) {
 	banner.revealer.SetTransitionType(gtk.REVEALER_TRANSITION_TYPE_CROSSFADE)
 
 	// Set the margins up
+
 	banner.box.SetMarginTop(40)
 	banner.box.SetMarginBottom(40)
-	banner.box.SetMarginEnd(24)
-	banner.box.SetMarginStart(40)
+	banner.box.SetMarginStart(20)
+	banner.box.SetMarginEnd(14)
 
 	themeDir, err := utils.LookupThemeDir()
 	if err != nil {
@@ -84,18 +84,18 @@ func NewBanner() (*Banner, error) {
 	banner.img.SetHAlign(gtk.ALIGN_CENTER)
 	banner.img.SetVAlign(gtk.ALIGN_CENTER)
 	banner.box.PackStart(banner.img, false, false, 0)
-	banner.box.SetHAlign(gtk.ALIGN_CENTER)
 
-	// Sort the label out
-	labelText := "<span font-size='xx-large'>Welcome to\nClear Linux\nDesktop\nInstallation</span>"
-	labelText += "\n\n<small>VERSION " + model.Version + "</small>"
-	if banner.label, err = gtk.LabelNew(labelText); err != nil {
+	banner.labelText, err = gtk.LabelNew(GetWelcomeMessage())
+	if err != nil {
 		return nil, err
 	}
-	banner.label.SetUseMarkup(true)
-	banner.label.SetHAlign(gtk.ALIGN_START)
-	banner.label.SetVAlign(gtk.ALIGN_CENTER)
-	banner.box.PackStart(banner.label, false, false, 0)
+	banner.labelText.SetUseMarkup(true)
+	banner.labelText.SetHAlign(gtk.ALIGN_START)
+	banner.labelText.SetVAlign(gtk.ALIGN_CENTER)
+	banner.labelText.SetLineWrap(true)
+	banner.labelText.SetMaxWidthChars(22)
+	banner.labelText.SetHExpand(false)
+	banner.box.PackStart(banner.labelText, false, false, 0)
 
 	return banner, nil
 }
@@ -124,11 +124,4 @@ func (banner *Banner) Hide() {
 	banner.revealer.SetTransitionType(gtk.REVEALER_TRANSITION_TYPE_SLIDE_LEFT)
 	banner.revealer.SetTransitionDuration(250)
 	banner.revealer.SetRevealChild(false)
-}
-
-// InstallMode updates the text for install mode
-func (banner *Banner) InstallMode() {
-	labelText := "<span font-size='xx-large'>Thank you\nfor choosing\nClear Linux</span>"
-	labelText += "\n\n<small>VERSION " + model.Version + "</small>"
-	banner.label.SetMarkup(labelText)
 }

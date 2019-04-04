@@ -7,6 +7,7 @@ package utils
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/user"
 	"path"
@@ -18,6 +19,7 @@ import (
 	"unsafe"
 
 	"github.com/digitalocean/go-smbios/smbios"
+	"github.com/leonelquinteros/gotext"
 
 	"github.com/clearlinux/clr-installer/errors"
 )
@@ -294,15 +296,27 @@ func IsVirtualBox() bool {
 	return virtualBox
 }
 
-// LookupThemeDir return the directory to use for reading
-// theme files for the UI. It will look in the local developers
-// build area first, or the ENV variable, and finally the standard
-// system install location
+// LookupThemeDir returns the directory to use for reading
+// theme files for the UI.
 func LookupThemeDir() (string, error) {
+	return lookupDir("/usr/share/clr-installer/themes", "CLR_INSTALLER_THEME_DIR")
+}
+
+// LookupLocaleDir returns the directory to use for reading
+// locale files for the UI.
+func LookupLocaleDir() (string, error) {
+	return lookupDir("/usr/share/locale", "CLR_INSTALLER_LOCALE_DIR")
+}
+
+// lookupDir returns the full directory path of a directory.
+// It will look in the local developers build area first,
+// or the ENV variable, and finally the standard
+// system install location
+func lookupDir(dir, env string) (string, error) {
 	var result string
 
-	themeDirs := []string{
-		os.Getenv("CLR_INSTALLER_THEME_DIR"),
+	fullDir := []string{
+		os.Getenv(env),
 	}
 
 	src, err := filepath.Abs(filepath.Dir(os.Args[0]))
@@ -311,12 +325,12 @@ func LookupThemeDir() (string, error) {
 	}
 
 	if strings.Contains(src, "/.gopath/bin") {
-		themeDirs = append(themeDirs, strings.Replace(src, "bin", "../themes", 1))
+		fullDir = append(fullDir, strings.Replace(src, "bin", "../"+filepath.Base(dir), 1))
 	}
 
-	themeDirs = append(themeDirs, "/usr/share/clr-installer/themes/")
+	fullDir = append(fullDir, dir+"/")
 
-	for _, curr := range themeDirs {
+	for _, curr := range fullDir {
 		if _, err := os.Stat(curr); os.IsNotExist(err) {
 			continue
 		}
@@ -326,8 +340,23 @@ func LookupThemeDir() (string, error) {
 	}
 
 	if result == "" {
-		panic(errors.Errorf("Could not find a theme dir"))
+		panic(errors.Errorf("Could not find a %s dir", dir))
 	}
 
 	return result, nil
+}
+
+// Locale is used to access the localization functions
+var Locale *gotext.Locale
+
+// SetLocale sets the locale of the installer based on the selected language
+func SetLocale(language string) {
+	dir, err := LookupLocaleDir()
+	if err != nil {
+		log.Fatal(err)
+		Locale = nil
+	} else {
+		Locale = gotext.NewLocale(dir, language)
+		Locale.AddDomain("clr-installer")
+	}
 }

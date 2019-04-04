@@ -1,4 +1,4 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -11,6 +11,7 @@ import (
 
 	"github.com/clearlinux/clr-installer/keyboard"
 	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 // KeyboardPage is a simple page to help with KeyboardPage settings
@@ -174,7 +175,7 @@ func (page *KeyboardPage) GetRootWidget() gtk.IWidget {
 
 // GetSummary will return the summary for this page
 func (page *KeyboardPage) GetSummary() string {
-	return "Choose Keyboard"
+	return utils.Locale.Get("Select Keyboard")
 }
 
 // GetTitle will return the title for this page

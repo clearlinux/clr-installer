@@ -22,7 +22,8 @@ CLR_INSTALLER_TEST_HTTP_PORT ?= 8181
 
 export TEST_HTTP_PORT = ${CLR_INSTALLER_TEST_HTTP_PORT}
 
-THEME_DIR=$(DESTDIR)/usr/share/clr-installer/themes/
+THEME_DIR=$(DESTDIR)/usr/share/clr-installer/themes
+LOCALE_DIR=$(DESTDIR)/usr/share/locale
 DESKTOP_DIR=$(DESTDIR)/usr/share/applications/
 CONFIG_DIR=$(DESTDIR)/usr/share/defaults/clr-installer/
 SYSTEMD_DIR=$(DESTDIR)/usr/lib/systemd/system/
@@ -85,6 +86,8 @@ install: install-tui install-gui
 
 install-common:
 	@install -D -m 644  $(top_srcdir)/themes/clr-installer.theme $(THEME_DIR)/clr-installer.theme
+	@mkdir -p -m 755 $(LOCALE_DIR)/
+	@cp -rp --no-preserve=ownership  $(top_srcdir)/locale/* $(LOCALE_DIR)/
 	@install -D -m 644  $(top_srcdir)/etc/clr-installer.yaml $(CONFIG_DIR)/clr-installer.yaml
 	@install -D -m 644  $(top_srcdir)/etc/bundles.json $(CONFIG_DIR)/bundles.json
 	@install -D -m 644  $(top_srcdir)/etc/kernels.json $(CONFIG_DIR)/kernels.json
@@ -107,6 +110,7 @@ uninstall:
 	@rm -f $(THEME_DIR)/clr-installer.theme
 	@rm -f $(THEME_DIR)/clr.png
 	@rm -f $(THEME_DIR)/style.css
+	@rm -f $(LOCALE_DIR)/*/LC_MESSAGES/clr-installer.po
 	@rm -f $(CONFIG_DIR)/clr-installer.yaml
 	@rm -f $(CONFIG_DIR)/bundles.json
 	@rm -f $(CONFIG_DIR)/kernels.json

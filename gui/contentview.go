@@ -1,12 +1,13 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package gui
 
 import (
-	"github.com/clearlinux/clr-installer/gui/pages"
 	"github.com/gotk3/gotk3/gtk"
+
+	"github.com/clearlinux/clr-installer/gui/pages"
 )
 
 // ContentView is used to encapsulate the Required/Advanced options view

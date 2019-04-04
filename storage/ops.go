@@ -196,7 +196,7 @@ func (bd *BlockDevice) WritePartitionLabel() error {
 		return errors.Errorf("Type is partition, disk required")
 	}
 
-	mesg := fmt.Sprintf("Writing partition label to: %s", bd.Name)
+	mesg := utils.Locale.Get("Writing partition table to: %s", bd.Name)
 	prg := progress.NewLoop(mesg)
 	log.Info(mesg)
 	args := []string{
@@ -378,7 +378,7 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) erro
 
 	prg.Success()
 
-	msg := "Adjusting filesystem configurations"
+	msg := utils.Locale.Get("Adjusting filesystem configurations")
 	prg = progress.MultiStep(len(guids), msg)
 	log.Info(msg)
 	cnt := 1

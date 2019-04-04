@@ -64,6 +64,17 @@
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:c1969ca636a3249ca89cc658fb22280f69bb6f191787b0a2437690daddb25e7d"
+  name = "github.com/leonelquinteros/gotext"
+  packages = [
+    ".",
+    "plurals",
+  ]
+  pruneopts = "UT"
+  revision = "477ce49ddf8f201350f40fdb5ed80a65d155cc33"
+  version = "v1.4.0"
+
+[[projects]]
   digest = "1:0356f3312c9bd1cbeda81505b7fd437501d8e778ab66998ef69f00d7f9b3a0d7"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
@@ -136,10 +147,11 @@
     "github.com/VladimirMarkelov/clui",
     "github.com/coreos/go-systemd/dbus",
     "github.com/digitalocean/go-smbios/smbios",
-    "github.com/gotk3/gotk3/gtk",
     "github.com/gotk3/gotk3/gdk",
     "github.com/gotk3/gotk3/glib",
+    "github.com/gotk3/gotk3/gtk",
     "github.com/huandu/xstrings",
+    "github.com/leonelquinteros/gotext",
     "github.com/nsf/termbox-go",
     "github.com/spf13/pflag",
     "golang.org/x/crypto/ssh/terminal",

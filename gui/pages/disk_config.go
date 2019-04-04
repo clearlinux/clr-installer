@@ -1,4 +1,4 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -6,9 +6,11 @@ package pages
 
 import (
 	"fmt"
+
+	"github.com/gotk3/gotk3/gtk"
+
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
-	"github.com/gotk3/gotk3/gtk"
 )
 
 // DiskConfig is a simple page to help with DiskConfig settings

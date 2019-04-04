@@ -28,12 +28,18 @@ type Language struct {
 
 const (
 	// DefaultLanguage is the default language string
-	// This is what is set in os-core
 	DefaultLanguage = "en_US.UTF-8"
 
 	// RequiredBundle the bundle needed to set language other than the default
 	RequiredBundle = "locales"
 )
+
+// validLanguages stores the list of localized languages
+var localizedLanguages = map[string]bool{ // TODO: Remove this when localization is applied for all languages
+	"en_US.UTF-8": false,
+	"zh_CN.UTF-8": false,
+	"es_MX.UTF-8": false,
+}
 
 // validLanguages stores the list of all valid, known languages
 var validLanguages []*Language
@@ -149,7 +155,9 @@ func Load() ([]*Language, error) {
 	// Create a sorted order list of keys
 	sortedKeys := make([]string, 0, len(uniqLang))
 	for k := range uniqLang {
-		sortedKeys = append(sortedKeys, k)
+		if _, found := localizedLanguages[k]; found { // TODO: Remove this when localization is applied for all languages
+			sortedKeys = append(sortedKeys, k)
+		}
 	}
 	sort.Strings(sortedKeys)
 

@@ -24,7 +24,7 @@ type SelectedUser struct {
 }
 
 const (
-	userManagerTitle = `User Manager`
+	userManagerTitle = "Manage User"
 )
 const (
 	userColumnLogin = iota
