@@ -64,3 +64,7 @@
 [[constraint]]
   name = "github.com/gotk3/gotk3"
   version= "GOTK3_0_3_0"
+
+[[constraint]]
+  name = "github.com/leonelquinteros/gotext"
+  version = "1.4.0"

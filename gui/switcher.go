@@ -1,4 +1,4 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -6,12 +6,14 @@ package gui
 
 import (
 	"github.com/gotk3/gotk3/gtk"
+
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 // Switcher is used to switch between main installer sections
 type Switcher struct {
 	revealer *gtk.Revealer // root widget
-	box      *gtk.Box      // Main layout
+	box      *gtk.Box      // Main mainLayout
 	stack    *gtk.Stack    // Stack to control
 
 	buttons struct {
@@ -37,7 +39,7 @@ func NewSwitcher(stack *gtk.Stack) (*Switcher, error) {
 	}
 	switcher.revealer.SetTransitionType(gtk.REVEALER_TRANSITION_TYPE_SLIDE_DOWN)
 
-	// Create main layout
+	// Create main mainLayout
 	switcher.box, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
 		return nil, err
@@ -49,10 +51,10 @@ func NewSwitcher(stack *gtk.Stack) (*Switcher, error) {
 	if err != nil {
 		return nil, err
 	}
-	st.AddClass("switcher")
+	st.AddClass("box-switcher")
 
 	// Required options
-	switcher.buttons.required, err = createFancyButton("<b>REQUIRED OPTIONS</b>\n<small>Takes approximately 2 minutes</small>")
+	switcher.buttons.required, err = createFancyButton(utils.Locale.Get("REQUIRED OPTIONS"), "label-switcher")
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +65,7 @@ func NewSwitcher(stack *gtk.Stack) (*Switcher, error) {
 	switcher.box.PackStart(switcher.buttons.required, true, true, 0)
 
 	// Advanced options
-	switcher.buttons.advanced, err = createFancyButton("<b>ADVANCED OPTIONS</b>\n<small>Customize setup</small>")
+	switcher.buttons.advanced, err = createFancyButton(utils.Locale.Get("ADVANCED OPTIONS"), "label-switcher")
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +89,7 @@ func (switcher *Switcher) switchTo(button *gtk.RadioButton, id string) {
 	switcher.stack.SetVisibleChildName(id)
 }
 
-func createFancyButton(text string) (*gtk.RadioButton, error) {
+func createFancyButton(text, style string) (*gtk.RadioButton, error) {
 	button, err := gtk.RadioButtonNew(nil)
 	if err != nil {
 		return nil, err
@@ -97,7 +99,11 @@ func createFancyButton(text string) (*gtk.RadioButton, error) {
 	if err != nil {
 		return nil, err
 	}
-	label.SetUseMarkup(true)
+	sc, err := label.GetStyleContext()
+	if err != nil {
+		return nil, err
+	}
+	sc.AddClass(style)
 	button.Add(label)
 	return button, nil
 }

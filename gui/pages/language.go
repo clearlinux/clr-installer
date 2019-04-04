@@ -1,4 +1,4 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -11,6 +11,7 @@ import (
 
 	"github.com/clearlinux/clr-installer/language"
 	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 // LanguagePage is a simple page to help with LanguagePage settings
@@ -110,7 +111,7 @@ func (page *LanguagePage) getCode() string {
 
 func (page *LanguagePage) onRowActivated(box *gtk.ListBox, row *gtk.ListBoxRow) {
 	page.selected = page.data[row.GetIndex()]
-	page.controller.SetButtonState(ButtonConfirm, true)
+	page.controller.SetButtonState(ButtonNext, true)
 }
 
 // Select row in the box, activate it and scroll to it
@@ -152,7 +153,7 @@ func (page *LanguagePage) onChange(entry *gtk.SearchEntry) error {
 		page.activateRow(index)
 	} else {
 		page.selected = nil
-		page.controller.SetButtonState(ButtonConfirm, false)
+		page.controller.SetButtonState(ButtonNext, false)
 	}
 	return nil
 }
@@ -169,7 +170,7 @@ func (page *LanguagePage) IsDone() bool {
 
 // GetID returns the ID for this page
 func (page *LanguagePage) GetID() int {
-	return PageIDLanguage
+	return PageIDWelcome
 }
 
 // GetIcon returns the icon for this page
@@ -184,7 +185,7 @@ func (page *LanguagePage) GetRootWidget() gtk.IWidget {
 
 // GetSummary will return the summary for this page
 func (page *LanguagePage) GetSummary() string {
-	return "Choose Language"
+	return utils.Locale.Get("Select Language")
 }
 
 // GetTitle will return the title for this page
@@ -194,7 +195,9 @@ func (page *LanguagePage) GetTitle() string {
 
 // StoreChanges will store this pages changes into the model
 func (page *LanguagePage) StoreChanges() {
+	page.controller.SetButtonState(ButtonNext, false) // TODO: Determine why the button is not actually being disabled
 	page.model.Language = page.selected
+	utils.SetLocale(page.model.Language.Code)
 }
 
 // ResetChanges will reset this page to match the model

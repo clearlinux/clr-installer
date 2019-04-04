@@ -1,10 +1,11 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package pages
 
 import (
+	"github.com/clearlinux/clr-installer/utils"
 	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -174,7 +175,7 @@ func (page *TimezonePage) GetRootWidget() gtk.IWidget {
 
 // GetSummary will return the summary for this page
 func (page *TimezonePage) GetSummary() string {
-	return "Choose Timezone"
+	return utils.Locale.Get("Select Time Zone")
 }
 
 // GetTitle will return the title for this page
