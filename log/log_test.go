@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -154,6 +154,13 @@ func TestLogLevel(t *testing.T) {
 		if readLog(t).String() != "" {
 			t.Fatalf("Shouldn't produce any log with level: %d", curr.mutedLevel)
 		}
+	}
+}
+
+func TestGetLogFileNameStr(t *testing.T) {
+
+	if GetLogFileName() == "" {
+		t.Fatalf("GetLogFileName returned an empty string")
 	}
 }
 

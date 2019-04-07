@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -106,6 +106,11 @@ func RequestCrashInfo() {
 	fmt.Println("\tclri.loglevel=4")
 
 	fmt.Println("")
+}
+
+// GetLogFileName ... returns the filename of the current log
+func GetLogFileName() string {
+	return logFileName
 }
 
 // GetPreConfFile ... returns the filename of where to store the pre-configuration file
