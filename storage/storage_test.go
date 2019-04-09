@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -568,7 +568,7 @@ func TestWritePartition(t *testing.T) {
 		bd.Children = children
 
 		//write the partition table
-		if err = bd.WritePartitionTable(false); err != nil {
+		if err = bd.WritePartitionTable(false, true); err != nil {
 			t.Fatalf("Could not write partition table (%s): %s", file, err)
 		}
 
@@ -874,4 +874,133 @@ func TestWriteConfigFiles(t *testing.T) {
 	if err := GenerateTabFiles(rootDir, bds); err != nil {
 		t.Fatalf("Failed to create directories to write config file: %v\n", err)
 	}
+}
+
+func TestInstallTargets(t *testing.T) {
+	getPartAllFreeOutput := `
+BYT;
+/dev/sde:30752636928B:scsi:512:512:gpt:SanDisk Ultra USB 3.0:;
+1:17408B:30752620031B:30752602624B:free;
+`
+	getPartSomeFreeOutput := `
+BYT;
+/dev/sdc:2000398934016B:scsi:512:4096:gpt:ATA ST2000DM001-1ER1:;
+1:17408B:150000127B:149982720B:fat32:EFI:boot, esp;
+2:150000128B:2198000127B:2048000000B:linux-swap(v1):linux-swap:;
+3:2198000128B:1907729000447B:1905531000320B:ext4:/:;
+1:1907729000448B:2000398917119B:92669916672B:free;
+`
+	getPartNotEnoughFreeOutput := `
+BYT;
+/dev/sda:240057409536B:scsi:512:512:gpt:ATA INTEL SSDSC2BW24:;
+1:17408B:1048575B:1031168B:free;
+1:1048576B:149946367B:148897792B:fat32:EFI:boot, esp;
+2:149946368B:182452223B:32505856B:linux-swap(v1):linux-swap:;
+3:182452224B:7799308287B:7616856064B:ext4:/:;
+4:7799308288B:240056795135B:232257486848B::ext4:;
+1:240056795136B:240057392639B:597504B:free;
+`
+	getPartNotEnoughFree2Output := `
+BYT;
+/dev/sdb:2000398934016B:scsi:512:4096:gpt:ATA ST2000DM001-1ER1:;
+1:17408B:1048575B:1031168B:free;
+1:1048576B:537919487B:536870912B:fat32::boot, esp;
+2:537919488B:105395519487B:104857600000B:ext4:ubuntu1404:;
+4:105395519488B:210253119487B:104857600000B:ext4:ubuntu1604:;
+5:210253119488B:1966220509183B:1755967389696B:ext4::;
+3:1966220509184B:2000398843903B:34178334720B:linux-swap(v1)::;
+1:2000398843904B:2000398917119B:73216B:free;
+`
+	getPartNotEnoughFree3Output := `
+/dev/sdd:7822376960B:scsi:512:512:gpt:JetFlash Transcend 8GB:;
+1:17408B:1048575B:1031168B:free;
+1:1048576B:149946367B:148897792B:fat32:EFI:boot, esp;
+2:149946368B:182452223B:32505856B:linux-swap(v1):linux-swap:;
+3:182452224B:7799308287B:7616856064B:ext4:/:;
+1:7799308288B:7822360063B:23051776B:free;
+`
+
+	var start, end, twentyGig, fourGig uint64
+
+	twentyGig = 21474836480
+	fourGig = 4294967296
+	t.Logf("getPartAllFreeOutput: twentyGig: %d, fourGig: %d", twentyGig, fourGig)
+	start, end = largestContiguousFreeSpace(bytes.NewBuffer([]byte(getPartAllFreeOutput)), twentyGig)
+	if start == 0 && end == 0 {
+		t.Fatalf("Should have found %d free in getPartAllFreeOutput", twentyGig)
+	}
+	t.Logf("getPartAllFreeOutput: start: %d, end: %d", start, end)
+
+	start, end = largestContiguousFreeSpace(bytes.NewBuffer([]byte(getPartSomeFreeOutput)), twentyGig)
+	if start == 0 && end == 0 {
+		t.Fatalf("Should have found %d free in getPartSomeFreeOutput", twentyGig)
+	}
+	t.Logf("getPartSomeFreeOutput: start: %d, end: %d", start, end)
+
+	start, end = largestContiguousFreeSpace(bytes.NewBuffer([]byte(getPartNotEnoughFreeOutput)), fourGig)
+	if start != 0 || end != 0 {
+		t.Logf("getPartNotEnoughFreeOutput: start: %d, end: %d", start, end)
+		t.Fatalf("Should NOT have found %d free in getPartNotEnoughFreeOutput", twentyGig)
+	}
+	t.Logf("getPartNotEnoughFreeOutput: start: %d, end: %d", start, end)
+
+	start, end = largestContiguousFreeSpace(bytes.NewBuffer([]byte(getPartNotEnoughFree2Output)), twentyGig)
+	if start != 0 || end != 0 {
+		t.Logf("getPartNotEnoughFree2Output: start: %d, end: %d", start, end)
+		t.Fatalf("Should NOT have found %d free in getPartNotEnoughFree2Output", twentyGig)
+	}
+	t.Logf("getPartNotEnoughFree2Output: start: %d, end: %d", start, end)
+
+	start, end = largestContiguousFreeSpace(bytes.NewBuffer([]byte(getPartNotEnoughFree3Output)), twentyGig)
+	if start != 0 || end != 0 {
+		t.Logf("getPartNotEnoughFree3Output: start: %d, end: %d", start, end)
+		t.Fatalf("Should NOT have found %d free in getPartNotEnoughFree3Output", twentyGig)
+	}
+	t.Logf("getPartNotEnoughFree3Output: start: %d, end: %d", start, end)
+}
+
+func TestSetPartitition(t *testing.T) {
+	bd := &BlockDevice{Size: MinimumServerInstallSize}
+	NewStandardPartitions(bd)
+
+	for _, ch := range bd.Children {
+		if ch.FsType == "swap" {
+			ch.SetPartitionNumber(2)
+		}
+	}
+
+	if !bd.DeviceHasSwap() {
+	}
+}
+
+func TestSwapCheck(t *testing.T) {
+	bd := &BlockDevice{Size: MinimumServerInstallSize}
+	NewStandardPartitions(bd)
+
+	if !bd.DeviceHasSwap() {
+		t.Fatalf("Device should have swap, but does not: %v", bd)
+	}
+
+	bd = &BlockDevice{Size: MinimumServerInstallSize}
+	_ = AddBootStandardPartition(bd, 0)
+	if bd.DeviceHasSwap() {
+		t.Fatalf("Device should NOT have swap, but does: %v", bd)
+	}
+
+}
+
+func TestAddPartititions(t *testing.T) {
+	bd := &BlockDevice{Size: MinimumServerInstallSize}
+
+	end := AddBootStandardPartition(bd, 0)
+	if end != bootSize {
+		t.Fatalf("Boot partition should end at %d, but was %d", bootSize, end)
+	}
+	end = AddSwapStandardPartition(bd, end)
+	if end != (bootSize + swapSize) {
+		t.Fatalf("Swap partition should end at %d, but was %d", (bootSize + swapSize), end)
+	}
+
+	rootSize := uint64(bd.Size - bootSize - swapSize)
+	AddRootStandardPartition(bd, rootSize, end)
 }

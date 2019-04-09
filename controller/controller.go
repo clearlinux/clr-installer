@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -190,7 +190,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	// prepare all the target block devices
 	for _, curr := range model.TargetMedias {
 		// based on the description given, write the partition table
-		if err = curr.WritePartitionTable(model.LegacyBios); err != nil {
+		if err = curr.WritePartitionTable(model.LegacyBios, model.InstallSelected.WholeDisk); err != nil {
 			return err
 		}
 
@@ -208,6 +208,13 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 					}
 					prg.Success()
 				}
+			}
+
+			// Do not overwrite File System content for pre-existing
+			if !ch.IsUserDefined() {
+				msg := fmt.Sprintf("Skipping new file system for %s", ch.Name)
+				log.Debug(msg)
+				continue
 			}
 
 			msg := fmt.Sprintf("Writing %s file system to %s", ch.FsType, ch.Name)
