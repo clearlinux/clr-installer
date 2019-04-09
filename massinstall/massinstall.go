@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -15,6 +15,7 @@ import (
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/progress"
+	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -149,6 +150,10 @@ func shouldReboot() (bool, bool, error) {
 // "mass installer" frontend
 func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args.Args) (bool, error) {
 	var instError error
+
+	// Need to ensure the partitioner knows we are running from
+	// the command line and will be using the whole disk
+	md.InstallSelected = storage.InstallTarget{WholeDisk: true}
 
 	progress.Set(mi)
 

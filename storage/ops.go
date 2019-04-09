@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -164,14 +165,23 @@ func UmountAll() error {
 	return mountError
 }
 
-func getStartEnd(start uint64, end uint64) string {
+// When you specify a start (or end) position to the parted mkpart command,
+// it internally generates a range of acceptable values centered on the value
+// you specify, and extends equally on both sides by half the unit size you
+// used but ONLY when you use K or M (or G); using B or any of the XiB will
+// not auto align.
+// We choose M to provide a 1M wide window for a possible optimal value.
+func getStartEndMB(start uint64, end uint64) string {
 
-	strStart := fmt.Sprintf("%dM", start)
+	startMB := (start / (1000 * 1000))
+	endMB := (end / (1000 * 1000))
+
+	strStart := fmt.Sprintf("%dM", startMB)
 	if start < 1 {
 		strStart = "0%"
 	}
 
-	strEnd := fmt.Sprintf("%dM", end)
+	strEnd := fmt.Sprintf("%dM", endMB)
 	if end < 1 {
 		strEnd = "-1"
 	}
@@ -179,13 +189,14 @@ func getStartEnd(start uint64, end uint64) string {
 	return strStart + " " + strEnd
 }
 
-// WritePartitionTable writes the defined partitions to the actual block device
-func (bd *BlockDevice) WritePartitionTable(legacyBios bool) error {
+// WritePartitionLabel make a device a 'gpt' partition type
+// Only call when we are wiping and reusing the entire disk
+func (bd *BlockDevice) WritePartitionLabel() error {
 	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop {
 		return errors.Errorf("Type is partition, disk required")
 	}
 
-	mesg := fmt.Sprintf("Writing partition table to: %s", bd.Name)
+	mesg := fmt.Sprintf("Writing partition label to: %s", bd.Name)
 	prg := progress.NewLoop(mesg)
 	log.Info(mesg)
 	args := []string{
@@ -201,35 +212,55 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool) error {
 		return errors.Wrap(err)
 	}
 
-	args = []string{
-		"parted",
-		"-a",
-		"optimal",
-		bd.GetDeviceFile(),
-		"--script",
-		"--",
+	prg.Success()
+
+	return nil
+}
+
+// WritePartitionTable writes the defined partitions to the actual block device
+func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) error {
+	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop {
+		return errors.Errorf("Type is partition, disk required")
 	}
 
-	var start uint64
-	bootPartition := -1
-	bootStyle := "boot"
-	guids := map[int]string{}
-
-	for idx, curr := range bd.Children {
-		// We have a /boot partition, use this
-		if curr.MountPoint == "/boot" {
-			bootPartition = idx + 1
-			if legacyBios {
-				bootStyle = "legacy_boot"
-			}
+	//write the partition label
+	if wholeDisk {
+		if err := bd.WritePartitionLabel(); err != nil {
+			return err
 		}
+	} else {
+		log.Debug("WritePartitionTable: partial disk, skipping mklabel for %s", bd.Name)
 	}
 
+	mesg := fmt.Sprintf("Updating partition table for: %s", bd.Name)
+	prg := progress.NewLoop(mesg)
+	log.Info(mesg)
+
+	var err error
+	var start uint64
 	maxFound := false
 
-	for idx, curr := range bd.Children {
-		var cmd string
-		var guid string
+	// Initialize the partition list before we add new ones
+	currentPartitions := bd.getPartitionList()
+
+	// Make the needed new partitions
+	for _, curr := range bd.Children {
+		baseArgs := []string{
+			"parted",
+			"-a",
+			"optimal",
+			bd.GetDeviceFile(),
+			"unit", "MB",
+			"--script",
+			"--",
+		}
+
+		if !curr.userDefined {
+			log.Debug("WritePartitionTable: skipping partition %s", curr.Name)
+			continue
+		}
+
+		var mkPart string
 
 		op, found := bdOps[curr.FsType]
 		if !found {
@@ -237,13 +268,18 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool) error {
 				curr.FsType)
 		}
 
-		cmd, err = op.makePartCommand(curr)
+		mkPart, err = op.makePartCommand(curr)
 		if err != nil {
 			return err
 		}
 
 		size := uint64(curr.Size)
-		end := start + (size >> 20)
+		end := start + size
+		if !wholeDisk {
+			start = curr.partStart
+			end = curr.partEnd
+		}
+
 		if size < 1 {
 			if maxFound {
 				return errors.Errorf("Found more than one partition with size 0 for %s!", bd.Name)
@@ -252,33 +288,71 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool) error {
 			end = 0
 		}
 
-		cmd = cmd + " " + getStartEnd(start, end)
+		retries := 3
+		for {
+			mkPartCmd := mkPart + " " + getStartEndMB(start, end)
+			log.Debug("WritePartitionTable: mkPartCmd: %s", mkPartCmd)
 
-		if curr.MountPoint == "/" {
-			// If legacyBios mode and we do not have a boot, use root
-			if legacyBios && bootPartition == -1 {
-				bootPartition = idx + 1
+			args := append(baseArgs, mkPartCmd)
+
+			err = cmd.RunAndLog(args...)
+
+			if err == nil || retries == 0 {
+				break
+			}
+
+			// Move the start position ahead one MB in an attempt
+			// to find a working optimal partition entry
+			start = start + (1000 * 1000)
+
+			retries--
+		}
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		// Get the new list of partitions
+		newPartitions := bd.getPartitionList()
+		// The current partition is new one added
+		curr.SetPartitionNumber(findNewPartition(currentPartitions, newPartitions).number)
+		log.Debug("WritePartitionTable: Found partition number %d for %s", curr.partition, curr.Name)
+
+		start = end
+		currentPartitions = newPartitions
+	}
+
+	var bootPartition uint64
+	bootStyle := "boot"
+	guids := map[int]string{}
+
+	// Now that all new partitions are created,
+	// and we know their assigned numbers ...
+	for _, curr := range bd.Children {
+		// First, check if we have the standard /boot partition
+		// We have a /boot partition, use this
+		if curr.MountPoint == "/boot" {
+			bootPartition = curr.partition
+			if legacyBios {
 				bootStyle = "legacy_boot"
 			}
 		}
 
+		// Only set GUIDs on newly created partitions
+		if !curr.userDefined {
+			continue
+		}
+
+		var guid string
 		guid, err = curr.getGUID()
 		if err != nil {
 			log.Warning("%s", err)
 		}
 
 		if curr.FsType != "swap" || curr.Type != BlockDeviceTypeCrypt {
-			guids[idx+1] = guid
+			guids[int(curr.partition)] = guid
 		}
-
-		args = append(args, cmd)
-		start = end
 	}
 
-	err = cmd.RunAndLog(args...)
-	if err != nil {
-		return errors.Wrap(err)
-	}
 	prg.Success()
 
 	msg := "Adjusting filesystem configurations"
@@ -290,7 +364,7 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool) error {
 			continue
 		}
 
-		args = []string{
+		args := []string{
 			"sgdisk",
 			bd.GetDeviceFile(),
 			fmt.Sprintf("--typecode=%d:%s", idx, guid),
@@ -305,8 +379,25 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool) error {
 		cnt = cnt + 1
 	}
 
-	if bootPartition != -1 {
-		args = []string{
+	// In case we didn't have a /boot partition, we
+	// need to set / as boot
+	for _, curr := range bd.Children {
+		// Only check for / in new partitions
+		if !curr.userDefined {
+			continue
+		}
+
+		if curr.MountPoint == "/" {
+			// If legacyBios mode and we do not have a boot, use root
+			if legacyBios && bootPartition == 0 {
+				bootPartition = curr.partition
+				bootStyle = "legacy_boot"
+			}
+		}
+	}
+
+	if bootPartition != 0 {
+		args := []string{
 			"parted",
 			bd.GetDeviceFile(),
 			fmt.Sprintf("set %d %s on", bootPartition, bootStyle),
@@ -328,6 +419,173 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool) error {
 	prg.Success()
 
 	return nil
+}
+
+func (bd *BlockDevice) getPartitionList() []partedPartition {
+	var partitionList []partedPartition
+	var err error
+
+	partTable := bytes.NewBuffer(nil)
+	devFile := bd.GetDeviceFile()
+
+	if !utils.IntSliceContains([]int{BlockDeviceTypeDisk, BlockDeviceTypeLoop}, int(bd.Type)) {
+		log.Warning("getPartitionList() called on non-disk %q", devFile)
+		return partitionList
+	}
+
+	// Read the partition table for the device
+	err = cmd.Run(partTable,
+		"parted",
+		"--machine",
+		"--script",
+		"--",
+		devFile,
+		"unit",
+		"B",
+		"print",
+	)
+	if err != nil {
+		log.Warning("getPartitionList() had an error reading partition table %q",
+			fmt.Sprintf("%s", partTable.String()))
+		return partitionList
+	}
+
+	var partition partedPartition
+
+	for _, line := range strings.Split(partTable.String(), ";\n") {
+		fields := strings.Split(line, ":")
+		if len(fields) == 7 {
+			partition.number, err = strconv.ParseUint(fields[0], 10, 64)
+			if err != nil {
+				log.Warning("getPartitionList: Failed to parse partition number from: %s", line)
+			}
+			partition.start, err = strconv.ParseUint(strings.TrimRight(fields[1], "B"), 10, 64)
+			if err != nil {
+				log.Warning("getPartitionList: Failed to parse start position from: %s", line)
+			}
+			partition.end, err = strconv.ParseUint(strings.TrimRight(fields[2], "B"), 10, 64)
+			if err != nil {
+				log.Warning("getPartitionList: Failed to parse end position from: %s", line)
+			}
+			partition.size, err = strconv.ParseUint(strings.TrimRight(fields[3], "B"), 10, 64)
+			if err != nil {
+				log.Warning("getPartitionList: Failed to parse partition size from: %s", line)
+			}
+			partition.fileSystem = fields[4]
+			partition.name = fields[5]
+			partition.flags = fields[6]
+
+			partitionList = append(partitionList, partition)
+		}
+	}
+
+	return partitionList
+}
+
+func findNewPartition(currentPartitions, newPartitions []partedPartition) partedPartition {
+	var newPartition partedPartition
+	if len(newPartitions) <= len(currentPartitions) {
+		log.Warning("findNewPartition: number of new partitions is not greater than the current")
+		return newPartition
+	}
+	if len(newPartitions)-len(currentPartitions) != 1 {
+		log.Warning("findNewPartition: number of new partition is more than 1")
+		return newPartition
+	}
+
+	for _, newPart := range newPartitions {
+		found := true
+		for _, curPart := range currentPartitions {
+			if curPart.number == newPart.number {
+				found = false
+				continue
+			}
+		}
+
+		if found {
+			newPartition = newPart
+			continue
+		}
+	}
+
+	return newPartition
+}
+
+func (bd *BlockDevice) getPartitionTable() *bytes.Buffer {
+	partTable := bytes.NewBuffer(nil)
+	devFile := bd.GetDeviceFile()
+
+	if !utils.IntSliceContains([]int{BlockDeviceTypeDisk, BlockDeviceTypeLoop}, int(bd.Type)) {
+		log.Warning("getPartitionTable() called on non-disk %q", devFile)
+		return partTable
+	}
+
+	// Read the partition table for the device
+	err := cmd.Run(partTable,
+		"parted",
+		"--machine",
+		"--script",
+		"--",
+		devFile,
+		"unit",
+		"B",
+		"print",
+		"free",
+	)
+	if err != nil {
+		log.Warning("getPartitionTable() had an error reading partition table %q",
+			fmt.Sprintf("%s", partTable.String()))
+		empty := bytes.NewBuffer(nil)
+		return empty
+	}
+
+	return partTable
+}
+
+func largestContiguousFreeSpace(partTable *bytes.Buffer, minSize uint64) (uint64, uint64) {
+	var start, end, size uint64
+	size = minSize - 1
+
+	for _, line := range strings.Split(partTable.String(), ";\n") {
+		log.Debug("largestContiguousFreeSpace() line is %q", line)
+
+		fields := strings.Split(line, ":")
+		if len(fields) == 5 && fields[4] == "free" {
+			lineSize, err := strconv.ParseUint(strings.TrimRight(fields[3], "B"), 10, 64)
+			if err == nil {
+				if lineSize > size {
+					lineStart, errStart := strconv.ParseUint(strings.TrimRight(fields[1], "B"), 10, 64)
+					lineEnd, errEnd := strconv.ParseUint(strings.TrimRight(fields[2], "B"), 10, 64)
+					if errStart == nil && errEnd == nil {
+						start = lineStart
+						end = lineEnd
+					}
+				}
+			}
+		}
+	}
+
+	return start, end
+}
+
+// LargestContiguousFreeSpace returns the largest, contiguous block of free
+// space in the partition table for the block device.
+// If none found, returns {0, 0}
+func (bd *BlockDevice) LargestContiguousFreeSpace(minSize uint64) (uint64, uint64) {
+	var start, end uint64
+	devFile := bd.GetDeviceFile()
+
+	if !utils.IntSliceContains([]int{BlockDeviceTypeDisk, BlockDeviceTypeLoop}, int(bd.Type)) {
+		log.Warning("LargestContiguousFreeSpace() called on non-disk %q", devFile)
+		return start, end
+	}
+
+	// Read the partition table for the device
+	partTable := bd.getPartitionTable()
+
+	start, end = largestContiguousFreeSpace(partTable, minSize)
+
+	return start, end
 }
 
 // MountMetaFs mounts proc, sysfs and devfs in the target installation directory
@@ -656,4 +914,143 @@ func GenerateTabFiles(rootDir string, medias []*BlockDevice) error {
 	}
 
 	return nil
+}
+
+// InstallTarget describes a BlockDevice which is a valid installation target
+type InstallTarget struct {
+	Name      string // block device name
+	Friendly  string // user friendly device name
+	WholeDisk bool   // Can we use the whole disk?
+	Removable bool   // Is this removable/hotswap media?
+	EraseDisk bool   // Are we wiping the disk? New partition table
+	FreeStart uint64 // Starting position of free space
+	FreeEnd   uint64 // Ending position of free space
+}
+
+type partedPartition struct {
+	number     uint64 // partition number
+	start      uint64 // starting byte location
+	end        uint64 // ending byte location
+	size       uint64 // size in bytes
+	fileSystem string // file system Type
+	name       string // partition name
+	flags      string // flags for partition
+}
+
+const (
+	// MinimumServerInstallSize is the smallest installation size in bytes for a Desktop
+	MinimumServerInstallSize = 4294967296
+
+	// MinimumDesktopInstallSize is the smallest installation size in bytes for a Desktop
+	MinimumDesktopInstallSize = 21474836480
+)
+
+func sortInstallTargets(targets []InstallTarget) []InstallTarget {
+	sort.SliceStable(targets, func(i, j int) bool {
+		// Ordering is:
+		// -- Non-removable disks
+		// -- Whole Disk
+		// -- Disk with with largest free space
+
+		if !targets[i].Removable && targets[j].Removable {
+			return true
+		}
+		if targets[i].Removable && !targets[j].Removable {
+			return false
+		}
+
+		if targets[i].WholeDisk && !targets[j].WholeDisk {
+			return true
+		}
+		if !targets[i].WholeDisk && targets[j].WholeDisk {
+			return false
+		}
+
+		iSize := targets[i].FreeEnd - targets[i].FreeStart
+		jSize := targets[j].FreeEnd - targets[j].FreeStart
+		return jSize <= iSize
+	})
+
+	return targets
+}
+
+// FindSafeInstallTargets creates an order list of possible installation targets
+// Only disk with gpt partition are safe to use
+// There must be at least 3 free partition in the table (gpt can have 127)
+// There must be at least minSize free space on the disk
+func FindSafeInstallTargets(minSize uint64, medias []*BlockDevice) []InstallTarget {
+	var installTargets []InstallTarget
+
+	for _, curr := range medias {
+		// Either 'gpt' or no partition table type
+		if curr.PtType != "gpt" && curr.PtType != "" {
+			log.Debug("FindSafeInstallTargets(): ignoring disk %s with partition table type %s",
+				curr.Name, curr.PtType)
+			continue
+		}
+
+		if curr.Children != nil && len(curr.Children) > 125 {
+			log.Debug("FindSafeInstallTargets(): ignoring disk %s with too many partitions (%d)",
+				curr.Name, len(curr.Children))
+			continue
+		}
+
+		if curr.Children == nil || len(curr.Children) == 0 {
+			// No partition type and no children we write the whole disk
+			installTargets = append(installTargets,
+				InstallTarget{Name: curr.Name, Friendly: curr.Model,
+					WholeDisk: true, Removable: curr.RemovableDevice,
+					FreeStart: 0, FreeEnd: curr.Size})
+			log.Debug("FindSafeInstallTargets(): found whole disk %s", curr.Name)
+			continue
+		}
+
+		if start, end := curr.LargestContiguousFreeSpace(minSize); start != 0 && end != 0 {
+			installTargets = append(installTargets,
+				InstallTarget{Name: curr.Name, Friendly: curr.Model,
+					Removable: curr.RemovableDevice, FreeStart: start, FreeEnd: end})
+			log.Debug("FindSafeInstallTargets(): Room on disk %s: %d to %d", curr.Name, start, end)
+			continue
+		}
+	}
+
+	return sortInstallTargets(installTargets)
+}
+
+// FindAllInstallTargets creates an order list of all possible installation targets
+func FindAllInstallTargets(medias []*BlockDevice) []InstallTarget {
+	var installTargets []InstallTarget
+
+	// All Disk are possible destructive installs
+	for _, curr := range medias {
+		target := InstallTarget{Name: curr.Name, Friendly: curr.Model,
+			WholeDisk: true, Removable: curr.RemovableDevice, EraseDisk: true,
+			FreeStart: 0, FreeEnd: curr.Size}
+
+		installTargets = append(installTargets, target)
+	}
+
+	return sortInstallTargets(installTargets)
+}
+
+// FindModifyInstallTargets creates an order list of possible installation targets
+// Only Disk with a 'gpt' partition table are candidates for modification
+func FindModifyInstallTargets(medias []*BlockDevice) []InstallTarget {
+	var installTargets []InstallTarget
+
+	for _, curr := range medias {
+		if curr.PtType != "gpt" {
+			log.Debug("FindModifyInstallTargets(): ignoring disk %s with partition table type %s",
+				curr.Name, curr.PtType)
+			continue
+		}
+
+		target := InstallTarget{Name: curr.Name, Friendly: curr.Model,
+			WholeDisk: true, Removable: curr.RemovableDevice, EraseDisk: true,
+			FreeStart: 0, FreeEnd: curr.Size}
+
+		installTargets = append(installTargets, target)
+	}
+
+	return sortInstallTargets(installTargets)
 }

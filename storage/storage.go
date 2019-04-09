@@ -28,6 +28,7 @@ type BlockDevice struct {
 	MappedName      string           // mapped device name
 	Model           string           // device model
 	MajorMinor      string           // major:minor device number
+	PtType          string           // partition table type
 	FsType          string           // filesystem type
 	UUID            string           // filesystem uuid
 	Serial          string           // device serial number
@@ -42,6 +43,9 @@ type BlockDevice struct {
 	Parent          *BlockDevice     // Parent block device; nil for disk
 	userDefined     bool             // was this value set by user?
 	available       bool             // was it mounted the moment we loaded?
+	partStart       uint64           // Start of the partition
+	partEnd         uint64           // End of the partition
+	partition       uint64           // Assigned partition for media - can't set until after mkpart
 	Options         string           // arbitrary mkfs.* options
 }
 
@@ -112,6 +116,7 @@ var (
 	avBlockDevices      []*BlockDevice
 	lsblkBinary         = "lsblk"
 	storageExp          = regexp.MustCompile(`^([0-9]*(\.)?[0-9]*)([bkmgtp]{1}){0,1}$`)
+	devNameSuffixExp    = regexp.MustCompile(`([0-9]*)$`)
 	labelExp            = regexp.MustCompile(`^([[:word:]-+_]+)$`)
 	mountExp            = regexp.MustCompile(`^(/|(/[[:word:]-+_]+)+)$`)
 	blockDeviceStateMap = map[BlockDeviceState]string{
@@ -134,6 +139,9 @@ var (
 		"/dev/nvme":   "p",
 		"/dev/mmcblk": "p",
 	}
+
+	bootSize = uint64(150 * (1000 * 1000))
+	swapSize = uint64(256 * (1000 * 1000))
 )
 
 func getAliasSuffix(file string) string {
@@ -160,6 +168,16 @@ func (bd *BlockDevice) ExpandName(alias map[string]string) {
 	for _, child := range bd.Children {
 		child.Name = utils.ExpandVariables(tmap, child.Name)
 	}
+}
+
+// SetPartitionNumber is sed when we add a new partition to a disk
+// which stores the newly allocated partition number, and then corrects
+// the devices partition name
+func (bd *BlockDevice) SetPartitionNumber(partition uint64) {
+	bd.partition = partition
+
+	// Replace the last set of digits with the current partition number
+	bd.Name = devNameSuffixExp.ReplaceAllString(bd.Name, fmt.Sprintf("%d", partition))
 }
 
 // GetDeviceFile formats the block device's file path
@@ -241,6 +259,9 @@ func (bd *BlockDevice) Clone() *BlockDevice {
 		Parent:          bd.Parent,
 		userDefined:     bd.userDefined,
 		available:       bd.available,
+		partStart:       bd.partStart,
+		partEnd:         bd.partEnd,
+		partition:       bd.partition,
 	}
 
 	clone.Children = []*BlockDevice{}
@@ -309,6 +330,18 @@ func (bd *BlockDevice) GetConfiguredStatus() ConfigStatus {
 // FsTypeNotSwap returns true if the file system type is not swap
 func (bd *BlockDevice) FsTypeNotSwap() bool {
 	return bd.FsType != "swap"
+}
+
+// DeviceHasSwap returns true if the block device has a swap partition
+func (bd *BlockDevice) DeviceHasSwap() bool {
+	hasSwap := false
+
+	for _, part := range bd.Children {
+		if part.FsType == "swap" {
+			hasSwap = true
+		}
+	}
+	return hasSwap
 }
 
 // Validate checks if the minimal requirements for a installation is met
@@ -407,12 +440,12 @@ func HumanReadableSizeWithUnitAndPrecision(size uint64, unit string, precision i
 		mask      float64
 		precision int
 	}{
-		{"P", 1.0 << 50, 5},
-		{"T", 1.0 << 40, 4},
-		{"G", 1.0 << 30, 3},
-		{"M", 1.0 << 20, 2},
-		{"K", 1.0 << 10, 1},
-		{"B", 1.0 << 0, 0},
+		{"P", 1.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0, 5},
+		{"T", 1.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0, 4},
+		{"G", 1.0 * 1000.0 * 1000.0 * 1000.0, 3},
+		{"M", 1.0 * 1000.0 * 1000.0, 2},
+		{"K", 1.0 * 1000.0, 1},
+		{"B", 1.0, 0},
 	}
 
 	value := float64(size)
@@ -900,6 +933,15 @@ func (bd *BlockDevice) UnmarshalJSON(b []byte) error {
 			}
 
 			bd.Size = size
+		case "pttype":
+			var pttype string
+
+			pttype, err = getNextStrToken(dec, "pttype")
+			if err != nil {
+				return err
+			}
+
+			bd.PtType = pttype
 		case "fstype":
 			var fstype string
 
@@ -1024,7 +1066,6 @@ func (bd *BlockDevice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	// Copy the unmarshaled data
-	bd.userDefined = false
 	bd.Name = unmarshBlockDevice.Name
 	bd.Model = unmarshBlockDevice.Model
 	bd.MajorMinor = unmarshBlockDevice.MajorMinor
@@ -1053,6 +1094,9 @@ func (bd *BlockDevice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		if iType < 0 || iType > BlockDeviceTypeUnknown {
 		}
 		bd.Type = iType
+		if iType != BlockDeviceTypeDisk {
+			bd.userDefined = true
+		}
 	}
 
 	// Map the BlockDeviceState
@@ -1135,37 +1179,88 @@ func MaxLabelLength(fstype string) int {
 	return maxLen
 }
 
+// AddBootStandardPartition will add to disk a new standard Boot partition
+func AddBootStandardPartition(disk *BlockDevice, start uint64) uint64 {
+	end := start + bootSize
+
+	disk.AddChild(&BlockDevice{
+		Size:        bootSize,
+		Type:        BlockDeviceTypePart,
+		FsType:      "vfat",
+		MountPoint:  "/boot",
+		Label:       "boot",
+		userDefined: true,
+		partStart:   start,
+		partEnd:     end,
+	})
+
+	return end
+}
+
+// AddSwapStandardPartition will add to disk a new standard Swap partition
+func AddSwapStandardPartition(disk *BlockDevice, start uint64) uint64 {
+	end := start + swapSize
+
+	disk.AddChild(&BlockDevice{
+		Size:        swapSize,
+		Type:        BlockDeviceTypePart,
+		FsType:      "swap",
+		Label:       "swap",
+		userDefined: true,
+		partStart:   start,
+		partEnd:     end,
+	})
+
+	return end
+}
+
+// AddRootStandardPartition will add to disk a new standard Root partition
+func AddRootStandardPartition(disk *BlockDevice, size uint64, start uint64) {
+	end := start + size
+
+	disk.AddChild(&BlockDevice{
+		Size:        size,
+		Type:        BlockDeviceTypePart,
+		FsType:      "ext4",
+		MountPoint:  "/",
+		Label:       "root",
+		userDefined: true,
+		partStart:   start,
+		partEnd:     end,
+	})
+}
+
 // NewStandardPartitions will add to disk a new set of partitions representing a
 // default set of partitions required for an installation
 func NewStandardPartitions(disk *BlockDevice) {
-	bootSize := uint64(150 * (1 << 20))
-	swapSize := uint64(256 * (1 << 20))
-	rootSize := uint64(disk.Size - bootSize - swapSize)
-
 	disk.Children = nil
 
-	// TODO review this standard partition schema (maybe add a default configuration)
+	rootSize := uint64(disk.Size - bootSize - swapSize)
+
 	disk.AddChild(&BlockDevice{
-		Size:       bootSize,
-		Type:       BlockDeviceTypePart,
-		FsType:     "vfat",
-		MountPoint: "/boot",
-		Label:      "boot",
+		Size:        bootSize,
+		Type:        BlockDeviceTypePart,
+		FsType:      "vfat",
+		MountPoint:  "/boot",
+		Label:       "boot",
+		userDefined: true,
 	})
 
 	disk.AddChild(&BlockDevice{
-		Size:   swapSize,
-		Type:   BlockDeviceTypePart,
-		FsType: "swap",
-		Label:  "swap",
+		Size:        swapSize,
+		Type:        BlockDeviceTypePart,
+		FsType:      "swap",
+		Label:       "swap",
+		userDefined: true,
 	})
 
 	disk.AddChild(&BlockDevice{
-		Size:       rootSize,
-		Type:       BlockDeviceTypePart,
-		FsType:     "ext4",
-		MountPoint: "/",
-		Label:      "root",
+		Size:        rootSize,
+		Type:        BlockDeviceTypePart,
+		FsType:      "ext4",
+		MountPoint:  "/",
+		Label:       "root",
+		userDefined: true,
 	})
 }
 

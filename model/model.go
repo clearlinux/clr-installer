@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -41,6 +41,12 @@ var testAlias = []string{}
 // SystemInstall represents the system install "configuration", the target
 // medias, bundles to install and whatever state a install may require
 type SystemInstall struct {
+	// Even though TargetMedias is an array, we currently only support
+	// it containing a single BlockDevice which matches/maps to the InstallTarget
+	// TODO: Change InstallSelected to be a map with the key being the
+	// device name for which it holds InstallTarget information when/if
+	// we add support for installing across multiple disks.
+	InstallSelected   storage.InstallTarget  `yaml:"-"`
 	TargetMedias      []*storage.BlockDevice `yaml:"targetMedia"`
 	NetworkInterfaces []*network.Interface   `yaml:"networkInterfaces,omitempty,flow"`
 	Keyboard          *keyboard.Keymap       `yaml:"keyboard,omitempty,flow"`
