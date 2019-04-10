@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -45,6 +45,33 @@ func init() {
 	displayLanguage = display.English
 }
 
+// SetSelectionLanguage changes the default display language
+func SetSelectionLanguage(code string) {
+	// The language package can show the language choices
+	// in different languages, but it generic per language
+	// aka no country specific values
+	parts := strings.Split(code, "_")
+	shortCode := strings.ToLower(parts[0])
+	switch shortCode {
+	case "de":
+		displayLanguage = display.German
+	case "en":
+		displayLanguage = display.English
+	case "es":
+		displayLanguage = display.Spanish
+	case "fr":
+		displayLanguage = display.French
+	case "ja":
+		displayLanguage = display.Japanese
+	case "pt":
+		displayLanguage = display.Portuguese
+	case "zh":
+		displayLanguage = display.Chinese
+	default:
+		displayLanguage = display.English
+	}
+}
+
 // IsUserDefined returns true if the configuration was interactively
 // defined by the user
 func (l *Language) IsUserDefined() bool {
@@ -55,6 +82,13 @@ func (l *Language) IsUserDefined() bool {
 func (l *Language) String() string {
 	en := displayLanguage.Tags()
 	return fmt.Sprintf("%-32s  [%s]", en.Name(l.Tag), l.Code)
+}
+
+// GetConfValue converts a Language to display string which can
+// be displayed as the configured value
+func (l *Language) GetConfValue() string {
+	en := displayLanguage.Tags()
+	return fmt.Sprintf("%s [%s]", en.Name(l.Tag), l.Code)
 }
 
 // MarshalYAML marshals Language into YAML format

@@ -1,4 +1,4 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -101,10 +101,15 @@ func NewLanguagePage(controller Controller, model *model.SystemInstall) (Page, e
 }
 
 func (page *LanguagePage) getCode() string {
-	code := page.GetConfiguredValue()
+	code := ""
+	if page.model.Language != nil {
+		code = page.model.Language.Code
+	}
+
 	if code == "" {
 		code = language.DefaultLanguage
 	}
+
 	return code
 }
 
@@ -195,6 +200,7 @@ func (page *LanguagePage) GetTitle() string {
 // StoreChanges will store this pages changes into the model
 func (page *LanguagePage) StoreChanges() {
 	page.model.Language = page.selected
+	language.SetSelectionLanguage(page.model.Language.Code)
 }
 
 // ResetChanges will reset this page to match the model
@@ -214,5 +220,6 @@ func (page *LanguagePage) GetConfiguredValue() string {
 	if page.model.Language == nil {
 		return ""
 	}
-	return page.model.Language.Code
+
+	return page.model.Language.GetConfValue()
 }
