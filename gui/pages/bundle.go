@@ -200,9 +200,9 @@ func (bundle *Bundle) StoreChanges() {
 	for n, b := range bundle.bundles {
 		set := bundle.selections[n].GetActive()
 		if set {
-			bundle.model.AddBundle(b.Name)
+			bundle.model.AddUserBundle(b.Name)
 		} else {
-			bundle.model.RemoveBundle(b.Name)
+			bundle.model.RemoveUserBundle(b.Name)
 		}
 	}
 }
@@ -211,15 +211,15 @@ func (bundle *Bundle) StoreChanges() {
 func (bundle *Bundle) ResetChanges() {
 	// Match selection to what's in the model
 	for n, b := range bundle.bundles {
-		bundle.selections[n].SetActive(bundle.model.ContainsBundle(b.Name))
+		bundle.selections[n].SetActive(bundle.model.ContainsUserBundle(b.Name))
 	}
 	bundle.controller.SetButtonState(ButtonConfirm, true)
 }
 
 // GetConfiguredValue returns our current config
 func (bundle *Bundle) GetConfiguredValue() string {
-	if bundle.model.Bundles == nil {
-		return "No bundles configured"
+	if len(bundle.model.UserBundles) == 0 {
+		return "No bundles selected"
 	}
-	return " • " + strings.Join(bundle.model.Bundles, "\n • ")
+	return " • " + strings.Join(bundle.model.UserBundles, "\n • ")
 }
