@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -87,6 +87,10 @@ const (
 	PreInstallConf = "pre-install-msg.yaml"
 	// PostInstallConf is the name of the pre-installation message file
 	PostInstallConf = "post-install-msg.yaml"
+	// PreGuiInstallConf is the name of the pre-installation message file
+	PreGuiInstallConf = "pre-gui-install-msg.yaml"
+	// PostGuiInstallConf is the name of the pre-installation message file
+	PostGuiInstallConf = "post-gui-install-msg.yaml"
 )
 
 var (
