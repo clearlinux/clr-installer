@@ -1,4 +1,4 @@
-// Copyright © 2018-2019 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -6,11 +6,14 @@ package pages
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/gotk3/gotk3/gtk"
+
 	ctrl "github.com/clearlinux/clr-installer/controller"
 	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/network"
 	"github.com/clearlinux/clr-installer/progress"
-	"github.com/gotk3/gotk3/gtk"
-	"time"
 )
 
 var (
@@ -156,6 +159,11 @@ func (install *InstallPage) ResetChanges() {
 		// Become the progress hook
 		progress.Set(install)
 
+		go func() {
+			_ = network.DownloadInstallerMessage("Pre-Installation",
+				network.PreGuiInstallConf)
+		}()
+
 		// Go install it
 		err := ctrl.Install(install.controller.GetRootDir(),
 			install.model,
@@ -167,6 +175,11 @@ func (install *InstallPage) ResetChanges() {
 		if err != nil {
 			panic(err)
 		}
+
+		go func() {
+			_ = network.DownloadInstallerMessage("Post-Installation",
+				network.PostGuiInstallConf)
+		}()
 		fmt.Println("Installation completed")
 		install.controller.SetButtonState(ButtonQuit, true)
 	}()
