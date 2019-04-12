@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -99,13 +99,23 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 		}
 	}
 
-	dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2,
-		"Warning! The following media will be erased and repartioned for the Clear Linux OS Install.", 1)
+	if dialog.modelSI.InstallSelected.EraseDisk {
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2,
+			"Warning! The following media will be erased and repartitioned for the Clear Linux OS Install:", 1)
+	} else if dialog.modelSI.InstallSelected.WholeDisk {
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2,
+			"The following media will be partitioned for the Clear Linux OS Install:", 1)
+	} else {
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2,
+			"The following media will have partitions added  for the Clear Linux OS Install:", 1)
+	}
 	dialog.warningLabel.SetMultiline(true)
 
 	dialog.mediaLabel = clui.CreateLabel(borderFrame, 1, 1, "Target Media: "+strings.Join(targets, ", "), 1)
 	dialog.mediaLabel.SetMultiline(true)
-	dialog.mediaLabel.SetBackColor(term.ColorRed)
+	if dialog.modelSI.InstallSelected.EraseDisk {
+		dialog.mediaLabel.SetBackColor(term.ColorRed)
+	}
 
 	buttonFrame := clui.CreateFrame(borderFrame, AutoSize, 1, clui.BorderNone, clui.Fixed)
 	buttonFrame.SetPack(clui.Horizontal)

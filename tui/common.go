@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -103,11 +103,17 @@ const (
 	// TuiPageKeyboard is the id for keyboard page
 	TuiPageKeyboard
 
+	// TuiPageMediaConfig is the id for media configuration menu
+	TuiPageMediaConfig
+
 	// TuiPageDiskConfig is the id for disk configuration menu
 	TuiPageDiskConfig
 
 	// TuiPageDiskPart is the id for disk partition configuration page
 	TuiPageDiskPart
+
+	// TuiPageDiskUtil is the id for disk util launches page
+	TuiPageDiskUtil
 
 	// TuiPageNetwork is the id for network configuration page
 	TuiPageNetwork
