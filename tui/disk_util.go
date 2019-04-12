@@ -14,6 +14,7 @@ import (
 	"syscall"
 
 	"github.com/VladimirMarkelov/clui"
+	term "github.com/nsf/termbox-go"
 	"gopkg.in/yaml.v2"
 
 	"github.com/clearlinux/clr-installer/log"
@@ -130,6 +131,17 @@ func newDiskUtilPage(tui *Tui) (Page, error) {
 		} else {
 			page.chooserList.SetStyle("List")
 		}
+	})
+
+	page.chooserList.OnKeyPress(func(k term.Key) bool {
+		if k == term.KeyEnter {
+			if page.confirmBtn != nil {
+				page.confirmBtn.ProcessEvent(clui.Event{Type: clui.EventKey, Key: k})
+			}
+			return true
+		}
+
+		return false
 	})
 
 	// Warning label

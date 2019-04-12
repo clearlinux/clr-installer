@@ -1,4 +1,4 @@
-﻿// Copyright 2018 Intel Corporation
+﻿// Copyright 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -10,7 +10,7 @@
 //----------------- Theme properties -----------------
 title=Clear Linux Installer
 author=Leandro Dorileo
-version=0.2
+version=0.3
 parent=default
 
 //----------------- Colors -----------------
@@ -112,6 +112,14 @@ Menu.ButtonShadowBack=black
 
 Menu.ButtonDisabledText= cyan
 Menu.ButtonDisabledBack= black
+
+// Media Install Types
+Media.ControlBack = blue
+Media.ControlText = white bold
+Media.ControlDisabledBack = black
+Media.ControlDisabledText = cyan
+Media.ControlActiveBack = cyan
+Media.ControlActiveText = blue bold
 
 // disk partitioning
 DiskSelected.ButtonBack=blue

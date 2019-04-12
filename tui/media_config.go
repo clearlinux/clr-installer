@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	mediaConfigMenuTitle = `Config Installation Media`
+	mediaConfigMenuTitle = `Configure Installation Media`
 	mediaConfigTitle     = `Select Installation Media`
 )
 
@@ -36,7 +36,8 @@ type MediaConfigPage struct {
 	safeTargets        []storage.InstallTarget
 	destructiveTargets []storage.InstallTarget
 
-	labelWarning *clui.Label
+	labelWarning     *clui.Label
+	labelDestructive *clui.Label
 
 	encryptCheck *clui.CheckBox
 
@@ -200,8 +201,9 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 	radioButtonFrame.SetPaddings(2, 1)
 
 	page.group = clui.CreateRadioGroup()
-	radioLabel := fmt.Sprintf("Safe Installation: Using Free Space")
+	radioLabel := fmt.Sprintf("Safe Installation")
 	page.safeRadio = clui.CreateRadio(radioButtonFrame, 50, radioLabel, AutoSize)
+	page.safeRadio.SetStyle("Media")
 	page.safeRadio.SetPack(clui.Horizontal)
 	page.group.AddItem(page.safeRadio)
 	page.safeRadio.OnChange(func(active bool) {
@@ -219,22 +221,24 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 		if active {
 			if len(page.safeTargets) < 1 {
 				if active {
-					warning := "No safe media found for installation"
+					warning := "No media or space available for installation"
 					log.Warning(warning)
 					warning = fmt.Sprintf("Warning: %s", warning)
 					page.labelWarning.SetTitle(warning)
 				}
+			} else {
+				page.labelDestructive.SetTitle("")
 			}
 		}
 	})
-
 	// Description of Safe
-	descLabel := clui.CreateLabel(radioButtonFrame, 2, 3, "Uses non-partitioned or gpt partitioned media with free space.\n"+
-		"Install alongside existing data or OS if adequate space is available.", Fixed)
+	descLabel := clui.CreateLabel(radioButtonFrame, 2, 2,
+		"Install on an unallocated disk or alongside existing partitions.", Fixed)
 	descLabel.SetMultiline(true)
 
-	radioLabel = fmt.Sprintf("Destructive Installation: ~~Overwrites Media!~~")
+	radioLabel = fmt.Sprintf("Destructive Installation")
 	page.destructiveRadio = clui.CreateRadio(radioButtonFrame, 50, radioLabel, AutoSize)
+	page.destructiveRadio.SetStyle("Media")
 	page.destructiveRadio.SetPack(clui.Horizontal)
 	page.group.AddItem(page.destructiveRadio)
 	page.destructiveRadio.OnChange(func(active bool) {
@@ -256,12 +260,12 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 				warning = fmt.Sprintf("Warning: %s", warning)
 				page.labelWarning.SetTitle(warning)
 			} else {
-				page.labelWarning.SetTitle("")
+				page.labelDestructive.SetTitle(descructiveWarning)
 			}
 		}
 	})
 	// Description of Destructive
-	clui.CreateLabel(radioButtonFrame, 2, 1, "Erases selected media and overwrites with Clear Linux* OS.", Fixed)
+	clui.CreateLabel(radioButtonFrame, 2, 1, "Erase all data on selected media and install Clear Linux* OS.", Fixed)
 
 	listFrame := clui.CreateFrame(contentFrame, 60, 3, BorderNone, Fixed)
 	listFrame.SetPack(clui.Vertical)
@@ -281,11 +285,27 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 		}
 	})
 
+	page.chooserList.OnKeyPress(func(k term.Key) bool {
+		if k == term.KeyEnter {
+			if page.confirmBtn != nil {
+				page.confirmBtn.ProcessEvent(clui.Event{Type: clui.EventKey, Key: k})
+			}
+			return true
+		}
+
+		return false
+	})
+
 	// Warning label
 	page.labelWarning = clui.CreateLabel(contentFrame, 1, 2, "", Fixed)
 	page.labelWarning.SetMultiline(true)
 	page.labelWarning.SetBackColor(errorLabelBg)
 	page.labelWarning.SetTextColor(errorLabelFg)
+
+	// Destructive label
+	page.labelDestructive = clui.CreateLabel(contentFrame, 1, 2, "", Fixed)
+	page.labelDestructive.SetBackColor(errorLabelBg)
+	page.labelDestructive.SetTextColor(errorLabelFg)
 
 	// Encryption Checkbox
 	page.encryptCheck = clui.CreateCheckBox(contentFrame, AutoSize, "Enable Encryption", AutoSize)
@@ -376,6 +396,7 @@ func (page *MediaConfigPage) buildChooserList() {
 
 func (page *MediaConfigPage) buildMediaLists() error {
 	page.labelWarning.SetTitle("")
+	page.labelDestructive.SetTitle("")
 
 	var err error
 	page.devs, err = storage.ListAvailableBlockDevices(page.getModel().TargetMedias)
