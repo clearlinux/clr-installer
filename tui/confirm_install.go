@@ -29,6 +29,12 @@ type ConfirmInstallDialog struct {
 	confirmButton *SimpleButton
 }
 
+var (
+	safeWholeWarning   = "Selected media will be partitioned."
+	safePartialWarning = "Selected media will have partitions added."
+	descructiveWarning = "WARNING: Selected media will be erased."
+)
+
 // OnClose sets the callback that is called when the
 // dialog is closed
 func (dialog *ConfirmInstallDialog) OnClose(fn func()) {
@@ -100,14 +106,11 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 	}
 
 	if dialog.modelSI.InstallSelected.EraseDisk {
-		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2,
-			"Warning! The following media will be erased and repartitioned for the Clear Linux OS Install:", 1)
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, descructiveWarning, 1)
 	} else if dialog.modelSI.InstallSelected.WholeDisk {
-		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2,
-			"The following media will be partitioned for the Clear Linux OS Install:", 1)
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, safeWholeWarning, 1)
 	} else {
-		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2,
-			"The following media will have partitions added  for the Clear Linux OS Install:", 1)
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, safePartialWarning, 1)
 	}
 	dialog.warningLabel.SetMultiline(true)
 
