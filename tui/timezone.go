@@ -1,13 +1,14 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package tui
 
 import (
-	"github.com/clearlinux/clr-installer/timezone"
-
 	"github.com/VladimirMarkelov/clui"
+	term "github.com/nsf/termbox-go"
+
+	"github.com/clearlinux/clr-installer/timezone"
 )
 
 // TimezonePage is the Page implementation for the timezone configuration page
@@ -106,6 +107,17 @@ func newTimezonePage(tui *Tui) (Page, error) {
 		page.activated = page.cancelBtn
 		page.confirmBtn.SetEnabled(false)
 	}
+
+	page.tzListBox.OnKeyPress(func(k term.Key) bool {
+		if k == term.KeyEnter {
+			if page.confirmBtn != nil {
+				page.confirmBtn.ProcessEvent(clui.Event{Type: clui.EventKey, Key: k})
+			}
+			return true
+		}
+
+		return false
+	})
 
 	return page, nil
 }

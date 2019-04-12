@@ -1,13 +1,14 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package tui
 
 import (
-	"github.com/clearlinux/clr-installer/language"
-
 	"github.com/VladimirMarkelov/clui"
+	term "github.com/nsf/termbox-go"
+
+	"github.com/clearlinux/clr-installer/language"
 )
 
 // LanguagePage is the Page implementation for the language configuration page
@@ -87,6 +88,17 @@ func newLanguagePage(tui *Tui) (Page, error) {
 		} else {
 			page.langListBox.SetStyle("List")
 		}
+	})
+
+	page.langListBox.OnKeyPress(func(k term.Key) bool {
+		if k == term.KeyEnter {
+			if page.confirmBtn != nil {
+				page.confirmBtn.ProcessEvent(clui.Event{Type: clui.EventKey, Key: k})
+			}
+			return true
+		}
+
+		return false
 	})
 
 	modelLanguage := page.getModel().Language

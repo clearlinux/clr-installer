@@ -1,13 +1,14 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package tui
 
 import (
-	"github.com/clearlinux/clr-installer/keyboard"
-
 	"github.com/VladimirMarkelov/clui"
+	term "github.com/nsf/termbox-go"
+
+	"github.com/clearlinux/clr-installer/keyboard"
 )
 
 // KeyboardPage is the Page implementation for the keyboard configuration page
@@ -115,6 +116,17 @@ func newKeyboardPage(tui *Tui) (Page, error) {
 			if err := keyboard.Apply(selected); err != nil {
 				page.Panic(err)
 			}
+		})
+
+		page.kbdListBox.OnKeyPress(func(k term.Key) bool {
+			if k == term.KeyEnter {
+				if page.confirmBtn != nil {
+					page.confirmBtn.ProcessEvent(clui.Event{Type: clui.EventKey, Key: k})
+				}
+				return true
+			}
+
+			return false
 		})
 
 		frame := clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
