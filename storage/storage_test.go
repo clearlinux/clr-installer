@@ -921,37 +921,45 @@ BYT;
 `
 
 	var start, end, twentyGig, fourGig uint64
+	children := make([]*BlockDevice, 0)
+	bd := &BlockDevice{Name: "sda", Children: children}
 
 	twentyGig = 21474836480
 	fourGig = 4294967296
 	t.Logf("getPartAllFreeOutput: twentyGig: %d, fourGig: %d", twentyGig, fourGig)
-	start, end = largestContiguousFreeSpace(bytes.NewBuffer([]byte(getPartAllFreeOutput)), twentyGig)
+
+	bd.setPartitionTable(bytes.NewBuffer([]byte(getPartAllFreeOutput)))
+	start, end = bd.LargestContiguousFreeSpace(twentyGig)
 	if start == 0 && end == 0 {
 		t.Fatalf("Should have found %d free in getPartAllFreeOutput", twentyGig)
 	}
 	t.Logf("getPartAllFreeOutput: start: %d, end: %d", start, end)
 
-	start, end = largestContiguousFreeSpace(bytes.NewBuffer([]byte(getPartSomeFreeOutput)), twentyGig)
+	bd.setPartitionTable(bytes.NewBuffer([]byte(getPartSomeFreeOutput)))
+	start, end = bd.LargestContiguousFreeSpace(twentyGig)
 	if start == 0 && end == 0 {
 		t.Fatalf("Should have found %d free in getPartSomeFreeOutput", twentyGig)
 	}
 	t.Logf("getPartSomeFreeOutput: start: %d, end: %d", start, end)
 
-	start, end = largestContiguousFreeSpace(bytes.NewBuffer([]byte(getPartNotEnoughFreeOutput)), fourGig)
+	bd.setPartitionTable(bytes.NewBuffer([]byte(getPartNotEnoughFreeOutput)))
+	start, end = bd.LargestContiguousFreeSpace(fourGig)
 	if start != 0 || end != 0 {
 		t.Logf("getPartNotEnoughFreeOutput: start: %d, end: %d", start, end)
 		t.Fatalf("Should NOT have found %d free in getPartNotEnoughFreeOutput", twentyGig)
 	}
 	t.Logf("getPartNotEnoughFreeOutput: start: %d, end: %d", start, end)
 
-	start, end = largestContiguousFreeSpace(bytes.NewBuffer([]byte(getPartNotEnoughFree2Output)), twentyGig)
+	bd.setPartitionTable(bytes.NewBuffer([]byte(getPartNotEnoughFree2Output)))
+	start, end = bd.LargestContiguousFreeSpace(twentyGig)
 	if start != 0 || end != 0 {
 		t.Logf("getPartNotEnoughFree2Output: start: %d, end: %d", start, end)
 		t.Fatalf("Should NOT have found %d free in getPartNotEnoughFree2Output", twentyGig)
 	}
 	t.Logf("getPartNotEnoughFree2Output: start: %d, end: %d", start, end)
 
-	start, end = largestContiguousFreeSpace(bytes.NewBuffer([]byte(getPartNotEnoughFree3Output)), twentyGig)
+	bd.setPartitionTable(bytes.NewBuffer([]byte(getPartNotEnoughFree3Output)))
+	start, end = bd.LargestContiguousFreeSpace(twentyGig)
 	if start != 0 || end != 0 {
 		t.Logf("getPartNotEnoughFree3Output: start: %d, end: %d", start, end)
 		t.Fatalf("Should NOT have found %d free in getPartNotEnoughFree3Output", twentyGig)
@@ -982,7 +990,7 @@ func TestSwapCheck(t *testing.T) {
 	}
 
 	bd = &BlockDevice{Size: MinimumServerInstallSize}
-	_ = AddBootStandardPartition(bd, 0)
+	_ = AddBootStandardPartition(bd)
 	if bd.DeviceHasSwap() {
 		t.Fatalf("Device should NOT have swap, but does: %v", bd)
 	}
@@ -992,15 +1000,15 @@ func TestSwapCheck(t *testing.T) {
 func TestAddPartititions(t *testing.T) {
 	bd := &BlockDevice{Size: MinimumServerInstallSize}
 
-	end := AddBootStandardPartition(bd, 0)
-	if end != bootSize {
-		t.Fatalf("Boot partition should end at %d, but was %d", bootSize, end)
+	size := AddBootStandardPartition(bd)
+	if size != bootSize {
+		t.Fatalf("Boot partition should be %d, but was %d", bootSize, size)
 	}
-	end = AddSwapStandardPartition(bd, end)
-	if end != (bootSize + swapSize) {
-		t.Fatalf("Swap partition should end at %d, but was %d", (bootSize + swapSize), end)
+	size = AddSwapStandardPartition(bd)
+	if size != swapSize {
+		t.Fatalf("Swap partition should be %d, but was %d", swapSize, size)
 	}
 
 	rootSize := uint64(bd.Size - bootSize - swapSize)
-	AddRootStandardPartition(bd, rootSize, end)
+	AddRootStandardPartition(bd, rootSize)
 }

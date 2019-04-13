@@ -22,31 +22,45 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
+// PartedPartition hold partition information
+// Number 0 and FileSystem "free" are free spaces
+type PartedPartition struct {
+	Number     uint64 // partition number 0 indicates free space
+	Start      uint64 // starting byte location
+	End        uint64 // ending byte location
+	Size       uint64 // size in bytes
+	FileSystem string // file system Type
+	Name       string // partition name
+	Flags      string // flags for partition
+}
+
 // A BlockDevice describes a block device and its partitions
 type BlockDevice struct {
-	Name            string           // device name
-	MappedName      string           // mapped device name
-	Model           string           // device model
-	MajorMinor      string           // major:minor device number
-	PtType          string           // partition table type
-	FsType          string           // filesystem type
-	UUID            string           // filesystem uuid
-	Serial          string           // device serial number
-	MountPoint      string           // where the device is mounted
-	Label           string           // label for the partition; set with mkfs
-	Size            uint64           // size of the device
-	Type            BlockDeviceType  // device type
-	State           BlockDeviceState // device state (running, live etc)
-	ReadOnly        bool             // read-only device
-	RemovableDevice bool             // removable device
-	Children        []*BlockDevice   // children devices/partitions
-	Parent          *BlockDevice     // Parent block device; nil for disk
-	userDefined     bool             // was this value set by user?
-	available       bool             // was it mounted the moment we loaded?
-	partStart       uint64           // Start of the partition
-	partEnd         uint64           // End of the partition
-	partition       uint64           // Assigned partition for media - can't set until after mkpart
-	Options         string           // arbitrary mkfs.* options
+	Name            string             // device name
+	MappedName      string             // mapped device name
+	Model           string             // device model
+	MajorMinor      string             // major:minor device number
+	PtType          string             // partition table type
+	FsType          string             // filesystem type
+	UUID            string             // filesystem uuid
+	Serial          string             // device serial number
+	MountPoint      string             // where the device is mounted
+	Label           string             // label for the partition; set with mkfs
+	Size            uint64             // size of the device
+	Type            BlockDeviceType    // device type
+	State           BlockDeviceState   // device state (running, live etc)
+	ReadOnly        bool               // read-only device
+	RemovableDevice bool               // removable device
+	Children        []*BlockDevice     // children devices/partitions
+	Parent          *BlockDevice       // Parent block device; nil for disk
+	UserDefined     bool               // was this value set by user?
+	MakePartition   bool               // Do we need to make a new partition?
+	FormatPartition bool               // Do we need to format the partition
+	Options         string             // arbitrary mkfs.* options
+	available       bool               // was it mounted the moment we loaded?
+	partition       uint64             // Assigned partition for media - can't set until after mkpart
+	PartTable       []*PartedPartition // Existing Disk partition table from parted
+	removedParts    []uint64           // List of manually removed partitions
 }
 
 // Version used for reading and writing YAML
@@ -116,9 +130,9 @@ var (
 	avBlockDevices      []*BlockDevice
 	lsblkBinary         = "lsblk"
 	storageExp          = regexp.MustCompile(`^([0-9]*(\.)?[0-9]*)([bkmgtp]{1}){0,1}$`)
-	devNameSuffixExp    = regexp.MustCompile(`([0-9]*)$`)
 	labelExp            = regexp.MustCompile(`^([[:word:]-+_]+)$`)
 	mountExp            = regexp.MustCompile(`^(/|(/[[:word:]-+_]+)+)$`)
+	devNameSuffixExp    = regexp.MustCompile(`([0-9]*)$`)
 	blockDeviceStateMap = map[BlockDeviceState]string{
 		BlockDeviceStateRunning: "running",
 		BlockDeviceStateLive:    "live",
@@ -170,14 +184,17 @@ func (bd *BlockDevice) ExpandName(alias map[string]string) {
 	}
 }
 
-// SetPartitionNumber is sed when we add a new partition to a disk
+// GetNewPartitionName returns the name with the new partition number
+func (bd *BlockDevice) GetNewPartitionName(partition uint64) string {
+	// Replace the last set of digits with the current partition number
+	return devNameSuffixExp.ReplaceAllString(bd.Name, fmt.Sprintf("%d", partition))
+}
+
+// SetPartitionNumber is set when we add a new partition to a disk
 // which stores the newly allocated partition number, and then corrects
 // the devices partition name
 func (bd *BlockDevice) SetPartitionNumber(partition uint64) {
 	bd.partition = partition
-
-	// Replace the last set of digits with the current partition number
-	bd.Name = devNameSuffixExp.ReplaceAllString(bd.Name, fmt.Sprintf("%d", partition))
 }
 
 // GetDeviceFile formats the block device's file path
@@ -239,6 +256,36 @@ func parseBlockDeviceState(bds string) (BlockDeviceState, error) {
 	return BlockDeviceStateUnknown, errors.Errorf("Unrecognized block device state: %s", bds)
 }
 
+func (bd *BlockDevice) findFree(size uint64) *PartedPartition {
+	var freePart *PartedPartition
+
+	for _, part := range bd.PartTable {
+		if part.Number == 0 && part.FileSystem == "free" {
+			if part.Size >= size {
+				freePart = part.Clone()
+				break
+			}
+		}
+	}
+
+	return freePart
+}
+
+// Clone creates a copies a PartedPartition
+func (part *PartedPartition) Clone() *PartedPartition {
+	clone := &PartedPartition{
+		Number:     part.Number,
+		Start:      part.Start,
+		End:        part.End,
+		Size:       part.Size,
+		FileSystem: part.FileSystem,
+		Name:       part.Name,
+		Flags:      part.Flags,
+	}
+
+	return clone
+}
+
 // Clone creates a copies a BlockDevice and its children
 func (bd *BlockDevice) Clone() *BlockDevice {
 	clone := &BlockDevice{
@@ -257,11 +304,13 @@ func (bd *BlockDevice) Clone() *BlockDevice {
 		ReadOnly:        bd.ReadOnly,
 		RemovableDevice: bd.RemovableDevice,
 		Parent:          bd.Parent,
-		userDefined:     bd.userDefined,
+		UserDefined:     bd.UserDefined,
+		MakePartition:   bd.MakePartition,
+		FormatPartition: bd.FormatPartition,
 		available:       bd.available,
-		partStart:       bd.partStart,
-		partEnd:         bd.partEnd,
 		partition:       bd.partition,
+		PartTable:       bd.PartTable,
+		removedParts:    bd.removedParts,
 	}
 
 	clone.Children = []*BlockDevice{}
@@ -279,7 +328,7 @@ func (bd *BlockDevice) Clone() *BlockDevice {
 // IsUserDefined returns true if the configuration was interactively
 // defined by the user
 func (bd *BlockDevice) IsUserDefined() bool {
-	return bd.userDefined
+	return bd.UserDefined
 }
 
 // IsAvailable returns true if the media is not a installer media, returns false otherwise
@@ -404,6 +453,11 @@ func (bd *BlockDevice) RemoveChild(child *BlockDevice) {
 	}
 }
 
+// addRemovePartition adds a partition to the list to be removed
+func (bd *BlockDevice) addRemovePartition(part uint64) {
+	bd.removedParts = append(bd.removedParts, part)
+}
+
 // AddChild adds a partition to a disk block device
 func (bd *BlockDevice) AddChild(child *BlockDevice) {
 	if bd.Children == nil {
@@ -422,8 +476,13 @@ func (bd *BlockDevice) AddChild(child *BlockDevice) {
 	}
 
 	if child.Name == "" {
-		child.Name = fmt.Sprintf("%s%s%d", bd.Name, partPrefix, len(bd.Children))
+		if child.partition < 1 {
+			child.Name = fmt.Sprintf("%s%s?", bd.Name, partPrefix)
+		} else {
+			child.Name = fmt.Sprintf("%s%s%d", bd.Name, partPrefix, child.partition)
+		}
 	}
+	log.Debug("AddChild: child.Name is %q", child.Name)
 }
 
 // HumanReadableSizeWithUnitAndPrecision converts the size representation in bytes to the
@@ -555,6 +614,10 @@ func listBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
 		if err = bd.PartProbe(); err != nil {
 			return nil, err
 		}
+
+		// Read the partition table for the device
+		partTable := bd.getPartitionTable()
+		bd.setPartitionTable(partTable)
 	}
 
 	if userDefined == nil || len(userDefined) == 0 {
@@ -772,21 +835,6 @@ func getNextBoolToken(dec *json.Decoder, name string) (bool, error) {
 	return false, errors.Errorf("Unknown ro value: %s", str)
 }
 
-// MaxParitionSize returns largest size the partition
-// can be in bytes. Return 0 if there is an error; in theory
-// the maximum size should at least be the current size.
-func (bd *BlockDevice) MaxParitionSize() uint64 {
-
-	if bd.Parent != nil {
-		free, err := bd.Parent.FreeSpace()
-		if err == nil {
-			return (bd.Size + free)
-		}
-	}
-
-	return 0
-}
-
 // IsValidLabel returns empty string if label is valid
 func IsValidLabel(label string, fstype string) string {
 	if label == "" {
@@ -818,7 +866,7 @@ func IsValidMount(str string) string {
 // -- size is suffixed with B, K, M, G, T, P
 // -- size is greater than MinimumPartitionSize
 // -- size is less than (or equal to) current size + free space
-func (bd *BlockDevice) IsValidSize(str string) string {
+func (bd *BlockDevice) IsValidSize(str string, maxPartSize uint64) string {
 	str = strings.ToLower(str)
 
 	if !storageExp.MatchString(str) {
@@ -832,7 +880,6 @@ func (bd *BlockDevice) IsValidSize(str string) string {
 		return "Size too small"
 	}
 
-	maxPartSize := bd.MaxParitionSize()
 	if maxPartSize == 0 {
 		return "Unknown free space"
 	} else if size > maxPartSize {
@@ -872,6 +919,43 @@ func ParseVolumeSize(str string) (uint64, error) {
 		fsize = fsize * (1 << 40)
 	case "p":
 		fsize = fsize * (1 << 50)
+	}
+
+	size = uint64(math.Round(fsize))
+
+	return size, nil
+}
+
+// ParseVolumeHumanSize will parse a string formatted (1M, 10G, 2T) size and
+// return its representation in human bytes; MB, not MiB
+func ParseVolumeHumanSize(str string) (uint64, error) {
+	var size uint64
+
+	str = strings.ToLower(str)
+
+	if !storageExp.MatchString(str) {
+		return strconv.ParseUint(str, 0, 64)
+	}
+
+	unit := storageExp.ReplaceAllString(str, `$3`)
+	fsize, err := strconv.ParseFloat(storageExp.ReplaceAllString(str, `$1`), 64)
+	if err != nil {
+		return 0, errors.Wrap(err)
+	}
+
+	switch unit {
+	case "b":
+		fsize = fsize * (1.0)
+	case "k":
+		fsize = fsize * (1.0 * 1000.0)
+	case "m":
+		fsize = fsize * (1.0 * 1000.0 * 1000.0)
+	case "g":
+		fsize = fsize * (1.0 * 1000.0 * 1000.0 * 1000.0)
+	case "t":
+		fsize = fsize * (1.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0)
+	case "p":
+		fsize = fsize * (1.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0)
 	}
 
 	size = uint64(math.Round(fsize))
@@ -1095,7 +1179,8 @@ func (bd *BlockDevice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		}
 		bd.Type = iType
 		if iType != BlockDeviceTypeDisk {
-			bd.userDefined = true
+			bd.MakePartition = true
+			bd.FormatPartition = true
 		}
 	}
 
@@ -1180,53 +1265,50 @@ func MaxLabelLength(fstype string) int {
 }
 
 // AddBootStandardPartition will add to disk a new standard Boot partition
-func AddBootStandardPartition(disk *BlockDevice, start uint64) uint64 {
-	end := start + bootSize
-
-	disk.AddChild(&BlockDevice{
-		Size:        bootSize,
-		Type:        BlockDeviceTypePart,
-		FsType:      "vfat",
-		MountPoint:  "/boot",
-		Label:       "boot",
-		userDefined: true,
-		partStart:   start,
-		partEnd:     end,
+func AddBootStandardPartition(disk *BlockDevice) uint64 {
+	freePart := disk.findFree(bootSize)
+	disk.AddFromFreePartition(freePart, &BlockDevice{
+		Size:            bootSize,
+		Type:            BlockDeviceTypePart,
+		FsType:          "vfat",
+		MountPoint:      "/boot",
+		Label:           "boot",
+		UserDefined:     true,
+		MakePartition:   true,
+		FormatPartition: true,
 	})
 
-	return end
+	return bootSize
 }
 
 // AddSwapStandardPartition will add to disk a new standard Swap partition
-func AddSwapStandardPartition(disk *BlockDevice, start uint64) uint64 {
-	end := start + swapSize
-
-	disk.AddChild(&BlockDevice{
-		Size:        swapSize,
-		Type:        BlockDeviceTypePart,
-		FsType:      "swap",
-		Label:       "swap",
-		userDefined: true,
-		partStart:   start,
-		partEnd:     end,
+func AddSwapStandardPartition(disk *BlockDevice) uint64 {
+	freePart := disk.findFree(swapSize)
+	disk.AddFromFreePartition(freePart, &BlockDevice{
+		Size:            swapSize,
+		Type:            BlockDeviceTypePart,
+		FsType:          "swap",
+		Label:           "swap",
+		UserDefined:     true,
+		MakePartition:   true,
+		FormatPartition: true,
 	})
 
-	return end
+	return swapSize
 }
 
 // AddRootStandardPartition will add to disk a new standard Root partition
-func AddRootStandardPartition(disk *BlockDevice, size uint64, start uint64) {
-	end := start + size
-
-	disk.AddChild(&BlockDevice{
-		Size:        size,
-		Type:        BlockDeviceTypePart,
-		FsType:      "ext4",
-		MountPoint:  "/",
-		Label:       "root",
-		userDefined: true,
-		partStart:   start,
-		partEnd:     end,
+func AddRootStandardPartition(disk *BlockDevice, rootSize uint64) {
+	freePart := disk.findFree(rootSize)
+	disk.AddFromFreePartition(freePart, &BlockDevice{
+		Size:            rootSize,
+		Type:            BlockDeviceTypePart,
+		FsType:          "ext4",
+		MountPoint:      "/",
+		Label:           "root",
+		UserDefined:     true,
+		MakePartition:   true,
+		FormatPartition: true,
 	})
 }
 
@@ -1234,33 +1316,51 @@ func AddRootStandardPartition(disk *BlockDevice, size uint64, start uint64) {
 // default set of partitions required for an installation
 func NewStandardPartitions(disk *BlockDevice) {
 	disk.Children = nil
+	newFreePart := &PartedPartition{
+		Number:     0,
+		Start:      0,
+		End:        disk.Size,
+		Size:       disk.Size,
+		FileSystem: "free",
+	}
+	disk.PartTable = nil
+	disk.PartTable = append(disk.PartTable, newFreePart)
 
 	rootSize := uint64(disk.Size - bootSize - swapSize)
 
-	disk.AddChild(&BlockDevice{
-		Size:        bootSize,
-		Type:        BlockDeviceTypePart,
-		FsType:      "vfat",
-		MountPoint:  "/boot",
-		Label:       "boot",
-		userDefined: true,
+	freePart := disk.findFree(bootSize)
+	disk.AddFromFreePartition(freePart, &BlockDevice{
+		Size:            bootSize,
+		Type:            BlockDeviceTypePart,
+		FsType:          "vfat",
+		MountPoint:      "/boot",
+		Label:           "boot",
+		UserDefined:     true,
+		MakePartition:   true,
+		FormatPartition: true,
 	})
 
-	disk.AddChild(&BlockDevice{
-		Size:        swapSize,
-		Type:        BlockDeviceTypePart,
-		FsType:      "swap",
-		Label:       "swap",
-		userDefined: true,
+	freePart = disk.findFree(swapSize)
+	disk.AddFromFreePartition(freePart, &BlockDevice{
+		Size:            swapSize,
+		Type:            BlockDeviceTypePart,
+		FsType:          "swap",
+		Label:           "swap",
+		UserDefined:     true,
+		MakePartition:   true,
+		FormatPartition: true,
 	})
 
-	disk.AddChild(&BlockDevice{
-		Size:        rootSize,
-		Type:        BlockDeviceTypePart,
-		FsType:      "ext4",
-		MountPoint:  "/",
-		Label:       "root",
-		userDefined: true,
+	freePart = disk.findFree(rootSize)
+	disk.AddFromFreePartition(freePart, &BlockDevice{
+		Size:            rootSize,
+		Type:            BlockDeviceTypePart,
+		FsType:          "ext4",
+		MountPoint:      "/",
+		Label:           "root",
+		UserDefined:     true,
+		MakePartition:   true,
+		FormatPartition: true,
 	})
 }
 
