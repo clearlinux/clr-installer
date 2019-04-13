@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -6,19 +6,22 @@ package tui
 
 import (
 	"fmt"
-
-	"github.com/clearlinux/clr-installer/storage"
+	"strings"
 
 	"github.com/VladimirMarkelov/clui"
-
 	term "github.com/nsf/termbox-go"
+
+	"github.com/clearlinux/clr-installer/log"
+	"github.com/clearlinux/clr-installer/storage"
 )
 
 // DiskPartitionPage is the Page implementation for partition configuration page
 type DiskPartitionPage struct {
 	BasePage
 	fsList        *clui.ListBox
+	fsOriginal    string
 	encryptCheck  *clui.CheckBox
+	formatCheck   *clui.CheckBox
 	labelEdit     *clui.EditField
 	labelWarning  *clui.Label
 	mPointEdit    *clui.EditField
@@ -75,6 +78,8 @@ func (page *DiskPartitionPage) setPartitionForm(part *storage.BlockDevice) {
 		page.encryptCheck.SetState(0)
 	}
 
+	page.setFormatCheckbox()
+
 	page.labelEdit.SetTitle(part.Label)
 	page.validateLabel(part.FsType)
 
@@ -91,11 +96,44 @@ func (page *DiskPartitionPage) setPartitionForm(part *storage.BlockDevice) {
 		page.Panic(err)
 	}
 
+	page.fsOriginal = part.FsType
+
 	page.sizeOriginal = size
 	page.sizeTrue = part.Size // The actual size, not the human readable
 	page.sizeEdit.SetTitle(size)
 
 	page.setPartitionButtonsVisible(true, partAllBtns)
+}
+
+func (page *DiskPartitionPage) setFormatCheckbox() {
+	sel := page.getSelectedBlockDevice()
+
+	// Default to enabled
+	page.formatCheck.SetEnabled(true)
+
+	// If this was a user defined (added) partition, it has to be formatted
+	if sel.part.UserDefined {
+		page.formatCheck.SetState(1)
+		page.formatCheck.SetEnabled(false)
+	} else {
+		// We always need to format root (/) for an install
+		if page.mPointEdit.Title() == "/" {
+			page.formatCheck.SetState(1)
+			page.formatCheck.SetEnabled(false)
+		}
+
+		// If the user changed the file system type
+		if page.fsList.SelectedItemText() != page.fsOriginal {
+			page.formatCheck.SetState(1)
+			page.formatCheck.SetEnabled(false)
+		}
+
+		// If the user changed the file system size
+		if page.sizeEdit.Title() != page.sizeOriginal {
+			page.formatCheck.SetState(1)
+			page.formatCheck.SetEnabled(false)
+		}
+	}
 }
 
 func (page *DiskPartitionPage) getSelectedBlockDevice() *SelectedBlockDevice {
@@ -240,6 +278,8 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 		}
 	})
 
+	page.formatCheck = clui.CreateCheckBox(partFrm, AutoSize, "Format", AutoSize)
+
 	labelFrm := clui.CreateFrame(fldFrm, 4, 2, BorderNone, Fixed)
 	labelFrm.SetPack(clui.Vertical)
 	labelFrm.SetPaddings(0, 0)
@@ -268,6 +308,8 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 		} else {
 			page.encryptCheck.SetEnabled(true)
 		}
+
+		page.setFormatCheckbox()
 	})
 
 	page.mPointWarning = clui.CreateLabel(mPointFrm, 1, 1, "", Fixed)
@@ -284,6 +326,8 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 			page.mPointWarning.SetTitle("")
 		}
 
+		page.setFormatCheckbox()
+
 		page.validateLabel(page.fsList.SelectedItemText())
 	})
 
@@ -294,18 +338,18 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 	page.sizeEdit.OnChange(func(ev clui.Event) {
 		if page.sizeEdit.Title() != page.sizeOriginal {
 			sel := page.getSelectedBlockDevice()
-			page.sizeWarning.SetTitle(sel.part.IsValidSize(page.sizeEdit.Title()))
+			page.sizeWarning.SetTitle(sel.part.IsValidSize(page.sizeEdit.Title(), page.sizeTrue))
 		} else {
 			page.sizeWarning.SetTitle("")
 		}
+		page.setFormatCheckbox()
 		page.setConfirmButton()
 	})
 	page.sizeEdit.OnKeyPress(func(k term.Key, ch rune) bool {
 		maxSizeKeys := []rune{'=', '+'}
 		for _, curr := range maxSizeKeys {
 			if curr == ch {
-				sel := page.getSelectedBlockDevice()
-				page.sizeEdit.SetTitle(fmt.Sprintf("%v", sel.part.MaxParitionSize()))
+				page.sizeEdit.SetTitle(fmt.Sprintf("%v", page.sizeTrue))
 				return true
 			}
 		}
@@ -327,37 +371,92 @@ func newDiskPartitionPage(tui *Tui) (Page, error) {
 
 	page.confirmBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Confirm", Fixed)
 	page.confirmBtn.OnClick(func(ev clui.Event) {
+		var warnings []string
+
 		sel := page.getSelectedBlockDevice()
 
 		if sel.part != nil {
 			sel.part.FsType = page.fsList.SelectedItemText()
 			if page.encryptCheck.State() != 0 {
 				sel.part.Type = storage.BlockDeviceTypeCrypt
+				if !sel.addMode {
+					warnings = append(warnings, "Enabling Encryption")
+				}
 			} else {
 				sel.part.Type = storage.BlockDeviceTypePart
 			}
+			if page.formatCheck.State() != 0 {
+				if !sel.addMode {
+					warnings = append(warnings, "Enabling Formatting")
+				}
+				sel.part.FormatPartition = true
+			} else {
+				sel.part.FormatPartition = false
+			}
 			sel.part.Label = page.labelEdit.Title()
 			sel.part.MountPoint = page.mPointEdit.Title()
+			sizeChanged := false
 			if page.sizeEdit.Title() == page.sizeOriginal {
 				// Use the actual size, not the human readable
 				sel.part.Size = page.sizeTrue
 			} else {
-				size, err := storage.ParseVolumeSize(page.sizeEdit.Title())
+				sizeChanged = true
+				size, err := storage.ParseVolumeHumanSize(page.sizeEdit.Title())
 				if err == nil {
 					sel.part.Size = size
 				}
 			}
-		}
 
-		page.GotoPage(TuiPageDiskConfig)
+			if sel.addMode {
+				log.Debug("Updating free %v using size %d", sel.freePartition, sel.part.Size)
+				sel.bd.AddFromFreePartition(sel.freePartition, sel.part)
+			} else {
+				if sel.part.FsType != page.fsOriginal {
+					warnings = append(warnings, "Changing File System Type")
+				}
+				if sizeChanged {
+					warnings = append(warnings, "Changing Partition Size")
+					freePart := sel.bd.RemovePartition(sel.part)
+					sel.part.MakePartition = true
+					sel.part.FormatPartition = true
+					sel.bd.AddFromFreePartition(freePart, sel.part)
+				}
+			}
+
+			// Check for data loss warnings
+			if len(warnings) > 0 {
+				sel.dataLoss = true
+				message := "Data Loss due to: " + strings.Join(warnings, ", ")
+				if dialog, err := CreateWarningDialogBox(message); err != nil {
+					log.Warning("%s: %s", message, err)
+					page.GotoPage(TuiPageDiskConfig)
+				} else {
+					dialog.OnClose(func() {
+						page.GotoPage(TuiPageDiskConfig)
+					})
+				}
+			} else {
+				page.GotoPage(TuiPageDiskConfig)
+			}
+		} else {
+			page.GotoPage(TuiPageDiskConfig)
+		}
 	})
 
 	page.deleteBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Delete", Fixed)
 	page.deleteBtn.OnClick(func(ev clui.Event) {
 		sel := page.getSelectedBlockDevice()
-		sel.bd.RemoveChild(sel.part)
-
-		page.GotoPage(TuiPageDiskConfig)
+		log.Debug("Removing partition %v", sel.part)
+		_ = sel.bd.RemovePartition(sel.part)
+		sel.dataLoss = true
+		message := "Deleting a partition results in data loss"
+		if dialog, err := CreateWarningDialogBox(message); err != nil {
+			log.Warning("%s: %s", message, err)
+		} else {
+			dialog.OnClose(func() {
+				page.GotoPage(TuiPageDiskConfig)
+			})
+		}
 	})
 
 	page.cancelBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Cancel", Fixed)

@@ -48,7 +48,8 @@ type MediaConfigPage struct {
 
 // GetConfiguredValue Returns the string representation of currently value set
 func (page *MediaConfigPage) GetConfiguredValue() string {
-	if len(page.getModel().TargetMedias) == 0 {
+	tm := page.getModel().TargetMedias
+	if len(tm) == 0 {
 		return "No -media- selected"
 	}
 
@@ -59,9 +60,14 @@ func (page *MediaConfigPage) GetConfiguredValue() string {
 	size, _ := storage.HumanReadableSizeWithPrecision(target.FreeEnd-target.FreeStart, 1)
 
 	encrypted := ""
-	if page.encryptCheck.State() != 0 {
-		encrypted = " Encryption"
+	for _, bd := range tm {
+		for _, ch := range bd.Children {
+			if ch.Type == storage.BlockDeviceTypeCrypt {
+				encrypted = " Encryption"
+			}
+		}
 	}
+
 	return fmt.Sprintf("%s (%s) %s%s %s", target.Friendly, target.Name, portion, encrypted, size)
 }
 
@@ -116,15 +122,12 @@ func (page *MediaConfigPage) SetDone(done bool) bool {
 				storage.NewStandardPartitions(installBlockDevice)
 			} else {
 				// Partial Disk, Add our partitions
-				start := page.getModel().InstallSelected.FreeStart
-				end := storage.AddBootStandardPartition(installBlockDevice, start)
+				size := page.getModel().InstallSelected.FreeEnd - page.getModel().InstallSelected.FreeStart
+				size = size - storage.AddBootStandardPartition(installBlockDevice)
 				if !installBlockDevice.DeviceHasSwap() {
-					start = end
-					end = storage.AddSwapStandardPartition(installBlockDevice, start)
+					size = size - storage.AddSwapStandardPartition(installBlockDevice)
 				}
-				start = end
-				size := page.getModel().InstallSelected.FreeEnd - start
-				storage.AddRootStandardPartition(installBlockDevice, size, start)
+				storage.AddRootStandardPartition(installBlockDevice, size)
 			}
 			page.getModel().TargetMedias = nil
 			page.getModel().AddTargetMedia(installBlockDevice)
@@ -351,10 +354,10 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 		page.GotoPage(TuiPageMediaConfig)
 	})
 
-	// Add a Disk Util button
-	diskUtilBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Disk Utility", Fixed)
-	diskUtilBtn.OnClick(func(ev clui.Event) {
-		page.GotoPage(TuiPageDiskUtil)
+	// Add a Manual Partition button
+	manualPartBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Manual Partition", Fixed)
+	manualPartBtn.OnClick(func(ev clui.Event) {
+		page.GotoPage(TuiPageDiskConfig)
 	})
 
 	page.activated = page.backBtn
@@ -433,6 +436,9 @@ func fmtInstallPortion(target storage.InstallTarget) string {
 	}
 	if target.EraseDisk {
 		portion = "[Erase Disk]"
+	}
+	if target.Manual {
+		portion = "[Manual]"
 	}
 
 	return portion
