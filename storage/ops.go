@@ -240,11 +240,33 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) erro
 	var start uint64
 	maxFound := false
 
+	// First remove any user removed partitions
+	log.Debug("WritePartitionTable: remove partitions : %v", bd.removedParts)
+	if len(bd.removedParts) > 0 {
+		rmArgs := []string{
+			"parted",
+			"-a",
+			"optimal",
+			bd.GetDeviceFile(),
+			"unit", "MB",
+			"--script",
+			"--",
+		}
+		for _, curr := range bd.removedParts {
+			rmArgs = append(rmArgs, fmt.Sprintf("rm %d", curr))
+		}
+		err = cmd.RunAndLog(rmArgs...)
+		if err != nil {
+			log.Warning("Failed to remove existing partition: %v (%s)", bd.removedParts, err)
+		}
+	}
+
 	// Initialize the partition list before we add new ones
 	currentPartitions := bd.getPartitionList()
 
 	// Make the needed new partitions
 	for _, curr := range bd.Children {
+		log.Debug("WritePartitionTable: processing child: %v", curr)
 		baseArgs := []string{
 			"parted",
 			"-a",
@@ -255,7 +277,7 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) erro
 			"--",
 		}
 
-		if !curr.userDefined {
+		if !curr.MakePartition {
 			log.Debug("WritePartitionTable: skipping partition %s", curr.Name)
 			continue
 		}
@@ -276,9 +298,11 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) erro
 		size := uint64(curr.Size)
 		end := start + size
 		if !wholeDisk {
-			start = curr.partStart
-			end = curr.partEnd
+			start, end = bd.getPartitionStartEnd(curr.partition)
+		} else {
+			log.Debug("WritePartitionTable: WholeDisk mode")
 		}
+		log.Debug("WritePartitionTable: start: %d, end: %d", start, end)
 
 		if size < 1 {
 			if maxFound {
@@ -314,7 +338,7 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) erro
 		// Get the new list of partitions
 		newPartitions := bd.getPartitionList()
 		// The current partition is new one added
-		curr.SetPartitionNumber(findNewPartition(currentPartitions, newPartitions).number)
+		curr.SetPartitionNumber(findNewPartition(currentPartitions, newPartitions).Number)
 		log.Debug("WritePartitionTable: Found partition number %d for %s", curr.partition, curr.Name)
 
 		start = end
@@ -338,7 +362,7 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) erro
 		}
 
 		// Only set GUIDs on newly created partitions
-		if !curr.userDefined {
+		if !curr.MakePartition {
 			continue
 		}
 
@@ -383,7 +407,7 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) erro
 	// need to set / as boot
 	for _, curr := range bd.Children {
 		// Only check for / in new partitions
-		if !curr.userDefined {
+		if !curr.MakePartition {
 			continue
 		}
 
@@ -421,8 +445,8 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) erro
 	return nil
 }
 
-func (bd *BlockDevice) getPartitionList() []partedPartition {
-	var partitionList []partedPartition
+func (bd *BlockDevice) getPartitionList() []*PartedPartition {
+	var partitionList []*PartedPartition
 	var err error
 
 	partTable := bytes.NewBuffer(nil)
@@ -450,30 +474,30 @@ func (bd *BlockDevice) getPartitionList() []partedPartition {
 		return partitionList
 	}
 
-	var partition partedPartition
-
 	for _, line := range strings.Split(partTable.String(), ";\n") {
+		partition := &PartedPartition{}
+
 		fields := strings.Split(line, ":")
 		if len(fields) == 7 {
-			partition.number, err = strconv.ParseUint(fields[0], 10, 64)
+			partition.Number, err = strconv.ParseUint(fields[0], 10, 64)
 			if err != nil {
 				log.Warning("getPartitionList: Failed to parse partition number from: %s", line)
 			}
-			partition.start, err = strconv.ParseUint(strings.TrimRight(fields[1], "B"), 10, 64)
+			partition.Start, err = strconv.ParseUint(strings.TrimRight(fields[1], "B"), 10, 64)
 			if err != nil {
 				log.Warning("getPartitionList: Failed to parse start position from: %s", line)
 			}
-			partition.end, err = strconv.ParseUint(strings.TrimRight(fields[2], "B"), 10, 64)
+			partition.End, err = strconv.ParseUint(strings.TrimRight(fields[2], "B"), 10, 64)
 			if err != nil {
 				log.Warning("getPartitionList: Failed to parse end position from: %s", line)
 			}
-			partition.size, err = strconv.ParseUint(strings.TrimRight(fields[3], "B"), 10, 64)
+			partition.Size, err = strconv.ParseUint(strings.TrimRight(fields[3], "B"), 10, 64)
 			if err != nil {
 				log.Warning("getPartitionList: Failed to parse partition size from: %s", line)
 			}
-			partition.fileSystem = fields[4]
-			partition.name = fields[5]
-			partition.flags = fields[6]
+			partition.FileSystem = fields[4]
+			partition.Name = fields[5]
+			partition.Flags = fields[6]
 
 			partitionList = append(partitionList, partition)
 		}
@@ -482,8 +506,8 @@ func (bd *BlockDevice) getPartitionList() []partedPartition {
 	return partitionList
 }
 
-func findNewPartition(currentPartitions, newPartitions []partedPartition) partedPartition {
-	var newPartition partedPartition
+func findNewPartition(currentPartitions, newPartitions []*PartedPartition) *PartedPartition {
+	newPartition := &PartedPartition{}
 	if len(newPartitions) <= len(currentPartitions) {
 		log.Warning("findNewPartition: number of new partitions is not greater than the current")
 		return newPartition
@@ -496,7 +520,7 @@ func findNewPartition(currentPartitions, newPartitions []partedPartition) parted
 	for _, newPart := range newPartitions {
 		found := true
 		for _, curPart := range currentPartitions {
-			if curPart.number == newPart.number {
+			if curPart.Number == newPart.Number {
 				found = false
 				continue
 			}
@@ -542,29 +566,22 @@ func (bd *BlockDevice) getPartitionTable() *bytes.Buffer {
 	return partTable
 }
 
-func largestContiguousFreeSpace(partTable *bytes.Buffer, minSize uint64) (uint64, uint64) {
-	var start, end, size uint64
-	size = minSize - 1
+func (bd *BlockDevice) getPartitionStartEnd(partNumber uint64) (uint64, uint64) {
+	var start, end uint64
+	devFile := bd.GetDeviceFile()
 
-	for _, line := range strings.Split(partTable.String(), ";\n") {
-		log.Debug("largestContiguousFreeSpace() line is %q", line)
+	if !utils.IntSliceContains([]int{BlockDeviceTypeDisk, BlockDeviceTypeLoop}, int(bd.Type)) {
+		log.Warning("getPartitionStartEnd() called on non-disk %q", devFile)
+		return start, end
+	}
 
-		fields := strings.Split(line, ":")
-		if len(fields) == 5 && fields[4] == "free" {
-			lineSize, err := strconv.ParseUint(strings.TrimRight(fields[3], "B"), 10, 64)
-			if err == nil {
-				if lineSize > size {
-					lineStart, errStart := strconv.ParseUint(strings.TrimRight(fields[1], "B"), 10, 64)
-					lineEnd, errEnd := strconv.ParseUint(strings.TrimRight(fields[2], "B"), 10, 64)
-					if errStart == nil && errEnd == nil {
-						start = lineStart
-						end = lineEnd
-					}
-				}
-			}
+	for _, part := range bd.PartTable {
+		if part.Number == partNumber {
+			return part.Start, part.End
 		}
 	}
 
+	log.Warning("getPartitionStartEnd() did not find partition %s for disk %q", partNumber, devFile)
 	return start, end
 }
 
@@ -572,7 +589,7 @@ func largestContiguousFreeSpace(partTable *bytes.Buffer, minSize uint64) (uint64
 // space in the partition table for the block device.
 // If none found, returns {0, 0}
 func (bd *BlockDevice) LargestContiguousFreeSpace(minSize uint64) (uint64, uint64) {
-	var start, end uint64
+	var start, end, size uint64
 	devFile := bd.GetDeviceFile()
 
 	if !utils.IntSliceContains([]int{BlockDeviceTypeDisk, BlockDeviceTypeLoop}, int(bd.Type)) {
@@ -580,12 +597,266 @@ func (bd *BlockDevice) LargestContiguousFreeSpace(minSize uint64) (uint64, uint6
 		return start, end
 	}
 
-	// Read the partition table for the device
-	partTable := bd.getPartitionTable()
+	size = minSize - 1
 
-	start, end = largestContiguousFreeSpace(partTable, minSize)
+	for _, part := range bd.PartTable {
+		if part.Number == 0 && part.FileSystem == "free" {
+			if part.Size > size {
+				start = part.Start
+				end = part.End
+			}
+		}
+	}
 
 	return start, end
+}
+
+// AddFromFreePartition reduces the free partition by the size given
+// User when adding a new partition to a disk from free space
+func (bd *BlockDevice) AddFromFreePartition(parted *PartedPartition, child *BlockDevice) {
+	var next uint64
+	var partitionList []*PartedPartition
+	devFile := bd.GetDeviceFile()
+
+	if !utils.IntSliceContains([]int{BlockDeviceTypeDisk, BlockDeviceTypeLoop}, int(bd.Type)) {
+		log.Warning("AddFromFreePartition() called on non-disk %q", devFile)
+		return
+	}
+
+	const (
+		maxPartitions = 127
+	)
+
+	found := false
+	next = 1
+
+	for !found && next < maxPartitions {
+		present := false
+		for _, partition := range bd.PartTable {
+			if partition.Number == next {
+				present = true
+				break
+			}
+		}
+		if present {
+			next = next + 1
+		} else {
+			found = true
+		}
+	}
+
+	if next >= maxPartitions {
+		log.Warning("AddFromFreePartition() could not add new partition: %v", child)
+		return
+	}
+
+	for _, partition := range bd.PartTable {
+		// Find the partition to update/remove
+		if partition.Number == parted.Number &&
+			partition.Start == parted.Start {
+			log.Debug("Found the free partition to update: %v", partition)
+
+			addPart := partition.Clone()
+			addPart.Number = next
+			addPart.End = addPart.Start + (child.Size - 1)
+			addPart.Size = child.Size
+			addPart.FileSystem = ""
+			log.Debug("Adding the new partition: %v", addPart)
+			partitionList = append(partitionList, addPart)
+
+			child.SetPartitionNumber(addPart.Number)
+			bd.AddChild(child)
+			log.Debug("Added new child partition: %v", child)
+
+			newSize := partition.Size - addPart.Size
+			newStart := addPart.End + 1
+
+			log.Debug("Free partition newStart: %d, newSize: %d", newStart, newSize)
+			if (int(partition.End) - int(newStart)) <= 0 {
+				log.Debug("No Free space left: %v", partition)
+				continue
+			}
+
+			if newSize > (10 * 1024 * 1024) {
+				newPart := partition.Clone()
+				newPart.Start = newStart
+				newPart.Size = newSize
+				log.Debug("Found enough free to add back: %v", newPart)
+				partitionList = append(partitionList, newPart)
+			}
+			continue
+		}
+
+		log.Debug("Not the right partition, adding back: %v", partition)
+		partitionList = append(partitionList, partition)
+	}
+
+	bd.PartTable = partitionList
+	for i, p := range bd.PartTable {
+		log.Debug("Dump of PartTable %d: %v", i, p)
+	}
+
+	// Consolidate neighboring free partitions
+	bd.consolidateFree()
+
+	for i, p := range bd.PartTable {
+		log.Debug("Dump of PartTable post consolidate %d: %v", i, p)
+	}
+
+}
+
+func (bd *BlockDevice) consolidateFree() {
+	last := &PartedPartition{}
+	var newPartTable []*PartedPartition
+
+	for _, part := range bd.PartTable {
+		log.Debug("consolidateFree() checking part %v", part)
+		// Found a free partition
+		if part.Number == 0 && part.FileSystem == "free" {
+			log.Debug("consolidateFree() part is free %v", part)
+			// And the last partition was also free, then consolidate
+			if last.Number == 0 && last.FileSystem == "free" {
+				log.Debug("consolidateFree() last is also free %v", last)
+				last.End = part.End
+				last.Size = last.Size + part.Size
+				continue
+			}
+		}
+
+		newPart := part.Clone()
+		newPartTable = append(newPartTable, newPart)
+		last = newPart
+	}
+
+	bd.PartTable = newPartTable
+}
+
+// RemovePartition remove a child from the disk and updates
+// frees the space in the partition table
+func (bd *BlockDevice) RemovePartition(child *BlockDevice) *PartedPartition {
+	log.Debug("RemovePartition() called")
+	var removedPartition *PartedPartition
+	devFile := bd.GetDeviceFile()
+
+	if !utils.IntSliceContains([]int{BlockDeviceTypeDisk, BlockDeviceTypeLoop}, int(bd.Type)) {
+		log.Warning("RemovePartition() called on non-disk %q", devFile)
+		return removedPartition
+	}
+
+	deleteIndex := -1
+	for idx, curr := range bd.Children {
+		if curr.Name == child.Name {
+			child.Parent = nil
+			deleteIndex = idx
+			break
+		}
+	}
+	if deleteIndex < 0 {
+		log.Warning("RemovePartition() fail to find (and remove) child: %v", child)
+		return removedPartition
+	}
+	log.Debug("RemovePartition() found child partition index to delete %d", deleteIndex)
+	// keep a reference to the child
+	delelteChild := bd.Children[deleteIndex].Clone()
+	// Remove the child for the block devices
+	bd.Children = append(bd.Children[:deleteIndex], bd.Children[deleteIndex+1:]...)
+
+	partString := devNameSuffixExp.FindString(delelteChild.Name)
+	partNumber, err := strconv.ParseUint(partString, 10, 64)
+	if err != nil {
+		log.Warning("RemovePartition() fail to find child partition number: %v", child)
+		return removedPartition
+	}
+	log.Debug("RemovePartition() Need to add partition %d to the remove list", partNumber)
+
+	for _, partition := range bd.PartTable {
+		// Find the partition to free/remove
+		if partition.Number == partNumber {
+			log.Debug("Found the partition to free partition: %v", partition)
+			partition.Number = 0
+			partition.FileSystem = "free"
+			partition.Name = ""
+			partition.Flags = ""
+			removedPartition = partition.Clone()
+			break
+		}
+	}
+
+	// Consolidate neighboring free partitions
+	bd.consolidateFree()
+
+	if !delelteChild.MakePartition {
+		bd.addRemovePartition(partNumber)
+		log.Debug("RemovePartition() Add partition to be removed %d", partNumber)
+	}
+
+	return removedPartition
+}
+
+// Populate the current partition table for a disk device
+func (bd *BlockDevice) setPartitionTable(partTable *bytes.Buffer) {
+	var partitionList []*PartedPartition
+	devFile := bd.GetDeviceFile()
+
+	if !utils.IntSliceContains([]int{BlockDeviceTypeDisk, BlockDeviceTypeLoop}, int(bd.Type)) {
+		log.Warning("setPartitionTable() called on non-disk %q", devFile)
+		return
+	}
+
+	var err error
+
+	for _, line := range strings.Split(partTable.String(), ";\n") {
+		partition := &PartedPartition{}
+
+		log.Debug("setPartitionTable() line is %q", line)
+
+		fields := strings.Split(line, ":")
+		if len(fields) == 7 {
+			partition.Number, err = strconv.ParseUint(fields[0], 10, 64)
+			if err != nil {
+				log.Warning("setPartitionTable: Failed to parse partition number from: %s", line)
+			}
+			partition.Start, err = strconv.ParseUint(strings.TrimRight(fields[1], "B"), 10, 64)
+			if err != nil {
+				log.Warning("setPartitionTable: Failed to parse start position from: %s", line)
+			}
+			partition.End, err = strconv.ParseUint(strings.TrimRight(fields[2], "B"), 10, 64)
+			if err != nil {
+				log.Warning("setPartitionTable: Failed to parse end position from: %s", line)
+			}
+			partition.Size, err = strconv.ParseUint(strings.TrimRight(fields[3], "B"), 10, 64)
+			if err != nil {
+				log.Warning("setPartitionTable: Failed to parse partition size from: %s", line)
+			}
+			partition.FileSystem = fields[4]
+			partition.Name = fields[5]
+			partition.Flags = fields[6]
+
+			partitionList = append(partitionList, partition)
+			continue
+		}
+
+		if len(fields) == 5 && fields[4] == "free" {
+			partition.Number = 0 // We use 0 to special case as a free partition
+			partition.Start, err = strconv.ParseUint(strings.TrimRight(fields[1], "B"), 10, 64)
+			if err != nil {
+				log.Warning("setPartitionTable: Failed to parse start position from: %s", line)
+			}
+			partition.End, err = strconv.ParseUint(strings.TrimRight(fields[2], "B"), 10, 64)
+			if err != nil {
+				log.Warning("setPartitionTable: Failed to parse end position from: %s", line)
+			}
+			partition.Size, err = strconv.ParseUint(strings.TrimRight(fields[3], "B"), 10, 64)
+			if err != nil {
+				log.Warning("setPartitionTable: Failed to parse partition size from: %s", line)
+			}
+			partition.FileSystem = fields[4]
+
+			partitionList = append(partitionList, partition)
+		}
+	}
+
+	bd.PartTable = partitionList
 }
 
 // MountMetaFs mounts proc, sysfs and devfs in the target installation directory
@@ -923,22 +1194,14 @@ type InstallTarget struct {
 	WholeDisk bool   // Can we use the whole disk?
 	Removable bool   // Is this removable/hotswap media?
 	EraseDisk bool   // Are we wiping the disk? New partition table
+	DataLoss  bool   // Are we making changes which will lose data
+	Manual    bool   // Was this disk manually configured?
 	FreeStart uint64 // Starting position of free space
 	FreeEnd   uint64 // Ending position of free space
 }
 
-type partedPartition struct {
-	number     uint64 // partition number
-	start      uint64 // starting byte location
-	end        uint64 // ending byte location
-	size       uint64 // size in bytes
-	fileSystem string // file system Type
-	name       string // partition name
-	flags      string // flags for partition
-}
-
 const (
-	// MinimumServerInstallSize is the smallest installation size in bytes for a Desktop
+	// MinimumServerInstallSize is the smallest installation size in bytes for a Server
 	MinimumServerInstallSize = 4294967296
 
 	// MinimumDesktopInstallSize is the smallest installation size in bytes for a Desktop

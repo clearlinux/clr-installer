@@ -211,7 +211,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 			}
 
 			// Do not overwrite File System content for pre-existing
-			if !ch.IsUserDefined() {
+			if !ch.FormatPartition {
 				msg := fmt.Sprintf("Skipping new file system for %s", ch.Name)
 				log.Debug(msg)
 				continue
