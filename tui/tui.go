@@ -118,7 +118,6 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 		{"media config", newMediaConfigPage},
 		{"disk config", newDiskConfigPage},
 		{"disk partition", newDiskPartitionPage},
-		{"disk util", newDiskUtilPage},
 		{"network", newNetworkPage},
 		{"proxy", newProxyPage},
 		{"network validate", newNetworkValidatePage},

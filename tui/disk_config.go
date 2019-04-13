@@ -18,21 +18,24 @@ import (
 // SelectedBlockDevice holds the shared date between the Disk Configuration page
 // and the partition configuration page
 type SelectedBlockDevice struct {
-	bd      *storage.BlockDevice
-	part    *storage.BlockDevice
-	addMode bool
+	bd            *storage.BlockDevice
+	part          *storage.BlockDevice
+	addMode       bool
+	wholeDisk     bool
+	dataLoss      bool
+	freePartition *storage.PartedPartition
 }
 
 const (
-	diskConfigTitle = `Configure Media`
+	diskConfigTitle = `Manual Partitioning`
 )
 const (
-	columnDisk = iota
-	columnPartition
-	columnFsType
-	columnMount
-	columnSize
-	columnCount
+	diskColumnDisk = iota
+	diskColumnPartition
+	diskColumnFsType
+	diskColumnMount
+	diskColumnSize
+	diskColumnCount
 )
 
 var (
@@ -40,23 +43,23 @@ var (
 )
 
 func init() {
-	diskColumns = make([]columnInfo, columnCount)
+	diskColumns = make([]columnInfo, diskColumnCount)
 
-	diskColumns[columnDisk].title = "Disk"
-	diskColumns[columnDisk].minWidth = 16
+	diskColumns[diskColumnDisk].title = "Disk"
+	diskColumns[diskColumnDisk].minWidth = 16
 
-	diskColumns[columnPartition].title = "Partition"
-	diskColumns[columnPartition].minWidth = columnWidthDefault
+	diskColumns[diskColumnPartition].title = "Partition"
+	diskColumns[diskColumnPartition].minWidth = columnWidthDefault
 
-	diskColumns[columnFsType].title = "File System"
-	diskColumns[columnFsType].minWidth = columnWidthDefault
+	diskColumns[diskColumnFsType].title = "File System"
+	diskColumns[diskColumnFsType].minWidth = columnWidthDefault
 
-	diskColumns[columnMount].title = "Mount Point"
-	diskColumns[columnMount].minWidth = -1 // This column get all free space
+	diskColumns[diskColumnMount].title = "Mount Point"
+	diskColumns[diskColumnMount].minWidth = -1 // This column get all free space
 
-	diskColumns[columnSize].title = "Size"
-	diskColumns[columnSize].minWidth = 8
-	diskColumns[columnSize].rightJustify = true
+	diskColumns[diskColumnSize].title = "Size"
+	diskColumns[diskColumnSize].minWidth = 8
+	diskColumns[diskColumnSize].rightJustify = true
 }
 
 // DiskConfigPage is the Page implementation for the disk partitioning menu page
@@ -77,7 +80,6 @@ type DiskConfigPage struct {
 	lastPartButtons []*SimpleButton
 	lastDiskButton  *SimpleButton
 	lastAutoButton  *SimpleButton
-	lastAddButton   *SimpleButton
 }
 
 // GetConfiguredValue Returns the string representation of currently value set
@@ -152,8 +154,14 @@ func (page *DiskConfigPage) SetDone(done bool) bool {
 			break
 		}
 
-		selected.Children = sel.bd.Children
-		page.getModel().AddTargetMedia(selected)
+		installBlockDevice := selected.Clone()
+		page.getModel().TargetMedias = nil
+		page.getModel().AddTargetMedia(installBlockDevice)
+
+		page.getModel().InstallSelected = storage.InstallTarget{
+			Name: installBlockDevice.Name, Friendly: installBlockDevice.Model,
+			WholeDisk: sel.wholeDisk, Removable: installBlockDevice.RemovableDevice,
+			DataLoss: sel.dataLoss, Manual: true, FreeStart: 0, FreeEnd: installBlockDevice.Size}
 	}
 
 	// TODO start using new API page.GotoPage() when finished merging
@@ -230,7 +238,6 @@ func (page *DiskConfigPage) redrawRows() {
 	// Clear last selected row
 	page.lastDiskButton = nil
 	page.lastAutoButton = nil
-	page.lastAddButton = nil
 	page.lastPartButtons = nil
 
 	if len(page.blockDevices) > 0 {
@@ -254,13 +261,9 @@ func (page *DiskConfigPage) redrawRows() {
 // The disk page gives the user the option so select how to set the storage device,
 // if to manually configure it or a guided standard partition schema
 func newDiskConfigPage(tui *Tui) (Page, error) {
-	page := &DiskConfigPage{
-		BasePage: BasePage{
-			// Tag this Page as required to be complete for the Install to proceed
-			required: true,
-		},
-	}
-	page.setupMenu(tui, TuiPageDiskConfig, diskConfigTitle, CancelButton|ConfirmButton, TuiPageMenu)
+	page := &DiskConfigPage{}
+
+	page.setup(tui, TuiPageDiskConfig, CancelButton|ConfirmButton, TuiPageMenu)
 
 	cWidth, cHeight := page.content.Size()
 	// Calculate the Scrollable frame area
@@ -355,7 +358,6 @@ func newDiskConfigPage(tui *Tui) (Page, error) {
 		// Clear last selected row as it might be removed
 		page.lastDiskButton = nil
 		page.lastAutoButton = nil
-		page.lastAddButton = nil
 		page.lastPartButtons = nil
 		page.activeSerial = ""
 		page.data = nil
@@ -376,7 +378,6 @@ func newDiskConfigPage(tui *Tui) (Page, error) {
 		// Clear last selected row as it might be removed
 		page.lastDiskButton = nil
 		page.lastAutoButton = nil
-		page.lastAddButton = nil
 		page.lastPartButtons = nil
 
 		// Check if the active device is still present
@@ -402,6 +403,44 @@ func newDiskConfigPage(tui *Tui) (Page, error) {
 	return page, nil
 }
 
+func (page *DiskConfigPage) findPartitionRow(bd *storage.BlockDevice, partNum uint64) *storage.BlockDevice {
+	// Replace the last set of digits with the current partition number
+	partName := bd.GetNewPartitionName(partNum)
+
+	log.Debug("Looking for partition number %d and name %s", partNum, partName)
+	for _, partition := range bd.Children {
+		if partition.Name == partName {
+			return partition
+		}
+	}
+
+	log.Warning("Did not find partition number %d and name %s", partNum, partName)
+	return nil
+}
+
+func (page *DiskConfigPage) formatPartitionRow(partition *storage.BlockDevice) string {
+	if partition == nil {
+		log.Error("formatPartitionRow: partition was nil")
+		return "ERROR"
+	}
+	pSize, pErr := partition.HumanReadableSize()
+	if pErr != nil {
+		log.Warning("formatPartitionRow: could not read size")
+	}
+
+	label := ""
+	if partition.Label != "" {
+		label = partition.Label
+	}
+	encrypt := ""
+	if partition.Type == storage.BlockDeviceTypeCrypt {
+		encrypt = "*"
+	}
+
+	return fmt.Sprintf(page.columnFormat,
+		label, partition.Name, partition.FsType+encrypt, partition.MountPoint, pSize)
+}
+
 func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 	size, err := bd.HumanReadableSizeWithPrecision(1)
 	if err != nil {
@@ -419,38 +458,65 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 	diskButton.SetAlign(AlignLeft)
 
 	partButtons := []*SimpleButton{}
-	for _, partition := range bd.Children {
-		pSize, pErr := partition.HumanReadableSize()
-		if pErr != nil {
-			return pErr
+	for _, part := range bd.PartTable {
+		if part.Number == 0 || part.FileSystem == "free" {
+			// Skip small free spaces
+			if part.Size < (10 * 1024 * 1024) { // 10MiB
+				continue
+			}
+
+			freeSpaceTxt, err := storage.HumanReadableSize(part.Size)
+			if err != nil {
+				log.Warning("Failed to get free space: %s", err)
+			}
+			partitionTitle := fmt.Sprintf(page.columnFormat, "", "Free Space",
+				"", "", freeSpaceTxt)
+
+			partitionButton := CreateSimpleButton(rowFrame, 1, 1, partitionTitle, Fixed)
+			partitionButton.SetAlign(AlignLeft)
+			partitionButton.SetStyle("Partition")
+			partitionButton.SetTabStop(false)
+			partitionButton.SetEnabled(false)
+
+			newPart := &storage.BlockDevice{
+				FsType:          "",
+				UserDefined:     true,
+				MakePartition:   true,
+				FormatPartition: true,
+				Type:            storage.BlockDeviceTypePart,
+				MountPoint:      "",
+				Size:            part.Size,
+				Parent:          bd,
+			}
+
+			newParted := part.Clone()
+			selected := &SelectedBlockDevice{bd: bd, part: newPart, addMode: true, freePartition: newParted}
+
+			partitionButton.OnClick(func(ev clui.Event) {
+				page.data = selected
+				page.GotoPage(TuiPageDiskPart)
+			})
+
+			partButtons = append(partButtons, partitionButton)
+		} else {
+			partition := page.findPartitionRow(bd, part.Number)
+			partitionTitle := page.formatPartitionRow(partition)
+
+			partitionButton := CreateSimpleButton(rowFrame, 1, 1, partitionTitle, Fixed)
+			partitionButton.SetAlign(AlignLeft)
+			partitionButton.SetStyle("Partition")
+			partitionButton.SetTabStop(false)
+			partitionButton.SetEnabled(false)
+
+			selected := &SelectedBlockDevice{bd: bd, part: partition, addMode: false}
+
+			partitionButton.OnClick(func(ev clui.Event) {
+				page.data = selected
+				page.GotoPage(TuiPageDiskPart)
+			})
+
+			partButtons = append(partButtons, partitionButton)
 		}
-
-		label := ""
-		if partition.Label != "" {
-			label = partition.Label
-		}
-		encrypt := ""
-		if partition.Type == storage.BlockDeviceTypeCrypt {
-			encrypt = "*"
-		}
-
-		partitionTitle := fmt.Sprintf(page.columnFormat,
-			label, partition.Name, partition.FsType+encrypt, partition.MountPoint, pSize)
-
-		partitionButton := CreateSimpleButton(rowFrame, 1, 1, partitionTitle, Fixed)
-		partitionButton.SetAlign(AlignLeft)
-		partitionButton.SetStyle("Partition")
-		partitionButton.SetTabStop(false)
-		partitionButton.SetEnabled(false)
-
-		selected := &SelectedBlockDevice{bd: bd, part: partition, addMode: false}
-
-		partitionButton.OnClick(func(ev clui.Event) {
-			page.data = selected
-			page.GotoPage(TuiPageDiskPart)
-		})
-
-		partButtons = append(partButtons, partitionButton)
 	}
 
 	page.rowFrames = append(page.rowFrames, rowFrame)
@@ -462,47 +528,23 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 	autoButton.SetVisible(false)
 	autoButton.OnClick(func(ev clui.Event) {
 		storage.NewStandardPartitions(bd)
-		selected := &SelectedBlockDevice{bd: bd, part: nil, addMode: false}
+		selected := &SelectedBlockDevice{bd: bd, part: nil, addMode: false, wholeDisk: true, dataLoss: true}
 		page.data = selected
 
-		page.GotoPage(TuiPageDiskConfig)
-		page.confirmBtn.SetEnabled(true)
+		message := "Auto-partitioning results in data loss"
+		if dialog, err := CreateWarningDialogBox(message); err != nil {
+			log.Warning("%s: %s", message, err)
+		} else {
+			dialog.OnClose(func() {
+				page.GotoPage(TuiPageDiskConfig)
+				page.confirmBtn.SetEnabled(true)
 
-		page.activeDisk = diskButton
-		page.activeRow = rowFrame
-		page.activeSerial = bd.Serial
-	})
-
-	addButton := CreateSimpleButton(buttonFrame, AutoSize, 1, "Add Partition", Fixed)
-	addButton.SetVisible(false)
-	freeSpace, err := bd.FreeSpace()
-	if err != nil {
-		return err
-	}
-	if freeSpace <= 0 {
-		addButton.SetEnabled(false)
-	} else {
-		freeSpaceTxt, err := storage.HumanReadableSize(freeSpace)
-		if err != nil {
-			return err
+				page.activeDisk = diskButton
+				page.activeRow = rowFrame
+				page.activeSerial = bd.Serial
+			})
 		}
-		availableTxt := "Available Space: " + freeSpaceTxt
-
-		clui.CreateLabel(buttonFrame, AutoSize, 1, availableTxt, clui.Fixed)
-
-		addButton.OnClick(func(ev clui.Event) {
-			newPart := &storage.BlockDevice{
-				FsType:     "ext4",
-				Type:       storage.BlockDeviceTypePart,
-				MountPoint: "",
-				Size:       freeSpace,
-				Parent:     bd,
-			}
-			bd.AddChild(newPart)
-			page.data = &SelectedBlockDevice{bd: bd, part: newPart, addMode: true}
-			page.GotoPage(TuiPageDiskPart)
-		})
-	}
+	})
 
 	diskButton.OnActive(func(active bool) {
 		if active {
@@ -540,7 +582,6 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 				page.diskOpen = false
 				diskButton.SetStyle("")
 				autoButton.SetVisible(false)
-				addButton.SetVisible(false)
 				for _, pButton := range partButtons {
 					pButton.SetTabStop(false)
 					pButton.SetEnabled(false)
@@ -549,7 +590,6 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 				page.diskOpen = true
 				diskButton.SetStyle("DiskSelected")
 				autoButton.SetVisible(true)
-				addButton.SetVisible(true)
 				for _, pButton := range partButtons {
 					pButton.SetTabStop(true)
 					pButton.SetEnabled(true)
@@ -559,7 +599,6 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 			// Collapse the last row
 			page.lastDiskButton.SetStyle("")
 			page.lastAutoButton.SetVisible(false)
-			page.lastAddButton.SetVisible(false)
 			for _, pButton := range page.lastPartButtons {
 				pButton.SetTabStop(false)
 				pButton.SetEnabled(false)
@@ -569,7 +608,6 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 			page.diskOpen = true
 			diskButton.SetStyle("DiskSelected")
 			autoButton.SetVisible(true)
-			addButton.SetVisible(true)
 			for _, pButton := range partButtons {
 				pButton.SetTabStop(true)
 				pButton.SetEnabled(true)
@@ -578,7 +616,6 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 
 		page.lastDiskButton = diskButton
 		page.lastAutoButton = autoButton
-		page.lastAddButton = addButton
 		page.lastPartButtons = partButtons
 
 		page.activeDisk = diskButton

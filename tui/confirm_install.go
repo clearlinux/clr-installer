@@ -33,6 +33,7 @@ var (
 	safeWholeWarning   = "Selected media will be partitioned."
 	safePartialWarning = "Selected media will have partitions added."
 	descructiveWarning = "WARNING: Selected media will be erased."
+	dataLossWarning    = "WARNING: Selected media will have data loss."
 )
 
 // OnClose sets the callback that is called when the
@@ -107,6 +108,8 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 
 	if dialog.modelSI.InstallSelected.EraseDisk {
 		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, descructiveWarning, 1)
+	} else if dialog.modelSI.InstallSelected.DataLoss {
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, dataLossWarning, 1)
 	} else if dialog.modelSI.InstallSelected.WholeDisk {
 		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, safeWholeWarning, 1)
 	} else {
