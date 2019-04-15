@@ -31,17 +31,24 @@ targetMedia:
 bundles: [
     bootloader,
     clr-installer,
+    c-basic,
     desktop-autostart,
     editors,
+    gimp,
+    libreoffice,
     network-basic,
     openssh-server,
     os-core,
     os-core-update,
+    package-utils,
+    pidgin,
+    Remmina,
   ]
 
 postArchive: false
 postReboot: false
 telemetry: false
+iso: true
 
 keyboard: us
 language: en_US.UTF-8
