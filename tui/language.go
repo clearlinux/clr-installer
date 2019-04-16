@@ -1,13 +1,15 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package tui
 
 import (
-	"github.com/clearlinux/clr-installer/language"
+	"fmt"
 
 	"github.com/VladimirMarkelov/clui"
+
+	"github.com/clearlinux/clr-installer/language"
 )
 
 // LanguagePage is the Page implementation for the language configuration page
@@ -19,7 +21,8 @@ type LanguagePage struct {
 
 // GetConfiguredValue Returns the string representation of currently language set
 func (page *LanguagePage) GetConfiguredValue() string {
-	return page.getModel().Language.String()
+	desc, code := page.getModel().Language.GetConfValues()
+	return fmt.Sprintf("%-14s  %s", "["+code+"]", desc)
 }
 
 // GetConfigDefinition returns if the config was interactively defined by the user,
@@ -92,7 +95,8 @@ func newLanguagePage(tui *Tui) (Page, error) {
 	modelLanguage := page.getModel().Language
 	defLanguage := 0
 	for idx, curr := range page.avLanguages {
-		page.langListBox.AddItem(curr.String())
+		desc, code := curr.GetConfValues()
+		page.langListBox.AddItem(fmt.Sprintf("%-14s  %s", "["+code+"]", desc))
 
 		if curr.Equals(modelLanguage) {
 			defLanguage = idx
