@@ -5,6 +5,8 @@
 package tui
 
 import (
+	"fmt"
+
 	"github.com/VladimirMarkelov/clui"
 	term "github.com/nsf/termbox-go"
 
@@ -20,7 +22,8 @@ type LanguagePage struct {
 
 // GetConfiguredValue Returns the string representation of currently language set
 func (page *LanguagePage) GetConfiguredValue() string {
-	return page.getModel().Language.String()
+	desc, code := page.getModel().Language.GetConfValues()
+	return fmt.Sprintf("%-14s  %s", "["+code+"]", desc)
 }
 
 // GetConfigDefinition returns if the config was interactively defined by the user,
@@ -104,7 +107,8 @@ func newLanguagePage(tui *Tui) (Page, error) {
 	modelLanguage := page.getModel().Language
 	defLanguage := 0
 	for idx, curr := range page.avLanguages {
-		page.langListBox.AddItem(curr.String())
+		desc, code := curr.GetConfValues()
+		page.langListBox.AddItem(fmt.Sprintf("%-14s  %s", "["+code+"]", desc))
 
 		if curr.Equals(modelLanguage) {
 			defLanguage = idx
