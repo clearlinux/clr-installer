@@ -84,7 +84,7 @@ func (l *Language) IsUserDefined() bool {
 	return l.userDefined
 }
 
-// GetConfValue converts a Language to display string which can
+// GetConfValues converts a Language to display string which can
 // be displayed as the configured value
 func (l *Language) GetConfValues() (string, string) {
 	saveDefault := displayLanguage
