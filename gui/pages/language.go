@@ -5,6 +5,7 @@
 package pages
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -74,9 +75,7 @@ func NewLanguagePage(controller Controller, model *model.SystemInstall) (Page, e
 
 	// Create list data
 	for _, v := range page.data {
-		split := strings.Split(v.String(), "  ")
-		desc := strings.Trim(split[0], " ")
-		code := strings.Trim(v.Code, " ")
+		desc, code := v.GetConfValues()
 
 		box, err := setBox(gtk.ORIENTATION_VERTICAL, 0, "box-list-label")
 		if err != nil {
@@ -102,10 +101,15 @@ func NewLanguagePage(controller Controller, model *model.SystemInstall) (Page, e
 }
 
 func (page *LanguagePage) getCode() string {
-	code := page.GetConfiguredValue()
+	code := ""
+	if page.model.Language != nil {
+		code = page.model.Language.Code
+	}
+
 	if code == "" {
 		code = language.DefaultLanguage
 	}
+
 	return code
 }
 
@@ -132,7 +136,9 @@ func (page *LanguagePage) onChange(entry *gtk.SearchEntry) error {
 	var index int
 	code := page.getCode() // Get current language
 	for i, v := range page.data {
-		if search != "" && !strings.Contains(strings.ToLower(v.String()), strings.ToLower(search)) {
+		vDesc, vCode := v.GetConfValues()
+		term := fmt.Sprintf("%s %s", vDesc, vCode)
+		if search != "" && !strings.Contains(strings.ToLower(term), strings.ToLower(search)) {
 			page.list.GetRowAtIndex(i).Hide()
 		} else {
 			page.list.GetRowAtIndex(i).Show()
@@ -197,6 +203,7 @@ func (page *LanguagePage) GetTitle() string {
 func (page *LanguagePage) StoreChanges() {
 	page.controller.SetButtonState(ButtonNext, false) // TODO: Determine why the button is not actually being disabled
 	page.model.Language = page.selected
+	language.SetSelectionLanguage(page.model.Language.Code)
 	utils.SetLocale(page.model.Language.Code)
 }
 
@@ -217,5 +224,6 @@ func (page *LanguagePage) GetConfiguredValue() string {
 	if page.model.Language == nil {
 		return ""
 	}
-	return page.model.Language.Code
+	desc, code := page.model.Language.GetConfValues()
+	return fmt.Sprintf("%s  [%s]", desc, code)
 }
