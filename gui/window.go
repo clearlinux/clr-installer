@@ -119,7 +119,6 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 	if err != nil {
 		return nil, err
 	}
-	//window.mainLayout.PackStart(window.contentLayout, true, true, 0)
 	window.handle.Add(window.mainLayout)
 
 	// Set locale
@@ -357,8 +356,8 @@ func (window *Window) CreateFooter(store *gtk.Box) error {
 	// Set alignment up
 	window.buttons.stack.SetMarginTop(4)
 	window.buttons.stack.SetMarginBottom(6)
-	window.buttons.stack.SetMarginEnd(24)
-	window.buttons.stack.SetHAlign(gtk.ALIGN_END)
+	window.buttons.stack.SetMarginEnd(18)
+	window.buttons.stack.SetHAlign(gtk.ALIGN_FILL)
 	window.buttons.stack.SetTransitionType(gtk.STACK_TRANSITION_TYPE_CROSSFADE)
 	store.PackEnd(window.buttons.stack, false, false, 0)
 
@@ -397,11 +396,6 @@ func (window *Window) CreateFooter(store *gtk.Box) error {
 func (window *Window) UpdateFooter(store *gtk.Box) error {
 	var err error
 
-	// Create box for primary buttons
-	if window.buttons.boxPrimary, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0); err != nil {
-		return err
-	}
-
 	// Install button
 	if window.buttons.install, err = createNavButton(utils.Locale.Get("INSTALL"), "button-confirm"); err != nil {
 		return err
@@ -426,11 +420,6 @@ func (window *Window) UpdateFooter(store *gtk.Box) error {
 		return err
 	}
 
-	// Create box for secondary buttons
-	if window.buttons.boxSecondary, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0); err != nil {
-		return err
-	}
-
 	// Confirm button
 	if window.buttons.confirm, err = createNavButton(utils.Locale.Get("CONFIRM"), "button-confirm"); err != nil {
 		return err
@@ -447,9 +436,19 @@ func (window *Window) UpdateFooter(store *gtk.Box) error {
 		return err
 	}
 
+	// Create box for primary buttons
+	if window.buttons.boxPrimary, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0); err != nil {
+		return err
+	}
 	window.buttons.boxPrimary.PackEnd(window.buttons.install, false, false, 4)
 	window.buttons.boxPrimary.PackEnd(window.buttons.quit, false, false, 4)
 	window.buttons.boxPrimary.PackEnd(window.buttons.back, false, false, 4)
+	window.buttons.back.SetMarginEnd(190) // TODO: MarginStart would be ideal but does not work
+
+	// Create box for secondary buttons
+	if window.buttons.boxSecondary, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0); err != nil {
+		return err
+	}
 	window.buttons.boxSecondary.PackEnd(window.buttons.confirm, false, false, 4)
 	window.buttons.boxSecondary.PackEnd(window.buttons.cancel, false, false, 4)
 
