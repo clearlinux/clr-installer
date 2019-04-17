@@ -17,8 +17,8 @@ type InfoDialog struct {
 	DialogBox *clui.Window
 	onClose   func()
 
-	infoLabel     *clui.Label
-	dismissButton *SimpleButton
+	infoLabel  *clui.Label
+	okayButton *SimpleButton
 }
 
 // OnClose sets the callback that is called when the
@@ -87,9 +87,9 @@ func initInfoDiaglogWindow(dialog *InfoDialog) error {
 	buttonFrame := clui.CreateFrame(borderFrame, AutoSize, 1, clui.BorderNone, clui.Fixed)
 	buttonFrame.SetPack(clui.Horizontal)
 	buttonFrame.SetGaps(1, 0)
-	dialog.dismissButton = CreateSimpleButton(buttonFrame, AutoSize, AutoSize, "Dismiss", Fixed)
-	dialog.dismissButton.SetEnabled(true)
-	dialog.dismissButton.SetActive(true)
+	dialog.okayButton = CreateSimpleButton(buttonFrame, AutoSize, AutoSize, " OK ", Fixed)
+	dialog.okayButton.SetEnabled(true)
+	dialog.okayButton.SetActive(true)
 
 	return nil
 }
@@ -106,12 +106,12 @@ func CreateInfoDialogBox(message string) (*InfoDialog, error) {
 		return nil, fmt.Errorf("Failed to create Info Dialog: %v", err)
 	}
 
-	dialog.dismissButton.OnClick(func(ev clui.Event) {
+	dialog.okayButton.OnClick(func(ev clui.Event) {
 		dialog.Close()
 	})
 
 	dialog.infoLabel.SetTitle(message)
-	clui.ActivateControl(dialog.DialogBox, dialog.dismissButton)
+	clui.ActivateControl(dialog.DialogBox, dialog.okayButton)
 	clui.RefreshScreen()
 
 	return dialog, nil
