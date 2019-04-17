@@ -339,7 +339,6 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) erro
 		newPartitions := bd.getPartitionList()
 		// The current partition is new one added
 		curr.SetPartitionNumber(findNewPartition(currentPartitions, newPartitions).Number)
-		log.Debug("WritePartitionTable: Found partition number %d for %s", curr.partition, curr.Name)
 
 		start = end
 		currentPartitions = newPartitions
@@ -692,17 +691,9 @@ func (bd *BlockDevice) AddFromFreePartition(parted *PartedPartition, child *Bloc
 	}
 
 	bd.PartTable = partitionList
-	for i, p := range bd.PartTable {
-		log.Debug("Dump of PartTable %d: %v", i, p)
-	}
 
 	// Consolidate neighboring free partitions
 	bd.consolidateFree()
-
-	for i, p := range bd.PartTable {
-		log.Debug("Dump of PartTable post consolidate %d: %v", i, p)
-	}
-
 }
 
 func (bd *BlockDevice) consolidateFree() {
@@ -710,13 +701,10 @@ func (bd *BlockDevice) consolidateFree() {
 	var newPartTable []*PartedPartition
 
 	for _, part := range bd.PartTable {
-		log.Debug("consolidateFree() checking part %v", part)
 		// Found a free partition
 		if part.Number == 0 && part.FileSystem == "free" {
-			log.Debug("consolidateFree() part is free %v", part)
 			// And the last partition was also free, then consolidate
 			if last.Number == 0 && last.FileSystem == "free" {
-				log.Debug("consolidateFree() last is also free %v", last)
 				last.End = part.End
 				last.Size = last.Size + part.Size
 				continue
@@ -734,7 +722,6 @@ func (bd *BlockDevice) consolidateFree() {
 // RemovePartition remove a child from the disk and updates
 // frees the space in the partition table
 func (bd *BlockDevice) RemovePartition(child *BlockDevice) *PartedPartition {
-	log.Debug("RemovePartition() called")
 	var removedPartition *PartedPartition
 	devFile := bd.GetDeviceFile()
 

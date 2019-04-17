@@ -407,7 +407,6 @@ func (page *DiskConfigPage) findPartitionRow(bd *storage.BlockDevice, partNum ui
 	// Replace the last set of digits with the current partition number
 	partName := bd.GetNewPartitionName(partNum)
 
-	log.Debug("Looking for partition number %d and name %s", partNum, partName)
 	for _, partition := range bd.Children {
 		if partition.Name == partName {
 			return partition
