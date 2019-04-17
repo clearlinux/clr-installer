@@ -187,7 +187,7 @@ func (bd *BlockDevice) ExpandName(alias map[string]string) {
 // GetNewPartitionName returns the name with the new partition number
 func (bd *BlockDevice) GetNewPartitionName(partition uint64) string {
 	// Replace the last set of digits with the current partition number
-	return devNameSuffixExp.ReplaceAllString(bd.Name, fmt.Sprintf("%d", partition))
+	return devNameSuffixExp.ReplaceAllString(bd.getBasePartitionName(), fmt.Sprintf("%d", partition))
 }
 
 // SetPartitionNumber is set when we add a new partition to a disk
@@ -458,6 +458,18 @@ func (bd *BlockDevice) addRemovePartition(part uint64) {
 	bd.removedParts = append(bd.removedParts, part)
 }
 
+func (bd *BlockDevice) getBasePartitionName() string {
+	partPrefix := ""
+
+	if bd.Type == BlockDeviceTypeLoop ||
+		strings.Contains(bd.Name, "nvme") ||
+		strings.Contains(bd.Name, "mmcblk") {
+		partPrefix = "p"
+	}
+
+	return fmt.Sprintf("%s%s", bd.Name, partPrefix)
+}
+
 // AddChild adds a partition to a disk block device
 func (bd *BlockDevice) AddChild(child *BlockDevice) {
 	if bd.Children == nil {
@@ -467,19 +479,11 @@ func (bd *BlockDevice) AddChild(child *BlockDevice) {
 	child.Parent = bd
 	bd.Children = append(bd.Children, child)
 
-	partPrefix := ""
-
-	if bd.Type == BlockDeviceTypeLoop ||
-		strings.Contains(bd.Name, "nvme") ||
-		strings.Contains(bd.Name, "mmcblk") {
-		partPrefix = "p"
-	}
-
 	if child.Name == "" {
 		if child.partition < 1 {
-			child.Name = fmt.Sprintf("%s%s?", bd.Name, partPrefix)
+			child.Name = fmt.Sprintf("%s?", bd.getBasePartitionName())
 		} else {
-			child.Name = fmt.Sprintf("%s%s%d", bd.Name, partPrefix, child.partition)
+			child.Name = fmt.Sprintf("%s%d", bd.getBasePartitionName(), child.partition)
 		}
 	}
 	log.Debug("AddChild: child.Name is %q", child.Name)
