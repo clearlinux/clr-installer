@@ -877,7 +877,7 @@ func (bd *BlockDevice) IsValidSize(str string, maxPartSize uint64) string {
 		return "Invalid size, may only be suffixed by: B, K, M, G, T or P"
 	}
 
-	size, err := ParseVolumeSize(str)
+	size, err := ParseVolumeHumanSize(str)
 	if err != nil {
 		return "Invalid size"
 	} else if size < MinimumPartitionSize {
