@@ -507,8 +507,15 @@ func (bd *BlockDevice) HumanReadableSize() (string, error) {
 
 func listBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
 	w := bytes.NewBuffer(nil)
+
+	args := []string{"partprobe", "-s"}
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return nil, err
+	}
+
 	// Exclude memory(1), floppy(2), and SCSI CDROM(11) devices
-	err := cmd.Run(w, lsblkBinary, "--exclude", "1,2,11", "-J", "-b", "-O")
+	err = cmd.Run(w, lsblkBinary, "--exclude", "1,2,11", "-J", "-b", "-O")
 	if err != nil {
 		return nil, fmt.Errorf("%s", w.String())
 	}
@@ -516,12 +523,6 @@ func listBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
 	bds, err := parseBlockDevicesDescriptor(w.Bytes())
 	if err != nil {
 		return nil, err
-	}
-
-	for _, bd := range bds {
-		if err = bd.PartProbe(); err != nil {
-			return nil, err
-		}
 	}
 
 	if userDefined == nil || len(userDefined) == 0 {
@@ -647,10 +648,21 @@ func parseBlockDevicesDescriptor(data []byte) ([]*BlockDevice, error) {
 
 		for _, ch := range bd.Children {
 			ch.Parent = bd
+			// We ignore devices with any mount partition
 			if ch.MountPoint != "" {
 				bd.available = false
 				break
 			}
+			// We ignore devices if any partition has a CLR_ISO label
+			if strings.Contains(ch.Label, "CLR_ISO") {
+				bd.available = false
+				break
+			}
+		}
+
+		// We ignore devices if the filesystem is squashfs
+		if strings.Contains(bd.FsType, "squashfs") {
+			bd.available = false
 		}
 	}
 
