@@ -28,11 +28,11 @@ type NetworkTestDialog struct {
 	DialogBox *clui.Window
 	onClose   func()
 
-	modelSI       *model.SystemInstall
-	progressBar   *clui.ProgressBar
-	progressMax   int
-	resultLabel   *clui.Label
-	dismissButton *SimpleButton
+	modelSI     *model.SystemInstall
+	progressBar *clui.ProgressBar
+	progressMax int
+	resultLabel *clui.Label
+	okayButton  *SimpleButton
 }
 
 // Success is part of the progress.Client implementation and represents the
@@ -157,8 +157,8 @@ func initDiaglogWindow(dialog *NetworkTestDialog) error {
 	buttonFrame := clui.CreateFrame(borderFrame, AutoSize, 1, clui.BorderNone, clui.Fixed)
 	buttonFrame.SetPack(clui.Horizontal)
 	buttonFrame.SetGaps(1, 0)
-	dialog.dismissButton = CreateSimpleButton(buttonFrame, AutoSize, AutoSize, "Dismiss", Fixed)
-	dialog.dismissButton.SetEnabled(false)
+	dialog.okayButton = CreateSimpleButton(buttonFrame, AutoSize, AutoSize, " OK ", Fixed)
+	dialog.okayButton.SetEnabled(false)
 
 	return nil
 }
@@ -180,7 +180,7 @@ func CreateNetworkTestDialogBox(modelSI *model.SystemInstall) (*NetworkTestDialo
 	}
 	dialog.modelSI = modelSI
 
-	dialog.dismissButton.OnClick(func(ev clui.Event) {
+	dialog.okayButton.OnClick(func(ev clui.Event) {
 		dialog.Close()
 	})
 
@@ -208,8 +208,8 @@ func (dialog *NetworkTestDialog) RunNetworkTest() bool {
 		status = true
 	}
 
-	dialog.dismissButton.SetEnabled(true)
-	clui.ActivateControl(dialog.DialogBox, dialog.dismissButton)
+	dialog.okayButton.SetEnabled(true)
+	clui.ActivateControl(dialog.DialogBox, dialog.okayButton)
 
 	return status
 }
