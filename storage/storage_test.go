@@ -90,7 +90,7 @@ func TestGetConfiguredStatus(t *testing.T) {
 	children = append(children, part3)
 	bd = nil
 	bd = &BlockDevice{Name: "sda", Children: children}
-	expected = ConfiguredFull
+	expected = ConfiguredEntire
 
 	df = bd.GetConfiguredStatus()
 	if df != expected {

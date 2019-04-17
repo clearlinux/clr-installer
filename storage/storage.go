@@ -344,12 +344,12 @@ const (
 	ConfiguredNone ConfigStatus = iota
 	// ConfiguredPartial indicates only some of the required partition are configured
 	ConfiguredPartial
-	// ConfiguredFull indicates ALL of the required partition are configured
-	ConfiguredFull
+	// ConfiguredEntire indicates ALL of the required partition are configured
+	ConfiguredEntire
 )
 
 // GetConfiguredStatus check a block device for the required partitions
-// Returns either ConfiguredNone,ConfiguredPartial, or ConfiguredFull
+// Returns either ConfiguredNone,ConfiguredPartial, or ConfiguredEntire
 func (bd *BlockDevice) GetConfiguredStatus() ConfigStatus {
 	status := ConfiguredNone
 
@@ -370,7 +370,7 @@ func (bd *BlockDevice) GetConfiguredStatus() ConfigStatus {
 		status = ConfiguredPartial
 	}
 	if boot && root && swap {
-		status = ConfiguredFull
+		status = ConfiguredEntire
 	}
 
 	return status
@@ -1406,7 +1406,7 @@ func (bd *BlockDevice) DiskSize() (uint64, error) {
 			bd.Name, childSize, diskSize)
 	}
 
-	// Return the full disk size if present
+	// Return the Entire disk size if present
 	if diskSize > 0 {
 		return diskSize, nil
 	}

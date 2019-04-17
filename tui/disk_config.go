@@ -192,7 +192,7 @@ func (page *DiskConfigPage) Activate() {
 					page.lastAutoButton.SetEnabled(false)
 				}
 
-				if status == storage.ConfiguredFull {
+				if status == storage.ConfiguredEntire {
 					page.confirmBtn.SetEnabled(true)
 					page.activated = page.confirmBtn
 					break
@@ -306,7 +306,7 @@ func newDiskConfigPage(tui *Tui) (Page, error) {
 		_, diskColumns[allFree].format = getColumnFormat(diskColumns[allFree])
 	}
 
-	// Build the Header Title and full row format string
+	// Build the Header Title and Entire row format string
 	titles := []interface{}{""} // need to use an interface for Sprintf
 	formats := []string{}
 	dividers := []interface{}{""} // need to use an interface for Sprintf

@@ -432,7 +432,7 @@ func (page *MediaConfigPage) buildMediaLists() error {
 func fmtInstallPortion(target storage.InstallTarget) string {
 	portion := "[Partial]"
 	if target.WholeDisk {
-		portion = "[Full Disk]"
+		portion = "[Entire Disk]"
 	}
 	if target.EraseDisk {
 		portion = "[Erase Disk]"
@@ -450,5 +450,5 @@ func fmtInstallTarget(target storage.InstallTarget) string {
 	// Size string
 	size, _ := storage.HumanReadableSizeWithPrecision(target.FreeEnd-target.FreeStart, 1)
 
-	return fmt.Sprintf("%-34s  %10s  %-12s  %8s", target.Friendly, target.Name, portion, size)
+	return fmt.Sprintf("%-32s  %10s  %-14s  %8s", target.Friendly, target.Name, portion, size)
 }
