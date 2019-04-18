@@ -234,6 +234,7 @@ func (window *Window) createMenuPages() (*Window, error) {
 
 		// advanced
 		pages.NewBundlePage,
+		pages.NewUserAddPage,
 		pages.NewHostnamePage,
 
 		// always last

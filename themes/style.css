@@ -126,5 +126,17 @@ window {
 }
 
 .label-warning {
+    font-size: 95%;
+    font-style: italic;
     color: red;
+}
+
+.label-entry {
+    font-size: 110%;
+    font-weight: bold;
+}
+
+.label-rules {
+    font-size: 95%;
+    font-style: italic;
 }
