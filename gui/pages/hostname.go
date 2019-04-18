@@ -5,8 +5,6 @@
 package pages
 
 import (
-	"log"
-
 	"github.com/gotk3/gotk3/gtk"
 
 	"github.com/clearlinux/clr-installer/hostname"
@@ -68,11 +66,8 @@ func NewHostnamePage(controller Controller, model *model.SystemInstall) (Page, e
 	return page, nil
 }
 
-func (page *HostnamePage) onChange(entry *gtk.Entry) error {
-	host, err := getTextFromEntry(entry)
-	if err != nil {
-		return err
-	}
+func (page *HostnamePage) onChange(entry *gtk.Entry) {
+	host := getTextFromEntry(entry)
 	warning := ""
 	warning = hostname.IsValidHostname(host)
 	if host != "" && warning != "" {
@@ -83,7 +78,6 @@ func (page *HostnamePage) onChange(entry *gtk.Entry) error {
 		page.warning.SetLabel("")
 		page.controller.SetButtonState(ButtonConfirm, true)
 	}
-	return nil
 }
 
 // IsRequired will return false as we have default values
@@ -123,20 +117,14 @@ func (page *HostnamePage) GetTitle() string {
 
 // StoreChanges will store this pages changes into the model
 func (page *HostnamePage) StoreChanges() {
-	host, err := getTextFromEntry(page.entry) // TODO: Handle error
-	if err != nil {
-		log.Fatal(err)
-	}
+	host := getTextFromEntry(page.entry)
 	page.model.Hostname = host
 }
 
 // ResetChanges will reset this page to match the model
 func (page *HostnamePage) ResetChanges() {
 	host := page.model.Hostname
-	err := setTextInEntry(page.entry, host) // TODO: Handle error
-	if err != nil {
-		log.Fatal(err)
-	}
+	setTextInEntry(page.entry, host)
 	page.warning.SetLabel("")
 }
 

@@ -126,11 +126,8 @@ func (page *LanguagePage) activateRow(index int) {
 	scrollToView(page.scroll, page.list, &row.Widget)
 }
 
-func (page *LanguagePage) onChange(entry *gtk.SearchEntry) error {
-	search, err := getTextFromSearchEntry(entry)
-	if err != nil {
-		return err
-	}
+func (page *LanguagePage) onChange(entry *gtk.SearchEntry) {
+	search := getTextFromSearchEntry(entry)
 
 	var setIndex bool
 	var index int
@@ -161,7 +158,6 @@ func (page *LanguagePage) onChange(entry *gtk.SearchEntry) error {
 		page.selected = nil
 		page.controller.SetButtonState(ButtonNext, false)
 	}
-	return nil
 }
 
 // IsRequired will return true as we always need a LanguagePage

@@ -112,14 +112,10 @@ func (page *KeyboardPage) activateRow(index int) {
 	scrollToView(page.scroll, page.list, &row.Widget)
 }
 
-func (page *KeyboardPage) onChange(entry *gtk.SearchEntry) error {
-	search, err := getTextFromSearchEntry(entry)
-	if err != nil {
-		return err
-	}
-
+func (page *KeyboardPage) onChange(entry *gtk.SearchEntry) {
 	var setIndex bool
 	var index int
+	search := getTextFromSearchEntry(entry)
 	code := page.getCode() // Get current keyboard
 	for i, v := range page.data {
 		if search != "" && !strings.Contains(strings.ToLower(v.Code), strings.ToLower(search)) {
@@ -145,7 +141,6 @@ func (page *KeyboardPage) onChange(entry *gtk.SearchEntry) error {
 		page.selected = nil
 		page.controller.SetButtonState(ButtonConfirm, false)
 	}
-	return nil
 }
 
 // IsRequired will return true as we always need a KeyboardPage
