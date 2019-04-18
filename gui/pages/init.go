@@ -82,6 +82,9 @@ const (
 	// PageIDDiskConfig is the disk configuration page key
 	PageIDDiskConfig = iota
 
+	// PageIDUserAdd is the user add page key
+	PageIDUserAdd = iota
+
 	// PageIDHostname is the hostname page key
 	PageIDHostname = iota
 
