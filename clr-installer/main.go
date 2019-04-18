@@ -248,6 +248,9 @@ func main() {
 		fatal(fmt.Errorf("Invalid Language '%s'", md.Language.Code))
 	}
 
+	// Set locale
+	utils.SetLocale(md.Language.Code)
+
 	installReboot := false
 
 	go func() {
