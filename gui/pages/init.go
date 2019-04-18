@@ -5,13 +5,13 @@
 package pages
 
 import (
-	"log"
 	"math"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 
 	"github.com/clearlinux/clr-installer/args"
+	"github.com/clearlinux/clr-installer/log"
 )
 
 // Button allows us to flag up different buttons
@@ -107,7 +107,7 @@ func scrollToView(scroll *gtk.ScrolledWindow, container gtk.IWidget, widget *gtk
 		return false
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Warning("Error adjusting scroll: ", err) // Just log trivial error
 	}
 }
 
@@ -121,26 +121,28 @@ func getBufferFromEntry(entry *gtk.Entry) (*gtk.EntryBuffer, error) {
 }
 
 // getTextFromEntry reads the text from an Entry buffer
-func getTextFromEntry(entry *gtk.Entry) (string, error) {
+func getTextFromEntry(entry *gtk.Entry) string {
+	text := ""
 	buffer, err := getBufferFromEntry(entry)
 	if err != nil {
-		return "", err
+		log.Warning("Error getting buffer: ", err) // Just log trivial error
+	} else {
+		text, err = buffer.GetText()
+		if err != nil {
+			log.Warning("Error reading buffer: ", err) // Just log trivial error
+		}
 	}
-	text, err := buffer.GetText()
-	if err != nil {
-		return "", err
-	}
-	return text, nil
+	return text
 }
 
 // setTextInEntry writes the text to an Entry buffer
-func setTextInEntry(entry *gtk.Entry, text string) error {
+func setTextInEntry(entry *gtk.Entry, text string) {
 	buffer, err := getBufferFromEntry(entry)
 	if err != nil {
-		return err
+		log.Warning("Error getting buffer: ", err) // Just log trivial error
+	} else {
+		buffer.SetText(text)
 	}
-	buffer.SetText(text)
-	return nil
 }
 
 // getBufferFromSearchEntry gets the buffer from a gtk Entry
@@ -153,16 +155,17 @@ func getBufferFromSearchEntry(entry *gtk.SearchEntry) (*gtk.EntryBuffer, error) 
 }
 
 // getTextFromSearchEntry reads the text from an SearchEntry buffer
-func getTextFromSearchEntry(entry *gtk.SearchEntry) (string, error) {
+func getTextFromSearchEntry(entry *gtk.SearchEntry) string {
+	text := ""
 	buffer, err := getBufferFromSearchEntry(entry)
 	if err != nil {
-		return "", err
+		log.Warning("Error getting buffer: ", err) // Just log trivial error
+		text, err = buffer.GetText()
+		if err != nil {
+			log.Warning("Error reading buffer: ", err) // Just log trivial error
+		}
 	}
-	text, err := buffer.GetText()
-	if err != nil {
-		return "", err
-	}
-	return text, nil
+	return text
 }
 
 // setBox creates and styles a new gtk Box
@@ -171,11 +174,14 @@ func setBox(orient gtk.Orientation, spacing int, style string) (*gtk.Box, error)
 	if err != nil {
 		return nil, err
 	}
+
 	sc, err := widget.GetStyleContext()
 	if err != nil {
-		return nil, err
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass(style)
 	}
-	sc.AddClass(style)
+
 	return widget, nil
 }
 
@@ -185,11 +191,14 @@ func setSearchEntry(style string) (*gtk.SearchEntry, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	sc, err := widget.GetStyleContext()
 	if err != nil {
-		return nil, err
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass(style)
 	}
-	sc.AddClass(style)
+
 	return widget, nil
 }
 
@@ -199,11 +208,14 @@ func setEntry(style string) (*gtk.Entry, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	sc, err := widget.GetStyleContext()
 	if err != nil {
-		return nil, err
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass(style)
 	}
-	sc.AddClass(style)
+
 	return widget, nil
 }
 
@@ -215,11 +227,14 @@ func setListBox(mode gtk.SelectionMode, single bool, style string) (*gtk.ListBox
 	}
 	widget.SetSelectionMode(mode)
 	widget.SetActivateOnSingleClick(true)
+
 	sc, err := widget.GetStyleContext()
 	if err != nil {
-		return nil, err
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass(style)
 	}
-	sc.AddClass(style)
+
 	return widget, nil
 }
 
@@ -230,11 +245,14 @@ func setScrolledWindow(never, auto gtk.PolicyType, style string) (*gtk.ScrolledW
 		return nil, err
 	}
 	widget.SetPolicy(never, auto)
+
 	sc, err := widget.GetStyleContext()
 	if err != nil {
-		return nil, err
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass(style)
 	}
-	sc.AddClass(style)
+
 	return widget, nil
 }
 
@@ -244,11 +262,14 @@ func setLabel(text, style string, x float64) (*gtk.Label, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	sc, err := widget.GetStyleContext()
 	if err != nil {
-		return nil, err
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass(style)
 	}
-	sc.AddClass(style)
+
 	widget.SetHAlign(gtk.ALIGN_START)
 	widget.SetXAlign(x)
 	widget.ShowAll()
