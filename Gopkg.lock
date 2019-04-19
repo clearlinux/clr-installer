@@ -18,12 +18,28 @@
   version = "v0.1.1"
 
 [[projects]]
+  digest = "1:5e9a94190e20a9ff23267adcc08727fca2d3a0d7bf849120fa79fcd2353db721"
+  name = "github.com/coreos/go-systemd"
+  packages = ["dbus"]
+  pruneopts = "UT"
+  revision = "95778dfbb74eb7e4dbaf43bf7d71809650ef8076"
+  version = "v19"
+
+[[projects]]
   branch = "master"
   digest = "1:e289d5e7048337880ec469bf6e419b16852db7c214e810d6d3840e42d3adfa5b"
   name = "github.com/digitalocean/go-smbios"
   packages = ["smbios"]
   pruneopts = "UT"
   revision = "390a4f403a8e94ca0acdcf609eb18eeae9d6d1ac"
+
+[[projects]]
+  digest = "1:b3d20bcdedab2050e6bc58e52f4fdc46f710b4c74e1a1ecee262ebec1aee7b6e"
+  name = "github.com/godbus/dbus"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2ff6f7ffd60f0f2410b3105864bdd12c7894f844"
+  version = "v5.0.1"
 
 [[projects]]
   digest = "1:f9a5e090336881be43cfc1cf468330c1bdd60abdc9dd194e0b1ab69f4b94dd7c"
@@ -104,6 +120,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/VladimirMarkelov/clui",
+    "github.com/coreos/go-systemd/dbus",
     "github.com/digitalocean/go-smbios/smbios",
     "github.com/huandu/xstrings",
     "github.com/nsf/termbox-go",

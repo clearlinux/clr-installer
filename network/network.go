@@ -17,6 +17,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/coreos/go-systemd/dbus"
 	"gopkg.in/yaml.v2"
 
 	"github.com/clearlinux/clr-installer/cmd"
@@ -68,13 +69,17 @@ type Messenger struct {
 }
 
 const (
+	// RequiredBundle the bundle needed to use NetworkManager
+	RequiredBundle = "NetworkManager-basic"
+
 	// IPv4 identifies the addr version as ipv4
 	IPv4 = iota
 
 	// IPv6 identifies the addr version as ipv6
 	IPv6
 
-	configDir = "/etc/systemd/network/"
+	systemdNetworkdDir = "/etc/systemd/network"
+	networkManagerDir  = "/etc/NetworkManager/system-connections"
 
 	versionURLPath = "/usr/share/defaults/swupd/contenturl"
 
@@ -399,7 +404,65 @@ func netMaskToCIDR(mask string) (num int, err error) {
 	return bits, nil
 }
 
-func (i *Interface) applyStatic(root string, file *os.File) error {
+// IsNetworkManagerActive is used to
+// check if we are using systemd.networkd or NetworkManager to
+// manage the wired connections.
+// Clear Linux OS change from system.networkd to NetworkManager
+// in April 2019 build ?????
+func IsNetworkManagerActive() bool {
+	const (
+		sysNetStr = "systemd-networkd.service"
+		netMgrStr = "NetworkManager.service"
+	)
+	// Assume we are new school
+	networkManager := true
+	nm := false
+	systemd := false
+
+	// Make the new dbus connection
+	conn, err := dbus.New()
+	defer conn.Close()
+	if err != nil {
+		log.Warning("Failed to connect to dbus")
+		return networkManager
+	}
+
+	// Get the list of Units
+	units, err := conn.ListUnits()
+	if err != nil {
+		log.Warning("Failed to get to dbus units")
+		return networkManager
+	}
+
+	// Look for Network Manager and systemd.networkd
+	for _, unit := range units {
+		if strings.Contains(unit.Name, sysNetStr) {
+			log.Debug("%s service is %s", unit.Name, unit.ActiveState)
+			if unit.ActiveState == "active" {
+				systemd = true
+			}
+		}
+		if strings.Contains(unit.Name, netMgrStr) {
+			log.Debug("%s service is %s", unit.Name, unit.ActiveState)
+			if unit.ActiveState == "active" {
+				nm = true
+			}
+		}
+	}
+
+	// If systemd.networkd is active, we use it for wired connections
+	if systemd {
+		networkManager = false
+		log.Info("Wired networking managed by " + sysNetStr)
+	} else if nm {
+		networkManager = true
+		log.Info("Wired networking managed by " + netMgrStr)
+	}
+
+	return networkManager
+}
+
+func (i *Interface) applyNetworkDStatic(root string, file *os.File) error {
 	needPacDiscover = true
 
 	config := `[Match]
@@ -449,10 +512,11 @@ Domains={{.DNSDomain}}
 	return nil
 }
 
-// Apply does apply the interface configuration to the running system
-func (i *Interface) Apply(root string) error {
+// ApplyNetworkD does apply the interface configuration to the running system
+// using systemd.networkd
+func (i *Interface) ApplyNetworkD(root string) error {
 	fileName := fmt.Sprintf("10-%s.network", i.Name)
-	filePath := filepath.Join(root, configDir, fileName)
+	filePath := filepath.Join(root, systemdNetworkdDir, fileName)
 
 	if i.DHCP {
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -471,18 +535,103 @@ func (i *Interface) Apply(root string) error {
 		return errors.Wrap(err)
 	}
 
-	return i.applyStatic(root, f)
+	return i.applyNetworkDStatic(root, f)
 }
 
-// Apply does apply the configurations of a set of interfaces to the running system
+func (i *Interface) applyNetworkManagerStatic(root string, file *os.File) error {
+	needPacDiscover = true
+
+	var address string
+
+	for _, curr := range i.Addrs {
+		if curr.Version != IPv4 {
+			continue
+		}
+
+		cidrd, err := netMaskToCIDR(curr.NetMask)
+		if err != nil {
+			return err
+		}
+
+		address = fmt.Sprintf("%s/%d", curr.IP, cidrd)
+	}
+
+	args := []string{
+		"nmcli",
+		"connection",
+		"add",
+		"type",
+		"ethernet",
+		"ifname",
+		i.Name,
+		"con-name",
+		fmt.Sprintf("Wired-%s", i.Name),
+		"ip4",
+		address,
+		"gw4",
+		i.Gateway,
+		"ipv4.method",
+		"manual",
+		"ipv4.dns",
+		i.DNSServer,
+		"ipv4.dns-search",
+		i.DNSDomain,
+	}
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
+}
+
+// ApplyNetworkManager does apply the interface configuration to the running system
+// using Network Manager
+func (i *Interface) ApplyNetworkManager(root string) error {
+	fileName := fmt.Sprintf("Wired-%s.nmconnection", i.Name)
+	filePath := filepath.Join(root, networkManagerDir, fileName)
+
+	if i.DHCP {
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			return nil
+		}
+
+		if err := os.Remove(filePath); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return i.applyNetworkManagerStatic(root, f)
+}
+
+// Apply apply the configurations of a set of interfaces to the running system
+// Determines the network manage type to generate the correct files
 func Apply(root string, ifaces []*Interface) error {
 	if root == "" {
 		return errors.Errorf("Could not apply network settings, Invalid root directory: %s", root)
 	}
 
-	if _, err := os.Stat(configDir); os.IsNotExist(err) {
-		if err = os.MkdirAll(configDir, 0755); err != nil {
-			return errors.Wrap(err)
+	netMgr := IsNetworkManagerActive()
+
+	if netMgr {
+		if _, err := os.Stat(networkManagerDir); os.IsNotExist(err) {
+			if err = os.MkdirAll(networkManagerDir, 0755); err != nil {
+				return errors.Wrap(err)
+			}
+		}
+	} else {
+		if _, err := os.Stat(systemdNetworkdDir); os.IsNotExist(err) {
+			if err = os.MkdirAll(systemdNetworkdDir, 0755); err != nil {
+				return errors.Wrap(err)
+			}
 		}
 	}
 
@@ -492,9 +641,16 @@ func Apply(root string, ifaces []*Interface) error {
 			continue
 		}
 
-		err := curr.Apply(root)
-		if err != nil {
-			return err
+		if netMgr {
+			err := curr.ApplyNetworkManager(root)
+			if err != nil {
+				return err
+			}
+		} else {
+			err := curr.ApplyNetworkD(root)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -510,10 +666,20 @@ func Apply(root string, ifaces []*Interface) error {
 
 // Restart restarts the network services
 func Restart() error {
-	err := cmd.RunAndLog("systemctl", "restart", "systemd-networkd",
-		"systemd-resolved", "pacdiscovery")
-	if err != nil {
-		return errors.Wrap(err)
+	netMgr := IsNetworkManagerActive()
+
+	if netMgr {
+		err := cmd.RunAndLog("systemctl", "restart", "NetworkManager",
+			"systemd-resolved", "pacdiscovery")
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	} else {
+		err := cmd.RunAndLog("systemctl", "restart", "systemd-networkd",
+			"systemd-resolved", "pacdiscovery")
+		if err != nil {
+			return errors.Wrap(err)
+		}
 	}
 
 	return nil
@@ -678,40 +844,25 @@ func EnablePacDiscovery(rootDir string) error {
 // CopyNetworkInterfaces transfer the user defined network interface files
 // to the target installation media
 func CopyNetworkInterfaces(rootDir string) error {
-	const (
-		systemNetworkPath = "/etc/systemd/network"
-	)
+	systemNetworkPaths := []string{systemdNetworkdDir, networkManagerDir}
 
-	if _, err := os.Stat(systemNetworkPath); err != nil {
-		if os.IsNotExist(err) {
-			log.Info("No updated network interfaces to install to target")
-			return nil
+	for _, systemNetworkPath := range systemNetworkPaths {
+		if _, err := os.Stat(systemNetworkPath); err != nil {
+			if os.IsNotExist(err) {
+				log.Info("No updated network interfaces in %q to install to target",
+					systemNetworkPath)
+				return nil
+			}
+			return errors.Wrap(err)
 		}
-		return errors.Wrap(err)
-	}
 
-	fileInfos, err := ioutil.ReadDir(systemNetworkPath)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	if err = utils.MkdirAll(filepath.Join(rootDir, systemNetworkPath), 0755); err != nil {
-		return errors.Wrap(err)
-	}
-
-	for _, fileInfo := range fileInfos {
-		src := filepath.Join(systemNetworkPath, fileInfo.Name())
-		dest := filepath.Join(rootDir, src)
-		log.Debug("Copying network interface file '%s' to '%s'", src, dest)
-		copyErr := utils.CopyFile(src, dest)
-		if copyErr != nil {
-			// Only log an error, do not stop
-			log.Error("Copy error: %s", copyErr)
+		if err := utils.CopyAllFiles(systemNetworkPath, rootDir); err != nil {
+			log.Warning("Failed to copy image Network configuration data")
 		}
 	}
 
 	// We likely copied a static IP, so enable PacDiscovery
-	err = EnablePacDiscovery(rootDir)
+	err := EnablePacDiscovery(rootDir)
 	if err != nil {
 		return err
 	}
