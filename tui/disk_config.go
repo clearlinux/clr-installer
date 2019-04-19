@@ -27,7 +27,7 @@ type SelectedBlockDevice struct {
 }
 
 const (
-	diskConfigTitle = `Manual Partitioning`
+	diskConfigTitle = `Advanced Configuration`
 )
 const (
 	diskColumnDisk = iota
@@ -161,7 +161,7 @@ func (page *DiskConfigPage) SetDone(done bool) bool {
 		page.getModel().InstallSelected = storage.InstallTarget{
 			Name: installBlockDevice.Name, Friendly: installBlockDevice.Model,
 			WholeDisk: sel.wholeDisk, Removable: installBlockDevice.RemovableDevice,
-			DataLoss: sel.dataLoss, Manual: true, FreeStart: 0, FreeEnd: installBlockDevice.Size}
+			DataLoss: sel.dataLoss, Advanced: true, FreeStart: 0, FreeEnd: installBlockDevice.Size}
 	}
 
 	// TODO start using new API page.GotoPage() when finished merging
