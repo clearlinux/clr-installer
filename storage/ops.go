@@ -1182,7 +1182,7 @@ type InstallTarget struct {
 	Removable bool   // Is this removable/hotswap media?
 	EraseDisk bool   // Are we wiping the disk? New partition table
 	DataLoss  bool   // Are we making changes which will lose data
-	Manual    bool   // Was this disk manually configured?
+	Advanced  bool   // Was this disk configured via advanced mode?
 	FreeStart uint64 // Starting position of free space
 	FreeEnd   uint64 // Ending position of free space
 }

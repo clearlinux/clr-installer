@@ -354,9 +354,9 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 		page.GotoPage(TuiPageMediaConfig)
 	})
 
-	// Add a Manual Partition button
-	manualPartBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Manual Partition", Fixed)
-	manualPartBtn.OnClick(func(ev clui.Event) {
+	// Add an Advanced Configuration  button
+	advancedCfgBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Advanced Configuration", Fixed)
+	advancedCfgBtn.OnClick(func(ev clui.Event) {
 		page.GotoPage(TuiPageDiskConfig)
 	})
 
@@ -437,8 +437,8 @@ func fmtInstallPortion(target storage.InstallTarget) string {
 	if target.EraseDisk {
 		portion = "[Erase Disk]"
 	}
-	if target.Manual {
-		portion = "[Manual]"
+	if target.Advanced {
+		portion = "[Advanced]"
 	}
 
 	return portion
