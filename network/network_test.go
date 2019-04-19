@@ -186,7 +186,7 @@ func TestApply(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	etcDir := filepath.Join(dir, configDir)
+	etcDir := filepath.Join(dir, systemdNetworkdDir)
 	if err = utils.MkdirAll(etcDir, 0755); err != nil {
 		t.Fatal(err)
 	}

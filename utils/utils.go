@@ -63,6 +63,48 @@ func MkdirAll(path string, perm os.FileMode) error {
 	return nil
 }
 
+// CopyAllFiles copy all of the files in a directory recursively
+func CopyAllFiles(srcDir string, destDir string) error {
+	err := filepath.Walk(srcDir,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return errors.Errorf("Failure accessing a path %q: %v\n", path, err)
+			}
+			target := filepath.Join(destDir, path)
+			if info.IsDir() {
+				// Create the matching target directory
+				if err := MkdirAll(target, info.Mode()); err != nil {
+					return errors.Errorf("Failed to mkdir %q", target)
+				}
+
+				return nil
+			}
+			if err := CopyFile(path, target); err != nil {
+				return errors.Errorf("Failed to copy file %q", target)
+			}
+
+			// Ensure all contents is owned correctly
+			sys := info.Sys()
+			stat, ok := sys.(*syscall.Stat_t)
+			if ok {
+				if err := os.Chown(target, int(stat.Uid), int(stat.Gid)); err != nil {
+					return errors.Errorf("Failed to change ownership of %q to UID:%d, GID:%d",
+						target, stat.Uid, stat.Gid)
+				}
+			} else {
+				return errors.Errorf("Could not stat file %q", path)
+			}
+
+			return nil
+		})
+
+	if err != nil {
+		return fmt.Errorf("Failed to copy files")
+	}
+
+	return nil
+}
+
 // CopyFile copies src file to dest
 func CopyFile(src string, dest string) error {
 	destDir := filepath.Dir(dest)

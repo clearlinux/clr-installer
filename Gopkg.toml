@@ -60,3 +60,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/digitalocean/go-smbios"
+
+[[constraint]]
+  name = "github.com/coreos/go-systemd"
+  version = "19.0.0"

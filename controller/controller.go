@@ -271,6 +271,11 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		return err
 	}
 
+	// If we are using NetworkManager add the basic bundle
+	if network.IsNetworkManagerActive() {
+		model.AddBundle(network.RequiredBundle)
+	}
+
 	// Add in the User Defined bundles
 	for _, curr := range model.UserBundles {
 		model.AddBundle(curr)
