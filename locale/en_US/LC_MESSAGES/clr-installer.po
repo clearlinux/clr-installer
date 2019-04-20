@@ -225,3 +225,47 @@ msgstr "No media found for modification"
 
 msgid "Modify Disk"
 msgstr "Modify Disk"
+
+msgid "Manage User"
+msgstr "Manage User"
+
+msgid "Add User"
+msgstr "Add User"
+
+#, c-format
+msgid "Must start with letter. Can use numbers, hyphens and underscores. Max %d characters."
+msgstr "Must start with letter. Can use numbers, hyphens and underscores. Max %d characters."
+
+#, c-format
+msgid "Min %d and Max %d characters."
+msgstr "Min %d and Max %d characters."
+
+msgid "Administrative"
+msgstr "Administrative"
+
+msgid "DELETE USER"
+msgstr "DELETE USER"
+
+msgid "Specified login is a system default user"
+msgstr "Specified login is a system default user"
+
+msgid "User must be unique"
+msgstr "User must be unique"
+
+msgid "Passwords do not match"
+msgstr "Passwords do not match"
+
+msgid "No users added"
+msgstr "No users added"
+
+msgid "User Name"
+msgstr "User Name"
+
+msgid "Login"
+msgstr "Login"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Retype"
+msgstr "Retype"

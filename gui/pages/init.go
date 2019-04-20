@@ -272,9 +272,24 @@ func setLabel(text, style string, x float64) (*gtk.Label, error) {
 	} else {
 		sc.AddClass(style)
 	}
-
-	widget.SetHAlign(gtk.ALIGN_START)
 	widget.SetXAlign(x)
-	widget.ShowAll()
+
+	return widget, nil
+}
+
+// setButton creates and styles a new gtk Button
+func setButton(text, style string) (*gtk.Button, error) {
+	widget, err := gtk.ButtonNewWithLabel(text)
+	if err != nil {
+		return nil, err
+	}
+
+	sc, err := widget.GetStyleContext()
+	if err != nil {
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass(style)
+	}
+
 	return widget, nil
 }
