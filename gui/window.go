@@ -100,6 +100,9 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 		options: options,
 	}
 
+	// Default Icon the application
+	gtk.WindowSetDefaultIconName("system-software-install")
+
 	// Construct main window
 	window.handle, err = gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
 	if err != nil {
