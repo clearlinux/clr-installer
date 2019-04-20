@@ -225,3 +225,47 @@ msgstr "CN: No media found for modification"
 
 msgid "Modify Disk"
 msgstr "CN: Modify Disk"
+
+msgid "Manage User"
+msgstr "CN: Manage User"
+
+msgid "Add User"
+msgstr "CN: Add User"
+
+#, c-format
+msgid "Must start with letter. Can use numbers, hyphens and underscores. Max %d characters."
+msgstr "CN: Must start with letter. Can use numbers, hyphens and underscores. Max %d characters."
+
+#, c-format
+msgid "Min %d and Max %d characters."
+msgstr "CN: Min %d and Max %d characters."
+
+msgid "Administrative"
+msgstr "CN: Administrative"
+
+msgid "DELETE USER"
+msgstr "CN: DELETE USER"
+
+msgid "Specified login is a system default user"
+msgstr "CN: Specified login is a system default user"
+
+msgid "User must be unique"
+msgstr "CN: User must be unique"
+
+msgid "Passwords do not match"
+msgstr "CN: Passwords do not match"
+
+msgid "No users added"
+msgstr "CN: No users added"
+
+msgid "User Name"
+msgstr "CN: User Name"
+
+msgid "Login"
+msgstr "CN: Login"
+
+msgid "Password"
+msgstr "CN: Password"
+
+msgid "Retype"
+msgstr "CN: Retype"

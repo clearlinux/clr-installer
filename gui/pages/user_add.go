@@ -15,33 +15,43 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
-// CommonMargin is the margin reference used by widgets
-const CommonMargin int = 150
+const (
+	// CommonSetting is a common setting used by widgets
+	CommonSetting int = 120
+
+	// StartEndMargin is the start and end margin
+	StartEndMargin int = 18
+)
 
 // UserAddPage is a simple page to add/modify/delete the user
 type UserAddPage struct {
 	controller   Controller
 	model        *model.SystemInstall
 	box          *gtk.Box
+	boxButtons   *gtk.Box
 	user         *user.User
 	definedUsers []string
 
 	name        *gtk.Entry
 	nameWarning *gtk.Label
+	nameChanged bool
 
 	login        *gtk.Entry
 	loginWarning *gtk.Label
+	loginChanged bool
 
 	password        *gtk.Entry
 	passwordConfirm *gtk.Entry
 	passwordWarning *gtk.Label
+	passwordChanged bool
 
 	adminCheck   *gtk.CheckButton
-	deleteButton *gtk.Button
+	adminChanged bool
 
-	changedPassword bool
-	changedLogin    bool
-	addMode         bool
+	deleteButton  *gtk.Button
+	deleteClicked bool
+
+	justLoaded bool
 }
 
 // NewUserAddPage returns a new User Add page
@@ -59,13 +69,13 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 	}
 
 	// Page Box
-	page.box, err = setBox(gtk.ORIENTATION_VERTICAL, 0, "box-page")
+	page.box, err = setBox(gtk.ORIENTATION_VERTICAL, 0, "box-page-new")
 	if err != nil {
 		return nil, err
 	}
 
 	// Name
-	page.name, page.nameWarning, err = page.setSimilarWidgets(utils.Locale.Get("User Name: "),
+	page.name, page.nameWarning, err = page.setSimilarWidgets(utils.Locale.Get("User Name"),
 		utils.Locale.Get("Must start with letter. Can use numbers, hyphens and underscores. Max %d characters.", user.MaxUsernameLength),
 		user.MaxUsernameLength)
 	if err != nil {
@@ -73,7 +83,7 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 	}
 
 	// Login
-	page.login, page.loginWarning, err = page.setSimilarWidgets(utils.Locale.Get("Login: "),
+	page.login, page.loginWarning, err = page.setSimilarWidgets(utils.Locale.Get("Login")+" *",
 		utils.Locale.Get("Must start with letter. Can use numbers, hyphens and underscores. Max %d characters.", user.MaxLoginLength),
 		user.MaxLoginLength)
 	if err != nil {
@@ -82,13 +92,13 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 
 	// Password
 	page.password, page.passwordConfirm, page.passwordWarning, err =
-		page.setPasswordWidgets(utils.Locale.Get("Max %d characters.", user.MaxPasswordLength),
+		page.setPasswordWidgets(utils.Locale.Get("Min %d and Max %d characters.", user.MinPasswordLength, user.MaxPasswordLength),
 			user.MaxPasswordLength)
 	if err != nil {
 		return nil, err
 	}
 
-	// Admin Check
+	// Admin
 	page.adminCheck, err = gtk.CheckButtonNew()
 	if err != nil {
 		return nil, err
@@ -100,8 +110,24 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 	} else {
 		sc.AddClass("label-entry")
 	}
-	page.adminCheck.SetHAlign(gtk.ALIGN_CENTER)
+	page.adminCheck.SetMarginStart(CommonSetting + StartEndMargin)
+	page.adminCheck.SetMarginEnd(StartEndMargin)
 	page.box.PackStart(page.adminCheck, false, false, 0)
+
+	// Button box
+	page.boxButtons, err = setBox(gtk.ORIENTATION_HORIZONTAL, 0, "box-page")
+	if err != nil {
+		return nil, err
+	}
+
+	// Buttons
+	page.deleteButton, err = setButton(utils.Locale.Get("DELETE USER"), "button-page")
+	if err != nil {
+		return nil, err
+	}
+	page.boxButtons.PackStart(page.deleteButton, false, false, 0)
+
+	page.box.PackStart(page.boxButtons, false, false, 0)
 
 	// Generate signal on Name change
 	if _, err := page.name.Connect("changed", page.onNameChange); err != nil {
@@ -123,10 +149,27 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 		return nil, err
 	}
 
+	// Generate signal on AdminCheck button click
+	if _, err := page.adminCheck.Connect("clicked", page.onAdminClick); err != nil {
+		return nil, err
+	}
+
+	// Generate signal on Delete button click
+	if _, err := page.deleteButton.Connect("clicked", page.onDeleteClick); err != nil {
+		return nil, err
+	}
+
 	return page, nil
 }
 
 func (page *UserAddPage) onNameChange(entry *gtk.Entry) {
+	name := getTextFromEntry(page.name)
+	if name != page.user.UserName {
+		page.nameChanged = true
+	} else {
+		page.nameChanged = false
+	}
+
 	if ok, msg := user.IsValidUsername(getTextFromEntry(page.name)); !ok {
 		page.nameWarning.SetText(msg)
 	} else {
@@ -137,10 +180,14 @@ func (page *UserAddPage) onNameChange(entry *gtk.Entry) {
 }
 
 func (page *UserAddPage) onLoginChange(entry *gtk.Entry) error {
-	page.loginWarning.SetText("")
-
 	login := getTextFromEntry(page.login)
+	if login != page.user.Login {
+		page.loginChanged = true
+	} else {
+		page.loginChanged = false
+	}
 
+	page.loginWarning.SetText("")
 	if ok, msg := user.IsValidLogin(getTextFromEntry(page.login)); !ok {
 		page.loginWarning.SetText(msg)
 	}
@@ -149,7 +196,6 @@ func (page *UserAddPage) onLoginChange(entry *gtk.Entry) error {
 	if err != nil {
 		return err
 	}
-
 	if isDefaultUser {
 		page.loginWarning.SetText(utils.Locale.Get("Specified login is a system default user"))
 	}
@@ -168,18 +214,22 @@ func (page *UserAddPage) onLoginChange(entry *gtk.Entry) error {
 }
 
 func (page *UserAddPage) onPasswordChange(entry *gtk.Entry) {
-	if !page.changedPassword {
-		page.changedPassword = true
+	password := getTextFromEntry(page.password)
+	if password != page.user.Password {
+		page.passwordChanged = true
+	} else {
+		page.passwordChanged = false
 	}
 }
 
 func (page *UserAddPage) onPasswordConfirmChange(entry *gtk.Entry) {
-	if !page.changedPassword {
+	if !page.passwordChanged {
 		return
 	}
 
 	password := getTextFromEntry(page.password)
 	passwordConfirm := getTextFromEntry(page.passwordConfirm)
+
 	if ok, msg := user.IsValidPassword(password); !ok {
 		page.passwordWarning.SetText(msg)
 	} else if password != passwordConfirm {
@@ -187,8 +237,22 @@ func (page *UserAddPage) onPasswordConfirmChange(entry *gtk.Entry) {
 	} else {
 		page.passwordWarning.SetText("")
 	}
-
 	page.setConfirmButton()
+}
+
+func (page *UserAddPage) onAdminClick(button *gtk.CheckButton) {
+	if page.adminCheck.GetActive() != page.user.Admin {
+		page.adminChanged = true
+	} else {
+		page.adminChanged = false
+	}
+	page.setConfirmButton()
+}
+
+func (page *UserAddPage) onDeleteClick(button *gtk.Button) {
+	page.deleteClicked = true
+	page.clearForm()
+	page.deleteButton.SetSensitive(false)
 }
 
 // IsRequired will return false as we have default values
@@ -218,7 +282,7 @@ func (page *UserAddPage) GetRootWidget() gtk.IWidget {
 
 // GetSummary will return the summary for this page
 func (page *UserAddPage) GetSummary() string {
-	return utils.Locale.Get("Add User")
+	return utils.Locale.Get("Manage User")
 }
 
 // GetTitle will return the title for this page
@@ -228,113 +292,94 @@ func (page *UserAddPage) GetTitle() string {
 
 // StoreChanges will store this pages changes into the model
 func (page *UserAddPage) StoreChanges() {
+	// TODO: Modify when multi user is implemented
 	page.user.UserName = getTextFromEntry(page.name)
 	page.user.Login = getTextFromEntry(page.login)
 	page.user.Password = getTextFromEntry(page.password)
 	page.user.Admin = page.adminCheck.GetActive()
-	if len(page.model.Users) != 0 {
-		page.model.Users[0] = page.user
+
+	if page.user.Login == "" {
+		page.model.Users = make([]*user.User, 0)
 	} else {
-		page.model.Users = append(page.model.Users, page.user)
-	}
-
-	/*
-
-		if page.addMode || page.changedPassword {
-			if err := page.user.SetPassword(getTextFromEntry(page.password)); err != nil {
-				log.Warning("Failed to encrypt password: %v", err)
-				TODO: Add during multi user implementation
-				page.clearForm()
-				page.GotoPage(TuiPageUserManager)
-
-			}
+		if len(page.model.Users) == 0 {
+			page.model.Users = append(page.model.Users, page.user)
+		} else {
+			page.model.Users[0] = page.user
 		}
-	*/
-
-	/* TODO: Add during multi user implementation
-	page.GotoPage(TuiPageUserManager)
-	return false
-	*/
+	}
 }
 
 // ResetChanges will reset this page to match the model
 func (page *UserAddPage) ResetChanges() {
-	if page.model.Users != nil {
-		setTextInEntry(page.name, page.model.Users[0].UserName)
-		setTextInEntry(page.login, page.model.Users[0].Login)
-		setTextInEntry(page.password, page.model.Users[0].Password)
-		page.adminCheck.SetActive(page.model.Users[0].Admin)
+	setTextInEntry(page.name, page.user.UserName)
+	setTextInEntry(page.login, page.user.Login)
+	setTextInEntry(page.password, page.user.Password)
+	setTextInEntry(page.passwordConfirm, page.user.Password)
+	page.adminCheck.SetActive(page.user.Admin)
+
+	if page.user.Login != "" {
+		page.deleteButton.SetSensitive(true)
+	} else {
+		page.deleteButton.SetSensitive(false)
 	}
+
+	page.justLoaded = true
 }
 
 // GetConfiguredValue returns our current config
 func (page *UserAddPage) GetConfiguredValue() string {
 	users := page.model.Users
-	res := []string{}
+	result := []string{}
 
 	if len(users) == 0 {
 		return utils.Locale.Get("No users added")
 	}
 
 	for _, curr := range users {
-		tks := []string{curr.Login}
-
+		text := []string{curr.Login}
 		if curr.Admin {
-			tks = append(tks, "admin")
+			text = append(text, "admin")
 		}
-
-		res = append(res, strings.Join(tks, ":"))
+		result = append(result, strings.Join(text, ": "))
 	}
 
-	return strings.Join(res, ", ")
+	return strings.Join(result, ", ")
 }
 
 func (page *UserAddPage) setConfirmButton() {
-	userWarning, _ := page.nameWarning.GetText()
-	loginWarning, _ := page.loginWarning.GetText()
-	passwordWarning, _ := page.passwordWarning.GetText()
-	login, _ := page.login.GetText()
-	password, _ := page.password.GetText()
 
-	if userWarning == "" && loginWarning == "" && passwordWarning == "" && login != "" && password != "" {
-		page.controller.SetButtonState(ButtonConfirm, true)
-	} else {
+	if page.justLoaded {
+		page.justLoaded = false
 		page.controller.SetButtonState(ButtonConfirm, false)
+		return
 	}
-}
 
-// Clear the form and user data; with Login being empty,
-// this will result in the user not being re-added, aka deleted.
-func (page *UserAddPage) onDeleteClicked() {
-	page.user.UserName = ""
-	page.user.Login = ""
-	page.user.Password = ""
-	page.user.Admin = false
-	page.clearForm()
-	//page.GotoPage(TuiPageUserManager)
+	if page.deleteClicked {
+		page.controller.SetButtonState(ButtonConfirm, true)
+		return
+	}
+
+	if page.nameChanged || page.loginChanged || page.passwordChanged || page.adminChanged {
+		userWarning, _ := page.nameWarning.GetText()
+		loginWarning, _ := page.loginWarning.GetText()
+		passwordWarning, _ := page.passwordWarning.GetText()
+		login := getTextFromEntry(page.login)
+		password := getTextFromEntry(page.password)
+
+		if userWarning == "" && loginWarning == "" && passwordWarning == "" && login != "" && password != "" {
+			page.controller.SetButtonState(ButtonConfirm, true)
+		} else {
+			page.controller.SetButtonState(ButtonConfirm, false)
+		}
+	}
 }
 
 func (page *UserAddPage) clearForm() {
 	setTextInEntry(page.name, "")
-
-	// Need to ensure there is a change in the login so that the validation code executes
-	setTextInEntry(page.login, " ")
 	setTextInEntry(page.login, "")
-	page.changedLogin = false
-
-	// Need to ensure there is a change in the password and change flag is set so that the validation code executes
-	page.changedPassword = true
-	setTextInEntry(page.password, " ")
 	setTextInEntry(page.password, "")
-	page.changedPassword = false
-
 	setTextInEntry(page.passwordConfirm, "")
-	page.password.SetVisibility(true)
-	page.passwordConfirm.SetVisibility(true)
 	page.adminCheck.SetActive(false)
-	page.deleteButton.SetSensitive(false)
-	page.controller.SetButtonState(ButtonConfirm, false)
-	//clui.ActivateControl(page.tui.currPage.GetWindow(), page.usernameEdit) // TODO
 }
 
 func setLabelAndEntry(entryText string, maxSize int) (*gtk.Box, *gtk.Entry, error) {
@@ -349,7 +394,7 @@ func setLabelAndEntry(entryText string, maxSize int) (*gtk.Box, *gtk.Entry, erro
 	if err != nil {
 		return nil, nil, err
 	}
-	labelEntry.SetSizeRequest(150, -1)
+	labelEntry.SetSizeRequest(CommonSetting, -1)
 	boxEntry.PackStart(labelEntry, false, false, 0)
 
 	// Entry
@@ -357,8 +402,9 @@ func setLabelAndEntry(entryText string, maxSize int) (*gtk.Box, *gtk.Entry, erro
 	if err != nil {
 		return nil, nil, err
 	}
+	entry.SetSizeRequest(50, -1)
+	entry.SetMaxWidthChars(50)
 	entry.SetMaxLength(maxSize)
-	entry.SetMarginEnd(18)
 	boxEntry.PackStart(entry, true, true, 0)
 
 	return boxEntry, entry, nil
@@ -369,6 +415,8 @@ func (page *UserAddPage) setSimilarWidgets(entryText, rulesText string, maxSize 
 	if err != nil {
 		return nil, nil, err
 	}
+	boxEntry.SetMarginStart(StartEndMargin)
+	boxEntry.SetMarginEnd(StartEndMargin)
 	page.box.PackStart(boxEntry, false, false, 0)
 
 	// Rules
@@ -376,7 +424,7 @@ func (page *UserAddPage) setSimilarWidgets(entryText, rulesText string, maxSize 
 	if err != nil {
 		return nil, nil, err
 	}
-	rulesLabel.SetMarginStart(CommonMargin)
+	rulesLabel.SetMarginStart(CommonSetting + StartEndMargin)
 	page.box.PackStart(rulesLabel, false, false, 0)
 
 	// Warning
@@ -384,17 +432,19 @@ func (page *UserAddPage) setSimilarWidgets(entryText, rulesText string, maxSize 
 	if err != nil {
 		return nil, nil, err
 	}
-	warningLabel.SetMarginStart(CommonMargin)
+	warningLabel.SetMarginStart(CommonSetting + StartEndMargin)
 	page.box.PackStart(warningLabel, false, false, 0)
 
 	return entry, warningLabel, err
 }
 
 func (page *UserAddPage) setPasswordWidgets(rulesText string, maxSize int) (*gtk.Entry, *gtk.Entry, *gtk.Label, error) {
-	boxPassword, password, err := setLabelAndEntry(utils.Locale.Get("Password: "), maxSize)
+	boxPassword, password, err := setLabelAndEntry(utils.Locale.Get("Password")+" *", maxSize)
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	boxPassword.SetMarginStart(StartEndMargin)
+	boxPassword.SetMarginEnd(StartEndMargin)
 	password.SetVisibility(false)
 	page.box.PackStart(boxPassword, false, false, 0)
 
@@ -403,13 +453,15 @@ func (page *UserAddPage) setPasswordWidgets(rulesText string, maxSize int) (*gtk
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	rulesLabel.SetMarginStart(CommonMargin)
+	rulesLabel.SetMarginStart(CommonSetting + StartEndMargin)
 	page.box.PackStart(rulesLabel, false, false, 0)
 
-	boxPasswordConfirm, passwordConfirm, err := setLabelAndEntry("Confirm Password: ", maxSize)
+	boxPasswordConfirm, passwordConfirm, err := setLabelAndEntry(utils.Locale.Get("Retype"), maxSize)
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	boxPasswordConfirm.SetMarginStart(18)
+	boxPasswordConfirm.SetMarginEnd(18)
 	passwordConfirm.SetVisibility(false)
 	page.box.PackStart(boxPasswordConfirm, false, false, 0)
 
@@ -418,7 +470,7 @@ func (page *UserAddPage) setPasswordWidgets(rulesText string, maxSize int) (*gtk
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	warningLabel.SetMarginStart(CommonMargin)
+	warningLabel.SetMarginStart(CommonSetting + StartEndMargin)
 	page.box.PackStart(warningLabel, false, false, 0)
 
 	return password, passwordConfirm, warningLabel, err

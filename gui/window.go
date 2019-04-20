@@ -444,7 +444,7 @@ func (window *Window) UpdateFooter(store *gtk.Box) error {
 	window.buttons.boxPrimary.PackEnd(window.buttons.install, false, false, 4)
 	window.buttons.boxPrimary.PackEnd(window.buttons.quit, false, false, 4)
 	window.buttons.boxPrimary.PackEnd(window.buttons.back, false, false, 4)
-	window.buttons.back.SetMarginEnd(190) // TODO: MarginStart would be ideal but does not work
+	window.buttons.back.SetMarginEnd(250) // TODO: MarginStart would be ideal but does not work
 
 	// Create box for secondary buttons
 	if window.buttons.boxSecondary, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0); err != nil {
@@ -529,14 +529,14 @@ func (window *Window) SetButtonState(flags pages.Button, enabled bool) {
 			window.buttons.quit.SetSensitive(enabled)
 		}
 		if flags&pages.ButtonBack == pages.ButtonBack {
-			window.buttons.quit.SetSensitive(enabled)
+			window.buttons.back.SetSensitive(enabled)
 		}
 	} else {
 		if flags&pages.ButtonNext == pages.ButtonNext {
 			window.buttons.next.SetSensitive(enabled)
 		}
 		if flags&pages.ButtonExit == pages.ButtonExit {
-			window.buttons.next.SetSensitive(enabled)
+			window.buttons.exit.SetSensitive(enabled)
 		}
 	}
 }
