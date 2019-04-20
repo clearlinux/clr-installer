@@ -177,7 +177,7 @@ check: gopath
 	SHACMD='ls -art --ignore="." /tmp | sha512sum'; \
 	BEFORELS=`eval $$LSCMD`; \
 	BEFORESHA=`eval $$SHACMD`; \
-	go test -cover ${GO_PACKAGE_PREFIX}/...; \
+	go test ${CHECK_VERBOSE} -cover ${GO_PACKAGE_PREFIX}/...; \
 	AFTERSHA=`eval $$SHACMD`; \
 	AFTERLS=`eval $$LSCMD`; \
 	if [ "$$BEFORESHA" != "$$AFTERSHA" ] ; then \
@@ -193,7 +193,7 @@ check-clean: gopath
 	go clean -testcache
 
 check-root: gopath
-	sudo -E go test -cover ${GO_PACKAGE_PREFIX}/...
+	sudo -E go test ${CHECK_VERBOSE} -cover ${GO_PACKAGE_PREFIX}/...
 
 PHONY += coverage
 coverage: build
