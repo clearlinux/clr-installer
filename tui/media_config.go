@@ -54,7 +54,7 @@ func (page *MediaConfigPage) GetConfiguredValue() string {
 	}
 
 	target := page.getModel().InstallSelected
-	portion := fmtInstallPortion(target)
+	portion := storage.FormatInstallPortion(target)
 
 	// Size string
 	size, _ := storage.HumanReadableSizeWithPrecision(target.FreeEnd-target.FreeStart, 1)
@@ -429,23 +429,8 @@ func (page *MediaConfigPage) buildMediaLists() error {
 	return nil
 }
 
-func fmtInstallPortion(target storage.InstallTarget) string {
-	portion := "[Partial]"
-	if target.WholeDisk {
-		portion = "[Entire Disk]"
-	}
-	if target.EraseDisk {
-		portion = "[Erase Disk]"
-	}
-	if target.Advanced {
-		portion = "[Advanced]"
-	}
-
-	return portion
-}
-
 func fmtInstallTarget(target storage.InstallTarget) string {
-	portion := fmtInstallPortion(target)
+	portion := storage.FormatInstallPortion(target)
 
 	// Size string
 	size, _ := storage.HumanReadableSizeWithPrecision(target.FreeEnd-target.FreeStart, 1)

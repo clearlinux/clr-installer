@@ -1304,3 +1304,20 @@ func FindModifyInstallTargets(medias []*BlockDevice) []InstallTarget {
 
 	return sortInstallTargets(installTargets)
 }
+
+// FormatInstallPortion is the common code for describing
+// the amount of disk used
+func FormatInstallPortion(target InstallTarget) string {
+	portion := utils.Locale.Get("Partial")
+	if target.WholeDisk {
+		portion = utils.Locale.Get("Entire Disk")
+	}
+	if target.EraseDisk {
+		portion = utils.Locale.Get("Erase Disk")
+	}
+	if target.Advanced {
+		portion = utils.Locale.Get("Advanced")
+	}
+
+	return "[" + portion + "]"
+}
