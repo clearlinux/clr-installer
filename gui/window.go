@@ -230,11 +230,11 @@ func (window *Window) createMenuPages() (*Window, error) {
 		pages.NewTimezonePage,
 		pages.NewKeyboardPage,
 		pages.NewDiskConfigPage,
+		pages.NewUserAddPage,
 		pages.NewTelemetryPage,
 
 		// advanced
 		pages.NewBundlePage,
-		pages.NewUserAddPage,
 		pages.NewHostnamePage,
 
 		// always last
