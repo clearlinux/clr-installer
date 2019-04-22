@@ -79,11 +79,11 @@ const (
 	// PageIDTelemetry is the telemetry page key
 	PageIDTelemetry = iota
 
-	// PageIDDiskConfig is the disk configuration page key
-	PageIDDiskConfig = iota
-
 	// PageIDUserAdd is the user add page key
 	PageIDUserAdd = iota
+
+	// PageIDDiskConfig is the disk configuration page key
+	PageIDDiskConfig = iota
 
 	// PageIDHostname is the hostname page key
 	PageIDHostname = iota

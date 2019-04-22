@@ -257,12 +257,12 @@ func (page *UserAddPage) onDeleteClick(button *gtk.Button) {
 
 // IsRequired will return false as we have default values
 func (page *UserAddPage) IsRequired() bool {
-	return false
+	return true
 }
 
 // IsDone checks if all the steps are completed
 func (page *UserAddPage) IsDone() bool {
-	return page.GetConfiguredValue() != ""
+	return len(page.model.Users) != 0
 }
 
 // GetID returns the ID for this page
