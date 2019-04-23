@@ -29,12 +29,20 @@
       "desc": "Popular text editors (terminal-based)"
     },
     {
+      "name": "gimp",
+      "desc": "GNU Image Manipulation Program"
+    },
+    {
       "name": "go-basic",
       "desc": "Build and run go language programs"
     },
     {
       "name": "java-basic",
       "desc": "Build and run java language programs"
+    },
+    {
+      "name": "libreoffice",
+      "desc": "LibreOffice - Free Office Suite"
     },
     {
       "name": "machine-learning-basic",
@@ -49,8 +57,16 @@
       "desc": "Run any Clear Linux dev. process"
     },
     {
+      "name": "package-utils",
+      "desc": "Utilities for creating, building, and managing packages"
+    },
+    {
       "name": "perl-basic",
       "desc": "Run perl language programs"
+    },
+    {
+      "name": "pidgin",
+      "desc": "Multi-protocol instant messagging (IM) client"
     },
     {
       "name": "python2-basic",
