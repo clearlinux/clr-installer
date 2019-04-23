@@ -3,10 +3,10 @@
 "http://www.freedesktop.org/software/polkit/policyconfig-1.dtd">
 <policyconfig>
 
-  <vendor>ClearLinux</vendor>
-  <vendor_url>https://clearlinux.org/</vendor_url>
+  <vendor>Clear Linux OS Installer</vendor>
+  <vendor_url>https://github.com/clearlinux/clr-installer</vendor_url>
 
-  <action id="org.freedesktop.policykit.pkexec">
+  <action id="org.clearlinux.clr-installer.start">
     <description>Install Clear Linux OS</description>
     <message>Authentication is required to install Clear Linux OS</message>
     <defaults>
@@ -14,7 +14,7 @@
       <allow_inactive>no</allow_inactive>
       <allow_active>yes</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/clr-installer</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/clr-installer-gui</annotate>
     <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
   </action>
 
