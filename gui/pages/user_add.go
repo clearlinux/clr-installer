@@ -44,6 +44,7 @@ type UserAddPage struct {
 	passwordConfirm *gtk.Entry
 	passwordWarning *gtk.Label
 	passwordChanged bool
+	fakePassword    bool
 
 	adminCheck   *gtk.CheckButton
 	adminChanged bool
@@ -52,6 +53,8 @@ type UserAddPage struct {
 	deleteClicked bool
 
 	justLoaded bool
+
+	addMode bool
 }
 
 // NewUserAddPage returns a new User Add page
@@ -214,6 +217,14 @@ func (page *UserAddPage) onLoginChange(entry *gtk.Entry) error {
 }
 
 func (page *UserAddPage) onPasswordChange(entry *gtk.Entry) {
+	if !page.addMode && page.fakePassword {
+		setTextInEntry(page.password, "")
+		setTextInEntry(page.passwordConfirm, "")
+		page.fakePassword = false
+		page.passwordChanged = true
+		return
+	}
+
 	password := getTextFromEntry(page.password)
 	if password != page.user.Password {
 		page.passwordChanged = true
@@ -223,6 +234,14 @@ func (page *UserAddPage) onPasswordChange(entry *gtk.Entry) {
 }
 
 func (page *UserAddPage) onPasswordConfirmChange(entry *gtk.Entry) {
+	if !page.addMode && page.fakePassword {
+		setTextInEntry(page.password, "")
+		setTextInEntry(page.passwordConfirm, "")
+		page.fakePassword = false
+		page.passwordChanged = true
+		return
+	}
+
 	if !page.passwordChanged {
 		return
 	}
@@ -252,6 +271,7 @@ func (page *UserAddPage) onAdminClick(button *gtk.CheckButton) {
 func (page *UserAddPage) onDeleteClick(button *gtk.Button) {
 	page.deleteClicked = true
 	page.clearForm()
+	page.model.RemoveAllUsers()
 	page.deleteButton.SetSensitive(false)
 }
 
@@ -293,34 +313,66 @@ func (page *UserAddPage) GetTitle() string {
 // StoreChanges will store this pages changes into the model
 func (page *UserAddPage) StoreChanges() {
 	// TODO: Modify when multi user is implemented
-	page.user.UserName = getTextFromEntry(page.name)
-	page.user.Login = getTextFromEntry(page.login)
-	page.user.Password = getTextFromEntry(page.password)
-	page.user.Admin = page.adminCheck.GetActive()
-
-	if page.user.Login == "" {
-		page.model.Users = make([]*user.User, 0)
-	} else {
-		if len(page.model.Users) == 0 {
-			page.model.Users = append(page.model.Users, page.user)
-		} else {
-			page.model.Users[0] = page.user
+	if page.addMode || page.passwordChanged {
+		if err := page.user.SetPassword(getTextFromEntry(page.password)); err != nil {
+			log.Warning("Failed to encrypt password: %v", err)
+			return
 		}
 	}
+
+	page.user.UserName = getTextFromEntry(page.name)
+	page.user.Login = getTextFromEntry(page.login)
+	page.user.Admin = page.adminCheck.GetActive()
+
+	if page.addMode {
+		log.Debug("Add Mode for a user")
+		page.model.AddUser(page.user)
+	} else {
+		log.Debug("Change mode before remove user")
+		if len(page.model.Users) > 0 {
+			log.Debug("Remove the old user")
+			page.model.RemoveAllUsers()
+		}
+		log.Debug("Adding the user (back)")
+		page.model.AddUser(page.user)
+	}
+
+	page.clearForm()
 }
 
 // ResetChanges will reset this page to match the model
 func (page *UserAddPage) ResetChanges() {
+	page.clearForm()
+
+	if len(page.model.Users) != 0 {
+		page.user = page.model.Users[0]
+	}
+	if page.user.Login == "" {
+		page.addMode = true
+	}
+
 	setTextInEntry(page.name, page.user.UserName)
 	setTextInEntry(page.login, page.user.Login)
-	setTextInEntry(page.password, page.user.Password)
-	setTextInEntry(page.passwordConfirm, page.user.Password)
-	page.adminCheck.SetActive(page.user.Admin)
 
-	if page.user.Login != "" {
-		page.deleteButton.SetSensitive(true)
-	} else {
+	if page.addMode {
+		log.Debug("Starting in addMode")
+		setTextInEntry(page.password, page.user.Password)
+		setTextInEntry(page.passwordConfirm, page.user.Password)
+
+		page.adminCheck.SetActive(true)
+
 		page.deleteButton.SetSensitive(false)
+	} else {
+		log.Debug("Starting in changeMode")
+		// The password is encrypted, so fake it with stars
+		setTextInEntry(page.password, "************")
+		setTextInEntry(page.passwordConfirm, "************")
+		page.passwordChanged = false
+		page.fakePassword = true
+
+		page.adminCheck.SetActive(page.user.Admin)
+
+		page.deleteButton.SetSensitive(true)
 	}
 
 	page.justLoaded = true
@@ -347,7 +399,6 @@ func (page *UserAddPage) GetConfiguredValue() string {
 }
 
 func (page *UserAddPage) setConfirmButton() {
-
 	if page.justLoaded {
 		page.justLoaded = false
 		page.controller.SetButtonState(ButtonConfirm, false)
@@ -379,7 +430,14 @@ func (page *UserAddPage) clearForm() {
 	setTextInEntry(page.login, "")
 	setTextInEntry(page.password, "")
 	setTextInEntry(page.passwordConfirm, "")
-	page.adminCheck.SetActive(false)
+	page.adminCheck.SetActive(true)
+
+	page.nameChanged = false
+	page.loginChanged = false
+	page.passwordChanged = false
+	page.fakePassword = false
+	page.adminChanged = false
+	page.addMode = false
 }
 
 func setLabelAndEntry(entryText string, maxSize int) (*gtk.Box, *gtk.Entry, error) {
