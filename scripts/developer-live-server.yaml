@@ -1,0 +1,56 @@
+#clear-linux-config
+
+# c-basic-offset: 2; tab-width: 2; indent-tabs-mode: nil
+# vi: set shiftwidth=2 tabstop=2 expandtab:
+# :indentSize=2:tabSize=2:noTabs=true:
+
+# File:         developer-live-server.yaml
+# Use Case:     Live Image which boots into login prompt
+#               Optionally allows for installing Clear Linux OS
+#               using the TUI clr-installer by running clr-installer
+
+# switch between aliases if you want to install to an actual block device
+# i.e /dev/sda
+block-devices: [
+   {name: "installer", file: "dev-clear-live-server.img"}
+]
+
+targetMedia:
+- name: ${installer}
+  type: disk
+  children:
+  - name: ${installer}1
+    fstype: vfat
+    mountpoint: /boot
+    size: "150M"
+    type: part
+  - name: ${installer}2
+    fstype: swap
+    size: "32M"
+    type: part
+  - name: ${installer}3
+    fstype: ext4
+    mountpoint: /
+    size: "3.0G"
+    type: part
+
+bundles: [os-core, os-core-update, NetworkManager-basic, clr-installer]
+
+autoUpdate: false
+postArchive: false
+postReboot: false
+telemetry: false
+iso: true
+
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-native
+kernel-arguments: {add: [clri.loglevel=4], remove: [console=ttyS0,115200n8]}
+
+pre-install: [
+   {cmd: "${yamlDir}/developer-image-pre.sh"}
+]
+post-install: [
+   {cmd: "${yamlDir}/live-server-post-install.sh ${chrootDir}"},
+   {cmd: "${yamlDir}/developer-image-post.sh ${chrootDir}"},
+]

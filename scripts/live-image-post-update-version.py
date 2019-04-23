@@ -1,5 +1,9 @@
 #!/usr/bin/python3
 
+# c-basic-offset: 4; tab-width: 4; indent-tabs-mode: nil
+# vi: set shiftwidth=4 tabstop=4 expandtab:
+# :indentSize=4:tabSize=4:noTabs=true:
+
 import os
 import sys
 
@@ -35,3 +39,15 @@ if __name__ == '__main__':
         print(exep)
         sys.exit(-1)
     sys.exit(0)
+
+# Editor modelines  -  https://www.wireshark.org/tools/modelines.html
+#
+# Local variables:
+# c-basic-offset: 4
+# tab-width: 4
+# indent-tabs-mode: nil
+# End:
+#
+# vi: set shiftwidth=4 tabstop=4 expandtab:
+# :indentSize=4:tabSize=4:noTabs=true:
+#
