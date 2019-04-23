@@ -239,3 +239,157 @@ msgstr "未找到要修改的介质"
 msgid "Modify Disk"
 msgstr "修改磁盘"
 
+# TRANSLATION SET: 2
+
+msgid "Manage User"
+msgstr "CN:  Manage User"
+
+msgid "Add User"
+msgstr "CN:  Add User"
+
+#, c-format
+msgid "Must start with letter. Can use numbers, hyphens and underscores. Max %d characters."
+msgstr "CN:  Must start with letter. Can use numbers, hyphens and underscores. Max %d characters."
+
+#, c-format
+msgid "Min %d and Max %d characters."
+msgstr "CN:  Min %d and Max %d characters."
+
+msgid "Administrator"
+msgstr "CN:  Administrator"
+
+msgid "DELETE USER"
+msgstr "CN:  DELETE USER"
+
+msgid "Specified login is a system default user"
+msgstr "CN:  Specified login is a system default user"
+
+msgid "User must be unique"
+msgstr "CN:  User must be unique"
+
+msgid "Passwords do not match"
+msgstr "CN:  Passwords do not match"
+
+msgid "No users added"
+msgstr "CN:  No users added"
+
+msgid "User Name"
+msgstr "CN:  User Name"
+
+msgid "Login"
+msgstr "CN:  Login"
+
+msgid "Password"
+msgstr "CN:  Password"
+
+msgid "Retype"
+msgstr "CN:  Retype"
+
+msgid "RESCAN"
+msgstr "CN:  RESCAN"
+
+msgid "Rescan for changes to hot swappable media."
+msgstr "CN:  Rescan for changes to hot swappable media."
+
+msgid "RESCAN MEDIA"
+msgstr "CN:  RESCAN MEDIA"
+
+msgid "Adding extra users"
+msgstr "CN:  Adding extra users"
+
+msgid "Username must contain only numbers, letters, commas, - or _"
+msgstr "CN:  Username must contain only numbers, letters, commas, - or _"
+
+#, c-format
+msgid "UserName maximum length is %d"
+msgstr "CN:  UserName maximum length is %d"
+
+msgid "Login is required"
+msgstr "CN:  Login is required"
+
+#, c-format
+msgid "Login maximum length is %d"
+msgstr "CN:  Login maximum length is %d"
+
+msgid "Login must contain only numbers, letters, - or _"
+msgstr "CN:  Login must contain only numbers, letters, - or _"
+
+msgid "Password is required"
+msgstr "CN:  Password is required"
+
+#, c-format
+msgid "Password must be at least %d characters long"
+msgstr "CN:  Password must be at least %d characters long"
+
+#, c-format
+msgid "Password may be at most %d characters long"
+msgstr "CN:  Password may be at most %d characters long"
+
+msgid "Passphrase is required"
+msgstr "CN:  Passphrase is required"
+
+msgid "Passphrase may only contain 7-bit, printable characters"
+msgstr "CN:  Passphrase may only contain 7-bit, printable characters"
+
+#, c-format
+msgid "Passphrase must be at least %d characters long"
+msgstr "CN:  Passphrase must be at least %d characters long"
+
+#, c-format
+msgid "Passphrase may be at most %d characters long"
+msgstr "CN:  Passphrase may be at most %d characters long"
+
+msgid "Disk Encryption Passphrase"
+msgstr "CN:  Disk Encryption Passphrase"
+
+msgid "Confirm Passphrase"
+msgstr "CN:  Confirm Passphrase"
+
+#, c-format
+msgid "Label too long, max is %d"
+msgstr "CN:  Label too long, max is %d"
+
+msgid "Invalid label characters"
+msgstr "CN:  Invalid label characters"
+
+msgid "Invalid size, may only be suffixed by: B, K, M, G, T or P"
+msgstr "CN:  Invalid size, may only be suffixed by: B, K, M, G, T or P"
+
+msgid "Invalid size"
+msgstr "CN:  Invalid size"
+
+msgid "Size too small"
+msgstr "CN:  Size too small"
+
+msgid "Unknown free space"
+msgstr "CN:  Unknown free space"
+
+msgid "Size too large"
+msgstr "CN:  Size too large"
+
+msgid "Encryption"
+msgstr "CN:  Encryption"
+
+msgid "Safe Installation"
+msgstr "CN: Safe Installation"
+
+msgid "Install on an unallocated disk or alongside existing partitions."
+msgstr "CN: Install on an unallocated disk or alongside existing partitions."
+
+msgid "Destructive Installation"
+msgstr "CN:  Destructive Installation"
+
+msgid "Erase all data on selected media and install Clear Linux* OS."
+msgstr "CN:  Erase all data on selected media and install Clear Linux* OS."
+
+msgid "RESCAN MEDIA"
+msgstr "CN:  RESCAN MEDIA"
+
+msgid "Rescan for changes to hot swappable media."
+msgstr "CN: Rescan for changes to hot swappable media."
+
+msgid "CHANGE LANGUAGE"
+msgstr "CN: CHANGE LANGUAGE"
+
+msgid "Confirm"
+msgstr "CN: Confirm"

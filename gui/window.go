@@ -447,7 +447,7 @@ func (window *Window) UpdateFooter(store *gtk.Box) error {
 	window.buttons.boxPrimary.PackEnd(window.buttons.install, false, false, 4)
 	window.buttons.boxPrimary.PackEnd(window.buttons.quit, false, false, 4)
 	window.buttons.boxPrimary.PackEnd(window.buttons.back, false, false, 4)
-	window.buttons.back.SetMarginEnd(250) // TODO: MarginStart would be ideal but does not work
+	window.buttons.back.SetMarginEnd(300) // TODO: MarginStart would be ideal but does not work
 
 	// Create box for secondary buttons
 	if window.buttons.boxSecondary, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0); err != nil {

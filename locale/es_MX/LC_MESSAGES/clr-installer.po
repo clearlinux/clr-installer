@@ -240,3 +240,157 @@ msgstr "No se encontraron medios para modificar."
 msgid "Modify Disk"
 msgstr "Modificar disco"
 
+# TRANSLATION SET: 2
+
+msgid "Manage User"
+msgstr "MX: Manage User"
+
+msgid "Add User"
+msgstr "MX: Add User"
+
+#, c-format
+msgid "Must start with letter. Can use numbers, hyphens and underscores. Max %d characters."
+msgstr "MX: Must start with letter. Can use numbers, hyphens and underscores. Max %d characters."
+
+#, c-format
+msgid "Min %d and Max %d characters."
+msgstr "MX: Min %d and Max %d characters."
+
+msgid "Administrator"
+msgstr "MX: Administrator"
+
+msgid "DELETE USER"
+msgstr "MX: DELETE USER"
+
+msgid "Specified login is a system default user"
+msgstr "MX: Specified login is a system default user"
+
+msgid "User must be unique"
+msgstr "MX: User must be unique"
+
+msgid "Passwords do not match"
+msgstr "MX: Passwords do not match"
+
+msgid "No users added"
+msgstr "MX: No users added"
+
+msgid "User Name"
+msgstr "MX: User Name"
+
+msgid "Login"
+msgstr "MX: Login"
+
+msgid "Password"
+msgstr "MX: Password"
+
+msgid "Retype"
+msgstr "MX: Retype"
+
+msgid "RESCAN"
+msgstr "MX: RESCAN"
+
+msgid "Rescan for changes to hot swappable media."
+msgstr "MX: Rescan for changes to hot swappable media."
+
+msgid "RESCAN MEDIA"
+msgstr "MX: RESCAN MEDIA"
+
+msgid "Adding extra users"
+msgstr "MX: Adding extra users"
+
+msgid "Username must contain only numbers, letters, commas, - or _"
+msgstr "MX: Username must contain only numbers, letters, commas, - or _"
+
+#, c-format
+msgid "UserName maximum length is %d"
+msgstr "MX: UserName maximum length is %d"
+
+msgid "Login is required"
+msgstr "MX: Login is required"
+
+#, c-format
+msgid "Login maximum length is %d"
+msgstr "MX: Login maximum length is %d"
+
+msgid "Login must contain only numbers, letters, - or _"
+msgstr "MX: Login must contain only numbers, letters, - or _"
+
+msgid "Password is required"
+msgstr "MX: Password is required"
+
+#, c-format
+msgid "Password must be at least %d characters long"
+msgstr "MX: Password must be at least %d characters long"
+
+#, c-format
+msgid "Password may be at most %d characters long"
+msgstr "MX: Password may be at most %d characters long"
+
+msgid "Passphrase is required"
+msgstr "MX: Passphrase is required"
+
+msgid "Passphrase may only contain 7-bit, printable characters"
+msgstr "MX: Passphrase may only contain 7-bit, printable characters"
+
+#, c-format
+msgid "Passphrase must be at least %d characters long"
+msgstr "MX: Passphrase must be at least %d characters long"
+
+#, c-format
+msgid "Passphrase may be at most %d characters long"
+msgstr "MX: Passphrase may be at most %d characters long"
+
+msgid "Disk Encryption Passphrase"
+msgstr "MX: Disk Encryption Passphrase"
+
+msgid "Confirm Passphrase"
+msgstr "MX: Confirm Passphrase"
+
+#, c-format
+msgid "Label too long, max is %d"
+msgstr "MX: Label too long, max is %d"
+
+msgid "Invalid label characters"
+msgstr "MX: Invalid label characters"
+
+msgid "Invalid size, may only be suffixed by: B, K, M, G, T or P"
+msgstr "MX: Invalid size, may only be suffixed by: B, K, M, G, T or P"
+
+msgid "Invalid size"
+msgstr "MX: Invalid size"
+
+msgid "Size too small"
+msgstr "MX: Size too small"
+
+msgid "Unknown free space"
+msgstr "MX: Unknown free space"
+
+msgid "Size too large"
+msgstr "MX: Size too large"
+
+msgid "Encryption"
+msgstr "MX: Encryption"
+
+msgid "Safe Installation"
+msgstr "MX: Safe Installation"
+
+msgid "Install on an unallocated disk or alongside existing partitions."
+msgstr "MX: Install on an unallocated disk or alongside existing partitions."
+
+msgid "Destructive Installation"
+msgstr "MX: Destructive Installation"
+
+msgid "Erase all data on selected media and install Clear Linux* OS."
+msgstr "MX: Erase all data on selected media and install Clear Linux* OS."
+
+msgid "RESCAN MEDIA"
+msgstr "MX: RESCAN MEDIA"
+
+msgid "Rescan for changes to hot swappable media."
+msgstr "MX: Rescan for changes to hot swappable media."
+
+msgid "CHANGE LANGUAGE"
+msgstr "MX: CHANGE LANGUAGE"
+
+msgid "Confirm"
+msgstr "MX: Confirm"

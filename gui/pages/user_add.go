@@ -106,7 +106,7 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 	if err != nil {
 		return nil, err
 	}
-	page.adminCheck.SetLabel("   " + utils.Locale.Get("Administrative"))
+	page.adminCheck.SetLabel("   " + utils.Locale.Get("Administrator"))
 	sc, err := page.adminCheck.GetStyleContext()
 	if err != nil {
 		log.Warning("Error getting style context: ", err) // Just log trivial error
@@ -514,7 +514,7 @@ func (page *UserAddPage) setPasswordWidgets(rulesText string, maxSize int) (*gtk
 	rulesLabel.SetMarginStart(CommonSetting + StartEndMargin)
 	page.box.PackStart(rulesLabel, false, false, 0)
 
-	boxPasswordConfirm, passwordConfirm, err := setLabelAndEntry(utils.Locale.Get("Retype"), maxSize)
+	boxPasswordConfirm, passwordConfirm, err := setLabelAndEntry(utils.Locale.Get("Confirm"), maxSize)
 	if err != nil {
 		return nil, nil, nil, err
 	}

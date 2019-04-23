@@ -277,7 +277,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	*/
 
 	// Buttons
-	disk.rescanButton, err = setButton(utils.Locale.Get("RESCAN"), "button-page")
+	disk.rescanButton, err = setButton(utils.Locale.Get("RESCAN MEDIA"), "button-page")
 	if err != nil {
 		return nil, err
 	}
@@ -314,8 +314,8 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 
 	rescanHortzBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
 	rescanBox.PackStart(rescanHortzBox, true, true, 0)
-	text = fmt.Sprintf("<big>Rescan Media</big>\n")
-	text = text + "Rescan for changes to hot swappable media."
+	text = fmt.Sprintf("<big>" + utils.Locale.Get("Rescan Media") + "</big>\n")
+	text = text + utils.Locale.Get("Rescan for changes to hot swappable media.")
 	rescanLabel, err := gtk.LabelNew(text)
 	if err != nil {
 		return nil, err
@@ -361,9 +361,9 @@ func (disk *DiskConfig) populateComboBoxes() error {
 	}
 
 	if len(disk.devs) < 1 {
-		warning := "No media found for installation"
+		warning := utils.Locale.Get("No media found for installation")
 		log.Warning(warning)
-		warning = fmt.Sprintf("<big><b><span foreground=\"red\">Warning: %s</span></b></big>", warning)
+		warning = fmt.Sprintf("<big><b><span foreground=\"red\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
 		disk.errorMessage.SetMarkup(warning)
 		return nil
 	}
