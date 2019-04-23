@@ -11,6 +11,10 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
+func init() {
+	utils.SetLocale("en_US.UTF-8")
+}
+
 func TestGetHostMirror(t *testing.T) {
 	if !utils.IsClearLinux() {
 		t.Skip("Not running Clear Linux, skipping test")

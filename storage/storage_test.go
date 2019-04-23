@@ -17,6 +17,10 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
+func init() {
+	utils.SetLocale("en_US.UTF-8")
+}
+
 // Need to implement an empty progress interface for testing
 // FakeInstall implements the progress interface: progress.Client
 type FakeInstall struct {

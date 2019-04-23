@@ -13,6 +13,10 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
+func init() {
+	utils.SetLocale("en_US.UTF-8")
+}
+
 func TestGoodURL(t *testing.T) {
 
 	if err := CheckURL("http://www.google.com"); err != nil {

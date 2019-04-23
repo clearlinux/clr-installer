@@ -20,6 +20,10 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
+func init() {
+	utils.SetLocale("en_US.UTF-8")
+}
+
 var (
 	testsDir string
 )
