@@ -104,7 +104,7 @@ install-tui: build-tui install-common
 
 install-gui: build-gui install-common
 	@install -D -m 755 $(top_srcdir)/.gopath/bin/clr-installer-gui $(DESTDIR)/usr/bin/clr-installer-gui
-	@install -D -m 755 $(top_srcdir)/etc/org.freedesktop.policykit.pkexec.policy $(PKIT_DIR)/org.freedesktop.policykit.pkexec.policy
+	@install -D -m 755 $(top_srcdir)/etc/org.clearlinux.clr-installer.policy $(PKIT_DIR)/org.clearlinux.clr-installer.policy
 	@install -D -m 644 $(top_srcdir)/themes/clr.png $(THEME_DIR)/clr.png
 	@install -D -m 644 $(top_srcdir)/themes/style.css $(THEME_DIR)/style.css
 	@install -D -m 644 $(top_srcdir)/etc/clr-installer.desktop $(DESKTOP_DIR)/clr-installer.desktop
