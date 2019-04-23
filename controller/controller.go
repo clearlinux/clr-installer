@@ -593,6 +593,12 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 			ok = true
 			break
 		}
+
+		// Restart networking if we failed
+		// The likely gain is restarting pacdiscovery to fix autoproxy
+		if err := network.Restart(); err != nil {
+			return prg, err
+		}
 	}
 
 	if !ok {
