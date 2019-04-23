@@ -865,11 +865,11 @@ func IsValidLabel(label string, fstype string) string {
 
 	max := MaxLabelLength(fstype)
 	if len(label) > max {
-		return fmt.Sprintf("Label too long, max is %d", max)
+		return utils.Locale.Get("Label too long, max is %d", max)
 	}
 
 	if !labelExp.MatchString(label) {
-		return "Invalid label characters"
+		return utils.Locale.Get("Invalid label characters")
 	}
 
 	return ""
@@ -892,20 +892,20 @@ func (bd *BlockDevice) IsValidSize(str string, maxPartSize uint64) string {
 	str = strings.ToLower(str)
 
 	if !storageExp.MatchString(str) {
-		return "Invalid size, may only be suffixed by: B, K, M, G, T or P"
+		return utils.Locale.Get("Invalid size, may only be suffixed by: B, K, M, G, T or P")
 	}
 
 	size, err := ParseVolumeHumanSize(str)
 	if err != nil {
-		return "Invalid size"
+		return utils.Locale.Get("Invalid size")
 	} else if size < MinimumPartitionSize {
-		return "Size too small"
+		return utils.Locale.Get("Size too small")
 	}
 
 	if maxPartSize == 0 {
-		return "Unknown free space"
+		return utils.Locale.Get("Unknown free space")
 	} else if size > maxPartSize {
-		return "Size too large"
+		return utils.Locale.Get("Size too large")
 	}
 
 	return ""

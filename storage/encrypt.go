@@ -7,6 +7,7 @@ package storage
 import (
 	"bytes"
 	"fmt"
+	"github.com/clearlinux/clr-installer/utils"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -221,21 +222,19 @@ func getNewMappedName(input string) string {
 // IsValidPassphrase checks the minimum passphrase requirements
 func IsValidPassphrase(phrase string) (bool, string) {
 	if phrase == "" {
-		return false, "Passphrase is required"
+		return false, utils.Locale.Get("Passphrase is required")
 	}
 
 	if !isPrintable(phrase) {
-		return false, "Passphrase may only contain 7-bit, printable characters"
+		return false, utils.Locale.Get("Passphrase may only contain 7-bit, printable characters")
 	}
 
 	if len(phrase) < MinPassphraseLength {
-		return false, fmt.Sprintf("Passphrase must be at least %d characters long",
-			MinPassphraseLength)
+		return false, utils.Locale.Get("Passphrase must be at least %d characters long", MinPassphraseLength)
 	}
 
 	if len(phrase) > MaxPassphraseLength {
-		return false, fmt.Sprintf("Passphrase may be at most %d characters long",
-			MaxPassphraseLength)
+		return false, utils.Locale.Get("Passphrase may be at most %d characters long", MaxPassphraseLength)
 	}
 
 	return true, ""
@@ -252,8 +251,8 @@ func GetPassPhrase() string {
 	done := false
 
 	for !done {
-		passphrase = askPassPhrase("Disk Encryption Passphrase")
-		confirm = askPassPhrase("Confirm Passphrase")
+		passphrase = askPassPhrase(utils.Locale.Get("Disk Encryption Passphrase"))
+		confirm = askPassPhrase(utils.Locale.Get("Confirm Passphrase"))
 
 		if passphrase != confirm {
 			fmt.Print("Passphrases do not match!\n\n")

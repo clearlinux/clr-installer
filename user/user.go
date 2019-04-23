@@ -157,7 +157,7 @@ func Apply(rootDir string, users []*User) error {
 		return nil
 	}
 
-	prg := progress.NewLoop("Adding extra users")
+	prg := progress.NewLoop(utils.Locale.Get("Adding extra users"))
 	if err := setTempTargetPAMConfig(rootDir); err != nil {
 		prg.Failure()
 		return err
@@ -420,11 +420,11 @@ func writeSSHKey(rootDir string, u *User) error {
 // IsValidUsername checks the username restrictions
 func IsValidUsername(username string) (bool, string) {
 	if !usernameExp.MatchString(username) {
-		return false, "Username must contain only numbers, letters, commas, - or _"
+		return false, utils.Locale.Get("Username must contain only numbers, letters, commas, - or _")
 	}
 
 	if len(username) > MaxUsernameLength {
-		return false, fmt.Sprintf("UserName maximum length is %d", MaxUsernameLength)
+		return false, utils.Locale.Get("UserName maximum length is %d", MaxUsernameLength)
 	}
 
 	return true, ""
@@ -433,15 +433,15 @@ func IsValidUsername(username string) (bool, string) {
 // IsValidLogin checks the minimum login requirements
 func IsValidLogin(login string) (bool, string) {
 	if login == "" {
-		return false, "Login is required"
+		return false, utils.Locale.Get("Login is required")
 	}
 
 	if len(login) > MaxLoginLength {
-		return false, fmt.Sprintf("Login maximum length is %d", MaxLoginLength)
+		return false, utils.Locale.Get("Login maximum length is %d", MaxLoginLength)
 	}
 
 	if !loginExp.MatchString(login) {
-		return false, "Login must contain only numbers, letters, - or _"
+		return false, utils.Locale.Get("Login must contain only numbers, letters, - or _")
 	}
 
 	return true, ""
@@ -450,17 +450,15 @@ func IsValidLogin(login string) (bool, string) {
 // IsValidPassword checks the minimum password requirements
 func IsValidPassword(pwd string) (bool, string) {
 	if pwd == "" {
-		return false, "Password is required"
+		return false, utils.Locale.Get("Password is required")
 	}
 
 	if len(pwd) < MinPasswordLength {
-		return false, fmt.Sprintf("Password must be at least %d characters long",
-			MinPasswordLength)
+		return false, utils.Locale.Get("Password must be at least %d characters long", MinPasswordLength)
 	}
 
 	if len(pwd) > MaxPasswordLength {
-		return false, fmt.Sprintf("Password may be at most %d characters long",
-			MaxPasswordLength)
+		return false, utils.Locale.Get("Password may be at most %d characters long", MaxPasswordLength)
 	}
 
 	return true, ""

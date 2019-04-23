@@ -24,9 +24,6 @@ msgstr "NEXT"
 msgid "QUIT"
 msgstr "QUIT"
 
-msgid "CHANGE LANGUAGE"
-msgstr "CHANGE LANGUAGE"
-
 msgid "REQUIRED OPTIONS"
 msgstr "REQUIRED OPTIONS"
 
@@ -226,6 +223,8 @@ msgstr "No media found for modification"
 msgid "Modify Disk"
 msgstr "Modify Disk"
 
+# TRANSLATION SET: 2
+
 msgid "Manage User"
 msgstr "Manage User"
 
@@ -240,8 +239,8 @@ msgstr "Must start with letter. Can use numbers, hyphens and underscores. Max %d
 msgid "Min %d and Max %d characters."
 msgstr "Min %d and Max %d characters."
 
-msgid "Administrative"
-msgstr "Administrative"
+msgid "Administrator"
+msgstr "Administrator"
 
 msgid "DELETE USER"
 msgstr "DELETE USER"
@@ -269,3 +268,116 @@ msgstr "Password"
 
 msgid "Retype"
 msgstr "Retype"
+
+msgid "RESCAN"
+msgstr "RESCAN"
+
+msgid "Rescan for changes to hot swappable media."
+msgstr "Rescan for changes to hot swappable media."
+
+msgid "RESCAN MEDIA"
+msgstr "RESCAN MEDIA"
+
+msgid "Adding extra users"
+msgstr "Adding extra users"
+
+msgid "Username must contain only numbers, letters, commas, - or _"
+msgstr "Username must contain only numbers, letters, commas, - or _"
+
+#, c-format
+msgid "UserName maximum length is %d"
+msgstr "UserName maximum length is %d"
+
+msgid "Login is required"
+msgstr "Login is required"
+
+#, c-format
+msgid "Login maximum length is %d"
+msgstr "Login maximum length is %d"
+
+msgid "Login must contain only numbers, letters, - or _"
+msgstr "Login must contain only numbers, letters, - or _"
+
+msgid "Password is required"
+msgstr "Password is required"
+
+#, c-format
+msgid "Password must be at least %d characters long"
+msgstr "Password must be at least %d characters long"
+
+#, c-format
+msgid "Password may be at most %d characters long"
+msgstr "Password may be at most %d characters long"
+
+msgid "Passphrase is required"
+msgstr "Passphrase is required"
+
+msgid "Passphrase may only contain 7-bit, printable characters"
+msgstr "Passphrase may only contain 7-bit, printable characters"
+
+#, c-format
+msgid "Passphrase must be at least %d characters long"
+msgstr "Passphrase must be at least %d characters long"
+
+#, c-format
+msgid "Passphrase may be at most %d characters long"
+msgstr "Passphrase may be at most %d characters long"
+
+msgid "Disk Encryption Passphrase"
+msgstr "Disk Encryption Passphrase"
+
+msgid "Confirm Passphrase"
+msgstr "Confirm Passphrase"
+
+#, c-format
+msgid "Label too long, max is %d"
+msgstr "Label too long, max is %d"
+
+msgid "Invalid label characters"
+msgstr "Invalid label characters"
+
+msgid "Invalid size, may only be suffixed by: B, K, M, G, T or P"
+msgstr "Invalid size, may only be suffixed by: B, K, M, G, T or P"
+
+msgid "Invalid size"
+msgstr "Invalid size"
+
+msgid "Size too small"
+msgstr "Size too small"
+
+msgid "Unknown free space"
+msgstr "Unknown free space"
+
+msgid "Size too large"
+msgstr "Size too large"
+
+msgid "Encryption"
+msgstr "Encryption"
+
+msgid "No Media Selected"
+msgstr "No Media Selected"
+
+msgid "Safe Installation"
+msgstr "Safe Installation"
+
+msgid "Install on an unallocated disk or alongside existing partitions."
+msgstr "Install on an unallocated disk or alongside existing partitions."
+
+msgid "Destructive Installation"
+msgstr "Destructive Installation"
+
+msgid "Erase all data on selected media and install Clear Linux* OS."
+msgstr "Erase all data on selected media and install Clear Linux* OS."
+
+msgid "RESCAN MEDIA"
+msgstr "RESCAN MEDIA"
+
+msgid "Rescan for changes to hot swappable media."
+msgstr "Rescan for changes to hot swappable media."
+
+msgid "CHANGE LANGUAGE"
+msgstr "CHANGE LANGUAGE"
+
+msgid "Confirm"
+msgstr "Confirm"
+
