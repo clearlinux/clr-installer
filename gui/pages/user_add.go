@@ -145,7 +145,7 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 	}
 
 	// Generate signal on Password Confirm change
-	if _, err := page.passwordConfirm.Connect("changed", page.onPasswordConfirmChange); err != nil {
+	if _, err := page.passwordConfirm.Connect("changed", page.onPasswordChange); err != nil {
 		return nil, err
 	}
 
@@ -228,22 +228,7 @@ func (page *UserAddPage) onPasswordChange(entry *gtk.Entry) {
 	} else {
 		page.passwordChanged = false
 	}
-}
 
-func (page *UserAddPage) onPasswordConfirmChange(entry *gtk.Entry) {
-	if !page.addMode && page.fakePassword {
-		setTextInEntry(page.password, "")
-		setTextInEntry(page.passwordConfirm, "")
-		page.fakePassword = false
-		page.passwordChanged = true
-		return
-	}
-
-	if !page.passwordChanged {
-		return
-	}
-
-	password := getTextFromEntry(page.password)
 	passwordConfirm := getTextFromEntry(page.passwordConfirm)
 
 	if ok, msg := user.IsValidPassword(password); !ok {
