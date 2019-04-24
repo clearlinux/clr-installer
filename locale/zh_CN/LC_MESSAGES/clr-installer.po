@@ -411,3 +411,6 @@ msgid ""
 msgstr ""
 "允许 Clear Linux* OS 收集匿名报告来提高系统稳定性？ "
 "这些报告仅与操作系统详细信息相关。不会收集个人可识别信息。"
+
+msgid "CN: No safe media found for installation"
+msgstr "CN: No safe media found for installation"

@@ -1,12 +1,12 @@
 [Desktop Entry]
 Type=Application
 Encoding=UTF-8
-Name=Install Clear Linux OS
-Name[es]=MX:Install Clear Linux OS
-Name[zh_CN]=CN:Install Clear Linux OS
-Comment=Clear Linux OS Installer
-Comment[es]=MX:Clear Linux OS Installer
-Comment[zh_CN]=MX:Clear Linux OS Installer
+Name=Install Clear Linux* OS
+Name[es]=MX: Install Clear Linux* OS
+Name[zh_CN]=CN: Install Clear Linux* OS
+Comment=Clear Linux* OS Installer
+Comment[es]=MX: Clear Linux* OS Installer
+Comment[zh_CN]=MX: Clear Linux* OS Installer
 Icon=/usr/share/clr-installer/themes/clr.png
 Exec=sudo /usr/bin/clr-installer-gui
 Terminal=false
