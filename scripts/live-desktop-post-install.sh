@@ -28,9 +28,6 @@ chroot $CHROOTPATH usermod -a -G wheelnopw clrlinux
 chroot $CHROOTPATH usermod -u 1001 clrlinux
 chroot $CHROOTPATH passwd -d clrlinux
 
-# Disable the clr-installer system service on boot
-echo "Disabling clr-installer on boot for $1"
-chroot $CHROOTPATH systemctl disable clr-installer
 chroot $CHROOTPATH systemd-machine-id-setup
 
 mkdir -p $GDM_DIR/

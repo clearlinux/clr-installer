@@ -96,7 +96,6 @@ install-common:
 	@install -D -m 644  $(top_srcdir)/etc/clr-installer.yaml $(CONFIG_DIR)/clr-installer.yaml
 	@install -D -m 644  $(top_srcdir)/etc/bundles.json $(CONFIG_DIR)/bundles.json
 	@install -D -m 644  $(top_srcdir)/etc/kernels.json $(CONFIG_DIR)/kernels.json
-	@install -D -m 644 $(top_srcdir)/etc/systemd/clr-installer.service $(SYSTEMD_DIR)/clr-installer.service
 	@install -D -m 644  $(top_srcdir)/etc/chpasswd $(CONFIG_DIR)/chpasswd
 
 install-tui: build-tui install-common
@@ -120,7 +119,6 @@ uninstall:
 	@rm -f $(CONFIG_DIR)/bundles.json
 	@rm -f $(CONFIG_DIR)/kernels.json
 	@rm -f $(DESKTOP_DIR)/clr-installer.desktop
-	@rm -f $(SYSTEMD_DIR)/clr-installer.service
 	@rm -f $(CONFIG_DIR)/chpasswd
 	@rm -f $(DESTDIR)/var/lib/clr-installer/clr-installer.yaml
 
