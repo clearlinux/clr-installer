@@ -258,9 +258,8 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	if err != nil {
 		return nil, err
 	}
-	disk.errorMessage.SetXAlign(0.0)
-	disk.errorMessage.SetHAlign(gtk.ALIGN_START)
 	disk.errorMessage.SetUseMarkup(true)
+	disk.errorMessage.SetMarginStart(StartEndMargin)
 	disk.scrollBox.Add(disk.errorMessage)
 
 	// Encryption button
@@ -268,18 +267,6 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	if err != nil {
 		return nil, err
 	}
-	/*
-		disk.encryptCheck.SetLabel("   " + utils.Locale.Get("Enable Encryption"))
-		sc, err := disk.encryptCheck.GetStyleContext()
-		if err != nil {
-			log.Warning("Error getting style context: ", err) // Just log trivial error
-		} else {
-			sc.AddClass("label-entry")
-		}
-		disk.encryptCheck.SetMarginStart(CommonSetting + StartEndMargin)
-		disk.encryptCheck.SetMarginEnd(StartEndMargin)
-		disk.scrollBox.Add(disk.encryptCheck)
-	*/
 
 	// Buttons
 	disk.rescanButton, err = setButton(utils.Locale.Get("RESCAN MEDIA"), "button-page")
@@ -305,9 +292,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 			disk.model.TargetMedias = nil
 		}
 
-		if err := disk.populateComboBoxes(); err != nil {
-			log.Warning("Problem populating possible disk selections")
-		}
+		disk.ResetChanges()
 	}); err != nil {
 		return nil, err
 	}
@@ -356,11 +341,16 @@ func (disk *DiskConfig) scanMediaDevices() error {
 
 // populateComboBoxes populates the scrollBox with usable widget things
 func (disk *DiskConfig) populateComboBoxes() error {
+	// Clear any previous warning
+	disk.errorMessage.SetMarkup("")
+	disk.controller.SetButtonState(ButtonConfirm, true)
+
 	safeStore, err := newListStoreMedia()
 	if err != nil {
 		log.Warning("ListStoreNew safeStore failed")
 		return err
 	}
+
 	destructiveStore, err := newListStoreMedia()
 	if err != nil {
 		log.Warning("ListStoreNew destructiveStore failed")
@@ -372,6 +362,14 @@ func (disk *DiskConfig) populateComboBoxes() error {
 		log.Warning(warning)
 		warning = fmt.Sprintf("<big><b><span foreground=\"red\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
 		disk.errorMessage.SetMarkup(warning)
+		emptyStore, err := newListStoreMedia()
+		if err != nil {
+			log.Warning("ListStoreNew emptyStore failed")
+			return err
+		}
+		disk.chooserCombo.SetModel(emptyStore)
+		disk.controller.SetButtonState(ButtonConfirm, false)
+
 		return nil
 	}
 
@@ -390,6 +388,13 @@ func (disk *DiskConfig) populateComboBoxes() error {
 			}
 			disk.chooserCombo.SetModel(safeStore)
 			disk.chooserCombo.SetActive(0)
+		} else {
+			disk.chooserCombo.SetModel(safeStore)
+			warning := utils.Locale.Get("No safe media found for installation")
+			log.Warning(warning)
+			warning = fmt.Sprintf("<big><b><span foreground=\"red\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
+			disk.errorMessage.SetMarkup(warning)
+			disk.controller.SetButtonState(ButtonConfirm, false)
 		}
 	} else if disk.destructiveButton.GetActive() {
 		for _, target := range disk.destructiveTargets {
