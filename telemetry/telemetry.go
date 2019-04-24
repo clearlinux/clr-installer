@@ -181,6 +181,11 @@ func (tl *Telemetry) IsUsingPrivateIP() bool {
 		_, ipNetPriv172, _ := net.ParseCIDR("172.16.0.0/12")
 		_, ipNetPriv192, _ := net.ParseCIDR("192.168.0.0/16")
 
+		// Bounds checking to ensure we do not get stuck
+		if len(ips) > 256 {
+			ips = ips[:256]
+		}
+
 		for _, ip := range ips {
 			if ip.DefaultMask() == nil {
 				log.Warning("PrivateIP: Ignoring non-IPv4 IP address: %s", ip)
