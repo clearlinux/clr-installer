@@ -19,6 +19,11 @@ var (
 	hostnameExp   = regexp.MustCompile(`^[0-9A-Za-z]+[0-9A-Za-z-]*$`)
 )
 
+const (
+	// MaxHostnameLength is the longest possible username
+	MaxHostnameLength = 63
+)
+
 // IsValidHostname returns error message or nil if is valid
 // https://en.wikipedia.org/wiki/Hostname
 func IsValidHostname(hostname string) string {
@@ -29,8 +34,8 @@ func IsValidHostname(hostname string) string {
 	if !hostnameExp.MatchString(hostname) {
 		return utils.Locale.Get("Hostname can only contain alpha-numeric and hyphen")
 	}
-	if len(hostname) > 63 {
-		return utils.Locale.Get("Hostname can only have a maximum of %d characters", 63)
+	if len(hostname) > MaxHostnameLength {
+		return utils.Locale.Get("Hostname can only have a maximum of %d characters", MaxHostnameLength)
 	}
 
 	return ""

@@ -393,3 +393,21 @@ msgstr "CN: CHANGE LANGUAGE"
 
 msgid "Confirm"
 msgstr "CN: Confirm"
+
+msgid "You can use alpha-numeric characters and hyphens with a maximum of %d characters"
+msgstr "CN: You can use alpha-numeric characters and hyphens with a maximum of %d characters"
+
+msgid "Welcome to Clear Linux* Desktop Installation"
+msgstr "欢迎 安装 Clear Linux* 桌面"
+
+#, c-format
+msgid "Thank you for choosing Clear Linux*"
+msgstr "感谢您选择 Clear Linux*"
+
+#, c-format
+msgid ""
+"Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "
+"These reports only relate to operating system details. No personally identifiable information is collected."
+msgstr ""
+"允许 Clear Linux* OS 收集匿名报告来提高系统稳定性？ "
+"这些报告仅与操作系统详细信息相关。不会收集个人可识别信息。"

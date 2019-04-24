@@ -109,7 +109,7 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 		return nil, err
 	}
 	window.handle.SetPosition(gtk.WIN_POS_CENTER)
-	window.handle.SetDefaultSize(800, 500)
+	window.handle.SetDefaultSize(1100, 600)
 	window.handle.SetResizable(false)
 
 	// Create invisible header bar
@@ -423,6 +423,7 @@ func (window *Window) UpdateFooter(store *gtk.Box) error {
 	if _, err = window.buttons.back.Connect("clicked", func() { window.launchWelcomeView() }); err != nil {
 		return err
 	}
+	window.buttons.back.SetMarginEnd(500) // TODO: MarginStart would be ideal but does not work
 
 	// Confirm button
 	if window.buttons.confirm, err = createNavButton(utils.Locale.Get("CONFIRM"), "button-confirm"); err != nil {
@@ -447,7 +448,6 @@ func (window *Window) UpdateFooter(store *gtk.Box) error {
 	window.buttons.boxPrimary.PackEnd(window.buttons.install, false, false, 4)
 	window.buttons.boxPrimary.PackEnd(window.buttons.quit, false, false, 4)
 	window.buttons.boxPrimary.PackEnd(window.buttons.back, false, false, 4)
-	window.buttons.back.SetMarginEnd(300) // TODO: MarginStart would be ideal but does not work
 
 	// Create box for secondary buttons
 	if window.buttons.boxSecondary, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0); err != nil {

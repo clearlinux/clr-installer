@@ -22,11 +22,10 @@ type Telemetry struct {
 
 // NewTelemetryPage returns a new TelemetryPage
 func NewTelemetryPage(controller Controller, model *model.SystemInstall) (Page, error) {
-	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	box, err := setBox(gtk.ORIENTATION_VERTICAL, 0, "box-page-new")
 	if err != nil {
 		return nil, err
 	}
-	box.SetVAlign(gtk.ALIGN_CENTER)
 
 	label, err := gtk.LabelNew(GetTelemetryMessage())
 	if err != nil {
@@ -39,14 +38,14 @@ func NewTelemetryPage(controller Controller, model *model.SystemInstall) (Page, 
 	label.SetMaxWidthChars(70)
 	label.SetHExpand(false)
 	label.SetMarginBottom(20)
-	box.PackStart(label, false, false, 0)
+	box.PackStart(label, true, false, 0)
 
 	check, err := gtk.CheckButtonNewWithLabel(utils.Locale.Get("Enable Telemetry"))
 	if err != nil {
 		return nil, err
 	}
 	check.SetHAlign(gtk.ALIGN_CENTER)
-	box.PackStart(check, false, false, 0)
+	box.PackStart(check, true, false, 0)
 
 	return &Telemetry{
 		controller: controller,

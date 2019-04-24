@@ -18,9 +18,6 @@ import (
 const (
 	// CommonSetting is a common setting used by widgets
 	CommonSetting int = 120
-
-	// StartEndMargin is the start and end margin
-	StartEndMargin int = 18
 )
 
 // UserAddPage is a simple page to add/modify/delete the user
@@ -518,8 +515,8 @@ func (page *UserAddPage) setPasswordWidgets(rulesText string, maxSize int) (*gtk
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	boxPasswordConfirm.SetMarginStart(18)
-	boxPasswordConfirm.SetMarginEnd(18)
+	boxPasswordConfirm.SetMarginStart(StartEndMargin)
+	boxPasswordConfirm.SetMarginEnd(StartEndMargin)
 	passwordConfirm.SetVisibility(false)
 	page.box.PackStart(boxPasswordConfirm, false, false, 0)
 

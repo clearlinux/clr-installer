@@ -102,17 +102,19 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	}
 	var err error
 
-	disk.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	// Page Box
+	disk.box, err = setBox(gtk.ORIENTATION_VERTICAL, 0, "box-page-new")
 	if err != nil {
 		return nil, err
 	}
-	disk.box.SetBorderWidth(8)
 
 	// Build storage for scrollBox
 	disk.scroll, err = gtk.ScrolledWindowNew(nil, nil)
 	if err != nil {
 		return nil, err
 	}
+	disk.scroll.SetMarginTop(10)
+	disk.scroll.SetMarginEnd(StartEndMargin)
 	disk.box.PackStart(disk.scroll, true, true, 0)
 	disk.scroll.SetPolicy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
 
@@ -140,6 +142,8 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	if err != nil {
 		return nil, err
 	}
+	safeBox.SetMarginTop(10)
+	safeBox.SetMarginStart(StartEndMargin)
 	safeBox.PackStart(disk.safeButton, false, false, 10)
 	if _, err := disk.safeButton.Connect("toggled", func() {
 		// Enable/Disable the Combo Choose Box based on the radio button
@@ -151,8 +155,8 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		return nil, err
 	}
 
-	safeHortzBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
-	safeBox.PackStart(safeHortzBox, true, true, 0)
+	safeVerticalBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
+	safeBox.PackStart(safeVerticalBox, true, true, 0)
 	safeTitle := utils.Locale.Get("Safe Installation")
 	safeDescription := utils.Locale.Get("Install on an unallocated disk or alongside existing partitions.")
 	text := fmt.Sprintf("<big>%s</big>\n", safeTitle)
@@ -164,7 +168,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	safeLabel.SetXAlign(0.0)
 	safeLabel.SetHAlign(gtk.ALIGN_START)
 	safeLabel.SetUseMarkup(true)
-	safeHortzBox.PackStart(safeLabel, false, false, 0)
+	safeVerticalBox.PackStart(safeLabel, false, false, 0)
 
 	log.Debug("Before safeBox ShowAll")
 	safeBox.ShowAll()
@@ -181,6 +185,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	if err != nil {
 		return nil, err
 	}
+	destructiveBox.SetMarginStart(StartEndMargin)
 	destructiveBox.PackStart(disk.destructiveButton, false, false, 10)
 	if _, err := disk.destructiveButton.Connect("toggled", func() {
 		// Enable/Disable the Combo Choose Box based on the radio button
@@ -192,8 +197,8 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		return nil, err
 	}
 
-	destructiveHortzBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
-	destructiveBox.PackStart(destructiveHortzBox, true, true, 0)
+	destructiveVerticalBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
+	destructiveBox.PackStart(destructiveVerticalBox, true, true, 0)
 	destructiveTitle := utils.Locale.Get("Destructive Installation")
 	destructiveDescription := utils.Locale.Get("Erase all data on selected media and install Clear Linux* OS.")
 	text = fmt.Sprintf("<big><b><span foreground=\"red\">%s</span></b></big>\n", destructiveTitle)
@@ -205,7 +210,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	destructiveLabel.SetXAlign(0.0)
 	destructiveLabel.SetHAlign(gtk.ALIGN_START)
 	destructiveLabel.SetUseMarkup(true)
-	destructiveHortzBox.PackStart(destructiveLabel, false, false, 0)
+	destructiveVerticalBox.PackStart(destructiveLabel, false, false, 0)
 
 	destructiveBox.ShowAll()
 	disk.mediaGrid.Attach(destructiveBox, 0, 1, 1, 1)
@@ -281,6 +286,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	if err != nil {
 		return nil, err
 	}
+	disk.rescanButton.SetTooltipText(utils.Locale.Get("Rescan for changes to hot swappable media."))
 
 	if _, err = disk.rescanButton.Connect("clicked", func() {
 		log.Debug("rescan")
@@ -310,21 +316,22 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	if err != nil {
 		return nil, err
 	}
+	rescanBox.SetMarginStart(StartEndMargin)
 	rescanBox.PackStart(disk.rescanButton, false, false, 10)
-
-	rescanHortzBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
-	rescanBox.PackStart(rescanHortzBox, true, true, 0)
-	text = fmt.Sprintf("<big>" + utils.Locale.Get("Rescan Media") + "</big>\n")
-	text = text + utils.Locale.Get("Rescan for changes to hot swappable media.")
-	rescanLabel, err := gtk.LabelNew(text)
-	if err != nil {
-		return nil, err
-	}
-	rescanLabel.SetXAlign(0.0)
-	rescanLabel.SetHAlign(gtk.ALIGN_START)
-	rescanLabel.SetUseMarkup(true)
-	rescanHortzBox.PackStart(rescanLabel, false, false, 0)
-
+	/*
+		rescanHortzBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
+		rescanBox.PackStart(rescanHortzBox, true, true, 0)
+		text = fmt.Sprintf("<big>" + utils.Locale.Get("Rescan Media") + "</big>\n")
+		text = text + utils.Locale.Get("Rescan for changes to hot swappable media.")
+		rescanLabel, err := gtk.LabelNew(text)
+		if err != nil {
+			return nil, err
+		}
+		rescanLabel.SetXAlign(0.0)
+		rescanLabel.SetHAlign(gtk.ALIGN_START)
+		rescanLabel.SetUseMarkup(true)
+		rescanHortzBox.PackStart(rescanLabel, false, false, 0)
+	*/
 	rescanBox.ShowAll()
 	disk.scrollBox.Add(rescanBox)
 
