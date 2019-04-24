@@ -114,7 +114,7 @@ func (install *InstallPage) GetID() int {
 
 // GetSummary will return the summary for this page
 func (install *InstallPage) GetSummary() string {
-	return utils.Locale.Get("Installing Clear Linux OS")
+	return utils.Locale.Get("Installing Clear Linux* OS")
 }
 
 // GetTitle will return the title for this page

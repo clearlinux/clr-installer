@@ -398,12 +398,12 @@ msgstr "MX: Confirm"
 msgid "You can use alpha-numeric characters and hyphens with a maximum of %d characters"
 msgstr "MX: You can use alpha-numeric characters and hyphens with a maximum of %d characters"
 
-msgid "Welcome to Clear Linux* Desktop Installation"
-msgstr "Bienvenido a la instalación de Clear Linux* para computadoras de escritorio"
+msgid "Welcome to Clear Linux* OS Desktop Installation"
+msgstr "Bienvenido a la instalación de operativo Clear Linux* para computadoras de escritorio"
 
 #, c-format
-msgid "Thank you for choosing Clear Linux*"
-msgstr Gracias por elegir Clear Linux*"
+msgid "Thank you for choosing Clear Linux* OS"
+msgstr Gracias por elegir operativo Clear Linux*"
 
 #, c-format
 msgid ""

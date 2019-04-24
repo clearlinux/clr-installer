@@ -578,7 +578,7 @@ func (window *Window) GetRootDir() string {
 
 // GetWelcomeMessage gets the welcome message
 func GetWelcomeMessage() string {
-	text := "<span font-size='xx-large'>" + utils.Locale.Get("Welcome to Clear Linux* Desktop Installation") + "</span>"
+	text := "<span font-size='xx-large'>" + utils.Locale.Get("Welcome to Clear Linux* OS Desktop Installation") + "</span>"
 	text += "\n\n<small>" + utils.Locale.Get("VERSION %s", model.Version) + "</small>"
 
 	return text
@@ -586,7 +586,7 @@ func GetWelcomeMessage() string {
 
 // GetThankYouMessage gets the thank you message
 func GetThankYouMessage() string {
-	text := "<span font-size='xx-large'>" + utils.Locale.Get("Thank you for choosing Clear Linux*") + "</span>"
+	text := "<span font-size='xx-large'>" + utils.Locale.Get("Thank you for choosing Clear Linux* OS") + "</span>"
 	text += "\n\n<small>" + utils.Locale.Get("VERSION %s", model.Version) + "</small>"
 
 	return text

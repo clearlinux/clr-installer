@@ -1,11 +1,3 @@
-#, c-format
-msgid "Welcome to Clear Linux* Desktop Installation"
-msgstr "Welcome to Clear Linux* Desktop Installation"
-
-#, c-format
-msgid "Thank you for choosing Clear Linux*"
-msgstr "Thank you for choosing Clear Linux*"
-
 msgid "CONFIRM"
 msgstr "CONFIRM"
 
@@ -96,8 +88,8 @@ msgstr "Intel's privacy policy can be found at: http://www.intel.com/privacy."
 msgid "NOTICE: Enabling Telemetry preferred by default on internal networks."
 msgstr "NOTICE: Enabling Telemetry preferred by default on internal networks."
 
-msgid "Installing Clear Linux OS"
-msgstr "Installing Clear Linux OS"
+msgid "Installing Clear Linux* OS"
+msgstr "Installing Clear Linux* OS"
 
 #, c-format
 msgid "Running %s hooks"
@@ -385,11 +377,11 @@ msgstr "Confirm"
 msgid "You can use alpha-numeric characters and hyphens with a maximum of %d characters"
 msgstr "You can use alpha-numeric characters and hyphens with a maximum of %d characters"
 
-msgid "Welcome to Clear Linux* Desktop Installation"
-msgstr "Welcome to Clear Linux* Desktop Installation"
+msgid "Welcome to Clear Linux* OS Desktop Installation"
+msgstr "Welcome to Clear Linux* OS Desktop Installation"
 
-msgid "Thank you for choosing Clear Linux*"
-msgstr "Thank you for choosing Clear Linux*"
+msgid "Thank you for choosing Clear Linux* OS"
+msgstr "Thank you for choosing Clear Linux* OS"
 
 msgid ""
 "Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "
