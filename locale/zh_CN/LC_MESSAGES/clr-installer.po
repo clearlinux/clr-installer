@@ -397,12 +397,12 @@ msgstr "CN: Confirm"
 msgid "You can use alpha-numeric characters and hyphens with a maximum of %d characters"
 msgstr "CN: You can use alpha-numeric characters and hyphens with a maximum of %d characters"
 
-msgid "Welcome to Clear Linux* Desktop Installation"
-msgstr "欢迎 安装 Clear Linux* 桌面"
+msgid "Welcome to Clear Linux* OS Desktop Installation"
+msgstr "欢迎 安装 Clear Linux* OS 桌面"
 
 #, c-format
-msgid "Thank you for choosing Clear Linux*"
-msgstr "感谢您选择 Clear Linux*"
+msgid "Thank you for choosing Clear Linux* OS"
+msgstr "感谢您选择 Clear Linux* OS"
 
 #, c-format
 msgid ""

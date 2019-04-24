@@ -114,7 +114,7 @@ func newInstallPage(tui *Tui) (Page, error) {
 	page := &InstallPage{}
 	page.setup(tui, TuiPageInstall, NoButtons, TuiPageMenu)
 
-	lbl := clui.CreateLabel(page.content, 2, 2, "Installing Clear Linux", Fixed)
+	lbl := clui.CreateLabel(page.content, 2, 2, "Installing Clear Linux* OS", Fixed)
 	lbl.SetPaddings(0, 2)
 
 	progressFrame := clui.CreateFrame(page.content, AutoSize, 3, BorderNone, clui.Fixed)
