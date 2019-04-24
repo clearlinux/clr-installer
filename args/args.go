@@ -71,6 +71,7 @@ type Args struct {
 	MakeISOSet              bool
 	KeepImage               bool
 	KeepImageSet            bool
+	SystemCheck             bool
 }
 
 func (args *Args) setKernelArgs() (err error) {
@@ -254,6 +255,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.BoolVar(
 		&args.KeepImage, "keep-image", true, "Keep the generated image file (when creating ISO)",
+	)
+
+	flag.BoolVar(
+		&args.SystemCheck, "system-check", false, "Verify current system is compatible with Clear Linux and exit",
 	)
 
 	flag.ErrHelp = errors.New("Clear Linux Installer program")
