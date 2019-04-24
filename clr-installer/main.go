@@ -27,6 +27,7 @@ import (
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/swupd"
+	"github.com/clearlinux/clr-installer/syscheck"
 	"github.com/clearlinux/clr-installer/telemetry"
 	"github.com/clearlinux/clr-installer/timezone"
 	"github.com/clearlinux/clr-installer/utils"
@@ -268,6 +269,16 @@ func main() {
 
 	// Set locale
 	utils.SetLocale(md.Language.Code)
+
+	// Run system check and exit
+	if options.SystemCheck {
+		err = syscheck.RunSystemCheck()
+		if err != nil {
+			os.Exit(1)
+		} else {
+			os.Exit(0)
+		}
+	}
 
 	installReboot := false
 
