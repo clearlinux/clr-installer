@@ -412,3 +412,6 @@ msgid ""
 msgstr ""
 "¿Desea permitir que el sistema operativo Clear Linux* recopile informes anónimos para mejorar la estabilidad del sistema? "
 "Estos informes solo se relacionan con detalles del sistema operativo. No se recopila información personal identificatoria."
+
+msgid "MX: No safe media found for installation"
+msgstr "MX: No safe media found for installation"

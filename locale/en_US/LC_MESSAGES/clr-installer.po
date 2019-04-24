@@ -381,17 +381,16 @@ msgstr "CHANGE LANGUAGE"
 msgid "Confirm"
 msgstr "Confirm"
 
+#, c-format
 msgid "You can use alpha-numeric characters and hyphens with a maximum of %d characters"
 msgstr "You can use alpha-numeric characters and hyphens with a maximum of %d characters"
 
 msgid "Welcome to Clear Linux* Desktop Installation"
 msgstr "Welcome to Clear Linux* Desktop Installation"
 
-#, c-format
 msgid "Thank you for choosing Clear Linux*"
 msgstr "Thank you for choosing Clear Linux*"
 
-#, c-format
 msgid ""
 "Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "
 "These reports only relate to operating system details. No personally identifiable information is collected."
@@ -399,3 +398,11 @@ msgstr ""
 "Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "
 "These reports only relate to operating system details. No personally identifiable information is collected."
 
+msgid "No safe media found for installation"
+msgstr "No safe media found for installation"
+
+msgid "Install Clear Linux* OS"
+msgstr "Install Clear Linux* OS"
+
+msgid "Clear Linux* OS Installer"
+msgstr "Clear Linux* OS Installer"
