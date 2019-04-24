@@ -27,7 +27,7 @@ func NewTelemetryPage(controller Controller, model *model.SystemInstall) (Page, 
 		return nil, err
 	}
 
-	label, err := gtk.LabelNew(GetTelemetryMessage())
+	label, err := gtk.LabelNew(GetTelemetryMessage(model))
 	if err != nil {
 		return nil, err
 	}
@@ -112,14 +112,17 @@ func (t *Telemetry) GetConfiguredValue() string {
 }
 
 // GetTelemetryMessage gets the telemetry message
-func GetTelemetryMessage() string {
+func GetTelemetryMessage(model *model.SystemInstall) string {
 	text := utils.Locale.Get(""+
 		"Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "+
 		"These reports only relate to operating system details. No personally identifiable information is collected.") +
 		"\n\n\n" +
-		utils.Locale.Get("Intel's privacy policy can be found at: http://www.intel.com/privacy.") +
-		"\n\n\n" +
-		utils.Locale.Get("NOTICE: Enabling Telemetry preferred by default on internal networks.")
+		utils.Locale.Get("Intel's privacy policy can be found at: http://www.intel.com/privacy.")
+
+	if model.Telemetry.IsRequested() {
+		text = text + "\n\n\n" +
+			utils.Locale.Get("NOTICE: Enabling Telemetry preferred by default on internal networks.")
+	}
 
 	return text
 }
