@@ -394,3 +394,21 @@ msgstr "MX: CHANGE LANGUAGE"
 
 msgid "Confirm"
 msgstr "MX: Confirm"
+
+msgid "You can use alpha-numeric characters and hyphens with a maximum of %d characters"
+msgstr "MX: You can use alpha-numeric characters and hyphens with a maximum of %d characters"
+
+msgid "Welcome to Clear Linux* Desktop Installation"
+msgstr "Bienvenido a la instalación de Clear Linux* para computadoras de escritorio"
+
+#, c-format
+msgid "Thank you for choosing Clear Linux*"
+msgstr Gracias por elegir Clear Linux*"
+
+#, c-format
+msgid ""
+"Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "
+"These reports only relate to operating system details. No personally identifiable information is collected."
+msgstr ""
+"¿Desea permitir que el sistema operativo Clear Linux* recopile informes anónimos para mejorar la estabilidad del sistema? "
+"Estos informes solo se relacionan con detalles del sistema operativo. No se recopila información personal identificatoria."

@@ -35,6 +35,9 @@ const (
 
 	// ButtonExit enables the exit button
 	ButtonExit Button = 1 << iota
+
+	// StartEndMargin is the start and end margin
+	StartEndMargin int = 18
 )
 
 // Page interface provides a common definition that other

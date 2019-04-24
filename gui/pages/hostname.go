@@ -31,7 +31,7 @@ func NewHostnamePage(controller Controller, model *model.SystemInstall) (Page, e
 	var err error
 
 	// Box
-	page.box, err = setBox(gtk.ORIENTATION_VERTICAL, 0, "box-page")
+	page.box, err = setBox(gtk.ORIENTATION_VERTICAL, 0, "box-page-new")
 	if err != nil {
 		return nil, err
 	}
@@ -42,13 +42,18 @@ func NewHostnamePage(controller Controller, model *model.SystemInstall) (Page, e
 		return nil, err
 	}
 	page.entry.SetMaxLength(63)
+	page.entry.SetMarginStart(StartEndMargin)
+	page.entry.SetMarginEnd(StartEndMargin)
 	page.box.PackStart(page.entry, false, false, 0)
 
 	// Rules label
-	page.rules, err = setLabel(utils.Locale.Get("You can use alpha-numeric characters and hyphens with a maximum of 63 characters"), "", 0.0)
+	rulesText := utils.Locale.Get("You can use alpha-numeric characters and hyphens with a maximum of 63 characters")
+	page.rules, err = setLabel(rulesText, "label-rules", 0.0)
 	if err != nil {
 		return nil, err
 	}
+	page.rules.SetMarginStart(StartEndMargin)
+	page.rules.SetMarginEnd(StartEndMargin)
 	page.box.PackStart(page.rules, false, false, 10)
 
 	// Warning label
@@ -56,6 +61,8 @@ func NewHostnamePage(controller Controller, model *model.SystemInstall) (Page, e
 	if err != nil {
 		return nil, err
 	}
+	page.warning.SetMarginStart(StartEndMargin)
+	page.warning.SetMarginEnd(StartEndMargin)
 	page.box.PackStart(page.warning, false, false, 10)
 
 	// Generate signal on Hostname entry change
