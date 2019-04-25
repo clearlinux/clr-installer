@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/clearlinux/clr-installer/args"
+	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
@@ -86,6 +87,19 @@ func lookupThemeDir() (string, error) {
 
 // Run is part of the Frontend interface implementation and is the tui frontend main entry point
 func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) (bool, error) {
+	// First disable console messages
+	err := cmd.RunAndLog("dmesg", "--console--off")
+	if err != nil {
+		log.Warning("Failed to disable dmesg on console: %v", err)
+	}
+	// Defer enabling console messages
+	defer func() {
+		err := cmd.RunAndLog("dmesg", "--console--on")
+		if err != nil {
+			log.Warning("Failed to enable dmesg on console: %v", err)
+		}
+	}()
+
 	clui.InitLibrary()
 	defer clui.DeinitLibrary()
 
