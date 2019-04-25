@@ -117,33 +117,25 @@ func scrollToView(scroll *gtk.ScrolledWindow, container gtk.IWidget, widget *gtk
 	}
 }
 
-// getBufferFromEntry gets the buffer from a gtk Entry
-func getBufferFromEntry(entry *gtk.Entry) (*gtk.EntryBuffer, error) {
-	buffer, err := entry.GetBuffer()
-	if err != nil {
-		return nil, err
-	}
-	return buffer, nil
-}
-
 // getTextFromEntry reads the text from an Entry buffer
 func getTextFromEntry(entry *gtk.Entry) string {
-	text := ""
-	buffer, err := getBufferFromEntry(entry)
+	buffer, err := entry.GetBuffer()
 	if err != nil {
 		log.Warning("Error getting buffer: ", err) // Just log trivial error
-	} else {
-		text, err = buffer.GetText()
-		if err != nil {
-			log.Warning("Error reading buffer: ", err) // Just log trivial error
-		}
+		return ""
+	}
+
+	text, err := buffer.GetText()
+	if err != nil {
+		log.Warning("Error reading buffer: ", err) // Just log trivial error
+		return ""
 	}
 	return text
 }
 
 // setTextInEntry writes the text to an Entry buffer
 func setTextInEntry(entry *gtk.Entry, text string) {
-	buffer, err := getBufferFromEntry(entry)
+	buffer, err := entry.GetBuffer()
 	if err != nil {
 		log.Warning("Error getting buffer: ", err) // Just log trivial error
 	} else {
@@ -151,25 +143,18 @@ func setTextInEntry(entry *gtk.Entry, text string) {
 	}
 }
 
-// getBufferFromSearchEntry gets the buffer from a gtk Entry
-func getBufferFromSearchEntry(entry *gtk.SearchEntry) (*gtk.EntryBuffer, error) {
-	buffer, err := entry.GetBuffer()
-	if err != nil {
-		return nil, err
-	}
-	return buffer, nil
-}
-
 // getTextFromSearchEntry reads the text from an SearchEntry buffer
 func getTextFromSearchEntry(entry *gtk.SearchEntry) string {
-	text := ""
-	buffer, err := getBufferFromSearchEntry(entry)
+	buffer, err := entry.GetBuffer()
 	if err != nil {
 		log.Warning("Error getting buffer: ", err) // Just log trivial error
-		text, err = buffer.GetText()
-		if err != nil {
-			log.Warning("Error reading buffer: ", err) // Just log trivial error
-		}
+		return ""
+	}
+
+	text, err := buffer.GetText()
+	if err != nil {
+		log.Warning("Error reading buffer: ", err) // Just log trivial error
+		return ""
 	}
 	return text
 }
