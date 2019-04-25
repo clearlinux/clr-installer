@@ -188,7 +188,7 @@ func newUseraddPage(tui *Tui) (Page, error) {
 	newFieldLabel(lblFrm, "User Name:")
 	newFieldLabel(lblFrm, "Login:")
 	newFieldLabel(lblFrm, "Password:")
-	newFieldLabel(lblFrm, "Retype:")
+	newFieldLabel(lblFrm, "Confirm:")
 
 	fldFrm := clui.CreateFrame(frm, 50, AutoSize, BorderNone, Fixed)
 	fldFrm.SetPack(clui.Vertical)
