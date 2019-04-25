@@ -266,7 +266,7 @@ lint-mispell: lint-core
 PHONY += lint-vet
 lint-vet: lint-core
 	@echo "Running linter lint-vet"
-	@gometalinter.v2 --deadline=10m --tests \
+	@gometalinter.v2 --deadline=20m --tests \
 	--vendor --exclude=vendor --skip=vendor \
 	--disable-all \
 	--enable=vet \
@@ -329,7 +329,7 @@ lint-varcheck: lint-core
 PHONY += lint-structcheck
 lint-structcheck: lint-core
 	@echo "Running linter lint-structcheck"
-	@gometalinter.v2 --deadline=10m --tests \
+	@gometalinter.v2 --deadline=20m --tests \
 	--vendor --exclude=vendor --skip=vendor \
 	--disable-all \
 	--enable=structcheck \
