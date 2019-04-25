@@ -473,14 +473,14 @@ func mkLegacyBoot(templatePath string) error {
 	return err
 }
 
-func packageIso(version string, imgName string) error {
+func packageIso(imgName string) error {
 	msg := "Building ISO"
 	prg := progress.NewLoop(msg)
 	log.Info(msg)
 
 	args := []string{
 		"xorriso", "-as", "mkisofs",
-		"-o", "clear-" + version + "-" + imgName + ".iso",
+		"-o", imgName + ".iso",
 		"-V", "CLR_ISO",
 		"-isohybrid-mbr", tmpPaths[clrCdroot] + "/isolinux/isohdpfx.bin",
 		"-c", "isolinux/boot.cat", "-b", "isolinux/isolinux.bin",
@@ -566,7 +566,7 @@ func MakeIso(rootDir string, imgName string, model *model.SystemInstall) error {
 	if err != nil {
 		return err
 	}
-	if err = packageIso(string(version), imgName); err != nil {
+	if err = packageIso(imgName); err != nil {
 		return err
 	}
 
