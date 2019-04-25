@@ -1,25 +1,3 @@
-#, c-format
-msgid ""
-"Welcome to \n"
-"Clear Linux* \n"
-"Desktop \n"
-"Installation"
-msgstr ""
-"Bienvenido a la instalación de \n"
-"Clear Linux* \n"
-"para computadoras \n"
-"de escritorio"
-
-#, c-format
-msgid ""
-"Thank you \n"
-"for choosing \n"
-"Clear Linux*"
-msgstr ""
-"Gracias \n"
-"por elegir \n"
-"Clear Linux*."
-
 msgid "CONFIRM"
 msgstr "CONFIRMAR"
 
@@ -99,12 +77,11 @@ msgstr "El nombre de host solo puede tener una cantidad máxima de %d caractere
 msgid "No target system hostname assigned"
 msgstr "No se asignó ningún nombre de host al sistema de destino."
 
-#, c-format
 msgid ""
-"Allow the Clear Linux* OS to collect anonymous reports to improve system stability? \n"
+"Allow the Clear Linux* OS to collect anonymous reports to improve system stability?"
 "These reports only relate to operating system details. No personally identifiable information is collected."
 msgstr ""
-"¿Desea permitir que el sistema operativo Clear Linux* recopile informes anónimos para mejorar la estabilidad del sistema? \n"
+"¿Desea permitir que el sistema operativo Clear Linux* recopile informes anónimos para mejorar la estabilidad del sistema?"
 "Estos informes solo se relacionan con detalles del sistema operativo. No se recopila información personal identificatoria."
 
 msgid "Intel's privacy policy can be found at: http://www.intel.com/privacy."
@@ -172,12 +149,11 @@ msgstr "Seleccionar medios de instalación"
 msgid "Safe Installation: Using Free Space"
 msgstr "Instalación segura: uso del espacio libre"
 
-#, c-format
 msgid ""
-"Uses non-partitioned or GPT partitioned media with free space.\n"
+"Uses non-partitioned or GPT partitioned media with free space."
 "Install alongside existing data or OS if adequate space is available."
 msgstr ""
-"Utiliza medios sin particiones o con particiones GPT con espacio libre.\n"
+"Utiliza medios sin particiones o con particiones GPT con espacio libre."
 "La instalación se realiza junto a los datos existentes o al sistema operativo si hay espacio suficiente."
 
 msgid "Destructive Installation: Overwrites Media"
@@ -188,9 +164,6 @@ msgstr "Borra los medios seleccionados y los sobrescribe con el sistema operativ
 
 msgid "Enable Encryption"
 msgstr "Habilitar cifrado"
-
-msgid "Rescan Media"
-msgstr "Volver a examinar medios"
 
 msgid "Disk Utility"
 msgstr "Utilidad de disco"
@@ -222,16 +195,12 @@ msgstr "Iniciar utilidad de disco"
 
 #, c-format
 msgid ""
-"Launch an external program ( %s ) to modify the selected \n"
-"disk in an attempt to allocate enough free disk space to allow \n"
-"the installation to succeed.\n\n"
-"Only disk with a 'GPT' partition can be modified.\n\n"
+"Launch an external program ( %s ) to modify the selected disk in an attempt to allocate enough free disk space to allow the installation to succeed."
+"Only disk with a 'GPT' partition can be modified."
 "NOTE: The tool can only resize the partition, NOT the filesystem!"
 msgstr ""
-"Inicia un programa externo (%s) para modificar el disco \n"
-"seleccionado en un intento de asignar suficiente espacio libre \n"
-"a fin de que la instalación se realice correctamente.\n\n"
-"Solo se pueden modificar los discos que tengan una partición “GPT”.\n\n"
+"Inicia un programa externo (%s) para modificar el disco seleccionado en un intento de asignar suficiente espacio libre a fin de que la instalación se realice correctamente."
+"Solo se pueden modificar los discos que tengan una partición “GPT”."
 "NOTA: La herramienta solo puede cambiar el tamaño de la partición, NO el sistema de archivos."
 
 msgid "No media found for modification"
@@ -282,9 +251,6 @@ msgstr "MX: Login"
 
 msgid "Password"
 msgstr "MX: Password"
-
-msgid "Retype"
-msgstr "MX: Retype"
 
 msgid "RESCAN"
 msgstr "MX: RESCAN"
@@ -371,6 +337,9 @@ msgstr "MX: Size too large"
 msgid "Encryption"
 msgstr "MX: Encryption"
 
+msgid "No Media Selected"
+msgstr "MX: No Media Selected"
+
 msgid "Safe Installation"
 msgstr "MX: Safe Installation"
 
@@ -386,26 +355,22 @@ msgstr "MX: Erase all data on selected media and install Clear Linux* OS."
 msgid "RESCAN MEDIA"
 msgstr "MX: RESCAN MEDIA"
 
-msgid "Rescan for changes to hot swappable media."
-msgstr "MX: Rescan for changes to hot swappable media."
-
 msgid "CHANGE LANGUAGE"
 msgstr "MX: CHANGE LANGUAGE"
 
 msgid "Confirm"
 msgstr "MX: Confirm"
 
+#, c-format
 msgid "You can use alpha-numeric characters and hyphens with a maximum of %d characters"
 msgstr "MX: You can use alpha-numeric characters and hyphens with a maximum of %d characters"
 
 msgid "Welcome to Clear Linux* OS Desktop Installation"
 msgstr "Bienvenido a la instalación de operativo Clear Linux* para computadoras de escritorio"
 
-#, c-format
 msgid "Thank you for choosing Clear Linux* OS"
-msgstr Gracias por elegir operativo Clear Linux*"
+msgstr "Gracias por elegir operativo Clear Linux*"
 
-#, c-format
 msgid ""
 "Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "
 "These reports only relate to operating system details. No personally identifiable information is collected."
@@ -413,5 +378,16 @@ msgstr ""
 "¿Desea permitir que el sistema operativo Clear Linux* recopile informes anónimos para mejorar la estabilidad del sistema? "
 "Estos informes solo se relacionan con detalles del sistema operativo. No se recopila información personal identificatoria."
 
-msgid "MX: No safe media found for installation"
+msgid "No safe media found for installation"
 msgstr "MX: No safe media found for installation"
+
+msgid "admin"
+msgstr "MX: admin"
+
+# Used only in Installer desktop icon
+msgid "Install Clear Linux* OS"
+msgstr "MX: Install Clear Linux* OS"
+
+# Used only in Installer desktop icon
+msgid "Clear Linux* OS Installer"
+msgstr "MX: Clear Linux* OS Installer"

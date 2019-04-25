@@ -372,7 +372,7 @@ func (page *UserAddPage) GetConfiguredValue() string {
 	for _, curr := range users {
 		text := []string{curr.Login}
 		if curr.Admin {
-			text = append(text, "admin")
+			text = append(text, utils.Locale.Get("admin"))
 		}
 		result = append(result, strings.Join(text, ": "))
 	}

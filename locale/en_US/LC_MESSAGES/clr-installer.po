@@ -16,6 +16,9 @@ msgstr "NEXT"
 msgid "QUIT"
 msgstr "QUIT"
 
+msgid "BACK"
+msgstr "BACK"
+
 msgid "REQUIRED OPTIONS"
 msgstr "REQUIRED OPTIONS"
 
@@ -74,12 +77,11 @@ msgstr "Hostname can only have a maximum of %d characters"
 msgid "No target system hostname assigned"
 msgstr "No target system hostname assigned"
 
-#, c-format
 msgid ""
-"Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "
+"Allow the Clear Linux* OS to collect anonymous reports to improve system stability?"
 "These reports only relate to operating system details. No personally identifiable information is collected."
 msgstr ""
-"Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "
+"Allow the Clear Linux* OS to collect anonymous reports to improve system stability?"
 "These reports only relate to operating system details. No personally identifiable information is collected."
 
 msgid "Intel's privacy policy can be found at: http://www.intel.com/privacy."
@@ -102,8 +104,8 @@ msgstr "Testing connectivity"
 msgid "Writing partition table to: %s"
 msgstr "Writing partition table to: %s"
 
-msgid "Adjusting filesystem configurations"
-msgstr "Adjusting filesystem configurations"
+msgid "Adjusting filesystem configurations "
+msgstr "Adjusting filesystem configurations "
 
 #, c-format
 msgid "Writing %s file system to %s"
@@ -144,33 +146,30 @@ msgstr "VERSION %d"
 msgid "Select Installation Media"
 msgstr "Select Installation Media"
 
-msgid "Safe Installation"
-msgstr "Safe Installation"
+msgid "Safe Installation: Using Free Space"
+msgstr "Safe Installation: Using Free Space"
 
-#, c-format
-msgid "Install on an unallocated disk or alongside existing partitions."
-msgstr "Install on an unallocated disk or alongside existing partitions."
+msgid ""
+"Uses non-partitioned or GPT partitioned media with free space."
+"Install alongside existing data or OS if adequate space is available."
+msgstr ""
+"Uses non-partitioned or GPT partitioned media with free space."
+"Install alongside existing data or OS if adequate space is available."
 
-msgid "Destructive Installation"
-msgstr "Destructive Installation"
+msgid "Destructive Installation: Overwrites Media"
+msgstr "Destructive Installation: Overwrites Media"
 
-msgid "Erase all data on selected media and install Clear Linux* OS."
-msgstr "Erase all data on selected media and install Clear Linux* OS."
+msgid "Erases selected media and overwrites with Clear Linux* OS."
+msgstr "Erases selected media and overwrites with Clear Linux* OS."
 
 msgid "Enable Encryption"
 msgstr "Enable Encryption"
 
-msgid "Rescan Media"
-msgstr "Rescan Media"
-
 msgid "Disk Utility"
 msgstr "Disk Utility"
 
-msgid "Manual Partition"
-msgstr "Manual Partition"
-
-msgid "Manual Partitioning"
-msgstr "Manual Partitioning"
+msgid "Configure Installation Media"
+msgstr "Configure Installation Media"
 
 msgid "Partial"
 msgstr "Partial"
@@ -191,22 +190,17 @@ msgstr "No -media- selected"
 msgid "Warning: %s"
 msgstr "Warning: %s"
 
-msgid "No media or space available for installation"
-msgstr "No media or space available for installation"
-
 msgid "Launch Disk Utility"
 msgstr "Launch Disk Utility"
 
 #, c-format
 msgid ""
-"Launch an external program ( %s ) to modify the selected disk "
-"in an attempt to allocate enough free disk space to allow the installation to succeed. "
-"Only disk with a GPT partition can be modified. "
+"Launch an external program ( %s ) to modify the selected disk in an attempt to allocate enough free disk space to allow the installation to succeed."
+"Only disk with a 'GPT' partition can be modified."
 "NOTE: The tool can only resize the partition, NOT the filesystem!"
 msgstr ""
-"Launch an external program ( %s ) to modify the selected disk "
-"in an attempt to allocate enough free disk space to allow the installation to succeed. "
-"Only disk with a GPT partition can be modified. "
+"Launch an external program ( %s ) to modify the selected disk in an attempt to allocate enough free disk space to allow the installation to succeed."
+"Only disk with a 'GPT' partition can be modified."
 "NOTE: The tool can only resize the partition, NOT the filesystem!"
 
 msgid "No media found for modification"
@@ -257,9 +251,6 @@ msgstr "Login"
 
 msgid "Password"
 msgstr "Password"
-
-msgid "Retype"
-msgstr "Retype"
 
 msgid "RESCAN"
 msgstr "RESCAN"
@@ -364,9 +355,6 @@ msgstr "Erase all data on selected media and install Clear Linux* OS."
 msgid "RESCAN MEDIA"
 msgstr "RESCAN MEDIA"
 
-msgid "Rescan for changes to hot swappable media."
-msgstr "Rescan for changes to hot swappable media."
-
 msgid "CHANGE LANGUAGE"
 msgstr "CHANGE LANGUAGE"
 
@@ -393,8 +381,14 @@ msgstr ""
 msgid "No safe media found for installation"
 msgstr "No safe media found for installation"
 
+msgid "admin"
+msgstr "admin"
+
+# Used only in Installer desktop icon
 msgid "Install Clear Linux* OS"
 msgstr "Install Clear Linux* OS"
 
+# Used only in Installer desktop icon
 msgid "Clear Linux* OS Installer"
 msgstr "Clear Linux* OS Installer"
+

@@ -1,24 +1,3 @@
-#, c-format
-msgid ""
-"Welcome to \n"
-"Clear Linux* \n"
-"Desktop \n"
-"Installation"
-msgstr ""
-"欢迎\n"
-"安装 \n"
-"Clear Linux* \n"
-"桌面"
-
-#, c-format
-msgid ""
-"Thank you \n"
-"for choosing \n"
-"Clear Linux*"
-msgstr "感谢您\n"
-"选择 \n"
-"Clear Linux*"
-
 msgid "CONFIRM"
 msgstr "确认"
 
@@ -98,12 +77,11 @@ msgstr "主机名最多只能含有 %d 个字符"
 msgid "No target system hostname assigned"
 msgstr "未分配任何目标系统主机名"
 
-#, c-format
 msgid ""
-"Allow the Clear Linux* OS to collect anonymous reports to improve system stability?\n"
+"Allow the Clear Linux* OS to collect anonymous reports to improve system stability?"
 "These reports only relate to operating system details. No personally identifiable information is collected."
 msgstr ""
-"允许 Clear Linux* OS 收集匿名报告来提高系统稳定性？\n"
+"允许 Clear Linux* OS 收集匿名报告来提高系统稳定性？"
 "这些报告仅与操作系统详细信息相关。不会收集个人可识别信息。"
 
 msgid "Intel's privacy policy can be found at: http://www.intel.com/privacy."
@@ -171,12 +149,11 @@ msgstr "选择安装介质"
 msgid "Safe Installation: Using Free Space"
 msgstr "安全安装：使用可用空间"
 
-#, c-format
 msgid ""
-"Uses non-partitioned or GPT partitioned media with free space.\n"
+"Uses non-partitioned or GPT partitioned media with free space."
 "Install alongside existing data or OS if adequate space is available."
 msgstr ""
-"使用具有可用空间的未分区或 GPT 分区介质。\n"
+"使用具有可用空间的未分区或 GPT 分区介质。"
 "如果有足够空间可用，随现有数据或操作系统安装。"
 
 msgid "Destructive Installation: Overwrites Media"
@@ -187,9 +164,6 @@ msgstr "擦除选定介质并使用 Clear Linux* OS 覆盖。"
 
 msgid "Enable Encryption"
 msgstr "启用加密"
-
-msgid "Rescan Media"
-msgstr "重新扫描介质"
 
 msgid "Disk Utility"
 msgstr "磁盘实用程序"
@@ -221,17 +195,13 @@ msgstr "启动磁盘实用程序"
 
 #, c-format
 msgid ""
-"Launch an external program ( %s ) to modify the selected \n"
-"disk in an attempt to allocate enough free disk space to allow \n"
-"the installation to succeed.\n\n"
-"Only disk with a 'GPT' partition can be modified.\n\n"
+"Launch an external program ( %s ) to modify the selected disk in an attempt to allocate enough free disk space to allow the installation to succeed."
+"Only disk with a 'GPT' partition can be modified."
 "NOTE: The tool can only resize the partition, NOT the filesystem!"
 msgstr ""
-"启动外部程序 (%s) 以修改选定磁盘，\n"
-"力图分配足够可用磁盘空间来实现成功安装。\n"
-"只能修改含“GPT”分区的磁盘。\n"
-"注意：此功能只能调整分区大小，\n"
-"不能调整文件系统大小！"
+"启动外部程序 (%s) 以修改选定磁盘，力图分配足够可用磁盘空间来实现成功安装。"
+"只能修改含“GPT”分区的磁盘。"
+"注意：此功能只能调整分区大小，不能调整文件系统大小！"
 
 msgid "No media found for modification"
 msgstr "未找到要修改的介质"
@@ -281,9 +251,6 @@ msgstr "CN:  Login"
 
 msgid "Password"
 msgstr "CN:  Password"
-
-msgid "Retype"
-msgstr "CN:  Retype"
 
 msgid "RESCAN"
 msgstr "CN:  RESCAN"
@@ -370,11 +337,14 @@ msgstr "CN:  Size too large"
 msgid "Encryption"
 msgstr "CN:  Encryption"
 
+msgid "No Media Selected"
+msgstr "CN:  No Media Selected"
+
 msgid "Safe Installation"
-msgstr "CN: Safe Installation"
+msgstr "CN:  Safe Installation"
 
 msgid "Install on an unallocated disk or alongside existing partitions."
-msgstr "CN: Install on an unallocated disk or alongside existing partitions."
+msgstr "CN:  Install on an unallocated disk or alongside existing partitions."
 
 msgid "Destructive Installation"
 msgstr "CN:  Destructive Installation"
@@ -385,26 +355,22 @@ msgstr "CN:  Erase all data on selected media and install Clear Linux* OS."
 msgid "RESCAN MEDIA"
 msgstr "CN:  RESCAN MEDIA"
 
-msgid "Rescan for changes to hot swappable media."
-msgstr "CN: Rescan for changes to hot swappable media."
-
 msgid "CHANGE LANGUAGE"
-msgstr "CN: CHANGE LANGUAGE"
+msgstr "CN:  CHANGE LANGUAGE"
 
 msgid "Confirm"
-msgstr "CN: Confirm"
+msgstr "CN:  Confirm"
 
+#, c-format
 msgid "You can use alpha-numeric characters and hyphens with a maximum of %d characters"
-msgstr "CN: You can use alpha-numeric characters and hyphens with a maximum of %d characters"
+msgstr "CN:  You can use alpha-numeric characters and hyphens with a maximum of %d characters"
 
 msgid "Welcome to Clear Linux* OS Desktop Installation"
 msgstr "欢迎 安装 Clear Linux* OS 桌面"
 
-#, c-format
 msgid "Thank you for choosing Clear Linux* OS"
 msgstr "感谢您选择 Clear Linux* OS"
 
-#, c-format
 msgid ""
 "Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "
 "These reports only relate to operating system details. No personally identifiable information is collected."
@@ -412,5 +378,17 @@ msgstr ""
 "允许 Clear Linux* OS 收集匿名报告来提高系统稳定性？ "
 "这些报告仅与操作系统详细信息相关。不会收集个人可识别信息。"
 
-msgid "CN: No safe media found for installation"
+msgid "No safe media found for installation"
 msgstr "CN: No safe media found for installation"
+
+msgid "admin"
+msgstr "CN: admin"
+
+# Used only in Installer desktop icon
+msgid "Install Clear Linux* OS"
+msgstr "CN: Install Clear Linux* OS"
+
+# Used only in Installer desktop icon
+msgid "Clear Linux* OS Installer"
+msgstr "CN: Clear Linux* OS Installer"
+
