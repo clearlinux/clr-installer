@@ -298,7 +298,7 @@ func newUseraddPage(tui *Tui) (Page, error) {
 	adminFrm := clui.CreateFrame(fldFrm, 5, 2, BorderNone, Fixed)
 	adminFrm.SetPack(clui.Vertical)
 
-	page.adminCheck = clui.CreateCheckBox(adminFrm, 1, "Administrative", Fixed)
+	page.adminCheck = clui.CreateCheckBox(adminFrm, 1, "Administrator", Fixed)
 
 	cancelBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Cancel", Fixed)
 	cancelBtn.OnClick(func(ev clui.Event) {
