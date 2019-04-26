@@ -422,7 +422,8 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 }
 
 func applyHooks(name string, vars map[string]string, hooks []*model.InstallHook) error {
-	msg := utils.Locale.Get("Running %s hooks", name)
+	locName := utils.Locale.Get(name)
+	msg := utils.Locale.Get("Running %s hooks", locName)
 	prg := progress.MultiStep(len(hooks), msg)
 	log.Info(msg)
 
@@ -639,7 +640,7 @@ func configureLanguage(rootDir string, model *model.SystemInstall) error {
 		return nil
 	}
 
-	msg := utils.Locale.Get("Setting Language locale to " + model.Language.Code)
+	msg := utils.Locale.Get("Setting Language locale to %s", model.Language.Code)
 	prg := progress.NewLoop(msg)
 	log.Info(msg)
 

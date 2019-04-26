@@ -98,7 +98,7 @@ func createBundleWidget(bundle *swupd.Bundle) (*gtk.CheckButton, error) {
 	img.SetSizeRequest(48, 48)
 	root.PackStart(img, false, false, 0)
 
-	txt := fmt.Sprintf("<b>%s</b>\n%s", bundle.Name, bundle.Desc)
+	txt := fmt.Sprintf("<b>%s</b>\n%s", bundle.Name, utils.Locale.Get(bundle.Desc))
 	label, err := gtk.LabelNew(txt)
 	if err != nil {
 		return nil, err

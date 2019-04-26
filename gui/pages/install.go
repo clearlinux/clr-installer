@@ -119,7 +119,7 @@ func (install *InstallPage) GetSummary() string {
 
 // GetTitle will return the title for this page
 func (install *InstallPage) GetTitle() string {
-	return utils.Locale.Get("Installing Clear Linux OS")
+	return utils.Locale.Get("Installing Clear Linux* OS")
 }
 
 // GetIcon returns the icon for this page

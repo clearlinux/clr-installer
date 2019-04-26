@@ -47,7 +47,7 @@ func NewHostnamePage(controller Controller, model *model.SystemInstall) (Page, e
 	page.box.PackStart(page.entry, false, false, 0)
 
 	// Rules label
-	rulesText := utils.Locale.Get("You can use alpha-numeric characters and hyphens with a maximum of 63 characters")
+	rulesText := utils.Locale.Get("Can use alpha-numeric characters and - with a maximum of %d characters.", hostname.MaxHostnameLength)
 	page.rules, err = setLabel(rulesText, "label-rules", 0.0)
 	if err != nil {
 		return nil, err
