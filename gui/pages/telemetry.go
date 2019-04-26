@@ -36,7 +36,6 @@ func NewTelemetryPage(controller Controller, model *model.SystemInstall) (Page, 
 	label.SetVAlign(gtk.ALIGN_CENTER)
 	label.SetLineWrap(true)
 	label.SetMaxWidthChars(70)
-	label.SetHExpand(false)
 	label.SetMarginBottom(20)
 	box.PackStart(label, true, false, 0)
 
@@ -113,11 +112,12 @@ func (t *Telemetry) GetConfiguredValue() string {
 
 // GetTelemetryMessage gets the telemetry message
 func GetTelemetryMessage(model *model.SystemInstall) string {
-	text := utils.Locale.Get(""+
-		"Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "+
-		"These reports only relate to operating system details. No personally identifiable information is collected.") +
-		"\n\n\n" +
-		utils.Locale.Get("Intel's privacy policy can be found at: http://www.intel.com/privacy.")
+	text := "<big>"
+	text += utils.Locale.Get("Allow the Clear Linux* OS to collect anonymous reports to improve system stability?")
+	text += "</big>\n\n"
+	text += utils.Locale.Get("These reports only relate to operating system details. No personally identifiable information is collected.")
+	text += "\n\n"
+	text += utils.Locale.Get("Intel's privacy policy can be found at: http://www.intel.com/privacy.")
 
 	if model.Telemetry.IsRequested() {
 		text = text + "\n\n\n" +

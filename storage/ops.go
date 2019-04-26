@@ -232,7 +232,7 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) erro
 		log.Debug("WritePartitionTable: partial disk, skipping mklabel for %s", bd.Name)
 	}
 
-	mesg := fmt.Sprintf("Updating partition table for: %s", bd.Name)
+	mesg := utils.Locale.Get("Updating partition table for: %s", bd.Name)
 	prg := progress.NewLoop(mesg)
 	log.Info(mesg)
 

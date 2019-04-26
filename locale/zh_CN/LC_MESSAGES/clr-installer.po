@@ -61,9 +61,6 @@ msgstr "启用遥测技术"
 msgid "No additional bundles selected"
 msgstr "未选择任何附加捆绑包"
 
-msgid "You can use alpha-numeric characters and hyphens with a maximum of 63 characters"
-msgstr "您可以使用字母数字字符和连字符，最多 63 个字符"
-
 msgid "Hostname can only start with alpha-numeric"
 msgstr "主机名只能以字母数字开头"
 
@@ -77,12 +74,11 @@ msgstr "主机名最多只能含有 %d 个字符"
 msgid "No target system hostname assigned"
 msgstr "未分配任何目标系统主机名"
 
-msgid ""
-"Allow the Clear Linux* OS to collect anonymous reports to improve system stability?"
-"These reports only relate to operating system details. No personally identifiable information is collected."
-msgstr ""
-"允许 Clear Linux* OS 收集匿名报告来提高系统稳定性？"
-"这些报告仅与操作系统详细信息相关。不会收集个人可识别信息。"
+msgid "Allow the Clear Linux* OS to collect anonymous reports to improve system stability?"
+msgstr "允许 Clear Linux* OS 收集匿名报告来提高系统稳定性？"
+
+msgid "These reports only relate to operating system details. No personally identifiable information is collected."
+msgstr "这些报告仅与操作系统详细信息相关。不会收集个人可识别信息。"
 
 msgid "Intel's privacy policy can be found at: http://www.intel.com/privacy."
 msgstr "有关英特尔隐私政策，请访问：http://www.intel.com/privacy。"
@@ -104,8 +100,8 @@ msgstr "正在测试连接性"
 msgid "Writing partition table to: %s"
 msgstr "正在将分区表写入：%s"
 
-msgid "Adjusting filesystem configurations "
-msgstr "正在调整文件系统配置 "
+msgid "Adjusting filesystem configurations"
+msgstr "正在调整文件系统配置"
 
 #, c-format
 msgid "Writing %s file system to %s"
@@ -116,13 +112,6 @@ msgstr "正在写入挂载文件"
 
 msgid "Installing the base system"
 msgstr "正在安装基本系统"
-
-#, c-format
-msgid "Installing bundle: %s"
-msgstr "正在安装捆绑包：%s"
-
-msgid "Installing boot loader"
-msgstr "正在安装引导加载程序"
 
 msgid "Saving the installation results"
 msgstr "正在保存安装结果"
@@ -140,27 +129,11 @@ msgid "This task has not yet completed"
 msgstr "此任务尚未完成"
 
 #, c-format
-msgid "VERSION %d"
-msgstr "版本 %d"
+msgid "VERSION %s"
+msgstr "版本 %s"
 
 msgid "Select Installation Media"
 msgstr "选择安装介质"
-
-msgid "Safe Installation: Using Free Space"
-msgstr "安全安装：使用可用空间"
-
-msgid ""
-"Uses non-partitioned or GPT partitioned media with free space."
-"Install alongside existing data or OS if adequate space is available."
-msgstr ""
-"使用具有可用空间的未分区或 GPT 分区介质。"
-"如果有足够空间可用，随现有数据或操作系统安装。"
-
-msgid "Destructive Installation: Overwrites Media"
-msgstr "破坏性安装：覆盖介质"
-
-msgid "Erases selected media and overwrites with Clear Linux* OS."
-msgstr "擦除选定介质并使用 Clear Linux* OS 覆盖。"
 
 msgid "Enable Encryption"
 msgstr "启用加密"
@@ -193,16 +166,6 @@ msgstr "警告：%s"
 msgid "Launch Disk Utility"
 msgstr "启动磁盘实用程序"
 
-#, c-format
-msgid ""
-"Launch an external program ( %s ) to modify the selected disk in an attempt to allocate enough free disk space to allow the installation to succeed."
-"Only disk with a 'GPT' partition can be modified."
-"NOTE: The tool can only resize the partition, NOT the filesystem!"
-msgstr ""
-"启动外部程序 (%s) 以修改选定磁盘，力图分配足够可用磁盘空间来实现成功安装。"
-"只能修改含“GPT”分区的磁盘。"
-"注意：此功能只能调整分区大小，不能调整文件系统大小！"
-
 msgid "No media found for modification"
 msgstr "未找到要修改的介质"
 
@@ -212,158 +175,162 @@ msgstr "修改磁盘"
 # TRANSLATION SET: 2
 
 msgid "Manage User"
-msgstr "CN:  Manage User"
+msgstr "CN: Manage User"
 
 msgid "Add User"
-msgstr "CN:  Add User"
+msgstr "CN: Add User"
 
 #, c-format
-msgid "Must start with letter. Can use numbers, hyphens and underscores. Max %d characters."
-msgstr "CN:  Must start with letter. Can use numbers, hyphens and underscores. Max %d characters."
+msgid "Must start with letter. Can use numbers, commas, - and _. Max %d characters."
+msgstr "CN: Must start with letter. Can use numbers, commas, - and _. Max %d characters."
+
+#, c-format
+msgid "Must start with letter. Can use numbers, - and _. Max %d characters."
+msgstr "CN: Must start with letter. Can use numbers, - and _. Max %d characters."
 
 #, c-format
 msgid "Min %d and Max %d characters."
-msgstr "CN:  Min %d and Max %d characters."
+msgstr "CN: Min %d and Max %d characters."
 
 msgid "Administrator"
-msgstr "CN:  Administrator"
+msgstr "CN: Administrator"
 
 msgid "DELETE USER"
-msgstr "CN:  DELETE USER"
+msgstr "CN: DELETE USER"
 
 msgid "Specified login is a system default user"
-msgstr "CN:  Specified login is a system default user"
+msgstr "CN: Specified login is a system default user"
 
 msgid "User must be unique"
-msgstr "CN:  User must be unique"
+msgstr "CN: User must be unique"
 
 msgid "Passwords do not match"
-msgstr "CN:  Passwords do not match"
+msgstr "CN: Passwords do not match"
 
 msgid "No users added"
-msgstr "CN:  No users added"
+msgstr "CN: No users added"
 
 msgid "User Name"
-msgstr "CN:  User Name"
+msgstr "CN: User Name"
 
 msgid "Login"
-msgstr "CN:  Login"
+msgstr "CN: Login"
 
 msgid "Password"
-msgstr "CN:  Password"
+msgstr "CN: Password"
 
 msgid "RESCAN"
-msgstr "CN:  RESCAN"
+msgstr "CN: RESCAN"
 
 msgid "Rescan for changes to hot swappable media."
-msgstr "CN:  Rescan for changes to hot swappable media."
+msgstr "CN: Rescan for changes to hot swappable media."
 
 msgid "RESCAN MEDIA"
-msgstr "CN:  RESCAN MEDIA"
+msgstr "CN: RESCAN MEDIA"
 
 msgid "Adding extra users"
-msgstr "CN:  Adding extra users"
+msgstr "CN: Adding extra users"
 
 msgid "Username must contain only numbers, letters, commas, - or _"
-msgstr "CN:  Username must contain only numbers, letters, commas, - or _"
+msgstr "CN: Username must contain only numbers, letters, commas, - or _"
 
 #, c-format
 msgid "UserName maximum length is %d"
-msgstr "CN:  UserName maximum length is %d"
+msgstr "CN: UserName maximum length is %d"
 
 msgid "Login is required"
-msgstr "CN:  Login is required"
+msgstr "CN: Login is required"
 
 #, c-format
 msgid "Login maximum length is %d"
-msgstr "CN:  Login maximum length is %d"
+msgstr "CN: Login maximum length is %d"
 
 msgid "Login must contain only numbers, letters, - or _"
-msgstr "CN:  Login must contain only numbers, letters, - or _"
+msgstr "CN: Login must contain only numbers, letters, - or _"
 
 msgid "Password is required"
-msgstr "CN:  Password is required"
+msgstr "CN: Password is required"
 
 #, c-format
 msgid "Password must be at least %d characters long"
-msgstr "CN:  Password must be at least %d characters long"
+msgstr "CN: Password must be at least %d characters long"
 
 #, c-format
 msgid "Password may be at most %d characters long"
-msgstr "CN:  Password may be at most %d characters long"
+msgstr "CN: Password may be at most %d characters long"
 
 msgid "Passphrase is required"
-msgstr "CN:  Passphrase is required"
+msgstr "CN: Passphrase is required"
 
 msgid "Passphrase may only contain 7-bit, printable characters"
-msgstr "CN:  Passphrase may only contain 7-bit, printable characters"
+msgstr "CN: Passphrase may only contain 7-bit, printable characters"
 
 #, c-format
 msgid "Passphrase must be at least %d characters long"
-msgstr "CN:  Passphrase must be at least %d characters long"
+msgstr "CN: Passphrase must be at least %d characters long"
 
 #, c-format
 msgid "Passphrase may be at most %d characters long"
-msgstr "CN:  Passphrase may be at most %d characters long"
+msgstr "CN: Passphrase may be at most %d characters long"
 
 msgid "Disk Encryption Passphrase"
-msgstr "CN:  Disk Encryption Passphrase"
+msgstr "CN: Disk Encryption Passphrase"
 
 msgid "Confirm Passphrase"
-msgstr "CN:  Confirm Passphrase"
+msgstr "CN: Confirm Passphrase"
 
 #, c-format
 msgid "Label too long, max is %d"
-msgstr "CN:  Label too long, max is %d"
+msgstr "CN: Label too long, max is %d"
 
 msgid "Invalid label characters"
-msgstr "CN:  Invalid label characters"
+msgstr "CN: Invalid label characters"
 
 msgid "Invalid size, may only be suffixed by: B, K, M, G, T or P"
-msgstr "CN:  Invalid size, may only be suffixed by: B, K, M, G, T or P"
+msgstr "CN: Invalid size, may only be suffixed by: B, K, M, G, T or P"
 
 msgid "Invalid size"
-msgstr "CN:  Invalid size"
+msgstr "CN: Invalid size"
 
 msgid "Size too small"
-msgstr "CN:  Size too small"
+msgstr "CN: Size too small"
 
 msgid "Unknown free space"
-msgstr "CN:  Unknown free space"
+msgstr "CN: Unknown free space"
 
 msgid "Size too large"
-msgstr "CN:  Size too large"
+msgstr "CN: Size too large"
 
 msgid "Encryption"
-msgstr "CN:  Encryption"
+msgstr "CN: Encryption"
 
 msgid "No Media Selected"
-msgstr "CN:  No Media Selected"
+msgstr "CN: No Media Selected"
 
 msgid "Safe Installation"
-msgstr "CN:  Safe Installation"
+msgstr "CN: Safe Installation"
 
 msgid "Install on an unallocated disk or alongside existing partitions."
-msgstr "CN:  Install on an unallocated disk or alongside existing partitions."
+msgstr "CN: Install on an unallocated disk or alongside existing partitions."
 
 msgid "Destructive Installation"
-msgstr "CN:  Destructive Installation"
+msgstr "CN: Destructive Installation"
 
 msgid "Erase all data on selected media and install Clear Linux* OS."
-msgstr "CN:  Erase all data on selected media and install Clear Linux* OS."
+msgstr "CN: Erase all data on selected media and install Clear Linux* OS."
 
 msgid "RESCAN MEDIA"
-msgstr "CN:  RESCAN MEDIA"
+msgstr "CN: RESCAN MEDIA"
 
 msgid "CHANGE LANGUAGE"
-msgstr "CN:  CHANGE LANGUAGE"
+msgstr "CN: CHANGE LANGUAGE"
 
 msgid "Confirm"
-msgstr "CN:  Confirm"
+msgstr "CN: Confirm"
 
 #, c-format
-msgid "You can use alpha-numeric characters and hyphens with a maximum of %d characters"
-msgstr "CN:  You can use alpha-numeric characters and hyphens with a maximum of %d characters"
+msgid "Can use alpha-numeric characters and - with a maximum of %d characters."
+msgstr "CN: Can use alpha-numeric characters and - with a maximum of %d characters."
 
 msgid "Welcome to Clear Linux* OS Desktop Installation"
 msgstr "欢迎 安装 Clear Linux* OS 桌面"
@@ -371,18 +338,40 @@ msgstr "欢迎 安装 Clear Linux* OS 桌面"
 msgid "Thank you for choosing Clear Linux* OS"
 msgstr "感谢您选择 Clear Linux* OS"
 
-msgid ""
-"Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "
-"These reports only relate to operating system details. No personally identifiable information is collected."
-msgstr ""
-"允许 Clear Linux* OS 收集匿名报告来提高系统稳定性？ "
-"这些报告仅与操作系统详细信息相关。不会收集个人可识别信息。"
-
 msgid "No safe media found for installation"
 msgstr "CN: No safe media found for installation"
 
+#, c-format
+msgid "Updating partition table for: %s"
+msgstr "CN: Updating partition table for: %s"
+
 msgid "admin"
 msgstr "CN: admin"
+
+msgid "pre-install"
+msgstr "CN: pre-install"
+
+msgid "post-install"
+msgstr "CN: post-install"
+
+#, c-format
+msgid "Setting Language locale to %s"
+msgstr "CN: Setting Language locale to %s"
+
+msgid "Installing base OS and configured bundles"
+msgstr "CN: Installing base OS and configured bundles"
+
+msgid "Disabling automatic updates"
+msgstr "CN: Disabling automatic updates"
+
+msgid "Disabling automatic updates failed"
+msgstr "CN: Disabling automatic updates failed"
+
+msgid "Searching the system for available media."
+msgstr "CN: Searching the system for available media."
+
+msgid "Please wait."
+msgstr "CN: Please wait."
 
 # Used only in Installer desktop icon
 msgid "Install Clear Linux* OS"
@@ -392,3 +381,71 @@ msgstr "CN: Install Clear Linux* OS"
 msgid "Clear Linux* OS Installer"
 msgstr "CN: Clear Linux* OS Installer"
 
+msgid "Common set of prebuilt R libraries"
+msgstr "CN: Common set of prebuilt R libraries"
+
+msgid "Run a cloud orchestration server"
+msgstr "CN: Run a cloud orchestration server"
+
+msgid "Build the containers-basic bundle"
+msgstr "CN: Build the containers-basic bundle"
+
+msgid "Applications for the desktop"
+msgstr "CN: Applications for the desktop"
+
+msgid "UI that automatically starts on boot"
+msgstr "CN: UI that automatically starts on boot"
+
+msgid "Utilities to assist application development"
+msgstr "CN: Utilities to assist application development"
+
+msgid "Popular text editors (terminal-based)"
+msgstr "CN: Popular text editors (terminal-based)"
+
+msgid "GNU Image Manipulation Program"
+msgstr "CN: GNU Image Manipulation Program"
+
+msgid "Build and run go language programs"
+msgstr "CN: Build and run go language programs"
+
+msgid "Build and run java language programs"
+msgstr "CN: Build and run java language programs"
+
+msgid "LibreOffice - Free Office Suite"
+msgstr "CN: LibreOffice - Free Office Suite"
+
+msgid "Build machine learning applications"
+msgstr "CN: Build machine learning applications"
+
+msgid "Network utilities and settings"
+msgstr "CN: Network utilities and settings"
+
+msgid "Run any Clear Linux dev. process"
+msgstr "CN: Run any Clear Linux dev. process"
+
+msgid "Utilities for creating, building, and managing packages"
+msgstr "CN: Utilities for creating, building, and managing packages"
+
+msgid "Run perl language programs"
+msgstr "CN: Run perl language programs"
+
+msgid "Multi-protocol instant messagging (IM) client"
+msgstr "CN: Multi-protocol instant messagging (IM) client"
+
+msgid "Run legacy python language programs"
+msgstr "CN: Run legacy python language programs"
+
+msgid "Run python language programs"
+msgstr "CN: Run python language programs"
+
+msgid "Python data-science stack http://pydata.org"
+msgstr "CN: Python data-science stack http://pydata.org"
+
+msgid "Common utilities to manage a system"
+msgstr "CN: Common utilities to manage a system"
+
+msgid "Captures most console work flows"
+msgstr "CN: Captures most console work flows"
+
+msgid "Packages to build the user-basic bundle"
+msgstr "CN: Packages to build the user-basic bundle"

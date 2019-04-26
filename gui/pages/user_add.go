@@ -76,7 +76,7 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 
 	// Name
 	page.name, page.nameWarning, err = page.setSimilarWidgets(utils.Locale.Get("User Name"),
-		utils.Locale.Get("Must start with letter. Can use numbers, hyphens and underscores. Max %d characters.", user.MaxUsernameLength),
+		utils.Locale.Get("Must start with letter. Can use numbers, commas, - and _. Max %d characters.", user.MaxUsernameLength),
 		user.MaxUsernameLength)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 
 	// Login
 	page.login, page.loginWarning, err = page.setSimilarWidgets(utils.Locale.Get("Login")+" *",
-		utils.Locale.Get("Must start with letter. Can use numbers, hyphens and underscores. Max %d characters.", user.MaxLoginLength),
+		utils.Locale.Get("Must start with letter. Can use numbers, - and _. Max %d characters.", user.MaxLoginLength),
 		user.MaxLoginLength)
 	if err != nil {
 		return nil, err

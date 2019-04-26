@@ -61,9 +61,6 @@ msgstr "Enable Telemetry"
 msgid "No additional bundles selected"
 msgstr "No additional bundles selected"
 
-msgid "You can use alpha-numeric characters and hyphens with a maximum of 63 characters"
-msgstr "You can use alpha-numeric characters and hyphens with a maximum of 63 characters"
-
 msgid "Hostname can only start with alpha-numeric"
 msgstr "Hostname can only start with alpha-numeric"
 
@@ -77,12 +74,11 @@ msgstr "Hostname can only have a maximum of %d characters"
 msgid "No target system hostname assigned"
 msgstr "No target system hostname assigned"
 
-msgid ""
-"Allow the Clear Linux* OS to collect anonymous reports to improve system stability?"
-"These reports only relate to operating system details. No personally identifiable information is collected."
-msgstr ""
-"Allow the Clear Linux* OS to collect anonymous reports to improve system stability?"
-"These reports only relate to operating system details. No personally identifiable information is collected."
+msgid "Allow the Clear Linux* OS to collect anonymous reports to improve system stability?"
+msgstr "Allow the Clear Linux* OS to collect anonymous reports to improve system stability?"
+
+msgid "These reports only relate to operating system details. No personally identifiable information is collected."
+msgstr "These reports only relate to operating system details. No personally identifiable information is collected."
 
 msgid "Intel's privacy policy can be found at: http://www.intel.com/privacy."
 msgstr "Intel's privacy policy can be found at: http://www.intel.com/privacy."
@@ -104,8 +100,8 @@ msgstr "Testing connectivity"
 msgid "Writing partition table to: %s"
 msgstr "Writing partition table to: %s"
 
-msgid "Adjusting filesystem configurations "
-msgstr "Adjusting filesystem configurations "
+msgid "Adjusting filesystem configurations"
+msgstr "Adjusting filesystem configurations"
 
 #, c-format
 msgid "Writing %s file system to %s"
@@ -116,13 +112,6 @@ msgstr "Writing mount files"
 
 msgid "Installing the base system"
 msgstr "Installing the base system"
-
-#, c-format
-msgid "Installing bundle: %s"
-msgstr "Installing bundle: %s"
-
-msgid "Installing boot loader"
-msgstr "Installing boot loader"
 
 msgid "Saving the installation results"
 msgstr "Saving the installation results"
@@ -140,27 +129,11 @@ msgid "This task has not yet completed"
 msgstr "This task has not yet completed"
 
 #, c-format
-msgid "VERSION %d"
-msgstr "VERSION %d"
+msgid "VERSION %s"
+msgstr "VERSION %s"
 
 msgid "Select Installation Media"
 msgstr "Select Installation Media"
-
-msgid "Safe Installation: Using Free Space"
-msgstr "Safe Installation: Using Free Space"
-
-msgid ""
-"Uses non-partitioned or GPT partitioned media with free space."
-"Install alongside existing data or OS if adequate space is available."
-msgstr ""
-"Uses non-partitioned or GPT partitioned media with free space."
-"Install alongside existing data or OS if adequate space is available."
-
-msgid "Destructive Installation: Overwrites Media"
-msgstr "Destructive Installation: Overwrites Media"
-
-msgid "Erases selected media and overwrites with Clear Linux* OS."
-msgstr "Erases selected media and overwrites with Clear Linux* OS."
 
 msgid "Enable Encryption"
 msgstr "Enable Encryption"
@@ -193,16 +166,6 @@ msgstr "Warning: %s"
 msgid "Launch Disk Utility"
 msgstr "Launch Disk Utility"
 
-#, c-format
-msgid ""
-"Launch an external program ( %s ) to modify the selected disk in an attempt to allocate enough free disk space to allow the installation to succeed."
-"Only disk with a 'GPT' partition can be modified."
-"NOTE: The tool can only resize the partition, NOT the filesystem!"
-msgstr ""
-"Launch an external program ( %s ) to modify the selected disk in an attempt to allocate enough free disk space to allow the installation to succeed."
-"Only disk with a 'GPT' partition can be modified."
-"NOTE: The tool can only resize the partition, NOT the filesystem!"
-
 msgid "No media found for modification"
 msgstr "No media found for modification"
 
@@ -218,8 +181,12 @@ msgid "Add User"
 msgstr "Add User"
 
 #, c-format
-msgid "Must start with letter. Can use numbers, hyphens and underscores. Max %d characters."
-msgstr "Must start with letter. Can use numbers, hyphens and underscores. Max %d characters."
+msgid "Must start with letter. Can use numbers, commas, - and _. Max %d characters."
+msgstr "Must start with letter. Can use numbers, commas, - and _. Max %d characters."
+
+#, c-format
+msgid "Must start with letter. Can use numbers, - and _. Max %d characters."
+msgstr "Must start with letter. Can use numbers, - and _. Max %d characters."
 
 #, c-format
 msgid "Min %d and Max %d characters."
@@ -362,8 +329,8 @@ msgid "Confirm"
 msgstr "Confirm"
 
 #, c-format
-msgid "You can use alpha-numeric characters and hyphens with a maximum of %d characters"
-msgstr "You can use alpha-numeric characters and hyphens with a maximum of %d characters"
+msgid "Can use alpha-numeric characters and - with a maximum of %d characters."
+msgstr "Can use alpha-numeric characters and - with a maximum of %d characters."
 
 msgid "Welcome to Clear Linux* OS Desktop Installation"
 msgstr "Welcome to Clear Linux* OS Desktop Installation"
@@ -371,18 +338,40 @@ msgstr "Welcome to Clear Linux* OS Desktop Installation"
 msgid "Thank you for choosing Clear Linux* OS"
 msgstr "Thank you for choosing Clear Linux* OS"
 
-msgid ""
-"Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "
-"These reports only relate to operating system details. No personally identifiable information is collected."
-msgstr ""
-"Allow the Clear Linux* OS to collect anonymous reports to improve system stability? "
-"These reports only relate to operating system details. No personally identifiable information is collected."
-
 msgid "No safe media found for installation"
 msgstr "No safe media found for installation"
 
+#, c-format
+msgid "Updating partition table for: %s"
+msgstr "Updating partition table for: %s"
+
 msgid "admin"
 msgstr "admin"
+
+msgid "pre-install"
+msgstr "pre-install"
+
+msgid "post-install"
+msgstr "post-install"
+
+#, c-format
+msgid "Setting Language locale to %s"
+msgstr "Setting Language locale to %s"
+
+msgid "Installing base OS and configured bundles"
+msgstr "Installing base OS and configured bundles"
+
+msgid "Disabling automatic updates"
+msgstr "Disabling automatic updates"
+
+msgid "Disabling automatic updates failed"
+msgstr "Disabling automatic updates failed"
+
+msgid "Searching the system for available media."
+msgstr "Searching the system for available media."
+
+msgid "Please wait."
+msgstr "Please wait."
 
 # Used only in Installer desktop icon
 msgid "Install Clear Linux* OS"
@@ -392,3 +381,71 @@ msgstr "Install Clear Linux* OS"
 msgid "Clear Linux* OS Installer"
 msgstr "Clear Linux* OS Installer"
 
+msgid "Common set of prebuilt R libraries"
+msgstr "Common set of prebuilt R libraries"
+
+msgid "Run a cloud orchestration server"
+msgstr "Run a cloud orchestration server"
+
+msgid "Build the containers-basic bundle"
+msgstr "Build the containers-basic bundle"
+
+msgid "Applications for the desktop"
+msgstr "Applications for the desktop"
+
+msgid "UI that automatically starts on boot"
+msgstr "UI that automatically starts on boot"
+
+msgid "Utilities to assist application development"
+msgstr "Utilities to assist application development"
+
+msgid "Popular text editors (terminal-based)"
+msgstr "Popular text editors (terminal-based)"
+
+msgid "GNU Image Manipulation Program"
+msgstr "GNU Image Manipulation Program"
+
+msgid "Build and run go language programs"
+msgstr "Build and run go language programs"
+
+msgid "Build and run java language programs"
+msgstr "Build and run java language programs"
+
+msgid "LibreOffice - Free Office Suite"
+msgstr "LibreOffice - Free Office Suite"
+
+msgid "Build machine learning applications"
+msgstr "Build machine learning applications"
+
+msgid "Network utilities and settings"
+msgstr "Network utilities and settings"
+
+msgid "Run any Clear Linux dev. process"
+msgstr "Run any Clear Linux dev. process"
+
+msgid "Utilities for creating, building, and managing packages"
+msgstr "Utilities for creating, building, and managing packages"
+
+msgid "Run perl language programs"
+msgstr "Run perl language programs"
+
+msgid "Multi-protocol instant messagging (IM) client"
+msgstr "Multi-protocol instant messagging (IM) client"
+
+msgid "Run legacy python language programs"
+msgstr "Run legacy python language programs"
+
+msgid "Run python language programs"
+msgstr "Run python language programs"
+
+msgid "Python data-science stack http://pydata.org"
+msgstr "Python data-science stack http://pydata.org"
+
+msgid "Common utilities to manage a system"
+msgstr "Common utilities to manage a system"
+
+msgid "Captures most console work flows"
+msgstr "Captures most console work flows"
+
+msgid "Packages to build the user-basic bundle"
+msgstr "Packages to build the user-basic bundle"
