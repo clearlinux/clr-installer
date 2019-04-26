@@ -465,55 +465,35 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 
 	sw := swupd.New(rootDir, options)
 
-	msg := utils.Locale.Get("Installing the base system")
-	prg := progress.NewLoop(msg)
-	log.Info(msg)
-	if err := sw.Verify(version, model.SwupdMirror, false); err != nil {
-		return prg, err
-	}
-
-	if model.AutoUpdate {
-		if err := sw.Update(); err != nil {
-			return prg, err
-		}
-	} else {
-		log.Info("Skipping initial swupd update due to Disabling of Auto Update")
-		log.Info("Disabling 'swupd autoupdate' on Target")
-		if err := sw.DisableUpdate(); err != nil {
-			log.Warning("Disabling 'swupd autoupdate' on Target FAILED!")
-			return prg, err
-		}
-	}
-	prg.Success()
-
 	bundles := model.Bundles
 
 	if model.Kernel.Bundle != "none" {
 		bundles = append(bundles, model.Kernel.Bundle)
 	}
 
-	for _, bundle := range bundles {
-		// swupd will fail (return exit code 18) if we try to "re-install" a bundle
-		// already installed - with that we need to prevent doing bundle-add for bundles
-		// previously installed by verify operation
-		if swupd.IsCoreBundle(bundle) {
-			log.Debug("Bundle %s was already installed with the core bundles, skipping", bundle)
-			continue
-		}
+	if model.AutoUpdate {
+		version = "latest"
+	}
 
-		msg = utils.Locale.Get("Installing bundle: %s", bundle)
-		prg = progress.NewLoop(msg)
+	msg := utils.Locale.Get("Installing base OS and configured bundles")
+	prg := progress.NewLoop(msg)
+	log.Info(msg)
+	log.Debug("Installing bundles: %s", strings.Join(bundles, ", "))
+	if err := sw.VerifyWithBundles(version, model.SwupdMirror, bundles); err != nil {
+		return prg, err
+	}
+	prg.Success()
+
+	if !model.AutoUpdate {
+		msg := utils.Locale.Get("Disabling automatic updates")
+		prg := progress.NewLoop(msg)
 		log.Info(msg)
-		if err := sw.BundleAdd(bundle); err != nil {
-			// Attempt to continue the installation for non-core bundles
-			if errLog := model.Telemetry.LogRecord("swupd", 2, "Failed to install bundle: "+bundle); errLog != nil {
-				log.Error("Failed to log Telemetry record for failed bundled: " + bundle)
-			}
-			log.Error("Failed to install bundle: %s", bundle)
-			prg.Failure()
-		} else {
-			prg.Success()
+		if err := sw.DisableUpdate(); err != nil {
+			warnMsg := utils.Locale.Get("Disabling automatic updates failed")
+			log.Warning(warnMsg)
+			return prg, err
 		}
+		prg.Success()
 	}
 
 	msg = utils.Locale.Get("Installing boot loader")
