@@ -170,6 +170,72 @@ func (s *SoftwareUpdater) Verify(version string, mirror string, verifyOnly bool)
 	return nil
 }
 
+// VerifyWithBundles runs "swupd verify" operation with all bundles
+func (s *SoftwareUpdater) VerifyWithBundles(version string, mirror string, bundles []string) error {
+	args := []string{
+		"swupd",
+		"verify",
+	}
+
+	args = s.setExtraFlags(args)
+
+	if mirror != "" {
+		args = append(args, fmt.Sprintf("--url=%s", mirror))
+	}
+	args = append(args,
+		[]string{
+			fmt.Sprintf("--path=%s", s.rootDir),
+			fmt.Sprintf("--statedir=%s", s.stateDir),
+			"--install",
+			"-m",
+			version,
+			"--force",
+			"--no-scripts",
+			"-B",
+		}...)
+
+	// Remove the 'os-core' bundle as it is already
+	// installed and will cause a failure
+	allBundles := []string{}
+	for _, bundle := range CoreBundles {
+		if bundle != "os-core" {
+			allBundles = append(allBundles, bundle)
+		}
+	}
+	// Additional bundles
+	for _, bundle := range bundles {
+		if IsCoreBundle(bundle) {
+			log.Debug("Bundle %s was already installed with the core bundles, skipping", bundle)
+			continue
+		}
+		allBundles = append(allBundles, bundle)
+	}
+
+	args = append(args, strings.Join(allBundles, ","))
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	if mirror != "" {
+		args = []string{
+			"swupd",
+			"mirror",
+			fmt.Sprintf("--path=%s", s.rootDir),
+			"--set",
+			mirror,
+		}
+
+		err = cmd.RunAndLog(args...)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	}
+
+	return nil
+}
+
 // Update executes the "swupd update" operation
 func (s *SoftwareUpdater) Update() error {
 	args := []string{
