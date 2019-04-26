@@ -239,7 +239,11 @@ update-linters:
 	fi
 
 PHONY += lint
-lint: lint-checkers
+lint: lint-travis-checkers
+	@echo "Travis Linters complete"
+
+PHONY += lint-release
+lint-release: lint-checkers
 	@echo "Linters complete"
 
 PHONY += lint-core
@@ -248,6 +252,11 @@ lint-core: build install-linters gopath
 	@cp -af vendor/* ${LOCAL_GOPATH}/src/
 	@go build -race github.com/clearlinux/clr-installer/...
 	@echo "Running linters"
+
+PHONY += lint-travis-checkers
+lint-travis-checkers: lint-mispell lint-ineffassign lint-gocyclo lint-gofmt \
+lint-golint lint-deadcode lint-varcheck \
+lint-unused lint-vetshadow lint-errcheck
 
 PHONY += lint-checkers
 lint-checkers: lint-mispell lint-vet lint-ineffassign lint-gocyclo lint-gofmt \
