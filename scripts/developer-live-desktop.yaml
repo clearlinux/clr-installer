@@ -37,10 +37,9 @@ targetMedia:
     size: "0"  # Fill the test of the image
     type: part
 
-     #  c-basic,
-     #  Leave this out until the 32-bit issue is fixed
 bundles: [
     bootloader,
+    c-basic,
     clr-installer,
     desktop-autostart,
     editors,
