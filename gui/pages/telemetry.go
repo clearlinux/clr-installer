@@ -94,10 +94,12 @@ func (t *Telemetry) GetTitle() string {
 func (t *Telemetry) StoreChanges() {
 	t.didConfirm = true
 	t.model.EnableTelemetry(t.check.GetActive())
+	t.controller.SetButtonVisible(ButtonCancel, true)
 }
 
 // ResetChanges will reset this page to match the model
 func (t *Telemetry) ResetChanges() {
+	t.controller.SetButtonVisible(ButtonCancel, false)
 	t.controller.SetButtonState(ButtonConfirm, true)
 	t.check.SetActive(t.model.IsTelemetryEnabled())
 }

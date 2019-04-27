@@ -544,6 +544,31 @@ func (window *Window) SetButtonState(flags pages.Button, enabled bool) {
 	}
 }
 
+// SetButtonVisible is called by the pages to view/hide certain buttons.
+func (window *Window) SetButtonVisible(flags pages.Button, visible bool) {
+	if window.menu.currentPage.GetID() != pages.PageIDWelcome {
+		if flags&pages.ButtonCancel == pages.ButtonCancel {
+			window.buttons.cancel.SetVisible(visible)
+		}
+		if flags&pages.ButtonConfirm == pages.ButtonConfirm {
+			window.buttons.confirm.SetVisible(visible)
+		}
+		if flags&pages.ButtonQuit == pages.ButtonQuit {
+			window.buttons.quit.SetVisible(visible)
+		}
+		if flags&pages.ButtonBack == pages.ButtonBack {
+			window.buttons.back.SetVisible(visible)
+		}
+	} else {
+		if flags&pages.ButtonNext == pages.ButtonNext {
+			window.buttons.next.SetVisible(visible)
+		}
+		if flags&pages.ButtonExit == pages.ButtonExit {
+			window.buttons.exit.SetVisible(visible)
+		}
+	}
+}
+
 // launchWelcomeView launches the welcome view
 func (window *Window) launchWelcomeView() {
 	window.mainLayout.Remove(window.contentLayout)

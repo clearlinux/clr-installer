@@ -62,6 +62,7 @@ type Page interface {
 type Controller interface {
 	ActivatePage(Page)
 	SetButtonState(flags Button, enabled bool)
+	SetButtonVisible(flags Button, enabled bool)
 	GetRootDir() string
 	GetOptions() args.Args
 }
