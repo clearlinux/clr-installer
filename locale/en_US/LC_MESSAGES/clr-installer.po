@@ -13,9 +13,6 @@ msgstr "EXIT"
 msgid "NEXT"
 msgstr "NEXT"
 
-msgid "QUIT"
-msgstr "QUIT"
-
 msgid "BACK"
 msgstr "BACK"
 
@@ -48,9 +45,6 @@ msgstr "Manage User"
 
 msgid "Assign Hostname"
 msgstr "Assign Hostname"
-
-msgid "No usable media found"
-msgstr "No usable media found"
 
 msgid "Enabled"
 msgstr "Enabled"
@@ -138,9 +132,6 @@ msgstr "Select Installation Media"
 msgid "Enable Encryption"
 msgstr "Enable Encryption"
 
-msgid "Disk Utility"
-msgstr "Disk Utility"
-
 msgid "Configure Installation Media"
 msgstr "Configure Installation Media"
 
@@ -162,15 +153,6 @@ msgstr "No -media- selected"
 #, c-format
 msgid "Warning: %s"
 msgstr "Warning: %s"
-
-msgid "Launch Disk Utility"
-msgstr "Launch Disk Utility"
-
-msgid "No media found for modification"
-msgstr "No media found for modification"
-
-msgid "Modify Disk"
-msgstr "Modify Disk"
 
 # TRANSLATION SET: 2
 
