@@ -138,11 +138,14 @@ msgstr "Configurar medios de instalación"
 msgid "Partial"
 msgstr "Parcial"
 
-msgid "Full Disk"
-msgstr "Disco completo"
+msgid "Entire Disk"
+msgstr "MX: Entire Disk"
 
 msgid "Erase Disk"
 msgstr "Borrar disco"
+
+msgid "Advanced"
+msgstr "MX: Advanced"
 
 msgid "No media found for installation"
 msgstr "No se encontraron medios para instalar."
@@ -348,6 +351,9 @@ msgstr "MX: Disabling automatic updates"
 
 msgid "Disabling automatic updates failed"
 msgstr "MX: Disabling automatic updates failed"
+
+msgid "Installing boot loader"
+msgstr "MX: Installing boot loader"
 
 msgid "Searching the system for available media."
 msgstr "MX: Searching the system for available media."
