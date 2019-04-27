@@ -66,6 +66,14 @@ chroot $CHROOTPATH su - clrlinux -c \
        "dbus-run-session \
         dconf write /org/gnome/shell/favorite-apps \"$FAVORITE_APPS\""
 
+# Disable auto-mount of media as it will be excluded from install targets
+chroot $CHROOTPATH su - clrlinux -c \
+       "dbus-run-session \
+        dconf write /org/gnome/desktop/media-handling/automount false"
+chroot $CHROOTPATH su - clrlinux -c \
+       "dbus-run-session \
+        dconf write /org/gnome/desktop/media-handling/automount-open false"
+
 exit 0
 
 # Editor modelines  -  https://www.wireshark.org/tools/modelines.html
