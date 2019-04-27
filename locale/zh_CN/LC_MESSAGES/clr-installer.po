@@ -138,11 +138,14 @@ msgstr "配置安装介质"
 msgid "Partial"
 msgstr "部分"
 
-msgid "Full Disk"
-msgstr "全磁盘"
+msgid "Entire Disk"
+msgstr "CN: Entire Disk"
 
 msgid "Erase Disk"
 msgstr "擦除磁盘"
+
+msgid "Advanced"
+msgstr "CN: Advanced"
 
 msgid "No media found for installation"
 msgstr "未找到安装介质"
@@ -348,6 +351,9 @@ msgstr "CN: Disabling automatic updates"
 
 msgid "Disabling automatic updates failed"
 msgstr "CN: Disabling automatic updates failed"
+
+msgid "Installing boot loader"
+msgstr "CN: Installing boot loader"
 
 msgid "Searching the system for available media."
 msgstr "CN: Searching the system for available media."

@@ -138,11 +138,14 @@ msgstr "Configure Installation Media"
 msgid "Partial"
 msgstr "Partial"
 
-msgid "Full Disk"
-msgstr "Full Disk"
+msgid "Entire Disk"
+msgstr "Entire Disk"
 
 msgid "Erase Disk"
 msgstr "Erase Disk"
+
+msgid "Advanced"
+msgstr "Advanced"
 
 msgid "No media found for installation"
 msgstr "No media found for installation"
@@ -348,6 +351,9 @@ msgstr "Disabling automatic updates"
 
 msgid "Disabling automatic updates failed"
 msgstr "Disabling automatic updates failed"
+
+msgid "Installing boot loader"
+msgstr "Installing boot loader"
 
 msgid "Searching the system for available media."
 msgstr "Searching the system for available media."
