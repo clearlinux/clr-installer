@@ -13,9 +13,6 @@ msgstr "退出"
 msgid "NEXT"
 msgstr "下一步"
 
-msgid "QUIT"
-msgstr "退出"
-
 msgid "BACK"
 msgstr "后退"
 
@@ -48,9 +45,6 @@ msgstr "管理用户"
 
 msgid "Assign Hostname"
 msgstr "分配主机名"
-
-msgid "No usable media found"
-msgstr "未找到任何可用介质"
 
 msgid "Enabled"
 msgstr "已启用"
@@ -138,9 +132,6 @@ msgstr "选择安装介质"
 msgid "Enable Encryption"
 msgstr "启用加密"
 
-msgid "Disk Utility"
-msgstr "磁盘实用程序"
-
 msgid "Configure Installation Media"
 msgstr "配置安装介质"
 
@@ -162,15 +153,6 @@ msgstr "未选择任何介质"
 #, c-format
 msgid "Warning: %s"
 msgstr "警告：%s"
-
-msgid "Launch Disk Utility"
-msgstr "启动磁盘实用程序"
-
-msgid "No media found for modification"
-msgstr "未找到要修改的介质"
-
-msgid "Modify Disk"
-msgstr "修改磁盘"
 
 # TRANSLATION SET: 2
 
