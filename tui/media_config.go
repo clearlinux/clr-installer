@@ -211,6 +211,8 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 	page.group.AddItem(page.safeRadio)
 	page.safeRadio.OnChange(func(active bool) {
 		if active {
+			page.labelWarning.SetTitle("")
+			page.labelDestructive.SetTitle("")
 			page.isDestructiveSelected = false
 		}
 		// Disable the Confirm Button if we toggled
@@ -223,14 +225,10 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 
 		if active {
 			if len(page.safeTargets) < 1 {
-				if active {
-					warning := "No media or space available for installation"
-					log.Warning(warning)
-					warning = fmt.Sprintf("Warning: %s", warning)
-					page.labelWarning.SetTitle(warning)
-				}
-			} else {
-				page.labelDestructive.SetTitle("")
+				warning := "No media or space available for installation"
+				log.Warning(warning)
+				warning = fmt.Sprintf("Warning: %s", warning)
+				page.labelWarning.SetTitle(warning)
 			}
 		}
 	})
@@ -246,6 +244,8 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 	page.group.AddItem(page.destructiveRadio)
 	page.destructiveRadio.OnChange(func(active bool) {
 		if active {
+			page.labelWarning.SetTitle("")
+			page.labelDestructive.SetTitle("")
 			page.isSafeSelected = false
 		}
 		// Disable the Confirm Button if we toggled
