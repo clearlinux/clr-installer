@@ -41,6 +41,8 @@ bundles: [
     bootloader,
     c-basic,
     clr-installer,
+    NetworkManager, # Add this to clr-installer-gui
+    gparted, # Add this to clr-installer-gui
     desktop-autostart,
     editors,
     gimp,
