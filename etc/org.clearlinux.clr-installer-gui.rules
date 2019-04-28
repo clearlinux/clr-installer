@@ -1,0 +1,9 @@
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.clearlinux.clr-installer-gui.start") {
+            if (subject.isInGroup("wheel")) {
+                return polkit.Result.YES;
+            } else {
+                return polkit.Result.AUTH_ADMIN;
+            }
+    }
+});

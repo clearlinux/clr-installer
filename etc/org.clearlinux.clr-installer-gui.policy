@@ -3,12 +3,16 @@
 "http://www.freedesktop.org/software/polkit/policyconfig-1.dtd">
 <policyconfig>
 
-  <vendor>Clear Linux OS Installer</vendor>
+  <vendor>Clear Linux* OS Installer</vendor>
   <vendor_url>https://github.com/clearlinux/clr-installer</vendor_url>
 
-  <action id="org.clearlinux.clr-installer.start">
-    <description>Install Clear Linux OS</description>
-    <message>Authentication is required to install Clear Linux OS</message>
+  <action id="org.clearlinux.clr-installer-gui.start">
+    <description>Install Clear Linux* OS</description>
+    <description xml:lang="es_MX">MX: Install Clear Linux* OS</description>
+    <description xml:lang="zh_CN">CN: Install Clear Linux* OS</description>
+    <message>Authentication is required to install Clear Linux* OS</message>
+    <message xml:lang="es_MX">MX: Authentication is required to install Clear Linux* OS</message>
+    <message xml:lang="zh_CN">CN: Authentication is required to install Clear Linux* OS</message>
     <defaults>
       <allow_any>no</allow_any>
       <allow_inactive>no</allow_inactive>

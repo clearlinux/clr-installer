@@ -2,13 +2,14 @@
 Type=Application
 Encoding=UTF-8
 Name=Install Clear Linux* OS
-Name[es]=MX: Install Clear Linux* OS
+Name[es_MX]=MX: Install Clear Linux* OS
 Name[zh_CN]=CN: Install Clear Linux* OS
 Comment=Clear Linux* OS Installer
-Comment[es]=MX: Clear Linux* OS Installer
+Comment[es_MX]=MX: Clear Linux* OS Installer
 Comment[zh_CN]=MX: Clear Linux* OS Installer
 Icon=/usr/share/clr-installer/themes/clr.png
-Exec=sudo /usr/bin/clr-installer-gui
+Exec=pkexec /usr/bin/clr-installer-gui
+StartupWMClass=clr-installer-gui
 Terminal=false
 Categories=X-GNOME-Settings-Panel;GTK;System;Settings;
 Keywords=Install;SystemSettings;
