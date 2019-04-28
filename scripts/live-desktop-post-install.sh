@@ -58,7 +58,7 @@ kernel: kernel-native
 DESKTOP_YAML_DEFAULT
 chmod 644 $VAR_DIR/clr-installer.yaml
 
-FAVORITE_APPS="['clr-installer.desktop', 'org.gnome.Terminal.desktop', \
+FAVORITE_APPS="['clr-installer-gui.desktop', 'org.gnome.Terminal.desktop', \
        'org.gnome.Nautilus.desktop', 'firefox.desktop', \
        'org.gnome.Evolution.desktop']"
 
