@@ -77,10 +77,6 @@
       "desc": "Run python language programs"
     },
     {
-      "name": "pythons-data-science",
-      "desc": "Python data-science stack http://pydata.org"
-    },
-    {
       "name": "sysadmin-basic",
       "desc": "Common utilities to manage a system"
     },
