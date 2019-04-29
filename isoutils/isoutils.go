@@ -302,7 +302,7 @@ func mkEfiBoot() error {
 		}
 	}
 
-	/* Modify loader/entries/Clear-linux-*, add initrd= line and remove ROOT= and rootwait from kernel command line options */
+	/* Modify loader/entries/Clear-linux-*, add initrd= line and remove ROOT= from kernel command line options */
 	entriesGlob, err := filepath.Glob(tmpPaths[clrEfi] + "/loader/entries/Clear-linux-*")
 	if err != nil || len(entriesGlob) != 1 {
 		prg.Failure()
@@ -317,28 +317,24 @@ func mkEfiBoot() error {
 		return err
 	}
 
-	/* Replace current options line with initrd information */
+	/* Replace current options line with initrd information, extract options line for modification */
 	lines := strings.Split(string(input), "\n")
+	var optionsLine string
 	for i, line := range lines {
 		if strings.Contains(line, "options") {
+			optionsLine = line
 			lines[i] = "initrd /EFI/BOOT/initrd.gz"
 		}
 	}
 
-	/* Pull kernel options from FS, add them to the buffer, write the file */
-	optionsGlob, err := filepath.Glob(tmpPaths[clrRootfs] + "/usr/lib/kernel/cmdline*")
-	if err != nil || len(optionsGlob) > 1 { // Fail if there's >1 kernel(s)
-		prg.Failure()
-		log.Error("Failed to determine kernel boot params for initrd")
-		return err
+	options := strings.Split(optionsLine, " ")
+	for i, option := range options {
+		if strings.Contains(option, "PARTUUID") {
+			options = append(options[:i], options[i+1:]...) //remove slice from options
+			break                                           //no other ops
+		}
 	}
-	optionsFile, err := ioutil.ReadFile(optionsGlob[0])
-	if err != nil {
-		prg.Failure()
-		log.Error("Cannot read kernel options file from rootfs")
-		return err
-	}
-	lines = append(lines, "options "+string(optionsFile))
+	lines = append(lines, strings.Join(options, " "))
 
 	err = ioutil.WriteFile(entriesGlob[0], []byte(strings.Join(lines, "\n")), 0644)
 	if err != nil {
@@ -361,6 +357,7 @@ func mkEfiBoot() error {
 		}
 	}
 
+	/* Unmount EFI partition here, because this must be unmounted when calling xorriso! */
 	if err := syscall.Unmount(tmpPaths[clrEfi], syscall.MNT_FORCE|syscall.MNT_DETACH); err != nil {
 		prg.Failure()
 		return err
@@ -422,7 +419,7 @@ func mkLegacyBoot(templatePath string) error {
 	}
 
 	/* Find the (kernel boot) options file, load it into bc.Options */
-	optionsGlob, err := filepath.Glob(tmpPaths[clrRootfs] + "/lib/kernel/cmdline*")
+	optionsGlob, err := filepath.Glob(tmpPaths[clrImgEfi] + "/loader/entries/Clear-linux-*")
 	if err != nil || len(optionsGlob) > 1 { // Fail if there's >1 match
 		prg.Failure()
 		log.Error("Failed to determine boot options for kernel")
@@ -434,7 +431,23 @@ func mkLegacyBoot(templatePath string) error {
 		log.Error("Failed to read options file from rootfs")
 		return err
 	}
-	bc.Options = string(optionsFile)
+
+	/* Read options from the EFI partition, remove the string 'options' and root=PARTUUID from the options line */
+	lines := strings.Split(string(optionsFile), "\n")
+	var optionsLine string
+	for _, line := range lines {
+		if strings.Contains(line, "options") {
+			optionsLine = line
+		}
+	}
+
+	options := strings.Split(optionsLine, " ")
+	for i, option := range options {
+		if strings.Contains(option, "options") || strings.Contains(option, "PARTUUID") {
+			options[i] = ""
+		}
+	}
+	bc.Options = string(strings.Join(options, " "))
 
 	/* Fill boot options in isolinux.cfg */
 	tmpl, err := ioutil.ReadFile(templatePath + "/isolinux.cfg.template")
@@ -507,7 +520,7 @@ func cleanup() {
 
 	/* In case something fails during mkEfiBoot, check and umount clrImgEfi */
 	if err = syscall.Unmount(tmpPaths[clrEfi], syscall.MNT_FORCE|syscall.MNT_DETACH); err != nil {
-		//Failed to unmount, usually the normal case but could bee umount actually failed.
+		// Failed to unmount, usually the normal case, but could be umount actually failed.
 	}
 
 	/* Remove all directories in /tmp/clr_* */
