@@ -418,6 +418,11 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		prg.Success()
 	}
 
+	msg = utils.Locale.Get("Installation Completed")
+	prg = progress.NewLoop(msg)
+	log.Info(msg)
+	prg.Success()
+
 	return nil
 }
 
