@@ -60,6 +60,7 @@ postArchive: false
 postReboot: false
 telemetry: false
 iso: true
+autoUpdate: false
 
 keyboard: us
 language: en_US.UTF-8
