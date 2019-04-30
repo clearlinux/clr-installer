@@ -12,6 +12,7 @@ import (
 	term "github.com/nsf/termbox-go"
 
 	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/storage"
 )
 
 // ConfirmInstallDialog is dialog window use to stop all other
@@ -28,13 +29,6 @@ type ConfirmInstallDialog struct {
 	cancelButton  *SimpleButton
 	confirmButton *SimpleButton
 }
-
-var (
-	safeWholeWarning   = "Selected media will be partitioned."
-	safePartialWarning = "Selected media will have partitions added."
-	descructiveWarning = "WARNING: Selected media will be erased."
-	dataLossWarning    = "WARNING: Selected media will have data loss."
-)
 
 // OnClose sets the callback that is called when the
 // dialog is closed
@@ -58,7 +52,6 @@ func (dialog *ConfirmInstallDialog) Close() {
 
 func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 
-	const title = "Confirm Installation"
 	const wBuff = 5
 	const hBuff = 5
 	const dWidth = 50
@@ -80,7 +73,7 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 	}
 	posY = y + posY
 
-	dialog.DialogBox = clui.AddWindow(posX, posY, dWidth, dHeight, title)
+	dialog.DialogBox = clui.AddWindow(posX, posY, dWidth, dHeight, storage.ConfirmInstallation)
 	dialog.DialogBox.SetTitleButtons(0)
 	dialog.DialogBox.SetMovable(false)
 	dialog.DialogBox.SetSizable(false)
@@ -107,17 +100,17 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 	}
 
 	if dialog.modelSI.InstallSelected.EraseDisk {
-		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, descructiveWarning, 1)
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, storage.DestructiveWarning, 1)
 	} else if dialog.modelSI.InstallSelected.DataLoss {
-		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, dataLossWarning, 1)
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, storage.DataLossWarning, 1)
 	} else if dialog.modelSI.InstallSelected.WholeDisk {
-		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, safeWholeWarning, 1)
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, storage.SafeWholeWarning, 1)
 	} else {
-		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, safePartialWarning, 1)
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, storage.SafePartialWarning, 1)
 	}
 	dialog.warningLabel.SetMultiline(true)
 
-	dialog.mediaLabel = clui.CreateLabel(borderFrame, 1, 1, "Target Media: "+strings.Join(targets, ", "), 1)
+	dialog.mediaLabel = clui.CreateLabel(borderFrame, 1, 1, "Target Media"+": "+strings.Join(targets, ", "), 1)
 	dialog.mediaLabel.SetMultiline(true)
 	if dialog.modelSI.InstallSelected.EraseDisk {
 		dialog.mediaLabel.SetBackColor(term.ColorRed)

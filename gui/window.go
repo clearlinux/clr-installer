@@ -5,13 +5,15 @@
 package gui
 
 import (
-	"log"
+	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
 
 	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/gui/pages"
+	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -404,7 +406,7 @@ func (window *Window) UpdateFooter(store *gtk.Box) error {
 	if window.buttons.install, err = createNavButton(utils.Locale.Get("INSTALL"), "button-confirm"); err != nil {
 		return err
 	}
-	if _, err = window.buttons.install.Connect("clicked", func() { window.launchInstallView() }); err != nil {
+	if _, err = window.buttons.install.Connect("clicked", func() { window.confirmInstall() }); err != nil {
 		return err
 	}
 
@@ -505,6 +507,14 @@ func (window *Window) ActivatePage(page pages.Page) {
 		window.buttons.stack.SetVisibleChildName("primary")
 		window.buttons.install.Hide()
 		window.buttons.back.Hide()
+		sc, err := window.buttons.quit.GetStyleContext()
+		sc.RemoveClass("button-cancel")
+		if err != nil {
+			log.Warning("Error getting style context: ", err) // Just log trivial error
+		} else {
+			sc.AddClass("button-confirm")
+		}
+		window.SetButtonState(pages.ButtonQuit, false)
 	} else {
 		window.menu.switcher.Hide()
 		window.banner.Hide()
@@ -574,7 +584,7 @@ func (window *Window) launchWelcomeView() {
 	window.mainLayout.Remove(window.contentLayout)
 	window.mainLayout.Remove(window.banner.GetRootWidget())
 	if _, err := window.createWelcomePage(); err != nil {
-		log.Fatal(err) // TODO: Handle error
+		log.ErrorError(err) // TODO: Handle error
 	}
 }
 
@@ -582,13 +592,94 @@ func (window *Window) launchWelcomeView() {
 func (window *Window) launchMenuView() {
 	window.menu.currentPage.StoreChanges()
 	if _, err := window.createMenuPages(); err != nil {
-		log.Fatal(err) // TODO: Handle error
+		log.ErrorError(err) // TODO: Handle error
 	}
 }
 
-// launchInstallView launches the install view
-func (window *Window) launchInstallView() {
-	window.ActivatePage(window.menu.installPage)
+// confirmInstall prompts the user for confirmation before installing
+func (window *Window) confirmInstall() {
+	var primaryText, secondaryText string
+
+	if window.model.InstallSelected.EraseDisk {
+		primaryText = utils.Locale.Get(storage.DestructiveWarning)
+	} else if window.model.InstallSelected.DataLoss {
+		primaryText = utils.Locale.Get(storage.DataLossWarning)
+	} else if window.model.InstallSelected.WholeDisk {
+		primaryText = utils.Locale.Get(storage.SafeWholeWarning)
+	} else {
+		primaryText = utils.Locale.Get(storage.SafePartialWarning)
+	}
+
+	// Build the string with the media being modified
+	targets := []string{}
+	if len(window.model.TargetMedias) == 0 {
+		targets = append(targets, utils.Locale.Get("None"))
+	} else {
+		for _, media := range window.model.TargetMedias {
+			targets = append(targets, media.GetDeviceFile())
+		}
+	}
+	secondaryText = utils.Locale.Get("Target Media") + ": " + strings.Join(targets, ", ")
+
+	// Create Message Dialog with customized OK and CANCEL buttons
+	msgDialog := gtk.MessageDialogNew(window.handle, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_NONE, primaryText)
+	msgDialog.SetTitle(utils.Locale.Get(storage.ConfirmInstallation))
+	msgDialog.FormatSecondaryText(secondaryText)
+	msgDialog.SetDefaultSize(200, 100)
+	sc, err := msgDialog.GetStyleContext()
+	if err != nil {
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass("message-dialog")
+	}
+
+	buttonCancel, err := setButton(utils.Locale.Get("CANCEL"), "button-cancel")
+	if err != nil {
+		log.Warning("Error creating button: ", err)
+	}
+	buttonCancel.SetMarginStart(20)
+	buttonCancel.SetMarginEnd(20)
+	msgDialog.AddActionWidget(buttonCancel, gtk.RESPONSE_CANCEL)
+
+	buttonOK, err := setButton(utils.Locale.Get("OK"), "button-confirm")
+	if err != nil {
+		log.Warning("Error creating button: ", err)
+	}
+	buttonOK.SetMarginStart(20)
+	buttonOK.SetMarginEnd(20)
+	msgDialog.AddActionWidget(buttonOK, gtk.RESPONSE_OK)
+
+	msgDialog.ShowAll()
+	_, err = msgDialog.Connect("response", window.dialogResponse)
+	if err != nil {
+		log.Warning("Error connecting message dialog")
+	}
+	msgDialog.Run()
+}
+
+// setButton creates and styles a new gtk Button
+func setButton(text, style string) (*gtk.Button, error) {
+	widget, err := gtk.ButtonNewWithLabel(text)
+	if err != nil {
+		return nil, err
+	}
+
+	sc, err := widget.GetStyleContext()
+	if err != nil {
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass(style)
+	}
+
+	return widget, nil
+}
+
+// dialogResponse handles the response from the dialog message
+func (window *Window) dialogResponse(msgDialog *gtk.MessageDialog, responseType gtk.ResponseType) {
+	if responseType == gtk.RESPONSE_OK {
+		window.ActivatePage(window.menu.installPage)
+	}
+	msgDialog.Destroy()
 }
 
 // GetOptions returns the options given to the window
