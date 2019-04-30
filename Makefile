@@ -169,7 +169,7 @@ check-coverage: build-local-travis
 	@echo "local-travis simulation:"
 	@$(top_srcdir)/.gopath/bin/local-travis
 
-check: gopath
+check: gopath bundle-check
 	@# Ensure no temp files are left behind
 	@LSCMD='ls -lart --ignore="." /tmp'; \
 	SHACMD='ls -art --ignore="." /tmp | sha512sum'; \
@@ -192,6 +192,10 @@ check-clean: gopath
 
 check-root: gopath
 	sudo -E go test ${CHECK_VERBOSE} -cover ${GO_PACKAGE_PREFIX}/...
+
+PHONY += bundle-check
+bundle-check:
+	@${top_srcdir}/scripts/bundle-check.sh
 
 PHONY += coverage
 coverage: build
