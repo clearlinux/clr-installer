@@ -628,7 +628,7 @@ func listBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
 	args := []string{"partprobe", "-s"}
 	err := cmd.RunAndLog(args...)
 	if err != nil {
-		return nil, err
+		log.Warning("PartProbe has non-zero exit status: %s", err)
 	}
 
 	// Exclude memory(1), floppy(2), and SCSI CDROM(11) devices
@@ -643,10 +643,6 @@ func listBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
 	}
 
 	for _, bd := range bds {
-		if err = bd.PartProbe(); err != nil {
-			return nil, err
-		}
-
 		// Read the partition table for the device
 		partTable := bd.getPartitionTable()
 		bd.setPartitionTable(partTable)
