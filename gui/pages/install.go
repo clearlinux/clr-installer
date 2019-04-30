@@ -143,9 +143,6 @@ func (install *InstallPage) StoreChanges() {}
 // ResetChanges begins as our initial execution point as we're only going
 // to get called when showing our page.
 func (install *InstallPage) ResetChanges() {
-	// Disable quit button
-	install.controller.SetButtonState(ButtonBack, false)
-
 	// Validate the model
 	err := install.model.Validate()
 	if err != nil {
@@ -182,7 +179,7 @@ func (install *InstallPage) ResetChanges() {
 				network.PostGuiInstallConf)
 		}()
 		utils.Locale.Get("Installation completed")
-		install.controller.SetButtonState(ButtonBack, true)
+		install.controller.SetButtonState(ButtonQuit, true)
 	}()
 
 }

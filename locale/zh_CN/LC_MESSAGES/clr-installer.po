@@ -437,3 +437,29 @@ msgstr "CN: Captures most console work flows"
 
 msgid "Packages to build the user-basic bundle"
 msgstr "CN: Packages to build the user-basic bundle"
+
+# TRANSLATION SET: 3
+
+msgid "Selected media will be partitioned."
+msgstr "CN: Selected media will be partitioned."
+
+msgid "Selected media will have partitions added."
+msgstr "CN: Selected media will have partitions added."
+
+msgid "WARNING: Selected media will be erased."
+msgstr "CN: WARNING: Selected media will be erased."
+
+msgid "WARNING: Selected media will have data loss."
+msgstr "CN: WARNING: Selected media will have data loss."
+
+msgid "None"
+msgstr "CN: None"
+
+msgid "Target Media"
+msgstr "CN: Target Media"
+
+msgid "Confirm Installation"
+msgstr "CN: Confirm Installation"
+
+msgid "OK"
+msgstr "CN: OK"

@@ -155,3 +155,8 @@ window {
     font-size: 95%;
     font-style: italic;
 }
+
+.message-dialog {
+    background-image: none;
+    background-color: #414449;
+}

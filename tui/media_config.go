@@ -6,7 +6,6 @@ package tui
 
 import (
 	"fmt"
-
 	"github.com/VladimirMarkelov/clui"
 	term "github.com/nsf/termbox-go"
 
@@ -263,7 +262,7 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 				warning = fmt.Sprintf("Warning: %s", warning)
 				page.labelWarning.SetTitle(warning)
 			} else {
-				page.labelDestructive.SetTitle(descructiveWarning)
+				page.labelDestructive.SetTitle(storage.DestructiveWarning)
 			}
 		}
 	})

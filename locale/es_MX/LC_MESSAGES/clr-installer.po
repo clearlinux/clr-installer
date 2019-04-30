@@ -437,3 +437,29 @@ msgstr "MX: Captures most console work flows"
 
 msgid "Packages to build the user-basic bundle"
 msgstr "MX: Packages to build the user-basic bundle"
+
+# TRANSLATION SET: 3
+
+msgid "Selected media will be partitioned."
+msgstr "MX: Selected media will be partitioned."
+
+msgid "Selected media will have partitions added."
+msgstr "MX: Selected media will have partitions added."
+
+msgid "WARNING: Selected media will be erased."
+msgstr "MX: WARNING: Selected media will be erased."
+
+msgid "WARNING: Selected media will have data loss."
+msgstr "MX: WARNING: Selected media will have data loss."
+
+msgid "None"
+msgstr "MX: None"
+
+msgid "Target Media"
+msgstr "MX: Target Media"
+
+msgid "Confirm Installation"
+msgstr "MX: Confirm Installation"
+
+msgid "OK"
+msgstr "MX: OK"

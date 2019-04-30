@@ -124,6 +124,21 @@ const (
 
 	// MinimumPartitionSize is smallest size for any partition
 	MinimumPartitionSize = 1048576
+
+	// SafeWholeWarning specifies the warning message for whole disk partition
+	SafeWholeWarning = "Selected media will be partitioned."
+
+	// SafePartialWarning specifies the warning message for partial disk partition
+	SafePartialWarning = "Selected media will have partitions added."
+
+	// DestructiveWarning specifies the warning message for destructive installation
+	DestructiveWarning = "WARNING: Selected media will be erased."
+
+	// DataLossWarning specifies the warning message for data loss installation
+	DataLossWarning = "WARNING: Selected media will have data loss."
+
+	// ConfirmInstallation specifies the installation warning title
+	ConfirmInstallation = "Confirm Installation"
 )
 
 var (
