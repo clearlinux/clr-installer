@@ -4,23 +4,20 @@
 # vi: set shiftwidth=4 tabstop=4 noexpandtab:
 # :indentSize=4:tabSize=4:noTabs=false:
 
-# Developer Image Post Install steps
+# Server Post Install steps
+
+set -ex
 
 CHROOTPATH=$1
 export HOOKDIR=$(dirname $0)
 
-DESTDIR=$1
-SAVE_DIR=$(pwd)
-TEMP_INST=$(mktemp -d)
-export HOME=$(getent passwd $(id -un) |& awk -F: '{print $(NF-1)}')
-git clone . ${TEMP_INST}
-cd ${TEMP_INST}
-make install DESTDIR=${DESTDIR}
+# Force Telemetry to use local host server
+${HOOKDIR}/local-telemetry-post.sh ${CHROOTPATH}
 
-${HOOKDIR}/installer-post.sh ${DESTDIR}
+# Delay booting to give user a change to change boot params
+${HOOKDIR}/wait-to-boot-post.sh ${CHROOTPATH}
 
-cd ${SAVE_DIR}
-/bin/rm -rf ${TEMP_INST}
+chroot $CHROOTPATH systemd-machine-id-setup
 
 exit 0
 
