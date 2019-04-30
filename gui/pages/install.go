@@ -178,7 +178,7 @@ func (install *InstallPage) ResetChanges() {
 			_ = network.DownloadInstallerMessage("Post-Installation",
 				network.PostGuiInstallConf)
 		}()
-		utils.Locale.Get("Installation completed")
+
 		install.controller.SetButtonState(ButtonQuit, true)
 	}()
 

@@ -100,7 +100,6 @@ func (page *InstallPage) Activate() {
 			_ = network.DownloadInstallerMessage("Post-Installation",
 				network.PostInstallConf)
 		}()
-		page.prgLabel.SetTitle("Installation complete")
 		page.rebootBtn.SetEnabled(true)
 		page.exitBtn.SetEnabled(true)
 		clui.ActivateControl(page.GetWindow(), page.rebootBtn)
