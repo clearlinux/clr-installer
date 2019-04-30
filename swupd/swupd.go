@@ -19,6 +19,7 @@ import (
 	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/log"
+	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/network"
 )
 
@@ -477,7 +478,7 @@ func (s *SoftwareUpdater) BundleAdd(bundle string) error {
 }
 
 // LoadBundleList loads the bundle definitions
-func LoadBundleList() ([]*Bundle, error) {
+func LoadBundleList(model *model.SystemInstall) ([]*Bundle, error) {
 	path, err := conf.LookupBundleListFile()
 	if err != nil {
 		return nil, err
@@ -492,11 +493,21 @@ func LoadBundleList() ([]*Bundle, error) {
 		return nil, errors.Wrap(err)
 	}
 
+	// Read the bundles from the optional bundle list file
 	if err = json.Unmarshal(data, &root); err != nil {
 		return nil, errors.Wrap(err)
 	}
 
-	return root.Bundles, nil
+	// Filter out the bundles which will always be installed
+	filteredBundles := []*Bundle{}
+
+	for _, bundle := range root.Bundles {
+		if !model.ContainsBundle(bundle.Name) {
+			filteredBundles = append(filteredBundles, bundle)
+		}
+	}
+
+	return filteredBundles, nil
 }
 
 // CleanUpState removes the swupd state content directory

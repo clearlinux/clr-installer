@@ -54,7 +54,10 @@ func (bp *BundlePage) Activate() {
 }
 
 func newBundlePage(tui *Tui) (Page, error) {
-	bdls, err := swupd.LoadBundleList()
+	page := &BundlePage{}
+	page.setupMenu(tui, TuiPageBundle, "Select additional bundles", NoButtons, TuiPageMenu)
+
+	bdls, err := swupd.LoadBundleList(page.getModel())
 	if err != nil {
 		return nil, err
 	}
@@ -62,9 +65,6 @@ func newBundlePage(tui *Tui) (Page, error) {
 	for _, curr := range bdls {
 		bundles = append(bundles, &BundleCheck{curr, nil})
 	}
-
-	page := &BundlePage{}
-	page.setupMenu(tui, TuiPageBundle, "Select additional bundles", NoButtons, TuiPageMenu)
 
 	clui.CreateLabel(page.content, 2, 2, "Select additional bundles", Fixed)
 

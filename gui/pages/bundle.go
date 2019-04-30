@@ -122,7 +122,7 @@ func NewBundlePage(controller Controller, model *model.SystemInstall) (Page, err
 	}
 
 	// Load our bundles
-	bundle.bundles, err = swupd.LoadBundleList()
+	bundle.bundles, err = swupd.LoadBundleList(model)
 	if err != nil {
 		return nil, err
 	}
