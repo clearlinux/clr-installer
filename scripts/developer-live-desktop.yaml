@@ -81,6 +81,7 @@ post-install: [
    {cmd: "${yamlDir}/live-image-post-update-version.py ${chrootDir}"},
    {cmd: "${yamlDir}/live-desktop-post-install.sh ${chrootDir}"},
    {cmd: "${yamlDir}/developer-image-post.sh ${chrootDir}"},
+   {cmd: "/bin/rm -f ${chrootDir}/usr/share/applications/clr-installer.desktop"},
 ]
 
 version: 0
