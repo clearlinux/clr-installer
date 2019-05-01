@@ -211,7 +211,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 				encryptedUsed = true
 
 				if ch.FsTypeNotSwap() {
-					msg := fmt.Sprintf("Mapping %s partition to an encrypted partition", ch.Name)
+					msg := utils.Locale.Get("Mapping %s partition to an encrypted partition", ch.Name)
 					prg = progress.NewLoop(msg)
 					log.Info(msg)
 					if err = ch.MapEncrypted(model.CryptPass); err != nil {
@@ -223,7 +223,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 
 			// Do not overwrite File System content for pre-existing
 			if !ch.FormatPartition {
-				msg := fmt.Sprintf("Skipping new file system for %s", ch.Name)
+				msg := utils.Locale.Get("Skipping new file system for %s", ch.Name)
 				log.Debug(msg)
 				continue
 			}
