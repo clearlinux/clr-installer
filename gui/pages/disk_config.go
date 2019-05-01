@@ -201,7 +201,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	destructiveBox.PackStart(destructiveVerticalBox, true, true, 0)
 	destructiveTitle := utils.Locale.Get("Destructive Installation")
 	destructiveDescription := utils.Locale.Get("Erase all data on selected media and install Clear Linux* OS.")
-	text = fmt.Sprintf("<big><b><span foreground=\"red\">%s</span></b></big>\n", destructiveTitle)
+	text = fmt.Sprintf("<big><b><span foreground=\"#FDB814\">%s</span></b></big>\n", destructiveTitle)
 	text = text + destructiveDescription
 	destructiveLabel, err := gtk.LabelNew(text)
 	if err != nil {
@@ -360,7 +360,7 @@ func (disk *DiskConfig) populateComboBoxes() error {
 	if len(disk.devs) < 1 {
 		warning := utils.Locale.Get("No media found for installation")
 		log.Warning(warning)
-		warning = fmt.Sprintf("<big><b><span foreground=\"red\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
+		warning = fmt.Sprintf("<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
 		disk.errorMessage.SetMarkup(warning)
 		emptyStore, err := newListStoreMedia()
 		if err != nil {
@@ -392,7 +392,7 @@ func (disk *DiskConfig) populateComboBoxes() error {
 			disk.chooserCombo.SetModel(safeStore)
 			warning := utils.Locale.Get("No safe media found for installation")
 			log.Warning(warning)
-			warning = fmt.Sprintf("<big><b><span foreground=\"red\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
+			warning = fmt.Sprintf("<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
 			disk.errorMessage.SetMarkup(warning)
 			disk.controller.SetButtonState(ButtonConfirm, false)
 		}
