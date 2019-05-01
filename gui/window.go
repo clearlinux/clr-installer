@@ -624,24 +624,26 @@ func (window *Window) confirmInstall() {
 	secondaryText = utils.Locale.Get("Target Media") + ": " + strings.Join(targets, ", ")
 
 	title := utils.Locale.Get(storage.ConfirmInstallation)
+	text = primaryText + "\n" + "<small>" + secondaryText + "</small>"
 
 	contentBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	contentBox.SetHAlign(gtk.ALIGN_CENTER)
+	contentBox.SetHAlign(gtk.ALIGN_FILL)
+	contentBox.SetMarginBottom(common.TopBottomMargin)
 	if err != nil {
 		log.Warning("Error creating box")
 		return
 	}
-	text = primaryText + "\n" + "<small>" + secondaryText + "</small>"
-	label, err := gtk.LabelNew("")
+
+	label, err := gtk.LabelNew(text)
 	if err != nil {
 		log.Warning("Error creating label")
 		return
 	}
-	label.SetMarkup(text)
-	label.SetJustify(gtk.JUSTIFY_CENTER)
+	label.SetUseMarkup(true)
+	label.SetHAlign(gtk.ALIGN_START)
 	contentBox.PackStart(label, false, true, 0)
 
-	dialog, err := common.CreateDialogOkCancel(contentBox, title, utils.Locale.Get("OK"), utils.Locale.Get("CANCEL"))
+	dialog, err := common.CreateDialogOkCancel(contentBox, title, utils.Locale.Get("CONFIRM"), utils.Locale.Get("CANCEL"))
 	if err != nil {
 		log.Warning("Error creating dialog")
 		return
@@ -650,6 +652,7 @@ func (window *Window) confirmInstall() {
 	if err != nil {
 		log.Warning("Error connecting to dialog")
 	}
+	dialog.ShowAll()
 	dialog.Run()
 }
 

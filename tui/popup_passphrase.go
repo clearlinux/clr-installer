@@ -80,8 +80,6 @@ func (dialog *EncryptPassphraseDialog) revealPassphrase() {
 }
 
 func initPassphraseDialogWindow(dialog *EncryptPassphraseDialog) error {
-
-	const title = "Encryption Passphrase"
 	const wBuff = 5
 	const hBuff = 5
 	const dWidth = 50
@@ -103,7 +101,7 @@ func initPassphraseDialogWindow(dialog *EncryptPassphraseDialog) error {
 	}
 	posY = y + posY
 
-	dialog.DialogBox = clui.AddWindow(posX, posY, dWidth, dHeight, title)
+	dialog.DialogBox = clui.AddWindow(posX, posY, dWidth, dHeight, storage.EncryptionPassphrase)
 	dialog.DialogBox.SetTitleButtons(0)
 	dialog.DialogBox.SetMovable(false)
 	dialog.DialogBox.SetSizable(false)
@@ -120,7 +118,7 @@ func initPassphraseDialogWindow(dialog *EncryptPassphraseDialog) error {
 	borderFrame.SetPaddings(1, 0)
 
 	dialog.infoLabel = clui.CreateLabel(borderFrame, 1, 1,
-		"Encryption requires a Passphrase", 1)
+		storage.PassphraseMessage, 1)
 	dialog.infoLabel.SetMultiline(true)
 
 	dialog.passphraseEdit = clui.CreateEditField(borderFrame, 1, "", Fixed)

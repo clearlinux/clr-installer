@@ -139,6 +139,12 @@ const (
 
 	// ConfirmInstallation specifies the installation warning title
 	ConfirmInstallation = "Confirm Installation"
+
+	// EncryptionPassphrase specifies the title for encryption passphrase dialog
+	EncryptionPassphrase = "Encryption Passphrase"
+
+	// PassphraseMessage specifies the text for encryption passphrase dialog
+	PassphraseMessage = "Encryption requires a Passphrase"
 )
 
 var (

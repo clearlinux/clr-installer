@@ -463,3 +463,18 @@ msgstr "MX: Confirm Installation"
 
 msgid "OK"
 msgstr "MX: OK"
+
+msgid "Encryption requires a Passphrase"
+msgstr "MX: Encryption requires a Passphrase"
+
+msgid "Encryption Passphrase"
+msgstr "MX: Encryption Passphrase"
+
+msgid "Passphrases do not match"
+msgstr "MX: Passphrases do not match"
+
+msgid "Mapping %s partition to an encrypted partition"
+msgstr "MX: Mapping %s partition to an encrypted partition"
+
+msgid "Skipping new file system for %s"
+msgstr "MX: Skipping new file system for %s"

@@ -463,3 +463,18 @@ msgstr "CN: Confirm Installation"
 
 msgid "OK"
 msgstr "CN: OK"
+
+msgid "Encryption requires a Passphrase"
+msgstr "CN: Encryption requires a Passphrase"
+
+msgid "Encryption Passphrase"
+msgstr "CN: Encryption Passphrase"
+
+msgid "Passphrases do not match"
+msgstr "CN: Passphrases do not match"
+
+msgid "Mapping %s partition to an encrypted partition"
+msgstr "CN: Mapping %s partition to an encrypted partition"
+
+msgid "Skipping new file system for %s"
+msgstr "CN: Skipping new file system for %s"

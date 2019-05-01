@@ -463,3 +463,18 @@ msgstr "Confirm Installation"
 
 msgid "OK"
 msgstr "OK"
+
+msgid "Encryption requires a Passphrase"
+msgstr "Encryption requires a Passphrase"
+
+msgid "Encryption Passphrase"
+msgstr "Encryption Passphrase"
+
+msgid "Passphrases do not match"
+msgstr "Passphrases do not match"
+
+msgid "Mapping %s partition to an encrypted partition"
+msgstr "Mapping %s partition to an encrypted partition"
+
+msgid "Skipping new file system for %s"
+msgstr "Skipping new file system for %s"

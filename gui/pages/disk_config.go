@@ -7,9 +7,11 @@ package pages
 import (
 	"fmt"
 
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 
+	"github.com/clearlinux/clr-installer/gui/common"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
@@ -32,9 +34,16 @@ type DiskConfig struct {
 	safeButton         *gtk.RadioButton
 	destructiveButton  *gtk.RadioButton
 	chooserCombo       *gtk.ComboBox
-	encryptCheck       *gtk.CheckButton
 	errorMessage       *gtk.Label
 	rescanButton       *gtk.Button
+	encryptCheck       *gtk.CheckButton
+	passphraseDialog   *gtk.Dialog
+	passphrase         *gtk.Entry
+	passphraseConfirm  *gtk.Entry
+	passphraseChanged  bool
+	passphraseWarning  *gtk.Label
+	passphraseOK       *gtk.Button
+	passphraseCancel   *gtk.Button
 }
 
 func newListStoreMedia() (*gtk.ListStore, error) {
@@ -268,6 +277,15 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		return nil, err
 	}
 
+	disk.encryptCheck.SetLabel("  " + utils.Locale.Get("Enable Encryption"))
+	disk.encryptCheck.SetMarginStart(StartEndMargin)
+	disk.scrollBox.PackStart(disk.encryptCheck, false, false, 0)
+
+	// Generate signal on encryptCheck button click
+	if _, err := disk.encryptCheck.Connect("clicked", disk.onEncryptClick); err != nil {
+		return nil, err
+	}
+
 	// Buttons
 	disk.rescanButton, err = setButton(utils.Locale.Get("RESCAN MEDIA"), "button-page")
 	if err != nil {
@@ -303,20 +321,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	}
 	rescanBox.SetMarginStart(StartEndMargin)
 	rescanBox.PackStart(disk.rescanButton, false, false, 10)
-	/*
-		rescanHortzBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
-		rescanBox.PackStart(rescanHortzBox, true, true, 0)
-		text = fmt.Sprintf("<big>" + utils.Locale.Get("Rescan Media") + "</big>\n")
-		text = text + utils.Locale.Get("Rescan for changes to hot swappable media.")
-		rescanLabel, err := gtk.LabelNew(text)
-		if err != nil {
-			return nil, err
-		}
-		rescanLabel.SetXAlign(0.0)
-		rescanLabel.SetHAlign(gtk.ALIGN_START)
-		rescanLabel.SetUseMarkup(true)
-		rescanHortzBox.PackStart(rescanLabel, false, false, 0)
-	*/
+
 	rescanBox.ShowAll()
 	disk.scrollBox.Add(rescanBox)
 
@@ -325,6 +330,173 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	_ = disk.scanMediaDevices()
 
 	return disk, nil
+}
+
+func (disk *DiskConfig) createPassphraseDialog() {
+	title := utils.Locale.Get(storage.EncryptionPassphrase)
+	text := utils.Locale.Get(storage.PassphraseMessage)
+
+	contentBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	contentBox.SetHAlign(gtk.ALIGN_FILL)
+	contentBox.SetMarginBottom(common.TopBottomMargin)
+	if err != nil {
+		log.Warning("Error creating box")
+		return
+	}
+
+	label, err := gtk.LabelNew(text)
+	if err != nil {
+		log.Warning("Error creating label")
+		return
+	}
+
+	label.SetHAlign(gtk.ALIGN_START)
+	label.SetMarginBottom(common.TopBottomMargin)
+	contentBox.PackStart(label, true, true, 0)
+
+	disk.passphrase, err = setEntry("")
+	if err != nil {
+		log.Warning("Error creating entry")
+		return
+	}
+	disk.passphrase.SetMarginBottom(common.TopBottomMargin)
+	contentBox.PackStart(disk.passphrase, true, true, 0)
+
+	disk.passphraseConfirm, err = setEntry("")
+	if err != nil {
+		log.Warning("Error creating entry")
+		return
+	}
+	disk.passphraseConfirm.SetMarginBottom(common.TopBottomMargin)
+	contentBox.PackStart(disk.passphraseConfirm, true, true, 0)
+
+	disk.passphraseWarning, err = setLabel("", "label-warning", 0.0)
+	if err != nil {
+		log.Warning("Error creating label")
+		return
+	}
+	contentBox.PackStart(disk.passphraseWarning, true, true, 0)
+
+	disk.passphraseCancel, err = common.SetButton(utils.Locale.Get("CANCEL"), "button-cancel")
+	disk.passphraseCancel.SetMarginEnd(common.ButtonSpacing)
+	if err != nil {
+		return
+	}
+
+	disk.passphraseOK, err = common.SetButton(utils.Locale.Get("CONFIRM"), "button-confirm")
+	if err != nil {
+		return
+	}
+	disk.passphraseOK.SetMarginEnd(common.StartEndMargin)
+	disk.passphraseOK.SetSensitive(false)
+
+	disk.passphrase.SetVisibility(false)
+	disk.passphraseConfirm.SetVisibility(false)
+	/*
+		if disk.model.CryptPass != "" {
+			disk.passphraseChanged = false
+			setTextInEntry(disk.passphrase, "********")
+			setTextInEntry(disk.passphraseConfirm, "********")
+		}
+	*/
+	if _, err := disk.passphrase.Connect("changed", disk.onPassphraseChange); err != nil {
+		log.Warning("Error connecting to entry")
+		return
+	}
+
+	if _, err := disk.passphrase.Connect("activate", disk.onPassphraseActive); err != nil {
+		log.Warning("Error connecting to entry")
+		return
+	}
+
+	if _, err := disk.passphrase.Connect("key-press-event", disk.onPassphraseKeyPress); err != nil {
+		log.Warning("Error connecting to entry")
+		return
+	}
+
+	// Generate signal on PassphraseConfirm change
+	if _, err := disk.passphraseConfirm.Connect("changed", disk.onPassphraseChange); err != nil {
+		log.Warning("Error connecting to entry")
+		return
+	}
+
+	if _, err := disk.passphraseConfirm.Connect("activate", disk.onPassphraseActive); err != nil {
+		log.Warning("Error connecting to entry")
+		return
+	}
+
+	if _, err := disk.passphraseConfirm.Connect("key-press-event", disk.onPassphraseKeyPress); err != nil {
+		log.Warning("Error connecting to entry")
+		return
+	}
+
+	disk.passphraseDialog, err = common.CreateDialog(contentBox, title)
+	if err != nil {
+		log.Warning("Error creating dialog")
+		return
+	}
+
+	disk.passphraseDialog.AddActionWidget(disk.passphraseCancel, gtk.RESPONSE_CANCEL)
+	disk.passphraseDialog.AddActionWidget(disk.passphraseOK, gtk.RESPONSE_OK)
+
+	_, err = disk.passphraseDialog.Connect("response", disk.dialogResponse)
+	if err != nil {
+		log.Warning("Error connecting to dialog")
+	}
+}
+
+func (disk *DiskConfig) onPassphraseChange(entry *gtk.Entry) {
+	disk.validatePassphrase()
+}
+
+func (disk *DiskConfig) onPassphraseActive(entry *gtk.Entry) {
+	if disk.passphrase.IsFocus() {
+		disk.validatePassphrase()
+	}
+}
+
+func (disk *DiskConfig) onPassphraseKeyPress(entry *gtk.Entry, event *gdk.Event) {
+	// TODO: Implement specific key presses
+
+	if !disk.passphraseChanged {
+		disk.passphraseChanged = true
+		setTextInEntry(disk.passphrase, "")
+		setTextInEntry(disk.passphraseConfirm, "")
+	}
+}
+
+func (disk *DiskConfig) validatePassphrase() {
+	if !disk.passphraseChanged {
+		return
+	}
+
+	if ok, msg := storage.IsValidPassphrase(getTextFromEntry(disk.passphrase)); !ok {
+		disk.passphraseWarning.SetText(msg)
+		disk.passphraseOK.SetSensitive(false)
+	} else if getTextFromEntry(disk.passphrase) != getTextFromEntry(disk.passphraseConfirm) {
+		disk.passphraseWarning.SetText(utils.Locale.Get("Passphrases do not match"))
+		disk.passphraseOK.SetSensitive(false)
+	} else {
+		disk.passphraseWarning.SetText("")
+		disk.passphraseOK.SetSensitive(true)
+	}
+}
+
+// dialogResponse handles the response from the dialog message
+func (disk *DiskConfig) dialogResponse(msgDialog *gtk.Dialog, responseType gtk.ResponseType) {
+	if responseType == gtk.RESPONSE_OK {
+		disk.model.CryptPass = getTextFromEntry(disk.passphrase)
+	} else {
+		disk.encryptCheck.SetActive(false)
+	}
+	msgDialog.Destroy()
+}
+
+func (disk *DiskConfig) onEncryptClick(button *gtk.CheckButton) {
+	if disk.encryptCheck.GetActive() {
+		disk.createPassphraseDialog()
+		disk.passphraseDialog.ShowAll()
+	}
 }
 
 // This is time intensive, mitigate calls
@@ -490,15 +662,13 @@ func (disk *DiskConfig) StoreChanges() {
 		}
 	}
 
-	/*
-		if disk.encryptCheck.GetActive() {
-			for _, child := range installBlockDevice.Children {
-				if child.MountPoint == "/" {
-					child.Type = storage.BlockDeviceTypeCrypt
-				}
+	if disk.encryptCheck.GetActive() {
+		for _, child := range installBlockDevice.Children {
+			if child.MountPoint == "/" {
+				child.Type = storage.BlockDeviceTypeCrypt
 			}
 		}
-	*/
+	}
 }
 
 // ResetChanges will reset this page to match the model
