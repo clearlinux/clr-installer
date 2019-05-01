@@ -42,6 +42,29 @@ var (
 	diskColumns []columnInfo
 )
 
+// Clone makes a copy of the SelectedBlockDevice
+func (sbd *SelectedBlockDevice) Clone() *SelectedBlockDevice {
+	clone := &SelectedBlockDevice{
+		addMode:   sbd.addMode,
+		wholeDisk: sbd.wholeDisk,
+		dataLoss:  sbd.dataLoss,
+	}
+
+	if sbd.bd != nil {
+		clone.bd = sbd.bd.Clone()
+	}
+
+	if sbd.part != nil {
+		clone.part = sbd.part.Clone()
+	}
+
+	if sbd.freePartition != nil {
+		clone.freePartition = sbd.freePartition.Clone()
+	}
+
+	return clone
+}
+
 func init() {
 	diskColumns = make([]columnInfo, diskColumnCount)
 
@@ -386,6 +409,13 @@ func newDiskConfigPage(tui *Tui) (Page, error) {
 			if bd.Serial == page.activeSerial {
 				found = true
 				selected := &SelectedBlockDevice{bd: bd, part: nil, addMode: false}
+				if sel, ok := page.data.(*SelectedBlockDevice); ok {
+					selected = sel.Clone()
+					selected.part = nil
+					selected.addMode = false
+					selected.freePartition = nil
+					page.data = selected
+				}
 				page.data = selected
 			}
 		}
@@ -490,6 +520,12 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 
 			newParted := part.Clone()
 			selected := &SelectedBlockDevice{bd: bd, part: newPart, addMode: true, freePartition: newParted}
+			if sel, ok := page.data.(*SelectedBlockDevice); ok {
+				selected = sel.Clone()
+				selected.part = newPart
+				selected.addMode = true
+				selected.freePartition = newParted
+			}
 
 			partitionButton.OnClick(func(ev clui.Event) {
 				page.data = selected
@@ -508,6 +544,12 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 			partitionButton.SetEnabled(false)
 
 			selected := &SelectedBlockDevice{bd: bd, part: partition, addMode: false}
+			if sel, ok := page.data.(*SelectedBlockDevice); ok {
+				selected = sel.Clone()
+				selected.part = partition
+				selected.addMode = false
+				selected.freePartition = nil
+			}
 
 			partitionButton.OnClick(func(ev clui.Event) {
 				page.data = selected
@@ -557,7 +599,8 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 	})
 
 	diskButton.OnClick(func(ev clui.Event) {
-		if sel, ok := page.data.(*SelectedBlockDevice); ok {
+		sel, ok := page.data.(*SelectedBlockDevice)
+		if ok {
 			// Currently selected disk is partially or fully configured
 			if status := sel.bd.GetConfiguredStatus(); status != storage.ConfiguredNone {
 				// Do not allow selecting a different disk
@@ -622,6 +665,12 @@ func (page *DiskConfigPage) addDiskRow(bd *storage.BlockDevice) error {
 		page.activeSerial = bd.Serial
 
 		selected := &SelectedBlockDevice{bd: bd, part: nil, addMode: false}
+		if ok {
+			selected = sel.Clone()
+			selected.part = nil
+			selected.addMode = false
+			selected.freePartition = nil
+		}
 		page.data = selected
 
 		clui.RefreshScreen()
