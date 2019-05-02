@@ -21,12 +21,11 @@ const (
 	CommonSetting int = 150
 )
 
-// UserAddPage is a simple page to add/modify/delete the user
+// UserAddPage is a simple page to add/modify the user
 type UserAddPage struct {
 	controller   Controller
 	model        *model.SystemInstall
 	box          *gtk.Box
-	boxButtons   *gtk.Box
 	user         *user.User
 	definedUsers []string
 
@@ -46,9 +45,6 @@ type UserAddPage struct {
 
 	adminCheck   *gtk.CheckButton
 	adminChanged bool
-
-	deleteButton  *gtk.Button
-	deleteClicked bool
 
 	justLoaded bool
 
@@ -116,21 +112,6 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 	page.adminCheck.SetSensitive(false) // MUST have an admin user
 	page.box.PackStart(page.adminCheck, false, false, 0)
 
-	// Button box
-	page.boxButtons, err = setBox(gtk.ORIENTATION_HORIZONTAL, 0, "box-page")
-	if err != nil {
-		return nil, err
-	}
-
-	// Buttons
-	page.deleteButton, err = setButton(utils.Locale.Get("DELETE USER"), "button-page")
-	if err != nil {
-		return nil, err
-	}
-	page.boxButtons.PackStart(page.deleteButton, false, false, 0)
-
-	page.box.PackStart(page.boxButtons, false, false, 0)
-
 	// Generate signal on Name change
 	if _, err := page.name.Connect("changed", page.onNameChange); err != nil {
 		return nil, err
@@ -153,11 +134,6 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 
 	// Generate signal on AdminCheck button click
 	if _, err := page.adminCheck.Connect("clicked", page.onAdminClick); err != nil {
-		return nil, err
-	}
-
-	// Generate signal on Delete button click
-	if _, err := page.deleteButton.Connect("clicked", page.onDeleteClick); err != nil {
 		return nil, err
 	}
 
@@ -252,13 +228,6 @@ func (page *UserAddPage) onAdminClick(button *gtk.CheckButton) {
 	page.setConfirmButton()
 }
 
-func (page *UserAddPage) onDeleteClick(button *gtk.Button) {
-	page.deleteClicked = true
-	page.clearForm()
-	page.model.RemoveAllUsers()
-	page.deleteButton.SetSensitive(false)
-}
-
 // IsRequired will return false as we have default values
 func (page *UserAddPage) IsRequired() bool {
 	return true
@@ -344,8 +313,6 @@ func (page *UserAddPage) ResetChanges() {
 		setTextInEntry(page.passwordConfirm, page.user.Password)
 
 		page.adminCheck.SetActive(true)
-
-		page.deleteButton.SetSensitive(false)
 	} else {
 		log.Debug("Starting in changeMode")
 		// The password is encrypted, so fake it with stars
@@ -355,8 +322,6 @@ func (page *UserAddPage) ResetChanges() {
 		page.fakePassword = true
 
 		page.adminCheck.SetActive(page.user.Admin)
-
-		page.deleteButton.SetSensitive(true)
 	}
 
 	page.justLoaded = true
@@ -383,16 +348,7 @@ func (page *UserAddPage) GetConfiguredValue() string {
 }
 
 func (page *UserAddPage) setConfirmButton() {
-	if page.justLoaded {
-		page.justLoaded = false
-		page.controller.SetButtonState(ButtonConfirm, false)
-		return
-	}
-
-	if page.deleteClicked {
-		page.controller.SetButtonState(ButtonConfirm, true)
-		return
-	}
+	page.controller.SetButtonState(ButtonConfirm, false)
 
 	if page.nameChanged || page.loginChanged || page.passwordChanged || page.adminChanged {
 		userWarning, _ := page.nameWarning.GetText()
