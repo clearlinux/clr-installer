@@ -38,7 +38,18 @@ var (
 	classExp      = regexp.MustCompile(`(?im)(\w+)`)
 )
 
+const (
+	lockFile = "/root/clr-installer.lock"
+)
+
 func fatal(err error) {
+	if exists, _ := utils.FileExists(lockFile); exists {
+		err := os.Remove(lockFile)
+		if err != nil {
+			fmt.Println("Warning: Failed to remove lock file: " + lockFile)
+		}
+	}
+
 	log.ErrorError(err)
 	panic(err)
 }
@@ -152,6 +163,23 @@ func main() {
 		fmt.Println(errString)
 		log.Error("Not running as root: %v", errString)
 		return
+	}
+
+	if exists, _ := utils.FileExists(lockFile); exists {
+		fmt.Println("Warning: already running: lock file: " + lockFile)
+		os.Exit(1)
+	} else {
+		_, err := os.Create(lockFile)
+		if err != nil {
+			fmt.Println("Warning: Failed to create lock file: " + lockFile)
+			os.Exit(1)
+		}
+		defer func() {
+			err := os.Remove(lockFile)
+			if err != nil {
+				fmt.Println("Warning: Failed to remove lock file: " + lockFile)
+			}
+		}()
 	}
 
 	initFrontendList()
