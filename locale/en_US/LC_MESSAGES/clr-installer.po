@@ -478,3 +478,6 @@ msgstr "Mapping %s partition to an encrypted partition"
 
 msgid "Skipping new file system for %s"
 msgstr "Skipping new file system for %s"
+
+msgid "Disabled"
+msgstr "Disabled"
