@@ -113,6 +113,7 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 	}
 	page.adminCheck.SetMarginStart(CommonSetting + common.StartEndMargin)
 	page.adminCheck.SetMarginEnd(common.StartEndMargin)
+	page.adminCheck.SetSensitive(false) // MUST have an admin user
 	page.box.PackStart(page.adminCheck, false, false, 0)
 
 	// Button box
