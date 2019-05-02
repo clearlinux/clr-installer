@@ -9,6 +9,7 @@ import (
 
 	"github.com/gotk3/gotk3/gtk"
 
+	"github.com/clearlinux/clr-installer/gui/common"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/user"
@@ -17,7 +18,7 @@ import (
 
 const (
 	// CommonSetting is a common setting used by widgets
-	CommonSetting int = 120
+	CommonSetting int = 150
 )
 
 // UserAddPage is a simple page to add/modify/delete the user
@@ -110,8 +111,8 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 	} else {
 		sc.AddClass("label-entry")
 	}
-	page.adminCheck.SetMarginStart(CommonSetting + StartEndMargin)
-	page.adminCheck.SetMarginEnd(StartEndMargin)
+	page.adminCheck.SetMarginStart(CommonSetting + common.StartEndMargin)
+	page.adminCheck.SetMarginEnd(common.StartEndMargin)
 	page.box.PackStart(page.adminCheck, false, false, 0)
 
 	// Button box
@@ -455,8 +456,8 @@ func (page *UserAddPage) setSimilarWidgets(entryText, rulesText string, maxSize 
 	if err != nil {
 		return nil, nil, err
 	}
-	boxEntry.SetMarginStart(StartEndMargin)
-	boxEntry.SetMarginEnd(StartEndMargin)
+	boxEntry.SetMarginStart(common.StartEndMargin)
+	boxEntry.SetMarginEnd(common.StartEndMargin)
 	page.box.PackStart(boxEntry, false, false, 0)
 
 	// Rules
@@ -464,7 +465,7 @@ func (page *UserAddPage) setSimilarWidgets(entryText, rulesText string, maxSize 
 	if err != nil {
 		return nil, nil, err
 	}
-	rulesLabel.SetMarginStart(CommonSetting + StartEndMargin)
+	rulesLabel.SetMarginStart(CommonSetting + common.StartEndMargin)
 	page.box.PackStart(rulesLabel, false, false, 0)
 
 	// Warning
@@ -472,7 +473,7 @@ func (page *UserAddPage) setSimilarWidgets(entryText, rulesText string, maxSize 
 	if err != nil {
 		return nil, nil, err
 	}
-	warningLabel.SetMarginStart(CommonSetting + StartEndMargin)
+	warningLabel.SetMarginStart(CommonSetting + common.StartEndMargin)
 	page.box.PackStart(warningLabel, false, false, 0)
 
 	return entry, warningLabel, err
@@ -483,8 +484,8 @@ func (page *UserAddPage) setPasswordWidgets(rulesText string, maxSize int) (*gtk
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	boxPassword.SetMarginStart(StartEndMargin)
-	boxPassword.SetMarginEnd(StartEndMargin)
+	boxPassword.SetMarginStart(common.StartEndMargin)
+	boxPassword.SetMarginEnd(common.StartEndMargin)
 	password.SetVisibility(false)
 	page.box.PackStart(boxPassword, false, false, 0)
 
@@ -493,15 +494,15 @@ func (page *UserAddPage) setPasswordWidgets(rulesText string, maxSize int) (*gtk
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	rulesLabel.SetMarginStart(CommonSetting + StartEndMargin)
+	rulesLabel.SetMarginStart(CommonSetting + common.StartEndMargin)
 	page.box.PackStart(rulesLabel, false, false, 0)
 
 	boxPasswordConfirm, passwordConfirm, err := setLabelAndEntry(utils.Locale.Get("Confirm"), maxSize)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	boxPasswordConfirm.SetMarginStart(StartEndMargin)
-	boxPasswordConfirm.SetMarginEnd(StartEndMargin)
+	boxPasswordConfirm.SetMarginStart(common.StartEndMargin)
+	boxPasswordConfirm.SetMarginEnd(common.StartEndMargin)
 	passwordConfirm.SetVisibility(false)
 	page.box.PackStart(boxPasswordConfirm, false, false, 0)
 
@@ -510,7 +511,7 @@ func (page *UserAddPage) setPasswordWidgets(rulesText string, maxSize int) (*gtk
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	warningLabel.SetMarginStart(CommonSetting + StartEndMargin)
+	warningLabel.SetMarginStart(CommonSetting + common.StartEndMargin)
 	page.box.PackStart(warningLabel, false, false, 0)
 
 	return password, passwordConfirm, warningLabel, err

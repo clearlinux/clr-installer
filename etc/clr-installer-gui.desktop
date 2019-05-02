@@ -2,11 +2,11 @@
 Type=Application
 Encoding=UTF-8
 Name=Install Clear Linux* OS
-Name[es_MX]=MX: Install Clear Linux* OS
-Name[zh_CN]=CN: Install Clear Linux* OS
+Name[es_MX]=Instalar el sistema operativo Clear Linux*
+Name[zh_CN]=安装 Clear Linux* OS
 Comment=Clear Linux* OS Installer
-Comment[es_MX]=MX: Clear Linux* OS Installer
-Comment[zh_CN]=MX: Clear Linux* OS Installer
+Comment[es_MX]=Instalador del sistema operativo Clear Linux*
+Comment[zh_CN]=Clear Linux* OS 安装程序
 Icon=/usr/share/clr-installer/themes/clr.png
 Exec=pkexec /usr/bin/clr-installer-gui
 StartupWMClass=clr-installer-gui

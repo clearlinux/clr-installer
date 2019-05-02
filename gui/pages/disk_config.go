@@ -18,6 +18,11 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
+const (
+	// DiskPageCommonSize is a common size used by widgets in this page
+	DiskPageCommonSize int = 20
+)
+
 // DiskConfig is a simple page to help with DiskConfig settings
 type DiskConfig struct {
 	devs               []*storage.BlockDevice
@@ -44,6 +49,239 @@ type DiskConfig struct {
 	passphraseWarning  *gtk.Label
 	passphraseOK       *gtk.Button
 	passphraseCancel   *gtk.Button
+}
+
+// NewDiskConfigPage returns a new DiskConfigPage
+func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page, error) {
+	disk := &DiskConfig{
+		controller: controller,
+		model:      model,
+	}
+	var err error
+
+	// Page Box
+	disk.box, err = setBox(gtk.ORIENTATION_VERTICAL, 0, "box-page-new")
+	if err != nil {
+		return nil, err
+	}
+
+	// Build storage for scrollBox
+	disk.scroll, err = gtk.ScrolledWindowNew(nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	disk.scroll.SetMarginTop(10)
+	disk.scroll.SetMarginEnd(common.StartEndMargin)
+	disk.box.PackStart(disk.scroll, true, true, 0)
+	disk.scroll.SetPolicy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+
+	// Build scrollBox
+	disk.scrollBox, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 20)
+	if err != nil {
+		return nil, err
+	}
+
+	disk.scroll.Add(disk.scrollBox)
+
+	// Media Grid
+	disk.mediaGrid, err = gtk.GridNew()
+	if err != nil {
+		return nil, err
+	}
+
+	// Build the Safe Install Section
+	disk.safeButton, err = gtk.RadioButtonNewFromWidget(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	safeBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+	if err != nil {
+		return nil, err
+	}
+	safeBox.SetMarginTop(10)
+	safeBox.SetMarginStart(common.StartEndMargin)
+	safeBox.PackStart(disk.safeButton, false, false, 10)
+	if _, err := disk.safeButton.Connect("toggled", func() {
+		// Enable/Disable the Combo Choose Box based on the radio button
+		//disk.safeCombo.SetSensitive(disk.safeButton.GetActive())
+		if err := disk.populateComboBoxes(); err != nil {
+			log.Warning("Problem populating possible disk selections")
+		}
+	}); err != nil {
+		return nil, err
+	}
+
+	safeVerticalBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
+	safeBox.PackStart(safeVerticalBox, true, true, 0)
+	safeTitle := utils.Locale.Get("Safe Installation")
+	safeDescription := utils.Locale.Get("Install on an unallocated disk or alongside existing partitions.")
+	text := fmt.Sprintf("<big>%s</big>\n", safeTitle)
+	text = text + safeDescription
+	safeLabel, err := gtk.LabelNew(text)
+	if err != nil {
+		return nil, err
+	}
+	safeLabel.SetXAlign(0.0)
+	safeLabel.SetSizeRequest(DiskPageCommonSize, -1)
+	safeLabel.SetLineWrap(true)
+	safeLabel.SetHAlign(gtk.ALIGN_START)
+	safeLabel.SetUseMarkup(true)
+	safeVerticalBox.PackStart(safeLabel, false, false, 0)
+
+	log.Debug("Before safeBox ShowAll")
+	safeBox.ShowAll()
+	disk.mediaGrid.Attach(safeBox, 0, 0, 1, 1)
+
+	// Build the Destructive Install Section
+	log.Debug("Before disk.destructiveButton")
+	disk.destructiveButton, err = gtk.RadioButtonNewFromWidget(disk.safeButton)
+	if err != nil {
+		return nil, err
+	}
+
+	destructiveBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+	if err != nil {
+		return nil, err
+	}
+	destructiveBox.SetMarginStart(common.StartEndMargin)
+	destructiveBox.PackStart(disk.destructiveButton, false, false, 10)
+	if _, err := disk.destructiveButton.Connect("toggled", func() {
+		// Enable/Disable the Combo Choose Box based on the radio button
+		//disk.destructiveCombo.SetSensitive(disk.destructiveButton.GetActive())
+		if err := disk.populateComboBoxes(); err != nil {
+			log.Warning("Problem populating possible disk selections")
+		}
+	}); err != nil {
+		return nil, err
+	}
+
+	destructiveVerticalBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
+	destructiveBox.PackStart(destructiveVerticalBox, true, true, 0)
+	destructiveTitle := utils.Locale.Get("Destructive Installation")
+	destructiveDescription := utils.Locale.Get("Erase all data on selected media and install Clear Linux* OS.")
+	text = fmt.Sprintf("<big><b><span foreground=\"#FDB814\">%s</span></b></big>\n", destructiveTitle)
+	text = text + destructiveDescription
+	destructiveLabel, err := gtk.LabelNew(text)
+	if err != nil {
+		return nil, err
+	}
+	destructiveLabel.SetXAlign(0.0)
+	destructiveLabel.SetSizeRequest(DiskPageCommonSize, -1)
+	destructiveLabel.SetLineWrap(true)
+	destructiveLabel.SetHAlign(gtk.ALIGN_START)
+	destructiveLabel.SetUseMarkup(true)
+	destructiveVerticalBox.PackStart(destructiveLabel, false, false, 0)
+
+	destructiveBox.ShowAll()
+	disk.mediaGrid.Attach(destructiveBox, 0, 1, 1, 1)
+
+	log.Debug("Before making ComboBox")
+	disk.chooserCombo, err = gtk.ComboBoxNew()
+	if err != nil {
+		log.Warning("Failed to make disk.chooserCombo")
+		return nil, err
+	}
+
+	// Add the renderers to the ComboBox
+	mediaRenderer, _ := gtk.CellRendererPixbufNew()
+	disk.chooserCombo.PackStart(mediaRenderer, true)
+	disk.chooserCombo.AddAttribute(mediaRenderer, "pixbuf", 0)
+
+	nameRenderer, _ := gtk.CellRendererTextNew()
+	disk.chooserCombo.PackStart(nameRenderer, true)
+	disk.chooserCombo.AddAttribute(nameRenderer, "text", 1)
+
+	portionRenderer, _ := gtk.CellRendererTextNew()
+	disk.chooserCombo.PackStart(portionRenderer, true)
+	disk.chooserCombo.AddAttribute(portionRenderer, "text", 2)
+
+	sizeRenderer, _ := gtk.CellRendererTextNew()
+	disk.chooserCombo.PackStart(sizeRenderer, true)
+	disk.chooserCombo.AddAttribute(sizeRenderer, "text", 3)
+
+	disk.mediaGrid.Attach(disk.chooserCombo, 1, 0, 1, 2)
+
+	disk.mediaGrid.SetRowSpacing(10)
+	disk.mediaGrid.SetColumnSpacing(10)
+	disk.mediaGrid.SetColumnHomogeneous(true)
+	disk.scrollBox.Add(disk.mediaGrid)
+
+	separator, err := gtk.SeparatorNew(gtk.ORIENTATION_HORIZONTAL)
+	if err != nil {
+		return nil, err
+	}
+	separator.ShowAll()
+	disk.scrollBox.Add(separator)
+
+	// Error Message Label
+	disk.errorMessage, err = gtk.LabelNew("")
+	if err != nil {
+		return nil, err
+	}
+	disk.errorMessage.SetUseMarkup(true)
+	disk.errorMessage.SetMarginStart(common.StartEndMargin)
+	disk.scrollBox.Add(disk.errorMessage)
+
+	// Encryption button
+	disk.encryptCheck, err = gtk.CheckButtonNew()
+	if err != nil {
+		return nil, err
+	}
+
+	disk.encryptCheck.SetLabel("  " + utils.Locale.Get("Enable Encryption"))
+	disk.encryptCheck.SetMarginStart(common.StartEndMargin)
+	disk.scrollBox.PackStart(disk.encryptCheck, false, false, 0)
+
+	// Generate signal on encryptCheck button click
+	if _, err := disk.encryptCheck.Connect("clicked", disk.onEncryptClick); err != nil {
+		return nil, err
+	}
+
+	// Buttons
+	disk.rescanButton, err = setButton(utils.Locale.Get("RESCAN MEDIA"), "button-page")
+	if err != nil {
+		return nil, err
+	}
+	disk.rescanButton.SetTooltipText(utils.Locale.Get("Rescan for changes to hot swappable media."))
+
+	if _, err = disk.rescanButton.Connect("clicked", func() {
+		log.Debug("rescan")
+		_ = disk.scanMediaDevices()
+		// Check if the active device is still present
+		var found bool
+		for _, bd := range disk.devs {
+			if bd.Serial == disk.activeSerial {
+				found = true
+				disk.activeDisk = bd
+			}
+		}
+		if !found {
+			disk.activeSerial = ""
+			disk.activeDisk = nil
+			disk.model.TargetMedias = nil
+		}
+
+		disk.ResetChanges()
+	}); err != nil {
+		return nil, err
+	}
+
+	rescanBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+	if err != nil {
+		return nil, err
+	}
+	rescanBox.SetMarginStart(common.StartEndMargin)
+	rescanBox.PackStart(disk.rescanButton, false, false, 10)
+
+	rescanBox.ShowAll()
+	disk.scrollBox.Add(rescanBox)
+
+	disk.box.ShowAll()
+
+	_ = disk.scanMediaDevices()
+
+	return disk, nil
 }
 
 func newListStoreMedia() (*gtk.ListStore, error) {
@@ -101,235 +339,6 @@ func addListStoreMediaRow(store *gtk.ListStore, installMedia storage.InstallTarg
 	}
 
 	return nil
-}
-
-// NewDiskConfigPage returns a new DiskConfigPage
-func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page, error) {
-	disk := &DiskConfig{
-		controller: controller,
-		model:      model,
-	}
-	var err error
-
-	// Page Box
-	disk.box, err = setBox(gtk.ORIENTATION_VERTICAL, 0, "box-page-new")
-	if err != nil {
-		return nil, err
-	}
-
-	// Build storage for scrollBox
-	disk.scroll, err = gtk.ScrolledWindowNew(nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	disk.scroll.SetMarginTop(10)
-	disk.scroll.SetMarginEnd(StartEndMargin)
-	disk.box.PackStart(disk.scroll, true, true, 0)
-	disk.scroll.SetPolicy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
-
-	// Build scrollBox
-	disk.scrollBox, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 20)
-	if err != nil {
-		return nil, err
-	}
-
-	disk.scroll.Add(disk.scrollBox)
-
-	// Media Grid
-	disk.mediaGrid, err = gtk.GridNew()
-	if err != nil {
-		return nil, err
-	}
-
-	// Build the Safe Install Section
-	disk.safeButton, err = gtk.RadioButtonNewFromWidget(nil)
-	if err != nil {
-		return nil, err
-	}
-
-	safeBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-	if err != nil {
-		return nil, err
-	}
-	safeBox.SetMarginTop(10)
-	safeBox.SetMarginStart(StartEndMargin)
-	safeBox.PackStart(disk.safeButton, false, false, 10)
-	if _, err := disk.safeButton.Connect("toggled", func() {
-		// Enable/Disable the Combo Choose Box based on the radio button
-		//disk.safeCombo.SetSensitive(disk.safeButton.GetActive())
-		if err := disk.populateComboBoxes(); err != nil {
-			log.Warning("Problem populating possible disk selections")
-		}
-	}); err != nil {
-		return nil, err
-	}
-
-	safeVerticalBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
-	safeBox.PackStart(safeVerticalBox, true, true, 0)
-	safeTitle := utils.Locale.Get("Safe Installation")
-	safeDescription := utils.Locale.Get("Install on an unallocated disk or alongside existing partitions.")
-	text := fmt.Sprintf("<big>%s</big>\n", safeTitle)
-	text = text + safeDescription
-	safeLabel, err := gtk.LabelNew(text)
-	if err != nil {
-		return nil, err
-	}
-	safeLabel.SetXAlign(0.0)
-	safeLabel.SetHAlign(gtk.ALIGN_START)
-	safeLabel.SetUseMarkup(true)
-	safeVerticalBox.PackStart(safeLabel, false, false, 0)
-
-	log.Debug("Before safeBox ShowAll")
-	safeBox.ShowAll()
-	disk.mediaGrid.Attach(safeBox, 0, 0, 1, 1)
-
-	// Build the Destructive Install Section
-	log.Debug("Before disk.destructiveButton")
-	disk.destructiveButton, err = gtk.RadioButtonNewFromWidget(disk.safeButton)
-	if err != nil {
-		return nil, err
-	}
-
-	destructiveBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-	if err != nil {
-		return nil, err
-	}
-	destructiveBox.SetMarginStart(StartEndMargin)
-	destructiveBox.PackStart(disk.destructiveButton, false, false, 10)
-	if _, err := disk.destructiveButton.Connect("toggled", func() {
-		// Enable/Disable the Combo Choose Box based on the radio button
-		//disk.destructiveCombo.SetSensitive(disk.destructiveButton.GetActive())
-		if err := disk.populateComboBoxes(); err != nil {
-			log.Warning("Problem populating possible disk selections")
-		}
-	}); err != nil {
-		return nil, err
-	}
-
-	destructiveVerticalBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
-	destructiveBox.PackStart(destructiveVerticalBox, true, true, 0)
-	destructiveTitle := utils.Locale.Get("Destructive Installation")
-	destructiveDescription := utils.Locale.Get("Erase all data on selected media and install Clear Linux* OS.")
-	text = fmt.Sprintf("<big><b><span foreground=\"#FDB814\">%s</span></b></big>\n", destructiveTitle)
-	text = text + destructiveDescription
-	destructiveLabel, err := gtk.LabelNew(text)
-	if err != nil {
-		return nil, err
-	}
-	destructiveLabel.SetXAlign(0.0)
-	destructiveLabel.SetHAlign(gtk.ALIGN_START)
-	destructiveLabel.SetUseMarkup(true)
-	destructiveVerticalBox.PackStart(destructiveLabel, false, false, 0)
-
-	destructiveBox.ShowAll()
-	disk.mediaGrid.Attach(destructiveBox, 0, 1, 1, 1)
-
-	log.Debug("Before making ComboBox")
-	disk.chooserCombo, err = gtk.ComboBoxNew()
-	if err != nil {
-		log.Warning("Failed to make disk.chooserCombo")
-		return nil, err
-	}
-
-	// Add the renderers to the ComboBox
-	mediaRenderer, _ := gtk.CellRendererPixbufNew()
-	disk.chooserCombo.PackStart(mediaRenderer, true)
-	disk.chooserCombo.AddAttribute(mediaRenderer, "pixbuf", 0)
-
-	nameRenderer, _ := gtk.CellRendererTextNew()
-	disk.chooserCombo.PackStart(nameRenderer, true)
-	disk.chooserCombo.AddAttribute(nameRenderer, "text", 1)
-
-	portionRenderer, _ := gtk.CellRendererTextNew()
-	disk.chooserCombo.PackStart(portionRenderer, true)
-	disk.chooserCombo.AddAttribute(portionRenderer, "text", 2)
-
-	sizeRenderer, _ := gtk.CellRendererTextNew()
-	disk.chooserCombo.PackStart(sizeRenderer, true)
-	disk.chooserCombo.AddAttribute(sizeRenderer, "text", 3)
-
-	disk.mediaGrid.Attach(disk.chooserCombo, 1, 0, 1, 2)
-
-	disk.mediaGrid.SetRowSpacing(10)
-	disk.mediaGrid.SetColumnSpacing(10)
-	disk.mediaGrid.SetColumnHomogeneous(true)
-	disk.scrollBox.Add(disk.mediaGrid)
-
-	separator, err := gtk.SeparatorNew(gtk.ORIENTATION_HORIZONTAL)
-	if err != nil {
-		return nil, err
-	}
-	separator.ShowAll()
-	disk.scrollBox.Add(separator)
-
-	// Error Message Label
-	disk.errorMessage, err = gtk.LabelNew("")
-	if err != nil {
-		return nil, err
-	}
-	disk.errorMessage.SetUseMarkup(true)
-	disk.errorMessage.SetMarginStart(StartEndMargin)
-	disk.scrollBox.Add(disk.errorMessage)
-
-	// Encryption button
-	disk.encryptCheck, err = gtk.CheckButtonNew()
-	if err != nil {
-		return nil, err
-	}
-
-	disk.encryptCheck.SetLabel("  " + utils.Locale.Get("Enable Encryption"))
-	disk.encryptCheck.SetMarginStart(StartEndMargin)
-	disk.scrollBox.PackStart(disk.encryptCheck, false, false, 0)
-
-	// Generate signal on encryptCheck button click
-	if _, err := disk.encryptCheck.Connect("clicked", disk.onEncryptClick); err != nil {
-		return nil, err
-	}
-
-	// Buttons
-	disk.rescanButton, err = setButton(utils.Locale.Get("RESCAN MEDIA"), "button-page")
-	if err != nil {
-		return nil, err
-	}
-	disk.rescanButton.SetTooltipText(utils.Locale.Get("Rescan for changes to hot swappable media."))
-
-	if _, err = disk.rescanButton.Connect("clicked", func() {
-		log.Debug("rescan")
-		_ = disk.scanMediaDevices()
-		// Check if the active device is still present
-		var found bool
-		for _, bd := range disk.devs {
-			if bd.Serial == disk.activeSerial {
-				found = true
-				disk.activeDisk = bd
-			}
-		}
-		if !found {
-			disk.activeSerial = ""
-			disk.activeDisk = nil
-			disk.model.TargetMedias = nil
-		}
-
-		disk.ResetChanges()
-	}); err != nil {
-		return nil, err
-	}
-
-	rescanBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-	if err != nil {
-		return nil, err
-	}
-	rescanBox.SetMarginStart(StartEndMargin)
-	rescanBox.PackStart(disk.rescanButton, false, false, 10)
-
-	rescanBox.ShowAll()
-	disk.scrollBox.Add(rescanBox)
-
-	disk.box.ShowAll()
-
-	_ = disk.scanMediaDevices()
-
-	return disk, nil
 }
 
 func (disk *DiskConfig) createPassphraseDialog() {

@@ -29,10 +29,10 @@ const (
 func IsValidHostname(hostname string) string {
 
 	if !startsWithExp.MatchString(hostname) {
-		return utils.Locale.Get("Hostname can only start with alpha-numeric")
+		return utils.Locale.Get("Hostname can only start with alphanumeric")
 	}
 	if !hostnameExp.MatchString(hostname) {
-		return utils.Locale.Get("Hostname can only contain alpha-numeric and hyphen")
+		return utils.Locale.Get("Hostname can only contain alphanumeric and hyphen")
 	}
 	if len(hostname) > MaxHostnameLength {
 		return utils.Locale.Get("Hostname can only have a maximum of %d characters", MaxHostnameLength)

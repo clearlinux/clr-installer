@@ -55,11 +55,11 @@ msgstr "Enable Telemetry"
 msgid "No additional bundles selected"
 msgstr "No additional bundles selected"
 
-msgid "Hostname can only start with alpha-numeric"
-msgstr "Hostname can only start with alpha-numeric"
+msgid "Hostname can only start with alphanumeric"
+msgstr "Hostname can only start with alphanumeric"
 
-msgid "Hostname can only contain alpha-numeric and hyphen"
-msgstr "Hostname can only contain alpha-numeric and hyphen"
+msgid "Hostname can only contain alphanumeric and hyphen"
+msgstr "Hostname can only contain alphanumeric and hyphen"
 
 #, c-format
 msgid "Hostname can only have a maximum of %d characters"
@@ -314,8 +314,8 @@ msgid "Confirm"
 msgstr "Confirm"
 
 #, c-format
-msgid "Can use alpha-numeric characters and - with a maximum of %d characters."
-msgstr "Can use alpha-numeric characters and - with a maximum of %d characters."
+msgid "Can use alphanumeric characters and - with a maximum of %d characters."
+msgstr "Can use alphanumeric characters and - with a maximum of %d characters."
 
 msgid "Welcome to Clear Linux* OS Desktop Installation"
 msgstr "Welcome to Clear Linux* OS Desktop Installation"

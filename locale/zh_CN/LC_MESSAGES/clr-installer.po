@@ -55,10 +55,10 @@ msgstr "启用遥测技术"
 msgid "No additional bundles selected"
 msgstr "未选择任何附加捆绑包"
 
-msgid "Hostname can only start with alpha-numeric"
+msgid "Hostname can only start with alphanumeric"
 msgstr "主机名只能以字母数字开头"
 
-msgid "Hostname can only contain alpha-numeric and hyphen"
+msgid "Hostname can only contain alphanumeric and hyphen"
 msgstr "主机名只能包含字母数字和连字符"
 
 #, c-format
@@ -69,10 +69,10 @@ msgid "No target system hostname assigned"
 msgstr "未分配任何目标系统主机名"
 
 msgid "Allow the Clear Linux* OS to collect anonymous reports to improve system stability?"
-msgstr "允许 Clear Linux* OS 收集匿名报告来提高系统稳定性？"
+msgstr "是否允许 Clear Linux* OS 收集匿名报告来提高系统稳定性？"
 
 msgid "These reports only relate to operating system details. No personally identifiable information is collected."
-msgstr "这些报告仅与操作系统详细信息相关。不会收集个人可识别信息。"
+msgstr "这些报告仅与操作系统详细信息相关。\n不会收集个人可识别信息。"
 
 msgid "Intel's privacy policy can be found at: http://www.intel.com/privacy."
 msgstr "有关英特尔隐私政策，请访问：http://www.intel.com/privacy。"
@@ -85,7 +85,7 @@ msgstr "正在安装 Clear Linux* OS"
 
 #, c-format
 msgid "Running %s hooks"
-msgstr "正在运行 %s 个钩子"
+msgstr "正在运行 %s 钩子"
 
 msgid "Testing connectivity"
 msgstr "正在测试连接性"
@@ -139,13 +139,13 @@ msgid "Partial"
 msgstr "部分"
 
 msgid "Entire Disk"
-msgstr "CN: Entire Disk"
+msgstr "整个磁盘"
 
 msgid "Erase Disk"
 msgstr "擦除磁盘"
 
 msgid "Advanced"
-msgstr "CN: Advanced"
+msgstr "高级"
 
 msgid "No media found for installation"
 msgstr "未找到安装介质"
@@ -160,283 +160,283 @@ msgstr "警告：%s"
 # TRANSLATION SET: 2
 
 msgid "Manage User"
-msgstr "CN: Manage User"
+msgstr "管理用户"
 
 msgid "Add User"
-msgstr "CN: Add User"
+msgstr "添加用户"
 
 #, c-format
 msgid "Must start with letter. Can use numbers, commas, - and _. Max %d characters."
-msgstr "CN: Must start with letter. Can use numbers, commas, - and _. Max %d characters."
+msgstr "必须以字母开头。可以使用数字、逗号、连字符和下划线。最多 %d 个字符。"
 
 #, c-format
 msgid "Must start with letter. Can use numbers, - and _. Max %d characters."
-msgstr "CN: Must start with letter. Can use numbers, - and _. Max %d characters."
+msgstr "必须以字母开头。可以使用数字、连字符和下划线。最多 %d 个字符。"
 
 #, c-format
 msgid "Min %d and Max %d characters."
-msgstr "CN: Min %d and Max %d characters."
+msgstr "最少 %d 个字符，最多 %d 个字符。"
 
 msgid "Administrator"
-msgstr "CN: Administrator"
+msgstr "管理员"
 
 msgid "DELETE USER"
-msgstr "CN: DELETE USER"
+msgstr "删除用户"
 
 msgid "Specified login is a system default user"
-msgstr "CN: Specified login is a system default user"
+msgstr "指定的登录名是系统默认用户"
 
 msgid "User must be unique"
-msgstr "CN: User must be unique"
+msgstr "用户必须是唯一的"
 
 msgid "Passwords do not match"
-msgstr "CN: Passwords do not match"
+msgstr "密码不匹配"
 
 msgid "No users added"
-msgstr "CN: No users added"
+msgstr "未添加用户"
 
 msgid "User Name"
-msgstr "CN: User Name"
+msgstr "用户名"
 
 msgid "Login"
-msgstr "CN: Login"
+msgstr "登录"
 
 msgid "Password"
-msgstr "CN: Password"
+msgstr "密码"
 
 msgid "RESCAN"
-msgstr "CN: RESCAN"
+msgstr "重新扫描"
 
 msgid "Rescan for changes to hot swappable media."
-msgstr "CN: Rescan for changes to hot swappable media."
+msgstr "重新扫描对热插拔介质的更改。"
 
 msgid "RESCAN MEDIA"
-msgstr "CN: RESCAN MEDIA"
+msgstr "重新扫描介质"
 
 msgid "Adding extra users"
-msgstr "CN: Adding extra users"
+msgstr "添加额外的用户"
 
 msgid "Username must contain only numbers, letters, commas, - or _"
-msgstr "CN: Username must contain only numbers, letters, commas, - or _"
+msgstr "用户名必须只包含数字、字母、逗号、连字符和下划线"
 
 #, c-format
 msgid "UserName maximum length is %d"
-msgstr "CN: UserName maximum length is %d"
+msgstr "用户名最大长度为 %d"
 
 msgid "Login is required"
-msgstr "CN: Login is required"
+msgstr "需要登录"
 
 #, c-format
 msgid "Login maximum length is %d"
-msgstr "CN: Login maximum length is %d"
+msgstr "登录名最大长度为 %d"
 
 msgid "Login must contain only numbers, letters, - or _"
-msgstr "CN: Login must contain only numbers, letters, - or _"
+msgstr "登录名必须只包含数字、字母、连字符和下划线"
 
 msgid "Password is required"
-msgstr "CN: Password is required"
+msgstr "需要密码"
 
 #, c-format
 msgid "Password must be at least %d characters long"
-msgstr "CN: Password must be at least %d characters long"
+msgstr "密码必须包含至少 %d 个字符"
 
 #, c-format
 msgid "Password may be at most %d characters long"
-msgstr "CN: Password may be at most %d characters long"
+msgstr "密码最多可以包含 %d 个字符"
 
 msgid "Passphrase is required"
-msgstr "CN: Passphrase is required"
+msgstr "密码短语是必需的"
 
 msgid "Passphrase may only contain 7-bit, printable characters"
-msgstr "CN: Passphrase may only contain 7-bit, printable characters"
+msgstr "密码短语只能包含 7 位可打印字符"
 
 #, c-format
 msgid "Passphrase must be at least %d characters long"
-msgstr "CN: Passphrase must be at least %d characters long"
+msgstr "密码短语必须包含至少 %d 个字符"
 
 #, c-format
 msgid "Passphrase may be at most %d characters long"
-msgstr "CN: Passphrase may be at most %d characters long"
+msgstr "密码短语最多可以包含 %d 个字符"
 
 msgid "Disk Encryption Passphrase"
-msgstr "CN: Disk Encryption Passphrase"
+msgstr "磁盘加密密码短语"
 
 msgid "Confirm Passphrase"
-msgstr "CN: Confirm Passphrase"
+msgstr "确认密码短语"
 
 #, c-format
 msgid "Label too long, max is %d"
-msgstr "CN: Label too long, max is %d"
+msgstr "标签太长，最大值为 %d"
 
 msgid "Invalid label characters"
-msgstr "CN: Invalid label characters"
+msgstr "标签字符无效"
 
-msgid "Invalid size, may only be suffixed by: B, K, M, G, T or P"
-msgstr "CN: Invalid size, may only be suffixed by: B, K, M, G, T or P"
+msgid "Invalid size, may only be suffixed by: B, K, M, G, T, or P"
+msgstr "大小无效，后缀只能为：B、K、M、G、T 或 P"
 
 msgid "Invalid size"
-msgstr "CN: Invalid size"
+msgstr "大小无效"
 
 msgid "Size too small"
-msgstr "CN: Size too small"
+msgstr "大小太小"
 
 msgid "Unknown free space"
-msgstr "CN: Unknown free space"
+msgstr "可用空间未知"
 
 msgid "Size too large"
-msgstr "CN: Size too large"
+msgstr "大小太大"
 
 msgid "Encryption"
-msgstr "CN: Encryption"
+msgstr "加密"
 
 msgid "No Media Selected"
-msgstr "CN: No Media Selected"
+msgstr "未选择任何介质"
 
 msgid "Safe Installation"
-msgstr "CN: Safe Installation"
+msgstr "安全安装"
 
 msgid "Install on an unallocated disk or alongside existing partitions."
-msgstr "CN: Install on an unallocated disk or alongside existing partitions."
+msgstr "安装在未分配的磁盘上或与现有分区一起安装。"
 
 msgid "Destructive Installation"
-msgstr "CN: Destructive Installation"
+msgstr "破坏性安装"
 
 msgid "Erase all data on selected media and install Clear Linux* OS."
-msgstr "CN: Erase all data on selected media and install Clear Linux* OS."
+msgstr "擦除选定介质上的所有数据，然后安装 Clear Linux* OS。"
 
 msgid "RESCAN MEDIA"
-msgstr "CN: RESCAN MEDIA"
+msgstr "重新扫描介质"
 
 msgid "CHANGE LANGUAGE"
-msgstr "CN: CHANGE LANGUAGE"
+msgstr "更改语言"
 
 msgid "Confirm"
-msgstr "CN: Confirm"
+msgstr "确认"
 
 #, c-format
-msgid "Can use alpha-numeric characters and - with a maximum of %d characters."
-msgstr "CN: Can use alpha-numeric characters and - with a maximum of %d characters."
+msgid "Can use alphanumeric characters and - with a maximum of %d characters."
+msgstr "可以使用字母数字和连字符，最多 %d 个字符。"
 
 msgid "Welcome to Clear Linux* OS Desktop Installation"
-msgstr "欢迎 安装 Clear Linux* OS 桌面"
+msgstr "欢迎安装 Clear Linux* OS 桌面"
 
 msgid "Thank you for choosing Clear Linux* OS"
 msgstr "感谢您选择 Clear Linux* OS"
 
 msgid "No safe media found for installation"
-msgstr "CN: No safe media found for installation"
+msgstr "未找到要安装的安全介质"
 
 #, c-format
 msgid "Updating partition table for: %s"
-msgstr "CN: Updating partition table for: %s"
+msgstr "为以下项更新分区表：%s"
 
 msgid "admin"
-msgstr "CN: admin"
+msgstr "管理员"
 
 msgid "pre-install"
-msgstr "CN: pre-install"
+msgstr "预先安装"
 
 msgid "post-install"
-msgstr "CN: post-install"
+msgstr "安装后"
 
 #, c-format
 msgid "Setting Language locale to %s"
-msgstr "CN: Setting Language locale to %s"
+msgstr "将语言区域设置为 %s"
 
 msgid "Installing base OS and configured bundles"
-msgstr "CN: Installing base OS and configured bundles"
+msgstr "安装基本操作系统和已配置的捆绑包"
 
 msgid "Disabling automatic updates"
-msgstr "CN: Disabling automatic updates"
+msgstr "禁用自动更新"
 
 msgid "Disabling automatic updates failed"
-msgstr "CN: Disabling automatic updates failed"
+msgstr "禁用自动更新失败"
 
 msgid "Installing boot loader"
-msgstr "CN: Installing boot loader"
+msgstr "正在安装引导加载程序"
 
 msgid "Searching the system for available media."
-msgstr "CN: Searching the system for available media."
+msgstr "在系统中搜索可用的介质。"
 
 msgid "Please wait."
-msgstr "CN: Please wait."
+msgstr "请稍候。"
 
 # Used only in Installer desktop icon
 msgid "Install Clear Linux* OS"
-msgstr "CN: Install Clear Linux* OS"
+msgstr "安装 Clear Linux* OS"
 
 # Used only in Installer desktop icon
 msgid "Clear Linux* OS Installer"
-msgstr "CN: Clear Linux* OS Installer"
+msgstr "Clear Linux* OS 安装程序"
 
 msgid "Common set of prebuilt R libraries"
-msgstr "CN: Common set of prebuilt R libraries"
+msgstr "通用的预构建 R 库集"
 
 msgid "Run a cloud orchestration server"
-msgstr "CN: Run a cloud orchestration server"
+msgstr "运行云编排服务器"
 
 msgid "Build the containers-basic bundle"
-msgstr "CN: Build the containers-basic bundle"
+msgstr "构建容器基本捆绑包"
 
 msgid "Applications for the desktop"
-msgstr "CN: Applications for the desktop"
+msgstr "适用于桌面的应用程序"
 
 msgid "UI that automatically starts on boot"
-msgstr "CN: UI that automatically starts on boot"
+msgstr "在引导时自动启动的 UI"
 
 msgid "Utilities to assist application development"
-msgstr "CN: Utilities to assist application development"
+msgstr "用于辅助应用程序开发的实用程序"
 
 msgid "Popular text editors (terminal-based)"
-msgstr "CN: Popular text editors (terminal-based)"
+msgstr "流行的文本编辑器（基于终端）"
 
 msgid "GNU Image Manipulation Program"
-msgstr "CN: GNU Image Manipulation Program"
+msgstr "GNU 图像处理程序"
 
 msgid "Build and run go language programs"
-msgstr "CN: Build and run go language programs"
+msgstr "构建并运行 Go 语言程序"
 
 msgid "Build and run java language programs"
-msgstr "CN: Build and run java language programs"
+msgstr "构建并运行 Java 语言程序"
 
 msgid "LibreOffice - Free Office Suite"
-msgstr "CN: LibreOffice - Free Office Suite"
+msgstr "LibreOffice - 免费的办公套件"
 
 msgid "Build machine learning applications"
-msgstr "CN: Build machine learning applications"
+msgstr "构建机器学习应用程序"
 
 msgid "Network utilities and settings"
-msgstr "CN: Network utilities and settings"
+msgstr "网络实用程序和设置"
 
-msgid "Run any Clear Linux dev. process"
-msgstr "CN: Run any Clear Linux dev. process"
+msgid "Run any Clear Linux* dev. process"
+msgstr "运行任何 Clear Linux* 开发进程"
 
 msgid "Utilities for creating, building, and managing packages"
-msgstr "CN: Utilities for creating, building, and managing packages"
+msgstr "用于创建、生成和管理软件包的实用程序"
 
 msgid "Run perl language programs"
-msgstr "CN: Run perl language programs"
+msgstr "运行 Perl 语言程序"
 
 msgid "Multi-protocol instant messagging (IM) client"
-msgstr "CN: Multi-protocol instant messagging (IM) client"
+msgstr "多协议即时消息 (IM) 客户端"
 
 msgid "Run legacy python language programs"
-msgstr "CN: Run legacy python language programs"
+msgstr "运行旧有的 Python 语言程序"
 
 msgid "Run python language programs"
-msgstr "CN: Run python language programs"
+msgstr "运行 Python 语言程序"
 
 msgid "Python data-science stack http://pydata.org"
-msgstr "CN: Python data-science stack http://pydata.org"
+msgstr "Python 数据科学堆栈 http://pydata.org"
 
 msgid "Common utilities to manage a system"
-msgstr "CN: Common utilities to manage a system"
+msgstr "用于管理系统的通用实用程序"
 
 msgid "Captures most console work flows"
-msgstr "CN: Captures most console work flows"
+msgstr "捕获大多数控制台工作流"
 
 msgid "Packages to build the user-basic bundle"
-msgstr "CN: Packages to build the user-basic bundle"
+msgstr "用于生成用户基本捆绑包的软件包"
 
 # TRANSLATION SET: 3
 

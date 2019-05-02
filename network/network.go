@@ -144,13 +144,13 @@ func IsValidDomainName(domain string) string {
 		}
 
 		if !startsWithExp.MatchString(label) {
-			return fmt.Sprintf("'%s' may only start with alpha-numeric", label)
+			return fmt.Sprintf("'%s' may only start with alphanumeric", label)
 		}
 		if !endsWithExp.MatchString(label) {
-			return fmt.Sprintf("'%s' may only end with alpha-numeric", label)
+			return fmt.Sprintf("'%s' may only end with alphanumeric", label)
 		}
 		if !domainNameExp.MatchString(label) {
-			return fmt.Sprintf("sub-domain '%s' may only contain alpha-numeric hyphen", label)
+			return fmt.Sprintf("sub-domain '%s' may only contain alphanumeric hyphen", label)
 		}
 	}
 
