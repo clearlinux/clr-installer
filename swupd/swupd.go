@@ -21,6 +21,7 @@ import (
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/network"
+	"github.com/clearlinux/clr-installer/progress"
 )
 
 var (
@@ -46,6 +47,65 @@ type SoftwareUpdater struct {
 type Bundle struct {
 	Name string // Name the bundle name or id
 	Desc string // Desc is the bundle long description
+}
+
+// Message represents data parsed from a JSON message sent by a swupd command
+type Message struct {
+        Type            string `json:"type"`
+        Msg             string `json:"msg"`
+        Section         string `json:"section"`
+        Status          int    `json:"status"`
+        CurrentStep     int    `json:"currentStep"`
+        TotalSteps      int    `json:"totalSteps"`
+        StepCompletion  int    `json:"stepCompletion"`
+        StepDescription string `json:"stepDescription"`
+}
+
+// Process parses the output received and process it according to its type
+func (m Message) Process(line string) {
+
+	var description string
+	var prg progress.Progress
+	const total = 100
+
+	// since we are going to be reading line by line,
+	// ignore the '[' or ']' if we get one
+	if line != "[" && line != "]" {
+		// also remove the "," ath the end of the string if exist
+		trimmedMsg := strings.TrimSuffix(line, ",")
+		json.Unmarshal([]byte(trimmedMsg), &m)
+
+		if m.Type == "progress" {
+			// "pretty" descriptions for steps
+			switch m.StepDescription {
+			case "get_versions":
+				description = "Resolving OS versions"
+			case "cleanup_download_dir":
+				description = "Cleaning up download directory"
+			case "load_manifests":
+				description = "Downloading required manifests"
+			case "consolidate_files":
+				description = "Resolving files that need to be installed"
+			case "download_packs":
+				description = "Downloading required packs"
+			case "check_files_hash":
+				description = "Verifying files integrity"
+			case "download_fullfiles":
+				description = "Downloading missing files"
+			case "add_missing_files":
+				description = "Installing base OS and configured bundles"
+			}
+
+			// update the progress bar with the correct description
+			prg = progress.MultiStep(total, description)
+
+			// report current % of completion
+			prg.Partial(m.StepCompletion)
+			if m.StepCompletion == total {
+				prg.Success()
+			}
+		}
+	}
 }
 
 // IsCoreBundle checks if bundle is in the list of core bundles
@@ -192,6 +252,7 @@ func (s *SoftwareUpdater) VerifyWithBundles(version string, mirror string, bundl
 			version,
 			"--force",
 			"--no-scripts",
+			"--json-output",
 			"-B",
 		}...)
 
@@ -214,7 +275,8 @@ func (s *SoftwareUpdater) VerifyWithBundles(version string, mirror string, bundl
 
 	args = append(args, strings.Join(allBundles, ","))
 
-	err := cmd.RunAndLog(args...)
+	m := Message{}
+	err := cmd.RunAndProcessOutput(m, args...)
 	if err != nil {
 		return errors.Wrap(err)
 	}

@@ -469,6 +469,8 @@ func runInstallHook(vars map[string]string, hook *model.InstallHook) error {
 // executed using the target swupd
 func contentInstall(rootDir string, version string, model *model.SystemInstall, options args.Args) (progress.Progress, error) {
 
+	var prg progress.Progress
+
 	sw := swupd.New(rootDir, options)
 
 	bundles := model.Bundles
@@ -482,17 +484,15 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 	}
 
 	msg := utils.Locale.Get("Installing base OS and configured bundles")
-	prg := progress.NewLoop(msg)
 	log.Info(msg)
 	log.Debug("Installing bundles: %s", strings.Join(bundles, ", "))
 	if err := sw.VerifyWithBundles(version, model.SwupdMirror, bundles); err != nil {
 		return prg, err
 	}
-	prg.Success()
 
 	if !model.AutoUpdate {
 		msg := utils.Locale.Get("Disabling automatic updates")
-		prg := progress.NewLoop(msg)
+		prg = progress.NewLoop(msg)
 		log.Info(msg)
 		if err := sw.DisableUpdate(); err != nil {
 			warnMsg := utils.Locale.Get("Disabling automatic updates failed")
