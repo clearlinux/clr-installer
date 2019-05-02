@@ -502,3 +502,24 @@ msgstr "Error al encontrar el firmware EFI"
 
 msgid "Rescanning media"
 msgstr "Re-escaneo de medios"
+
+msgid "Resolving OS versions"
+msgstr "Resolviendo las versiones del SO"
+
+msgid "Cleaning up download directory"
+msgstr "Limpiando el directorio de descarga"
+
+msgid "Downloading required manifests"
+msgstr "Descargando los manifestos requeridos"
+
+msgid "Resolving files that need to be installed"
+msgstr "Resolviendo los archivos que necesitan ser instalados"
+
+msgid "Downloading required packs"
+msgstr "Descargando los paquestes requeridos"
+
+msgid "Verifying files integrity"
+msgstr "Verificando la integridad de archivos"
+
+msgid "Downloading missing files"
+msgstr "Descargando los archivos faltantes"

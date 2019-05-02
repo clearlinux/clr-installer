@@ -21,6 +21,8 @@ import (
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/network"
+	"github.com/clearlinux/clr-installer/progress"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 var (
@@ -30,6 +32,8 @@ var (
 		"os-core-update",
 		"openssh-server",
 	}
+	prg     progress.Progress
+	prgDesc string
 )
 
 // SoftwareUpdater abstracts the swupd executable, environment and operations
@@ -46,6 +50,85 @@ type SoftwareUpdater struct {
 type Bundle struct {
 	Name string // Name the bundle name or id
 	Desc string // Desc is the bundle long description
+}
+
+// Message represents data parsed from a JSON message sent by a swupd command
+type Message struct {
+	Type            string `json:"type"`
+	Msg             string `json:"msg"`
+	Section         string `json:"section"`
+	Status          int    `json:"status"`
+	CurrentStep     int    `json:"currentStep"`
+	TotalSteps      int    `json:"totalSteps"`
+	StepCompletion  int    `json:"stepCompletion"`
+	StepDescription string `json:"stepDescription"`
+}
+
+// Process parses the output received from swup and process it according to its type
+func (m Message) Process(line string) {
+
+	var description string
+	const total = 100
+
+	log.Debug(line)
+
+	// the JSON output of a swupd command, is a big array of JSON objects, like this:
+	// [
+	// { "type" : "start", "section" : "verify" },
+	// ...,
+	// { "type" : "end", "section" : "verify", "status" : 0 }
+	// ]
+	// since we are going to be reading line by line, we can ignore the '[' or ']'
+	if line == "[" || line == "]" {
+		return
+	}
+
+	// also remove the "," ath the end of the string if exist
+	trimmedMsg := strings.TrimSuffix(line, ",")
+
+	// decode the message assuming it is a JSON stream and ignore those that are not
+	if err := json.Unmarshal([]byte(trimmedMsg), &m); err != nil {
+		log.Error("error decoding JSON: %s", err)
+		return
+	}
+
+	if m.Type == "progress" {
+		// "pretty" descriptions for steps
+		switch m.StepDescription {
+		case "get_versions":
+			description = utils.Locale.Get("Resolving OS versions")
+		case "cleanup_download_dir":
+			description = utils.Locale.Get("Cleaning up download directory")
+		case "load_manifests":
+			description = utils.Locale.Get("Downloading required manifests")
+		case "consolidate_files":
+			description = utils.Locale.Get("Resolving files that need to be installed")
+		case "download_packs":
+			description = utils.Locale.Get("Downloading required packs")
+		case "check_files_hash":
+			description = utils.Locale.Get("Verifying files integrity")
+		case "download_fullfiles":
+			description = utils.Locale.Get("Downloading missing files")
+		case "add_missing_files":
+			description = utils.Locale.Get("Installing base OS and configured bundles")
+		}
+
+		// create a new instance of the progress bar with the correct description
+		if prgDesc != m.StepDescription {
+			log.Debug("Setting progress for task %s", m.StepDescription)
+			prg = progress.MultiStep(total, description)
+			prgDesc = m.StepDescription
+		}
+
+		// report current % of completion
+		prg.Partial(m.StepCompletion)
+		if m.StepCompletion == total {
+			log.Debug("Task %s completed", m.StepDescription)
+			prg.Success()
+			prgDesc = ""
+		}
+	}
+
 }
 
 // IsCoreBundle checks if bundle is in the list of core bundles
@@ -173,9 +256,10 @@ func (s *SoftwareUpdater) Verify(version string, mirror string, verifyOnly bool)
 
 // VerifyWithBundles runs "swupd verify" operation with all bundles
 func (s *SoftwareUpdater) VerifyWithBundles(version string, mirror string, bundles []string) error {
+	// the "swupd verify" command is being deprecated, use "swupd os-install" instead
 	args := []string{
 		"swupd",
-		"verify",
+		"os-install",
 	}
 
 	args = s.setExtraFlags(args)
@@ -187,11 +271,11 @@ func (s *SoftwareUpdater) VerifyWithBundles(version string, mirror string, bundl
 		[]string{
 			fmt.Sprintf("--path=%s", s.rootDir),
 			fmt.Sprintf("--statedir=%s", s.stateDir),
-			"--install",
-			"-m",
+			"-V",
 			version,
 			"--force",
 			"--no-boot-update",
+			"--json-output",
 			"-B",
 		}...)
 
@@ -214,8 +298,10 @@ func (s *SoftwareUpdater) VerifyWithBundles(version string, mirror string, bundl
 
 	args = append(args, strings.Join(allBundles, ","))
 
-	err := cmd.RunAndLog(args...)
+	m := Message{}
+	err := cmd.RunAndProcessOutput(m, args...)
 	if err != nil {
+		err = fmt.Errorf("The swupd command \"%s\" failed with %s", strings.Join(args, " "), err)
 		return errors.Wrap(err)
 	}
 

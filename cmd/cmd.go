@@ -5,6 +5,7 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -13,6 +14,12 @@ import (
 
 	"github.com/clearlinux/clr-installer/log"
 )
+
+// Output interface allows implementors to process the output from a
+// command according to their specific case
+type Output interface {
+	Process(line string)
+}
 
 type runLogger struct{}
 
@@ -115,4 +122,58 @@ func run(sw func(cmd *exec.Cmd) error, writer io.Writer, env map[string]string, 
 // args are the actual command and its arguments
 func Run(writer io.Writer, args ...string) error {
 	return run(nil, writer, nil, args...)
+}
+
+// RunAndProcessOutput executes a command and process the output from
+// Stdout and Stderr according to the implementor
+// args are the actual command and its arguments
+func RunAndProcessOutput(output Output, args ...string) error {
+
+	var exe string
+	var cmdArgs []string
+
+	log.Debug("%s", strings.Join(args, " "))
+
+	exe = args[0]
+	cmdArgs = args[1:]
+
+	cmd := exec.Command(exe, cmdArgs...)
+
+	if httpsProxy != "" {
+		cmd.Env = append(cmd.Env, fmt.Sprintf("https_proxy=%s", httpsProxy))
+	}
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Error("Could not connect a pipe to Stdout")
+		return err
+	}
+
+	// run the command but don't wait for it to finish
+	if err := cmd.Start(); err != nil {
+		log.Error("Failed to start command execution")
+		return err
+	}
+
+	// start scanning stdout for messages
+	scannerOut := bufio.NewScanner(stdout)
+	for scannerOut.Scan() {
+
+		// specific processing implementation
+		output.Process(scannerOut.Text())
+
+	}
+
+	if err := scannerOut.Err(); err != nil {
+		log.Error("An error occurred while reading stdout")
+		return err
+	}
+
+	// wait for the command to finish running
+	if err := cmd.Wait(); err != nil {
+		log.Error("An error occurred executing command: \"%s\". Error: %s", strings.Join(args, " "), err)
+		return err
+	}
+
+	return nil
 }

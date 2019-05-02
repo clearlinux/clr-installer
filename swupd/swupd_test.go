@@ -6,8 +6,10 @@ package swupd
 
 import (
 	"testing"
+	"time"
 
 	"github.com/clearlinux/clr-installer/args"
+	"github.com/clearlinux/clr-installer/progress"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -102,5 +104,88 @@ func TestNewWithState(t *testing.T) {
 	sw = New("/tmp/test", args.Args{})
 	if sw.stateDir != "/tmp/test/var/lib/swupd" {
 		t.Fatalf("stateDir should not be set to: %s", sw.stateDir)
+	}
+}
+
+type MockProgress struct {
+	output      string
+	description string
+	percentage  int
+	step        int
+}
+
+func (p *MockProgress) Desc(desc string) {
+	p.description = desc
+}
+
+func (p *MockProgress) Success() {
+	p.output = "success"
+}
+
+func (p *MockProgress) Failure() {
+	p.output = "failures"
+}
+
+func (p *MockProgress) Partial(total int, step int) {
+	p.percentage = int((float32(step) / float32(total)) * 100)
+}
+
+func (p *MockProgress) Step() {
+	p.step++
+}
+
+func (p *MockProgress) LoopWaitDuration() time.Duration {
+	return time.Second
+}
+
+func TestProcess(t *testing.T) {
+	var msg Message
+	var mp MockProgress
+	progress.Set(&mp)
+
+	// messages from a different type than "progress" should be ignored for now
+	jsonMsg := "{ \"type\" : \"start\", \"section\" : \"verify\" },"
+	msg.Process(jsonMsg)
+	if mp.description != "" || mp.output != "" || mp.step != 0 || mp.percentage != 0 {
+		t.Fatal("Message processed incorrectly. Type \"start\" not ignored.")
+	}
+	jsonMsg = "{ \"type\" : \"info\", \"msg\" : \"Verifying version 10 \" },"
+	msg.Process(jsonMsg)
+	if mp.description != "" || mp.output != "" || mp.step != 0 || mp.percentage != 0 {
+		t.Fatal("Message processed incorrectly. Type \"info\" not ignored.")
+	}
+	jsonMsg = "{ \"type\" : \"warning\", \"msg\" : \"helper script not found\" }"
+	msg.Process(jsonMsg)
+	if mp.description != "" || mp.output != "" || mp.step != 0 || mp.percentage != 0 {
+		t.Fatal("Message processed incorrectly. Type \"warning\" not ignored.")
+	}
+	jsonMsg = "{ \"type\" : \"end\", \"section\" : \"verify\", \"status\" : 0 }"
+	msg.Process(jsonMsg)
+	if mp.description != "" || mp.output != "" || mp.step != 0 || mp.percentage != 0 {
+		t.Fatal("Message processed incorrectly. Type \"end\" not ignored.")
+	}
+
+	// "progress" messages should be processed correctly
+	jsonMsg = "{ \"type\" : \"progress\", \"currentStep\" : 5, \"totalSteps\" : 8, \"stepCompletion\" : 80, \"stepDescription\" : \"download_packs\" },"
+	msg.Process(jsonMsg)
+	if mp.description != "Downloading required packs" {
+		t.Fatal("Message processed incorrectly. Expected: 'Downloading required packs', Actual:", mp.description)
+	}
+	if mp.percentage != 80 {
+		t.Fatal("Message processed incorrectly. Expected: 80, Actual:", mp.percentage)
+	}
+	if mp.output != "" {
+		t.Fatal("Message processed incorrectly. Expected: '', Actual:", mp.output)
+	}
+	jsonMsg = "{ \"type\" : \"progress\", \"currentStep\" : 8, \"totalSteps\" : 8, \"stepCompletion\" : 100, \"stepDescription\" : \"add_missing_files\" },"
+	msg.Process(jsonMsg)
+	if mp.description != "Installing base OS and configured bundles" {
+		t.Fatal("Message processed incorrectly. Expected: 'Installing base OS and configured bundles', Actual:", mp.description)
+	}
+	if mp.percentage != 100 {
+		t.Fatal("Message processed incorrectly. Expected: 100, Actual:", mp.percentage)
+	}
+	if mp.output != "success" {
+		t.Fatal("Message processed incorrectly. Expected: success, Actual:", mp.output)
 	}
 }
