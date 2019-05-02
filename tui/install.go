@@ -74,8 +74,8 @@ func (page *InstallPage) Desc(desc string) {
 // Partial is part of the progress.Client implementation and adjusts the progress bar to the
 // current completion percentage
 func (page *InstallPage) Partial(total int, step int) {
-	perc := (step / total)
-	value := page.prgMax * perc
+	perc := float32(step) / float32(total)
+	value := int(float32(page.prgMax) * perc)
 	page.prgBar.SetValue(int(value))
 }
 
