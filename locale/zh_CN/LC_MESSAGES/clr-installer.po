@@ -502,3 +502,24 @@ msgstr "无法找到EFI固件"
 
 msgid "Rescanning media"
 msgstr "重新扫描媒体"
+
+msgid "Resolving OS versions"
+msgstr "解析操作系统版本"
+
+msgid "Cleaning up download directory"
+msgstr "清理下载目录"
+
+msgid "Downloading required manifests"
+msgstr "下载所需的清单"
+
+msgid "Resolving files that need to be installed"
+msgstr "解析需要安装的文件"
+
+msgid "Downloading required packs"
+msgstr "下载所需的包"
+
+msgid "Verifying files integrity"
+msgstr "验证文件完整性"
+
+msgid "Downloading missing files"
+msgstr "下载丢失的文件"

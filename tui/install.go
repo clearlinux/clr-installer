@@ -67,6 +67,7 @@ func (page *InstallPage) Step() {
 
 // Desc is part of the progress.Client implementation and sets the progress bar label
 func (page *InstallPage) Desc(desc string) {
+	page.prgBar.SetValue(0)
 	page.prgLabel.SetTitle(desc)
 	clui.RefreshScreen()
 }
@@ -77,6 +78,7 @@ func (page *InstallPage) Partial(total int, step int) {
 	perc := float32(step) / float32(total)
 	value := int(float32(page.prgMax) * perc)
 	page.prgBar.SetValue(int(value))
+	clui.RefreshScreen()
 }
 
 // LoopWaitDuration is part of the progress.Client implementation and returns the time duration

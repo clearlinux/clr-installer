@@ -502,3 +502,24 @@ msgstr "Failed to find EFI firmware"
 
 msgid "Rescanning media"
 msgstr "Rescanning media"
+
+msgid "Resolving OS versions"
+msgstr "Resolving OS versions"
+
+msgid "Cleaning up download directory"
+msgstr "Cleaning up download directory"
+
+msgid "Downloading required manifests"
+msgstr "Downloading required manifests"
+
+msgid "Resolving files that need to be installed"
+msgstr "Resolving files that need to be installed"
+
+msgid "Downloading required packs"
+msgstr "Downloading required packs"
+
+msgid "Verifying files integrity"
+msgstr "Verifying files integrity"
+
+msgid "Downloading missing files"
+msgstr "Downloading missing files"
