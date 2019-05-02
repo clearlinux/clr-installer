@@ -47,7 +47,7 @@ msgid "Assign Hostname"
 msgstr "Asignar nombre de host"
 
 msgid "Enabled"
-msgstr "Activa"
+msgstr "Activada"
 
 msgid "Enable Telemetry"
 msgstr "Activar telemetría"
@@ -55,10 +55,10 @@ msgstr "Activar telemetría"
 msgid "No additional bundles selected"
 msgstr "No se seleccionaron paquetes adicionales."
 
-msgid "Hostname can only start with alpha-numeric"
+msgid "Hostname can only start with alphanumeric"
 msgstr "El nombre de host solo puede comenzar con un carácter alfanumérico."
 
-msgid "Hostname can only contain alpha-numeric and hyphen"
+msgid "Hostname can only contain alphanumeric and hyphen"
 msgstr "El nombre de host solo puede contener caracteres alfanuméricos y guiones."
 
 #, c-format
@@ -85,7 +85,7 @@ msgstr "Instalación del sistema operativo Clear Linux*"
 
 #, c-format
 msgid "Running %s hooks"
-msgstr "Ejecutando %s enlaces"
+msgstr "Ejecutando enlaces de %s"
 
 msgid "Testing connectivity"
 msgstr "Probando la conectividad"
@@ -139,13 +139,13 @@ msgid "Partial"
 msgstr "Parcial"
 
 msgid "Entire Disk"
-msgstr "MX: Entire Disk"
+msgstr "Disco completo"
 
 msgid "Erase Disk"
 msgstr "Borrar disco"
 
 msgid "Advanced"
-msgstr "MX: Advanced"
+msgstr "Avanzado"
 
 msgid "No media found for installation"
 msgstr "No se encontraron medios para instalar."
@@ -160,283 +160,283 @@ msgstr "Advertencia: %s"
 # TRANSLATION SET: 2
 
 msgid "Manage User"
-msgstr "MX: Manage User"
+msgstr "Administrar usuarios"
 
 msgid "Add User"
-msgstr "MX: Add User"
+msgstr "Agregar usuario"
 
 #, c-format
 msgid "Must start with letter. Can use numbers, commas, - and _. Max %d characters."
-msgstr "MX: Must start with letter. Can use numbers, commas, - and _. Max %d characters."
+msgstr "Debe comenzar con una letra. Puede contener números, comas, - y _. Máx. %d caracteres."
 
 #, c-format
 msgid "Must start with letter. Can use numbers, - and _. Max %d characters."
-msgstr "MX: Must start with letter. Can use numbers, - and _. Max %d characters."
+msgstr "Debe comenzar con una letra. Puede contener números, - y _. Máx. %d caracteres."
 
 #, c-format
 msgid "Min %d and Max %d characters."
-msgstr "MX: Min %d and Max %d characters."
+msgstr "Mín. %d caracteres y máx. %d caracteres."
 
 msgid "Administrator"
-msgstr "MX: Administrator"
+msgstr "Administrador"
 
 msgid "DELETE USER"
-msgstr "MX: DELETE USER"
+msgstr "ELIMINAR USUARIO"
 
 msgid "Specified login is a system default user"
-msgstr "MX: Specified login is a system default user"
+msgstr "El inicio de sesión especificado es un usuario predeterminado del sistema."
 
 msgid "User must be unique"
-msgstr "MX: User must be unique"
+msgstr "El usuario debe ser único."
 
 msgid "Passwords do not match"
-msgstr "MX: Passwords do not match"
+msgstr "Las contraseñas no coinciden."
 
 msgid "No users added"
-msgstr "MX: No users added"
+msgstr "Ningún usuario agregado"
 
 msgid "User Name"
-msgstr "MX: User Name"
+msgstr "Nombre de usuario"
 
 msgid "Login"
-msgstr "MX: Login"
+msgstr "Inicio de sesión"
 
 msgid "Password"
-msgstr "MX: Password"
+msgstr "Contraseña"
 
 msgid "RESCAN"
-msgstr "MX: RESCAN"
+msgstr "VOLVER A EXAMINAR"
 
 msgid "Rescan for changes to hot swappable media."
-msgstr "MX: Rescan for changes to hot swappable media."
+msgstr "Vuelve a hacer un análisis para detectar cambios en medios intercambiables en caliente."
 
 msgid "RESCAN MEDIA"
-msgstr "MX: RESCAN MEDIA"
+msgstr "VOLVER A EXAMINAR MEDIOS"
 
 msgid "Adding extra users"
-msgstr "MX: Adding extra users"
+msgstr "Agregando usuarios adicionales"
 
 msgid "Username must contain only numbers, letters, commas, - or _"
-msgstr "MX: Username must contain only numbers, letters, commas, - or _"
+msgstr "El nombre de usuario solo debe contener números, letras, comas, - o _."
 
 #, c-format
 msgid "UserName maximum length is %d"
-msgstr "MX: UserName maximum length is %d"
+msgstr "La extensión máxima del nombre de usuario debe ser de %d."
 
 msgid "Login is required"
-msgstr "MX: Login is required"
+msgstr "Debe iniciar sesión."
 
 #, c-format
 msgid "Login maximum length is %d"
-msgstr "MX: Login maximum length is %d"
+msgstr "La extensión máxima del inicio de sesión debe ser de %d."
 
 msgid "Login must contain only numbers, letters, - or _"
-msgstr "MX: Login must contain only numbers, letters, - or _"
+msgstr "El inicio de sesión solo debe contener números, letras, - o _."
 
 msgid "Password is required"
-msgstr "MX: Password is required"
+msgstr "Se requiere una contraseña."
 
 #, c-format
 msgid "Password must be at least %d characters long"
-msgstr "MX: Password must be at least %d characters long"
+msgstr "La contraseña debe tener una extensión de al menos %d caracteres."
 
 #, c-format
 msgid "Password may be at most %d characters long"
-msgstr "MX: Password may be at most %d characters long"
+msgstr "La contraseña puede tener una extensión máxima de %d caracteres."
 
 msgid "Passphrase is required"
-msgstr "MX: Passphrase is required"
+msgstr "Se requiere una frase de contraseña."
 
 msgid "Passphrase may only contain 7-bit, printable characters"
-msgstr "MX: Passphrase may only contain 7-bit, printable characters"
+msgstr "La frase de contraseña solo puede contener caracteres imprimibles de 7 bits."
 
 #, c-format
 msgid "Passphrase must be at least %d characters long"
-msgstr "MX: Passphrase must be at least %d characters long"
+msgstr "La frase de contraseña debe tener una extensión de al menos %d caracteres."
 
 #, c-format
 msgid "Passphrase may be at most %d characters long"
-msgstr "MX: Passphrase may be at most %d characters long"
+msgstr "La frase de contraseña puede tener una extensión máxima de %d caracteres."
 
 msgid "Disk Encryption Passphrase"
-msgstr "MX: Disk Encryption Passphrase"
+msgstr "Frase de contraseña para cifrado de disco"
 
 msgid "Confirm Passphrase"
-msgstr "MX: Confirm Passphrase"
+msgstr "Confirmar frase de contraseña"
 
 #, c-format
 msgid "Label too long, max is %d"
-msgstr "MX: Label too long, max is %d"
+msgstr "La etiqueta es demasiado extensa; el máximo es de %d."
 
 msgid "Invalid label characters"
-msgstr "MX: Invalid label characters"
+msgstr "Caracteres de etiqueta no válidos."
 
-msgid "Invalid size, may only be suffixed by: B, K, M, G, T or P"
-msgstr "MX: Invalid size, may only be suffixed by: B, K, M, G, T or P"
+msgid "Invalid size, may only be suffixed by: B, K, M, G, T, or P"
+msgstr "Tamaño no válido; solo puede tener estos sufijos: B, K, M, G, T o P."
 
 msgid "Invalid size"
-msgstr "MX: Invalid size"
+msgstr "Tamaño no válido."
 
 msgid "Size too small"
-msgstr "MX: Size too small"
+msgstr "Tamaño demasiado pequeño."
 
 msgid "Unknown free space"
-msgstr "MX: Unknown free space"
+msgstr "Espacio libre desconocido."
 
 msgid "Size too large"
-msgstr "MX: Size too large"
+msgstr "Tamaño muy grande."
 
 msgid "Encryption"
-msgstr "MX: Encryption"
+msgstr "Cifrado"
 
 msgid "No Media Selected"
-msgstr "MX: No Media Selected"
+msgstr "Ningún medio seleccionado"
 
 msgid "Safe Installation"
-msgstr "MX: Safe Installation"
+msgstr "Instalación segura"
 
 msgid "Install on an unallocated disk or alongside existing partitions."
-msgstr "MX: Install on an unallocated disk or alongside existing partitions."
+msgstr "Realice la instalación en un disco sin asignar o en particiones existentes."
 
 msgid "Destructive Installation"
-msgstr "MX: Destructive Installation"
+msgstr "Instalación destructiva"
 
 msgid "Erase all data on selected media and install Clear Linux* OS."
-msgstr "MX: Erase all data on selected media and install Clear Linux* OS."
+msgstr "Elimina todos los datos del medio seleccionado y permite instalar el sistema operativo Clear Linux*."
 
 msgid "RESCAN MEDIA"
-msgstr "MX: RESCAN MEDIA"
+msgstr "VOLVER A EXAMINAR MEDIOS"
 
 msgid "CHANGE LANGUAGE"
-msgstr "MX: CHANGE LANGUAGE"
+msgstr "CAMBIAR IDIOMA"
 
 msgid "Confirm"
-msgstr "MX: Confirm"
+msgstr "Confirmar"
 
 #, c-format
-msgid "Can use alpha-numeric characters and - with a maximum of %d characters."
-msgstr "MX: Can use alpha-numeric characters and - with a maximum of %d characters."
+msgid "Can use alphanumeric characters and - with a maximum of %d characters."
+msgstr "Puede utilizar caracteres alfanuméricos y - (%d caracteres como máximo)."
 
 msgid "Welcome to Clear Linux* OS Desktop Installation"
-msgstr "Bienvenido a la instalación de operativo Clear Linux* para computadoras de escritorio"
+msgstr "Bienvenido a la instalación del sistema operativo Clear Linux* para computadoras de escritorio"
 
 msgid "Thank you for choosing Clear Linux* OS"
-msgstr "Gracias por elegir operativo Clear Linux*"
+msgstr "Gracias por elegir el sistema operativo Clear Linux*"
 
 msgid "No safe media found for installation"
-msgstr "MX: No safe media found for installation"
+msgstr "No se encontraron medios seguros para realizar la instalación."
 
 #, c-format
 msgid "Updating partition table for: %s"
-msgstr "MX: Updating partition table for: %s"
+msgstr "Actualizando la tabla de particiones en %s"
 
 msgid "admin"
-msgstr "MX: admin"
+msgstr "admin"
 
 msgid "pre-install"
-msgstr "MX: pre-install"
+msgstr "preinstalación"
 
 msgid "post-install"
-msgstr "MX: post-install"
+msgstr "posinstalación"
 
 #, c-format
 msgid "Setting Language locale to %s"
-msgstr "MX: Setting Language locale to %s"
+msgstr "Configurando la localidad de idioma a %s"
 
 msgid "Installing base OS and configured bundles"
-msgstr "MX: Installing base OS and configured bundles"
+msgstr "Instalando el sistema operativo base y los paquetes configurados"
 
 msgid "Disabling automatic updates"
-msgstr "MX: Disabling automatic updates"
+msgstr "Desactivando las actualizaciones automáticas"
 
 msgid "Disabling automatic updates failed"
-msgstr "MX: Disabling automatic updates failed"
+msgstr "No se pudieron desactivar las actualizaciones automáticas"
 
 msgid "Installing boot loader"
-msgstr "MX: Installing boot loader"
+msgstr "Instalando la carga de arranque"
 
 msgid "Searching the system for available media."
-msgstr "MX: Searching the system for available media."
+msgstr "Buscando en el sistema algún medio disponible."
 
 msgid "Please wait."
-msgstr "MX: Please wait."
+msgstr "Espere."
 
 # Used only in Installer desktop icon
 msgid "Install Clear Linux* OS"
-msgstr "MX: Install Clear Linux* OS"
+msgstr "Instalar el sistema operativo Clear Linux*"
 
 # Used only in Installer desktop icon
 msgid "Clear Linux* OS Installer"
-msgstr "MX: Clear Linux* OS Installer"
+msgstr "Instalador del sistema operativo Clear Linux*"
 
 msgid "Common set of prebuilt R libraries"
-msgstr "MX: Common set of prebuilt R libraries"
+msgstr "Conjunto común de bibliotecas R prediseñadas"
 
 msgid "Run a cloud orchestration server"
-msgstr "MX: Run a cloud orchestration server"
+msgstr "Ejecutar un servidor de orquestación en la nube"
 
 msgid "Build the containers-basic bundle"
-msgstr "MX: Build the containers-basic bundle"
+msgstr "Crear el paquete básico de contenedores"
 
 msgid "Applications for the desktop"
-msgstr "MX: Applications for the desktop"
+msgstr "Aplicaciones para el escritorio"
 
 msgid "UI that automatically starts on boot"
-msgstr "MX: UI that automatically starts on boot"
+msgstr "Interfaz de usuario que se inicia automáticamente en el arranque"
 
 msgid "Utilities to assist application development"
-msgstr "MX: Utilities to assist application development"
+msgstr "Utilidades para asistir en el desarrollo de aplicaciones"
 
 msgid "Popular text editors (terminal-based)"
-msgstr "MX: Popular text editors (terminal-based)"
+msgstr "Editores de texto conocidos (basados en terminales)"
 
 msgid "GNU Image Manipulation Program"
-msgstr "MX: GNU Image Manipulation Program"
+msgstr "Programa de manipulación de imágenes GNU"
 
 msgid "Build and run go language programs"
-msgstr "MX: Build and run go language programs"
+msgstr "Creación y ejecución de programas de lenguaje Go"
 
 msgid "Build and run java language programs"
-msgstr "MX: Build and run java language programs"
+msgstr "Creación y ejecución de programas de lenguaje Java"
 
 msgid "LibreOffice - Free Office Suite"
-msgstr "MX: LibreOffice - Free Office Suite"
+msgstr "LibreOffice: conjunto de aplicaciones de oficina libres"
 
 msgid "Build machine learning applications"
-msgstr "MX: Build machine learning applications"
+msgstr "Creación de aplicaciones de aprendizaje automático"
 
 msgid "Network utilities and settings"
-msgstr "MX: Network utilities and settings"
+msgstr "Configuración y utilidades de red"
 
-msgid "Run any Clear Linux dev. process"
-msgstr "MX: Run any Clear Linux dev. process"
+msgid "Run any Clear Linux* dev. process"
+msgstr "Ejecución de cualquier proceso de desarrollo de Clear Linux*"
 
 msgid "Utilities for creating, building, and managing packages"
-msgstr "MX: Utilities for creating, building, and managing packages"
+msgstr "Utilidades para la creación, el desarrollo y la administración de paquetes"
 
 msgid "Run perl language programs"
-msgstr "MX: Run perl language programs"
+msgstr "Ejecución de programas de lenguaje perl"
 
 msgid "Multi-protocol instant messagging (IM) client"
-msgstr "MX: Multi-protocol instant messagging (IM) client"
+msgstr "Cliente de mensajes instantáneos (IM) de varios protocolos"
 
 msgid "Run legacy python language programs"
-msgstr "MX: Run legacy python language programs"
+msgstr "Ejecución de programas heredados de lenguaje python"
 
 msgid "Run python language programs"
-msgstr "MX: Run python language programs"
+msgstr "Ejecución de programas de lenguaje python"
 
 msgid "Python data-science stack http://pydata.org"
-msgstr "MX: Python data-science stack http://pydata.org"
+msgstr "Pila de ciencia de datos python http://pydata.org"
 
 msgid "Common utilities to manage a system"
-msgstr "MX: Common utilities to manage a system"
+msgstr "Utilidades comunes para administrar un sistema"
 
 msgid "Captures most console work flows"
-msgstr "MX: Captures most console work flows"
+msgstr "Permite capturar la mayoría de las dinámicas de trabajo de las consolas"
 
 msgid "Packages to build the user-basic bundle"
-msgstr "MX: Packages to build the user-basic bundle"
+msgstr "Paquetes para desarrollar el paquete básico de usuario"
 
 # TRANSLATION SET: 3
 
