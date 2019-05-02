@@ -251,7 +251,16 @@ func buildInitrdImage() error {
 		return err
 	}
 
-	args := "sudo find .| cpio -o -H newc | gzip >" + tmpPaths[clrCdroot] + "/images/initrd.gz"
+	initrdPath := tmpPaths[clrCdroot] + "/EFI/BOOT/"
+	if _, err := os.Stat(initrdPath); os.IsNotExist(err) {
+		err = os.MkdirAll(initrdPath, os.ModePerm)
+		if err != nil {
+			prg.Failure()
+			return err
+		}
+	}
+
+	args := "sudo find .| cpio -o -H newc | gzip >" + initrdPath + "initrd.gz"
 	_, err = exec.Command("bash", "-c", args).CombinedOutput()
 	if err != nil {
 		prg.Failure()
@@ -282,15 +291,6 @@ func mkEfiBoot() error {
 
 	for _, i := range cmds {
 		err := cmd.RunAndLog(i...)
-		if err != nil {
-			prg.Failure()
-			return err
-		}
-	}
-
-	/* create dirs in new efi img */
-	if _, err := os.Stat(tmpPaths[clrEfi] + "/EFI/systemd"); os.IsNotExist(err) {
-		err = os.MkdirAll(tmpPaths[clrEfi]+"/EFI/systemd", os.ModePerm)
 		if err != nil {
 			prg.Failure()
 			return err
@@ -338,18 +338,20 @@ func mkEfiBoot() error {
 		return err
 	}
 
-	/* Copy all required files to efiboot.img and finally unmount efiboot.img */
-	paths := [][]string{
-		{tmpPaths[clrCdroot] + "/images/initrd.gz", tmpPaths[clrEfi] + "/EFI/Boot/initrd.gz"},
-		{tmpPaths[clrImgEfi] + "/EFI/BOOT/BOOTX64.EFI", tmpPaths[clrEfi] + "/EFI/systemd/systemd-bootx64.efi"},
+	/* Copy EFI files to the cdroot for Rufus support */
+	cpCmd := []string{"cp", "-pr", tmpPaths[clrEfi] + "/.", tmpPaths[clrCdroot]}
+	err = cmd.RunAndLog(cpCmd...)
+	if err != nil {
+		prg.Failure()
+		return err
 	}
 
-	for _, i := range paths {
-		err = utils.CopyFile(i[0], i[1])
-		if err != nil {
-			prg.Failure()
-			return err
-		}
+	/* Copy initrd to efiboot.img and finally unmount efiboot.img */
+	initrdPaths := []string{tmpPaths[clrCdroot] + "/EFI/BOOT/initrd.gz", tmpPaths[clrEfi] + "/EFI/BOOT/initrd.gz"}
+	err = utils.CopyFile(initrdPaths[0], initrdPaths[1])
+	if err != nil {
+		prg.Failure()
+		return err
 	}
 
 	/* Unmount EFI partition here, because this must be unmounted when calling xorriso! */
@@ -567,13 +569,16 @@ func MakeIso(rootDir string, imgName string, model *model.SystemInstall, options
 	if err = buildInitrdImage(); err != nil {
 		return err
 	}
+
 	if err = mkEfiBoot(); err != nil {
 		return err
 	}
+
 	err = mkLegacyBoot(templateDir)
 	if err != nil {
 		return err
 	}
+
 	if err = packageIso(imgName); err != nil {
 		return err
 	}
