@@ -4,7 +4,7 @@ TIMEOUT 50
 
 LABEL clear
   MENU DEFAULT
-  MENU LABEL Clear Linux OS for Intel Architecture
+  MENU LABEL Clear Linux* OS
   LINUX /kernel/kernel.xz
-  INITRD /images/initrd.gz
+  INITRD /EFI/BOOT/initrd.gz
   APPEND {{.Options}}

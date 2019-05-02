@@ -9,7 +9,7 @@ mount -t tmpfs none /run
 shell_trap() {
     local msg="$1"
     while true; do
-        echo "<1>Unable to boot Clear Linux." |tee /dev/kmsg
+        echo "<1>Unable to boot Clear Linux*." |tee /dev/kmsg
         echo "<1>FATAL: $msg"|tee /dev/kmsg
         sleep 30
     done
@@ -88,7 +88,7 @@ have_64bit_cpu() {
 }
 
 #Verify CPU features needed to run Clear exist
-echo "<1>Checking if system is capable of running Clear Linux..." |tee /dev/kmsg
+echo "<1>Checking if system is capable of running Clear Linux*..." |tee /dev/kmsg
 have_64bit_cpu
 have_ssse3_cpu_feature
 have_sse41_cpu_feature
@@ -104,7 +104,7 @@ insmod {{.}}
 mount_root() {
     local installer=${1}
     mkdir /mnt/media
-    mount --read-only -t iso9660 $installer /mnt/media
+    mount --read-only $installer /mnt/media
     rootfsloop=$(losetup -fP --show /mnt/media/images/rootfs.img)
     if [ -n "${rootfsloop}" ]; then
         mkdir /mnt/rootfs
@@ -131,7 +131,7 @@ find_and_mount_installer() {
     done
 
     if [ $retries -ge 5 ]; then
-        shell_trap "Failed to find installer media, retries exhausted, failed to boot Clear Linux."
+        shell_trap "Failed to find installer media, retries exhausted, failed to boot Clear Linux*."
     fi
 }
 
