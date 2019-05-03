@@ -20,7 +20,6 @@ import (
 
 // DiskConfig is a simple page to help with DiskConfig settings
 type DiskConfig struct {
-	devs               []*storage.BlockDevice
 	safeTargets        []storage.InstallTarget
 	destructiveTargets []storage.InstallTarget
 	activeDisk         *storage.BlockDevice
@@ -224,6 +223,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 
 	disk.encryptCheck.SetLabel("  " + utils.Locale.Get("Enable Encryption"))
 	disk.encryptCheck.SetMarginStart(common.StartEndMargin)
+	disk.encryptCheck.SetHAlign(gtk.ALIGN_START) // Ensures that clickable area is only within the label
 	disk.scrollBox.PackStart(disk.encryptCheck, false, false, 0)
 
 	// Generate signal on encryptCheck button click
@@ -243,7 +243,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		_ = disk.scanMediaDevices()
 		// Check if the active device is still present
 		var found bool
-		for _, bd := range disk.devs {
+		for _, bd := range disk.model.Devices {
 			if bd.Serial == disk.activeSerial {
 				found = true
 				disk.activeDisk = bd
@@ -271,8 +271,6 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	disk.scrollBox.Add(rescanBox)
 
 	disk.box.ShowAll()
-
-	_ = disk.scanMediaDevices()
 
 	return disk, nil
 }
@@ -505,7 +503,7 @@ func (disk *DiskConfig) onEncryptClick(button *gtk.CheckButton) {
 func (disk *DiskConfig) scanMediaDevices() error {
 	var err error
 
-	disk.devs, err = storage.RescanBlockDevices(disk.model.TargetMedias)
+	disk.model.Devices, err = storage.RescanBlockDevices(disk.model.TargetMedias)
 	if err != nil {
 		return err
 	}
@@ -531,7 +529,7 @@ func (disk *DiskConfig) populateComboBoxes() error {
 		return err
 	}
 
-	if len(disk.devs) < 1 {
+	if len(disk.model.Devices) < 1 {
 		warning := utils.Locale.Get("No media found for installation")
 		log.Warning(warning)
 		warning = fmt.Sprintf("<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
@@ -547,8 +545,8 @@ func (disk *DiskConfig) populateComboBoxes() error {
 		return nil
 	}
 
-	disk.safeTargets = storage.FindSafeInstallTargets(storage.MinimumDesktopInstallSize, disk.devs)
-	disk.destructiveTargets = storage.FindAllInstallTargets(disk.devs)
+	disk.safeTargets = storage.FindSafeInstallTargets(storage.MinimumDesktopInstallSize, disk.model.Devices)
+	disk.destructiveTargets = storage.FindAllInstallTargets(disk.model.Devices)
 
 	if disk.safeButton.GetActive() {
 		if len(disk.safeTargets) > 0 {
@@ -708,6 +706,7 @@ func (disk *DiskConfig) ResetChanges() {
 // GetConfiguredValue returns our current config
 func (disk *DiskConfig) GetConfiguredValue() string {
 	tm := disk.model.TargetMedias
+
 	if len(tm) == 0 {
 		return utils.Locale.Get("No Media Selected")
 	}

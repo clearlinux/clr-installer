@@ -138,6 +138,13 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 	// Set locale
 	utils.SetLocale(model.Language.Code)
 
+	go func() {
+		window.model.Devices, err = storage.RescanBlockDevices(window.model.TargetMedias)
+		if err != nil {
+			log.Warning("Error scanning media")
+		}
+	}()
+
 	// Create welcome page
 	window, err = window.createWelcomePage()
 	if err != nil {

@@ -77,6 +77,7 @@ type SystemInstall struct {
 	CryptPass         string                 `yaml:"-"`
 	MakeISO           bool                   `yaml:"iso,omitempty,flow"`
 	KeepImage         bool                   `yaml:"keepImage,omitempty,flow"`
+	Devices           []*storage.BlockDevice
 }
 
 // InstallHook is a commands to be executed in a given point of the install process
