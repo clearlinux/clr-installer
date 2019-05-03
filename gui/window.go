@@ -18,6 +18,14 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
+const (
+	// WindowWidth specifies the default width of the window
+	WindowWidth int = 950
+
+	// WindowHeight specifies the default height of the window
+	WindowHeight int = 600
+)
+
 // PageConstructor is a typedef of the constructors for our pages
 type PageConstructor func(controller pages.Controller, model *model.SystemInstall) (pages.Page, error)
 
@@ -112,7 +120,7 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 		return nil, err
 	}
 	window.handle.SetPosition(gtk.WIN_POS_CENTER)
-	window.handle.SetDefaultSize(1100, 600)
+	window.handle.SetDefaultSize(WindowWidth, WindowHeight)
 	window.handle.SetResizable(false)
 
 	// Create invisible header bar
@@ -426,7 +434,10 @@ func (window *Window) UpdateFooter(store *gtk.Box) error {
 	if _, err = window.buttons.back.Connect("clicked", func() { window.launchWelcomeView() }); err != nil {
 		return err
 	}
-	window.buttons.back.SetMarginEnd(500) // TODO: MarginStart would be ideal but does not work
+
+	width, _ := window.handle.GetSize() // get current size
+	marginEnd := width * 35 / 100
+	window.buttons.back.SetMarginEnd(marginEnd) // TODO: MarginStart would be ideal but does not work
 
 	// Confirm button
 	if window.buttons.confirm, err = createNavButton(utils.Locale.Get("CONFIRM"), "button-confirm"); err != nil {

@@ -441,43 +441,43 @@ msgstr "Paquetes para desarrollar el paquete básico de usuario"
 # TRANSLATION SET: 3
 
 msgid "Selected media will be partitioned."
-msgstr "MX: Selected media will be partitioned."
+msgstr "Los medios seleccionados se particionarán."
 
 msgid "Selected media will have partitions added."
-msgstr "MX: Selected media will have partitions added."
+msgstr "Los medios seleccionados tendrán particiones añadidas."
 
 msgid "WARNING: Selected media will be erased."
-msgstr "MX: WARNING: Selected media will be erased."
+msgstr "ADVERTENCIA: los medios seleccionados se borrarán."
 
 msgid "WARNING: Selected media will have data loss."
-msgstr "MX: WARNING: Selected media will have data loss."
+msgstr "ADVERTENCIA: los medios seleccionados tendrán pérdida de datos."
 
 msgid "None"
-msgstr "MX: None"
+msgstr "Ninguno"
 
 msgid "Target Media"
-msgstr "MX: Target Media"
+msgstr "Medios de destino"
 
 msgid "Confirm Installation"
-msgstr "MX: Confirm Installation"
+msgstr "confirmar la instalación"
 
 msgid "OK"
-msgstr "MX: OK"
+msgstr "Aceptar"
 
 msgid "Encryption requires a Passphrase"
-msgstr "MX: Encryption requires a Passphrase"
+msgstr "El cifrado requiere una frase de contraseña"
 
 msgid "Encryption Passphrase"
-msgstr "MX: Encryption Passphrase"
+msgstr "Contraseña de cifrado"
 
 msgid "Passphrases do not match"
-msgstr "MX: Passphrases do not match"
+msgstr "Las frases de contraseña no coinciden"
 
 msgid "Mapping %s partition to an encrypted partition"
-msgstr "MX: Mapping %s partition to an encrypted partition"
+msgstr "Asignación de la partición %s a una partición cifrada"
 
 msgid "Skipping new file system for %s"
-msgstr "MX: Skipping new file system for %s"
+msgstr "Omitir nuevo sistema de archivos para %s"
 
 msgid "Disabled"
 msgstr "Desactivada"
