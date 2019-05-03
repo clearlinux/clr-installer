@@ -18,11 +18,6 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
-const (
-	// DiskPageCommonSize is a common size used by widgets in this page
-	DiskPageCommonSize int = 20
-)
-
 // DiskConfig is a simple page to help with DiskConfig settings
 type DiskConfig struct {
 	devs               []*storage.BlockDevice
@@ -123,7 +118,6 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		return nil, err
 	}
 	safeLabel.SetXAlign(0.0)
-	safeLabel.SetSizeRequest(DiskPageCommonSize, -1)
 	safeLabel.SetLineWrap(true)
 	safeLabel.SetHAlign(gtk.ALIGN_START)
 	safeLabel.SetUseMarkup(true)
@@ -167,7 +161,6 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		return nil, err
 	}
 	destructiveLabel.SetXAlign(0.0)
-	destructiveLabel.SetSizeRequest(DiskPageCommonSize, -1)
 	destructiveLabel.SetLineWrap(true)
 	destructiveLabel.SetHAlign(gtk.ALIGN_START)
 	destructiveLabel.SetUseMarkup(true)

@@ -441,43 +441,43 @@ msgstr "用于生成用户基本捆绑包的软件包"
 # TRANSLATION SET: 3
 
 msgid "Selected media will be partitioned."
-msgstr "CN: Selected media will be partitioned."
+msgstr "将对选定的媒体进行分区。"
 
 msgid "Selected media will have partitions added."
-msgstr "CN: Selected media will have partitions added."
+msgstr "选定的媒体将添加分区。"
 
 msgid "WARNING: Selected media will be erased."
-msgstr "CN: WARNING: Selected media will be erased."
+msgstr "警告: 选定的媒体将被删除。"
 
 msgid "WARNING: Selected media will have data loss."
-msgstr "CN: WARNING: Selected media will have data loss."
+msgstr "警告: 选定的媒体将有数据丢失。"
 
 msgid "None"
-msgstr "CN: None"
+msgstr "无"
 
 msgid "Target Media"
-msgstr "CN: Target Media"
+msgstr "目标媒体"
 
 msgid "Confirm Installation"
-msgstr "CN: Confirm Installation"
+msgstr "确认安装"
 
 msgid "OK"
-msgstr "CN: OK"
+msgstr "确定"
 
 msgid "Encryption requires a Passphrase"
-msgstr "CN: Encryption requires a Passphrase"
+msgstr "加密需要一个密码"
 
 msgid "Encryption Passphrase"
-msgstr "CN: Encryption Passphrase"
+msgstr "加密密码"
 
 msgid "Passphrases do not match"
-msgstr "CN: Passphrases do not match"
+msgstr "密码短语不匹配"
 
 msgid "Mapping %s partition to an encrypted partition"
-msgstr "CN: Mapping %s partition to an encrypted partition"
+msgstr "将 %s 分区映射到加密分区"
 
 msgid "Skipping new file system for %s"
-msgstr "CN: Skipping new file system for %s"
+msgstr "跳过 %s 的新文件系统"
 
 msgid "Disabled"
-msgstr "CN: Disabled"
+msgstr "已禁用"

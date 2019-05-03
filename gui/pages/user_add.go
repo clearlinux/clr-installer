@@ -443,8 +443,6 @@ func setLabelAndEntry(entryText string, maxSize int) (*gtk.Box, *gtk.Entry, erro
 	if err != nil {
 		return nil, nil, err
 	}
-	entry.SetSizeRequest(50, -1)
-	entry.SetMaxWidthChars(50)
 	entry.SetMaxLength(maxSize)
 	boxEntry.PackStart(entry, true, true, 0)
 
