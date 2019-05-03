@@ -61,7 +61,7 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 
 	// TODO: Remove when multi user is implemented
 	page.user = &user.User{}
-	if len(page.model.Users) != 0 {
+	if len(page.model.Users) > 0 {
 		page.user = page.model.Users[0] // Just get the first user
 	}
 
@@ -197,6 +197,7 @@ func (page *UserAddPage) onPasswordChange(entry *gtk.Entry) {
 		setTextInEntry(page.passwordConfirm, "")
 		page.fakePassword = false
 		page.passwordChanged = true
+		page.setConfirmButton()
 		return
 	}
 
@@ -216,6 +217,7 @@ func (page *UserAddPage) onPasswordChange(entry *gtk.Entry) {
 	} else {
 		page.passwordWarning.SetText("")
 	}
+
 	page.setConfirmButton()
 }
 
@@ -265,29 +267,41 @@ func (page *UserAddPage) GetTitle() string {
 
 // StoreChanges will store this pages changes into the model
 func (page *UserAddPage) StoreChanges() {
+	rawPassword := getTextFromEntry(page.password)
+
+	if page.addMode {
+		newUser := &user.User{
+			UserName: getTextFromEntry(page.name),
+			Login:    getTextFromEntry(page.login),
+			Admin:    page.adminCheck.GetActive(),
+		}
+
+		page.model.AddUser(newUser)
+	} else {
+		if len(page.model.Users) < 1 {
+			log.Warning("New user is missing")
+			return
+		}
+
+		page.model.Users[0].UserName = getTextFromEntry(page.name)
+		page.model.Users[0].Login = getTextFromEntry(page.login)
+		page.model.Users[0].Admin = page.adminCheck.GetActive()
+	}
+
+	log.Debug("page.model.Users[0]: %+v", page.model.Users[0]) // RemoveMe
+
 	// TODO: Modify when multi user is implemented
+	// Do not set the encrypted password until after we have
+	// added the user so we are updating the right memory
 	if page.addMode || page.passwordChanged {
-		if err := page.user.SetPassword(getTextFromEntry(page.password)); err != nil {
+		// TODO: Fix thread issue?
+		// Talk to John Andersen if there is a golang native function to use
+		// This c-lang encryption function doesn't appear to be
+		// safe to use with GTK -- thread issue?
+		if err := page.model.Users[0].SetPassword(rawPassword); err != nil {
 			log.Warning("Failed to encrypt password: %v", err)
 			return
 		}
-	}
-
-	page.user.UserName = getTextFromEntry(page.name)
-	page.user.Login = getTextFromEntry(page.login)
-	page.user.Admin = page.adminCheck.GetActive()
-
-	if page.addMode {
-		log.Debug("Add Mode for a user")
-		page.model.AddUser(page.user)
-	} else {
-		log.Debug("Change mode before remove user")
-		if len(page.model.Users) > 0 {
-			log.Debug("Remove the old user")
-			page.model.RemoveAllUsers()
-		}
-		log.Debug("Adding the user (back)")
-		page.model.AddUser(page.user)
 	}
 
 	page.clearForm()
@@ -297,9 +311,12 @@ func (page *UserAddPage) StoreChanges() {
 func (page *UserAddPage) ResetChanges() {
 	page.clearForm()
 
-	if len(page.model.Users) != 0 {
-		page.user = page.model.Users[0]
+	if len(page.model.Users) > 0 {
+		page.user = page.model.Users[0] // Just get the first user
+	} else {
+		page.user = &user.User{}
 	}
+
 	if page.user.Login == "" {
 		page.addMode = true
 	}
@@ -452,7 +469,7 @@ func (page *UserAddPage) setPasswordWidgets(rulesText string, maxSize int) (*gtk
 	rulesLabel.SetMarginStart(CommonSetting + common.StartEndMargin)
 	page.box.PackStart(rulesLabel, false, false, 0)
 
-	boxPasswordConfirm, passwordConfirm, err := setLabelAndEntry(utils.Locale.Get("Confirm"), maxSize)
+	boxPasswordConfirm, passwordConfirm, err := setLabelAndEntry(utils.Locale.Get("Confirm")+" *", maxSize)
 	if err != nil {
 		return nil, nil, nil, err
 	}
