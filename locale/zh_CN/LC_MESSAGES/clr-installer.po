@@ -230,8 +230,8 @@ msgstr "需要登录"
 msgid "Login maximum length is %d"
 msgstr "登录名最大长度为 %d"
 
-msgid "Login must contain only numbers, letters, - or _"
-msgstr "登录名必须只包含数字、字母、连字符和下划线"
+msgid "Login must contain only numbers, lower case letters, - or _"
+msgstr "登录名必须仅包含数字、小写字母、连字符和下划线"
 
 msgid "Password is required"
 msgstr "需要密码"
