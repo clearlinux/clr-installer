@@ -230,8 +230,8 @@ msgstr "Login is required"
 msgid "Login maximum length is %d"
 msgstr "Login maximum length is %d"
 
-msgid "Login must contain only numbers, letters, - or _"
-msgstr "Login must contain only numbers, letters, - or _"
+msgid "Login must contain only numbers, lower case letters, - or _"
+msgstr "Login must contain only numbers, lower case letters, - or _"
 
 msgid "Password is required"
 msgstr "Password is required"
