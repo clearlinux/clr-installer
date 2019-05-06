@@ -111,7 +111,8 @@ install-gui: build-gui install-common
 
 uninstall:
 	@rm -f $(DESTDIR)/usr/bin/clr-installer
-	@rm -f $(PKIT_DIR)/org.freedesktop.policykit.pkexec.policy
+	@rm -f $(PKIT_DIR)/actions/org.clearlinux.clr-installer-gui.policy
+	@rm -f $(PKIT_DIR)/rules.d/org.clearlinux.clr-installer-gui.rules
 	@rm -f $(THEME_DIR)/clr-installer.theme
 	@rm -f $(THEME_DIR)/clr.png
 	@rm -f $(THEME_DIR)/style.css
@@ -119,7 +120,7 @@ uninstall:
 	@rm -f $(CONFIG_DIR)/clr-installer.yaml
 	@rm -f $(CONFIG_DIR)/bundles.json
 	@rm -f $(CONFIG_DIR)/kernels.json
-	@rm -f $(DESKTOP_DIR)/clr-installer.desktop
+	@rm -f $(DESKTOP_DIR)/clr-installer-gui.desktop
 	@rm -f $(CONFIG_DIR)/chpasswd
 	@rm -f $(DESTDIR)/var/lib/clr-installer/clr-installer.yaml
 
