@@ -6,6 +6,7 @@ package pages
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -34,6 +35,7 @@ type InstallPage struct {
 	scroll    *gtk.ScrolledWindow // Hold the list
 
 	widgets map[int]*InstallWidget // mapping of widgets
+	warning *gtk.Label             // Display errors during install
 }
 
 // NewInstallPage constructs a new InstallPage.
@@ -77,6 +79,13 @@ func NewInstallPage(controller Controller, model *model.SystemInstall) (Page, er
 		return nil, err
 	}
 	st.AddClass("scroller-main")
+
+	page.warning, err = setLabel("", "label-warning", 0)
+	if err != nil {
+		return nil, err
+	}
+	page.warning.SetMarginStart(24)
+	page.layout.PackStart(page.warning, false, false, 0)
 
 	// Create progressbar
 	page.pbar, err = gtk.ProgressBarNew()
@@ -169,9 +178,14 @@ func (install *InstallPage) ResetChanges() {
 		)
 		install.pbar.SetFraction(1.0)
 
-		// TODO: Handle this moar better.
+		// Temporary handling of errors
 		if err != nil {
-			panic(err)
+			text := utils.Locale.Get("Installation failed.")
+			// TODO: Map errors => error codes => localized error messages.
+			// For the time being, get only the first line of the error.
+			text = text + " " + strings.Split(err.Error(), "\n")[0]
+			install.warning.SetText(text)
+			install.controller.SetButtonState(ButtonQuit, true)
 		}
 
 		go func() {

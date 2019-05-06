@@ -481,3 +481,11 @@ msgstr "Omitir nuevo sistema de archivos para %s"
 
 msgid "Disabled"
 msgstr "Desactivada"
+
+# TRANSLATION SET: 4
+
+msgid "Installation failed."
+msgstr "MX: Installation failed."
+
+msgid "Network is not working."
+msgstr "MX: Network is not working."

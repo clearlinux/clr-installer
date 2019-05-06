@@ -481,3 +481,11 @@ msgstr "跳过 %s 的新文件系统"
 
 msgid "Disabled"
 msgstr "已禁用"
+
+# TRANSLATION SET: 4
+
+msgid "Installation failed."
+msgstr "CN: Installation failed."
+
+msgid "Network is not working."
+msgstr "CN: Network is not working."
