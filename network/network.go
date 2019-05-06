@@ -70,7 +70,7 @@ type Messenger struct {
 
 const (
 	// RequiredBundle the bundle needed to use NetworkManager
-	RequiredBundle = "NetworkManager-basic"
+	RequiredBundle = "NetworkManager"
 
 	// IPv4 identifies the addr version as ipv4
 	IPv4 = iota
@@ -675,17 +675,25 @@ func Restart() error {
 
 	// TODO: pkexec might require the absolute path in GUI mode to ensure pkexec doesn't mess up PATH.
 	if netMgr {
-		err := cmd.RunAndLog("systemctl", "restart", "NetworkManager",
-			"systemd-resolved", "pacdiscovery")
+		err := cmd.RunAndLog("systemctl", "restart", "NetworkManager")
 		if err != nil {
 			return errors.Wrap(err)
 		}
 	} else {
-		err := cmd.RunAndLog("systemctl", "restart", "systemd-networkd",
-			"systemd-resolved", "pacdiscovery")
+		err := cmd.RunAndLog("systemctl", "restart", "systemd-networkd")
 		if err != nil {
 			return errors.Wrap(err)
 		}
+	}
+
+	err := cmd.RunAndLog("systemctl", "restart", "systemd-resolved")
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	err = cmd.RunAndLog("systemctl", "restart", "pacdiscovery")
+	if err != nil {
+		return errors.Wrap(err)
 	}
 
 	return nil
