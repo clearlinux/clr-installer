@@ -224,6 +224,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 
 	disk.encryptCheck.SetLabel("  " + utils.Locale.Get("Enable Encryption"))
 	disk.encryptCheck.SetMarginStart(common.StartEndMargin)
+	disk.encryptCheck.SetHAlign(gtk.ALIGN_START) // Ensures that clickable area is only within the label
 	disk.scrollBox.PackStart(disk.encryptCheck, false, false, 0)
 
 	// Generate signal on encryptCheck button click
