@@ -11,7 +11,7 @@ scripts/wait-to-boot-post.sh ${CHROOTPATH}
 # Add issue (pre-login message) to inform user of how to run the installer
 scripts/add-login-issue.sh ${CHROOTPATH}
 
-# Add changes to PS1 to indicate live image
-scripts/ps1-override.sh ${CHROOTPATH}
+# Add changes to PS1 to indicate live image by setting the hostname
+echo "clr-live" > ${CHROOTPATH}/etc/hostname
 
 exit 0
