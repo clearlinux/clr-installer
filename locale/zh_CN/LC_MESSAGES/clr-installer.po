@@ -304,9 +304,6 @@ msgstr "破坏性安装"
 msgid "Erase all data on selected media and install Clear Linux* OS."
 msgstr "擦除选定媒介上的所有数据，然后安装 Clear Linux* OS。"
 
-msgid "RESCAN MEDIA"
-msgstr "重新扫描媒介"
-
 msgid "CHANGE LANGUAGE"
 msgstr "更改语言"
 
@@ -425,9 +422,6 @@ msgstr "运行旧有的 Python 语言程序"
 
 msgid "Run python language programs"
 msgstr "运行 Python 语言程序"
-
-msgid "Python data-science stack http://pydata.org"
-msgstr "Python 数据科学堆栈 http://pydata.org"
 
 msgid "Common utilities to manage a system"
 msgstr "用于管理系统的通用实用程序"

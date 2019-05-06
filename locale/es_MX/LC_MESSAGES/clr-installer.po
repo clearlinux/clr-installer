@@ -304,9 +304,6 @@ msgstr "Instalación destructiva"
 msgid "Erase all data on selected media and install Clear Linux* OS."
 msgstr "Elimina todos los datos del medio seleccionado y permite instalar el sistema operativo Clear Linux*."
 
-msgid "RESCAN MEDIA"
-msgstr "VOLVER A EXAMINAR MEDIOS"
-
 msgid "CHANGE LANGUAGE"
 msgstr "CAMBIAR IDIOMA"
 
@@ -425,9 +422,6 @@ msgstr "Ejecución de programas heredados de lenguaje python"
 
 msgid "Run python language programs"
 msgstr "Ejecución de programas de lenguaje python"
-
-msgid "Python data-science stack http://pydata.org"
-msgstr "Pila de ciencia de datos python http://pydata.org"
 
 msgid "Common utilities to manage a system"
 msgstr "Utilidades comunes para administrar un sistema"

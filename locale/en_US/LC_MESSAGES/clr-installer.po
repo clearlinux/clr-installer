@@ -304,9 +304,6 @@ msgstr "Destructive Installation"
 msgid "Erase all data on selected media and install Clear Linux* OS."
 msgstr "Erase all data on selected media and install Clear Linux* OS."
 
-msgid "RESCAN MEDIA"
-msgstr "RESCAN MEDIA"
-
 msgid "CHANGE LANGUAGE"
 msgstr "CHANGE LANGUAGE"
 
@@ -425,9 +422,6 @@ msgstr "Run legacy python language programs"
 
 msgid "Run python language programs"
 msgstr "Run python language programs"
-
-msgid "Python data-science stack http://pydata.org"
-msgstr "Python data-science stack http://pydata.org"
 
 msgid "Common utilities to manage a system"
 msgstr "Common utilities to manage a system"
