@@ -579,16 +579,19 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 			ok = true
 			break
 		}
+		log.Warning("Attempt to verify connectivity failed")
 
 		// Restart networking if we failed
 		// The likely gain is restarting pacdiscovery to fix autoproxy
 		if err := network.Restart(); err != nil {
-			return prg, err
+			log.Warning("Network restart failed")
+			ok = false
+			break
 		}
 	}
 
 	if !ok {
-		return prg, errors.Errorf("Failed, network is not working.")
+		return prg, errors.Errorf(utils.Locale.Get("Network is not working."))
 	}
 
 	prg.Success()

@@ -481,3 +481,11 @@ msgstr "Skipping new file system for %s"
 
 msgid "Disabled"
 msgstr "Disabled"
+
+# TRANSLATION SET: 4
+
+msgid "Installation failed."
+msgstr "Installation failed."
+
+msgid "Network is not working."
+msgstr "Network is not working."
