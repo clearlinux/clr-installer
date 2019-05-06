@@ -479,7 +479,7 @@ msgstr "Desactivada"
 # TRANSLATION SET: 4
 
 msgid "Installation failed."
-msgstr "MX: Installation failed."
+msgstr "Instalación fallida."
 
 msgid "Network is not working."
-msgstr "MX: Network is not working."
+msgstr "La red no está funcionando."
