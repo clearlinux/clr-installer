@@ -479,7 +479,7 @@ msgstr "已禁用"
 # TRANSLATION SET: 4
 
 msgid "Installation failed."
-msgstr "CN: Installation failed."
+msgstr "安装失败。"
 
 msgid "Network is not working."
-msgstr "CN: Network is not working."
+msgstr "网络无法正常工作。"
