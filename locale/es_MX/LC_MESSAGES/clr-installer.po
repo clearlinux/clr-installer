@@ -208,7 +208,7 @@ msgid "RESCAN"
 msgstr "VOLVER A EXAMINAR"
 
 msgid "Rescan for changes to hot swappable media."
-msgstr "Vuelve a hacer un análisis para detectar cambios en medios intercambiables en caliente."
+msgstr "Vuelve a hacer un análisis para detectar cambios en medios intercambiables en funcionamiento."
 
 msgid "RESCAN MEDIA"
 msgstr "VOLVER A EXAMINAR MEDIOS"
@@ -321,7 +321,7 @@ msgid "Welcome to Clear Linux* OS Desktop Installation"
 msgstr "Bienvenido a la instalación del sistema operativo Clear Linux* para computadoras de escritorio"
 
 msgid "Thank you for choosing Clear Linux* OS"
-msgstr "Gracias por elegir el sistema operativo Clear Linux*"
+msgstr "Gracias por \nelegir el \nsistema \noperativo \nClear Linux*"
 
 msgid "No safe media found for installation"
 msgstr "No se encontraron medios seguros para realizar la instalación."
@@ -373,10 +373,10 @@ msgid "Common set of prebuilt R libraries"
 msgstr "Conjunto común de bibliotecas R prediseñadas"
 
 msgid "Run a cloud orchestration server"
-msgstr "Ejecutar un servidor de orquestación en la nube"
+msgstr "Ejecución de un servidor de orquestación en la nube"
 
 msgid "Build the containers-basic bundle"
-msgstr "Crear el paquete básico de contenedores"
+msgstr "Creación del paquete básico de contenedores"
 
 msgid "Applications for the desktop"
 msgstr "Aplicaciones para el escritorio"
@@ -388,7 +388,7 @@ msgid "Utilities to assist application development"
 msgstr "Utilidades para asistir en el desarrollo de aplicaciones"
 
 msgid "Popular text editors (terminal-based)"
-msgstr "Editores de texto conocidos (basados en terminales)"
+msgstr "Editores de texto conocidos (basados en terminal)"
 
 msgid "GNU Image Manipulation Program"
 msgstr "Programa de manipulación de imágenes GNU"
@@ -400,7 +400,7 @@ msgid "Build and run java language programs"
 msgstr "Creación y ejecución de programas de lenguaje Java"
 
 msgid "LibreOffice - Free Office Suite"
-msgstr "LibreOffice: conjunto de aplicaciones de oficina libres"
+msgstr "LibreOffice: conjunto de aplicaciones de oficina bajo licencia pública"
 
 msgid "Build machine learning applications"
 msgstr "Creación de aplicaciones de aprendizaje automático"
@@ -418,7 +418,7 @@ msgid "Run perl language programs"
 msgstr "Ejecución de programas de lenguaje perl"
 
 msgid "Multi-protocol instant messagging (IM) client"
-msgstr "Cliente de mensajes instantáneos (IM) de varios protocolos"
+msgstr "Cliente de mensajes instantáneos (IM) multiprotocolo"
 
 msgid "Run legacy python language programs"
 msgstr "Ejecución de programas heredados de lenguaje python"
@@ -441,10 +441,10 @@ msgstr "Paquetes para desarrollar el paquete básico de usuario"
 # TRANSLATION SET: 3
 
 msgid "Selected media will be partitioned."
-msgstr "Los medios seleccionados se particionarán."
+msgstr "Los medios seleccionados se dividirán en particiones."
 
 msgid "Selected media will have partitions added."
-msgstr "Los medios seleccionados tendrán particiones añadidas."
+msgstr "Se añadirán particiones a los medios seleccionados."
 
 msgid "WARNING: Selected media will be erased."
 msgstr "ADVERTENCIA: los medios seleccionados se borrarán."
@@ -459,7 +459,7 @@ msgid "Target Media"
 msgstr "Medios de destino"
 
 msgid "Confirm Installation"
-msgstr "confirmar la instalación"
+msgstr "Confirmar la instalación"
 
 msgid "OK"
 msgstr "Aceptar"

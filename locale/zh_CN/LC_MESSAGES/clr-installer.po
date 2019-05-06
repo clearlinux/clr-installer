@@ -32,7 +32,7 @@ msgid "Select Keyboard"
 msgstr "选择键盘"
 
 msgid "Configure Media"
-msgstr "配置介质"
+msgstr "配置媒介"
 
 msgid "Telemetry"
 msgstr "遥测技术"
@@ -127,13 +127,13 @@ msgid "VERSION %s"
 msgstr "版本 %s"
 
 msgid "Select Installation Media"
-msgstr "选择安装介质"
+msgstr "选择安装媒介"
 
 msgid "Enable Encryption"
 msgstr "启用加密"
 
 msgid "Configure Installation Media"
-msgstr "配置安装介质"
+msgstr "配置安装媒介"
 
 msgid "Partial"
 msgstr "部分"
@@ -148,10 +148,10 @@ msgid "Advanced"
 msgstr "高级"
 
 msgid "No media found for installation"
-msgstr "未找到安装介质"
+msgstr "未找到安装媒介"
 
 msgid "No -media- selected"
-msgstr "未选择任何介质"
+msgstr "未选择任何媒介"
 
 #, c-format
 msgid "Warning: %s"
@@ -208,10 +208,10 @@ msgid "RESCAN"
 msgstr "重新扫描"
 
 msgid "Rescan for changes to hot swappable media."
-msgstr "重新扫描对热插拔介质的更改。"
+msgstr "重新扫描对热插拔媒介的更改。"
 
 msgid "RESCAN MEDIA"
-msgstr "重新扫描介质"
+msgstr "重新扫描媒介"
 
 msgid "Adding extra users"
 msgstr "添加额外的用户"
@@ -245,14 +245,14 @@ msgid "Password may be at most %d characters long"
 msgstr "密码最多可以包含 %d 个字符"
 
 msgid "Passphrase is required"
-msgstr "密码短语是必需的"
+msgstr "必须输入密码"
 
 msgid "Passphrase may only contain 7-bit, printable characters"
 msgstr "密码短语只能包含 7 位可打印字符"
 
 #, c-format
 msgid "Passphrase must be at least %d characters long"
-msgstr "密码短语必须包含至少 %d 个字符"
+msgstr "密码必须包含至少 %d 个字符"
 
 #, c-format
 msgid "Passphrase may be at most %d characters long"
@@ -290,7 +290,7 @@ msgid "Encryption"
 msgstr "加密"
 
 msgid "No Media Selected"
-msgstr "未选择任何介质"
+msgstr "未选择任何媒介"
 
 msgid "Safe Installation"
 msgstr "安全安装"
@@ -302,10 +302,10 @@ msgid "Destructive Installation"
 msgstr "破坏性安装"
 
 msgid "Erase all data on selected media and install Clear Linux* OS."
-msgstr "擦除选定介质上的所有数据，然后安装 Clear Linux* OS。"
+msgstr "擦除选定媒介上的所有数据，然后安装 Clear Linux* OS。"
 
 msgid "RESCAN MEDIA"
-msgstr "重新扫描介质"
+msgstr "重新扫描媒介"
 
 msgid "CHANGE LANGUAGE"
 msgstr "更改语言"
@@ -324,7 +324,7 @@ msgid "Thank you for choosing Clear Linux* OS"
 msgstr "感谢您选择 Clear Linux* OS"
 
 msgid "No safe media found for installation"
-msgstr "未找到要安装的安全介质"
+msgstr "未找到要安装的安全媒介"
 
 #, c-format
 msgid "Updating partition table for: %s"
@@ -356,7 +356,7 @@ msgid "Installing boot loader"
 msgstr "正在安装引导加载程序"
 
 msgid "Searching the system for available media."
-msgstr "在系统中搜索可用的介质。"
+msgstr "在系统中搜索可用的媒介。"
 
 msgid "Please wait."
 msgstr "请稍候。"
@@ -441,22 +441,22 @@ msgstr "用于生成用户基本捆绑包的软件包"
 # TRANSLATION SET: 3
 
 msgid "Selected media will be partitioned."
-msgstr "将对选定的媒体进行分区。"
+msgstr "将对选定的媒介进行分区。"
 
 msgid "Selected media will have partitions added."
-msgstr "选定的媒体将添加分区。"
+msgstr "选定的媒介将添加分区。"
 
 msgid "WARNING: Selected media will be erased."
-msgstr "警告: 选定的媒体将被删除。"
+msgstr "警告: 选定的媒介将被删除。"
 
 msgid "WARNING: Selected media will have data loss."
-msgstr "警告: 选定的媒体将有数据丢失。"
+msgstr "警告: 选定的媒介将有数据丢失。"
 
 msgid "None"
 msgstr "无"
 
 msgid "Target Media"
-msgstr "目标媒体"
+msgstr "目标媒介"
 
 msgid "Confirm Installation"
 msgstr "确认安装"
@@ -471,7 +471,7 @@ msgid "Encryption Passphrase"
 msgstr "加密密码"
 
 msgid "Passphrases do not match"
-msgstr "密码短语不匹配"
+msgstr "密码不一致"
 
 msgid "Mapping %s partition to an encrypted partition"
 msgstr "将 %s 分区映射到加密分区"
