@@ -412,7 +412,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		msg = "Generating ISO image"
 		prg = progress.NewLoop(msg)
 		log.Info(msg)
-		if err = generateISO(rootDir, model); err != nil {
+		if err = generateISO(rootDir, model, options); err != nil {
 			log.ErrorError(err)
 		}
 		prg.Success()
@@ -760,7 +760,7 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 }
 
 // generateISO creates an ISO image from the just created raw image
-func generateISO(rootDir string, md *model.SystemInstall) error {
+func generateISO(rootDir string, md *model.SystemInstall, options args.Args) error {
 	var err error
 	msg := "Building ISO image"
 	prg := progress.NewLoop(msg)
@@ -768,7 +768,7 @@ func generateISO(rootDir string, md *model.SystemInstall) error {
 
 	if !md.LegacyBios {
 		for _, alias := range md.StorageAlias {
-			if err = isoutils.MakeIso(rootDir, strings.TrimSuffix(alias.File, filepath.Ext(alias.File)), md); err != nil {
+			if err = isoutils.MakeIso(rootDir, strings.TrimSuffix(alias.File, filepath.Ext(alias.File)), md, options); err != nil {
 				return err
 			}
 		}

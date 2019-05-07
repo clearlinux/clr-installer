@@ -112,19 +112,14 @@ func mkRootfs() error {
 	return err
 }
 
-func mkInitrd(version string, model *model.SystemInstall) error {
+func mkInitrd(version string, model *model.SystemInstall, options args.Args) error {
 	msg := "Installing the base system for initrd"
 	prg := progress.NewLoop(msg)
 	log.Info(msg)
 
 	var err error
-	options := args.Args{
-		SwupdMirror:             model.SwupdMirror,
-		SwupdStateDir:           tmpPaths[clrInitrd] + "/var/lib/swupd/",
-		SwupdStateClean:         true,
-		SwupdFormat:             "staging",
-		SwupdSkipDiskSpaceCheck: true,
-	}
+	options.SwupdStateDir = tmpPaths[clrInitrd] + "/var/lib/swupd/"
+	options.SwupdFormat = "staging"
 	sw := swupd.New(tmpPaths[clrInitrd], options)
 
 	/* Should install the overridden CoreBundles above (eg. os-core only) */
@@ -537,7 +532,7 @@ func cleanup() {
 }
 
 /*MakeIso creates an ISO image from a built image in the current directory*/
-func MakeIso(rootDir string, imgName string, model *model.SystemInstall) error {
+func MakeIso(rootDir string, imgName string, model *model.SystemInstall, options args.Args) error {
 	tmpPaths[clrRootfs] = rootDir
 	tmpPaths[clrImgEfi] = rootDir + "/boot"
 	var err error
@@ -561,7 +556,7 @@ func MakeIso(rootDir string, imgName string, model *model.SystemInstall) error {
 		return err
 	}
 
-	if err = mkInitrd(string(version), model); err != nil {
+	if err = mkInitrd(string(version), model, options); err != nil {
 		return err
 	}
 
