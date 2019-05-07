@@ -34,7 +34,7 @@ targetMedia:
     size: "3.0G"
     type: part
 
-bundles: [os-core, os-core-update, NetworkManager-basic, clr-installer]
+bundles: [os-core, os-core-update, NetworkManager, clr-installer, vim]
 
 autoUpdate: false
 postArchive: false
