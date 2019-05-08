@@ -112,7 +112,7 @@ func main() {
 	}
 
 	if options.DemoMode {
-		model.Version = "X.Y.Z"
+		model.Version = model.DemoVersion
 	}
 	// Make the Version of the program visible to telemetry
 	telemetry.ProgVersion = model.Version

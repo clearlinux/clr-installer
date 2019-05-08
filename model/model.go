@@ -27,6 +27,13 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
+const (
+	// DemoVersion is hard coded string we display in log files
+	// when running in demo (aka documentation mode). We will
+	// now use this as a flag to not include the version in UI.
+	DemoVersion = "X.Y.Z"
+)
+
 // Version of Clear Installer.
 // Also used by the Makefile for releases.
 // Default to the version of the program
