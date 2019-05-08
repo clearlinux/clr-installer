@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/GehirnInc/crypt"
-	// package requires import the hash method to blank
+	// package requires importing the hash method to blank
 	_ "github.com/GehirnInc/crypt/sha512_crypt"
 )
 

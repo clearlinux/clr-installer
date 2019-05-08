@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	"github.com/GehirnInc/crypt"
-	// package requires import the hash method to blank
+	// package requires importing the hash method to blank
 	_ "github.com/GehirnInc/crypt/sha512_crypt"
 )
 
@@ -36,7 +36,7 @@ func CreateSalt() (string, error) {
 	return string(salt), nil
 }
 
-// Crypt take a password and hashes with a random salt using SHA512
+// Crypt takes a password and hashes with a random salt using SHA512
 func Crypt(password string) (string, error) {
 	salt, saltErr := CreateSalt()
 	if saltErr != nil {
