@@ -2,6 +2,19 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:6a7cbf133e64f14133c09d39bd66b35d713f27cd161d5554e1f27c4ca018b782"
+  name = "github.com/GehirnInc/crypt"
+  packages = [
+    ".",
+    "common",
+    "internal",
+    "sha512_crypt",
+  ]
+  pruneopts = "UT"
+  revision = "6c0105aabd460ae06c87afeb5a47c869f6a7557e"
+
+[[projects]]
   digest = "1:2d29417d08199c60f690212f7e6a654d41579c9a8410344967f22bc417cdc5a9"
   name = "github.com/VladimirMarkelov/clui"
   packages = ["."]
@@ -144,6 +157,8 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/GehirnInc/crypt",
+    "github.com/GehirnInc/crypt/sha512_crypt",
     "github.com/VladimirMarkelov/clui",
     "github.com/coreos/go-systemd/dbus",
     "github.com/digitalocean/go-smbios/smbios",

@@ -72,3 +72,7 @@
 [[constraint]]
   name = "github.com/leonelquinteros/gotext"
   version = "1.4.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/GehirnInc/crypt"
