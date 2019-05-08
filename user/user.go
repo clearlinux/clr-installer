@@ -16,7 +16,7 @@ import (
 
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/conf"
-	"github.com/clearlinux/clr-installer/crypt"
+	"github.com/clearlinux/clr-installer/encrypt"
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/progress"
@@ -97,7 +97,7 @@ func loadSysDefaultUsers() error {
 
 // NewUser creates/allocates a new user handle
 func NewUser(login string, username string, pwd string, admin bool) (*User, error) {
-	hashed, err := crypt.Crypt(pwd)
+	hashed, err := encrypt.Crypt(pwd)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func NewUser(login string, username string, pwd string, admin bool) (*User, erro
 
 // SetPassword sets a users password
 func (u *User) SetPassword(pwd string) error {
-	hashed, err := crypt.Crypt(pwd)
+	hashed, err := encrypt.Crypt(pwd)
 	if err != nil {
 		return err
 	}

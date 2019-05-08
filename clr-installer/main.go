@@ -19,7 +19,7 @@ import (
 	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/conf"
-	"github.com/clearlinux/clr-installer/crypt"
+	"github.com/clearlinux/clr-installer/encrypt"
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/frontend"
 	"github.com/clearlinux/clr-installer/keyboard"
@@ -131,7 +131,7 @@ func main() {
 		", built on " + model.BuildDate)
 
 	if options.PamSalt != "" {
-		hashed, errHash := crypt.Crypt(options.PamSalt)
+		hashed, errHash := encrypt.Crypt(options.PamSalt)
 		if err != nil {
 			panic(errHash)
 		}
