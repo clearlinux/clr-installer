@@ -318,7 +318,7 @@ msgid "Welcome to Clear Linux* OS Desktop Installation"
 msgstr "Bienvenido a la instalación del sistema operativo Clear Linux* para computadoras de escritorio"
 
 msgid "Thank you for choosing Clear Linux* OS"
-msgstr "Gracias por elegir el sistema operativo Clear Linux*"
+msgstr "Gracias por \nelegir el \nsistema \noperativo \nClear Linux*"
 
 msgid "No safe media found for installation"
 msgstr "No se encontraron medios seguros para realizar la instalación."
