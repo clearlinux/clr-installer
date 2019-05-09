@@ -15,6 +15,7 @@ import (
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
+	"github.com/clearlinux/clr-installer/syscheck"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -603,8 +604,62 @@ func (window *Window) launchWelcomeView() {
 // launchMenuView launches the menu view
 func (window *Window) launchMenuView() {
 	window.menu.currentPage.StoreChanges()
-	if _, err := window.createMenuPages(); err != nil {
-		log.ErrorError(err) // TODO: Handle error
+
+	// If syscheck fails, launch a dialog box and force the user to exit
+	if retErr := syscheck.RunSystemCheck(true); retErr != nil {
+		contentBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 10)
+		contentBox.SetHAlign(gtk.ALIGN_FILL)
+		contentBox.SetMarginBottom(common.TopBottomMargin)
+		if err != nil {
+			log.Warning("Error creating box")
+			return
+		}
+
+		st, err := contentBox.GetStyleContext()
+		if err != nil {
+			log.Warning("Error getting style context")
+			return
+		}
+
+		// Style the dialog
+		st.AddClass("dialog-warning")
+
+		icon, err := gtk.ImageNewFromIconName("dialog-error-symbolic", gtk.ICON_SIZE_DIALOG)
+		if err != nil {
+			log.Warning("gtk.ImageNewFromIconName failed for icon dialog-error-symbolic")
+			return
+		}
+
+		icon.SetMarginEnd(12)
+		icon.SetHAlign(gtk.ALIGN_START)
+		icon.SetVAlign(gtk.ALIGN_START)
+		contentBox.PackStart(icon, false, true, 0)
+
+		label, err := gtk.LabelNew("System failed to pass pre-install checks.\n\n" + retErr.Error())
+		if err != nil {
+			log.Warning("Error creating label")
+			return
+		}
+		label.SetUseMarkup(true)
+		label.SetHAlign(gtk.ALIGN_END)
+		contentBox.PackStart(label, false, true, 0)
+
+		dialog, err := common.CreateDialogOneButton(contentBox, "System Check Failed", utils.Locale.Get("EXIT"), "button-cancel")
+		if err != nil {
+			log.Warning("Error creating dialog")
+			return
+		}
+
+		_, err = dialog.Connect("response", func() { gtk.MainQuit() })
+		if err != nil {
+			log.Warning("Error connecting to dialog")
+		}
+		dialog.ShowAll()
+		dialog.Run()
+	} else {
+		if _, err := window.createMenuPages(); err != nil {
+			log.ErrorError(err) // TODO: Handle error
+		}
 	}
 }
 

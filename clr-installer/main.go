@@ -298,7 +298,7 @@ func main() {
 
 	// Run system check and exit
 	if options.SystemCheck {
-		err = syscheck.RunSystemCheck()
+		err = syscheck.RunSystemCheck(false)
 		if err != nil {
 			os.Exit(1)
 		} else {
