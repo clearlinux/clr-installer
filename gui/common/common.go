@@ -51,6 +51,26 @@ func CreateDialog(contentBox *gtk.Box, title string) (*gtk.Dialog, error) {
 	return widget, nil
 }
 
+// CreateDialogOneButton creates a gtk dialog with a single button
+func CreateDialogOneButton(contentBox *gtk.Box, title, buttonLabel, buttonStyle string) (*gtk.Dialog, error) {
+	var err error
+	widget, err := CreateDialog(contentBox, title)
+	if err != nil {
+		return nil, err
+	}
+	widget.SetSkipTaskbarHint(false)
+	widget.SetResizable(false)
+
+	buttonExit, err := SetButton(buttonLabel, buttonStyle)
+	if err != nil {
+		return nil, err
+	}
+	buttonExit.SetMarginEnd(ButtonSpacing)
+	widget.AddActionWidget(buttonExit, gtk.RESPONSE_CANCEL)
+
+	return widget, nil
+}
+
 // CreateDialogOkCancel creates a gtk dialog with Ok and Cancel buttons
 func CreateDialogOkCancel(contentBox *gtk.Box, title, ok, cancel string) (*gtk.Dialog, error) {
 	//parentWindow := GetWinHandle()

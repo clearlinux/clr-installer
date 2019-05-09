@@ -160,3 +160,12 @@ window {
     background-image: none;
     background-color: #414449;
 }
+
+.dialog-warning {
+    background-image: none;
+    background-color: #414449;
+}
+
+.dialog-warning image {
+    color: #FDB814;
+}

@@ -36,7 +36,7 @@ func getEFIExist() error {
 }
 
 // RunSystemCheck checks compatibility for clear linux. (e.g. EFI firmware, CPU featureset)
-func RunSystemCheck() error {
+func RunSystemCheck(quiet bool) error {
 	log.Info("Running system compatibility checks.")
 
 	//Check the following CPU features from /proc/cpuinfo
@@ -49,33 +49,44 @@ func RunSystemCheck() error {
 		"ssse3",
 	}
 	for _, feature := range cpuFeatures {
-		fmt.Printf("Checking for required CPU feaure: %s", feature)
+		if !quiet {
+			fmt.Printf("Checking for required CPU feaure: %s", feature)
+		}
+
 		err := getCPUFeature(feature)
 		if err != nil {
-			fmt.Printf(" [*failed*]\n")
-			fmt.Println(err)
+			if !quiet {
+				fmt.Printf(" [*failed*]\n")
+				fmt.Println(err)
+			}
 			log.ErrorError(err)
 
 			return err
 		}
-
-		fmt.Println(" [success]")
+		if !quiet {
+			fmt.Println(" [success]")
+		}
 	}
 
 	//Check if we have EFI firmware
-	fmt.Printf("Checking for required EFI firmware")
+	if !quiet {
+		fmt.Printf("Checking for required EFI firmware")
+	}
 	err := getEFIExist()
 	if err != nil {
-		fmt.Printf(" [*failed*]\n")
-		fmt.Println(err)
+		if !quiet {
+			fmt.Printf(" [*failed*]\n")
+			fmt.Println(err)
+		}
 		log.ErrorError(err)
 
 		return err
 	}
 
-	fmt.Println(" [success]")
-	fmt.Println("Success: System is compatible")
-
+	if !quiet {
+		fmt.Println(" [success]")
+		fmt.Println("Success: System is compatible")
+	}
 	log.Info("Success: System is compatible")
 	return nil
 }
