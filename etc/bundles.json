@@ -87,6 +87,10 @@
     {
       "name": "user-basic-dev",
       "desc": "Packages to build the user-basic bundle"
+    },
+    {
+      "name": "vlc",
+      "desc": "Media player"
     }
   ]
 }

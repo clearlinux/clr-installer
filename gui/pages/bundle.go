@@ -158,6 +158,7 @@ func NewBundlePage(controller Controller, model *model.SystemInstall) (Page, err
 		bundle.checks.Add(wid)
 		bundle.selections = append(bundle.selections, wid)
 	}
+	bundle.model.AddUserBundle("vlc") // Add vlc by default
 
 	return bundle, nil
 }

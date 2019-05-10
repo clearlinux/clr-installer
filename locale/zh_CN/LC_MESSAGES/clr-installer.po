@@ -483,3 +483,7 @@ msgstr "安装失败。"
 
 msgid "Network is not working."
 msgstr "网络无法正常工作。"
+
+msgid "Media player"
+msgstr "媒体播放器"
+

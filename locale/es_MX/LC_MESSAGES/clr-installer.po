@@ -483,3 +483,7 @@ msgstr "Instalación fallida."
 
 msgid "Network is not working."
 msgstr "La red no está funcionando."
+
+msgid "Media player"
+msgstr "Reproductor multimedia"
+
