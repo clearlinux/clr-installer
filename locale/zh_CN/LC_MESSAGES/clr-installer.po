@@ -498,3 +498,6 @@ msgstr "缺少CPU功能： "
 
 msgid "Failed to find EFI firmware"
 msgstr "无法找到EFI固件"
+
+msgid "Rescanning media"
+msgstr "重新扫描媒体"

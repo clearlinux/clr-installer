@@ -498,3 +498,6 @@ msgstr "Missing CPU feature: "
 
 msgid "Failed to find EFI firmware"
 msgstr "Failed to find EFI firmware"
+
+msgid "Rescanning media"
+msgstr "Rescanning media"
