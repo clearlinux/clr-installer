@@ -36,6 +36,7 @@ type DiskConfig struct {
 	chooserCombo       *gtk.ComboBox
 	errorMessage       *gtk.Label
 	rescanButton       *gtk.Button
+	rescanDialog       *gtk.Dialog
 	encryptCheck       *gtk.CheckButton
 	passphraseDialog   *gtk.Dialog
 	passphrase         *gtk.Entry
@@ -240,23 +241,28 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	disk.rescanButton.SetTooltipText(utils.Locale.Get("Rescan for changes to hot swappable media."))
 
 	if _, err = disk.rescanButton.Connect("clicked", func() {
-		log.Debug("rescan")
-		_ = disk.scanMediaDevices()
-		// Check if the active device is still present
-		var found bool
-		for _, bd := range disk.devs {
-			if bd.Serial == disk.activeSerial {
-				found = true
-				disk.activeDisk = bd
-			}
-		}
-		if !found {
-			disk.activeSerial = ""
-			disk.activeDisk = nil
-			disk.model.TargetMedias = nil
-		}
+		disk.createRescanDialog()
+		disk.rescanDialog.ShowAll()
+		go func() {
+			_ = disk.scanMediaDevices()
 
-		disk.ResetChanges()
+			// Check if the active device is still present
+			var found bool
+			for _, bd := range disk.devs {
+				if bd.Serial == disk.activeSerial {
+					found = true
+					disk.activeDisk = bd
+				}
+			}
+			if !found {
+				disk.activeSerial = ""
+				disk.activeDisk = nil
+				disk.model.TargetMedias = nil
+			}
+			disk.ResetChanges()
+			disk.rescanDialog.Close() // Unlike Destroy(), Close() closes the dialog window and seems to not crash
+		}()
+
 	}); err != nil {
 		return nil, err
 	}
@@ -333,6 +339,35 @@ func addListStoreMediaRow(store *gtk.ListStore, installMedia storage.InstallTarg
 	}
 
 	return nil
+}
+
+func (disk *DiskConfig) createRescanDialog() {
+	title := utils.Locale.Get("Rescanning media")
+	text := utils.Locale.Get("Searching the system for available media.") + " " + utils.Locale.Get("Please wait.")
+
+	contentBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	contentBox.SetHAlign(gtk.ALIGN_FILL)
+	contentBox.SetMarginBottom(common.TopBottomMargin)
+	if err != nil {
+		log.Warning("Error creating box")
+		return
+	}
+
+	label, err := gtk.LabelNew(text)
+	if err != nil {
+		log.Warning("Error creating label")
+		return
+	}
+
+	label.SetHAlign(gtk.ALIGN_START)
+	label.SetMarginBottom(common.TopBottomMargin)
+	contentBox.PackStart(label, true, true, 0)
+
+	disk.rescanDialog, err = common.CreateDialog(contentBox, title)
+	if err != nil {
+		log.Warning("Error creating dialog")
+		return
+	}
 }
 
 func (disk *DiskConfig) createPassphraseDialog() {
