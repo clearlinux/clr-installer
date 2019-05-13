@@ -483,3 +483,18 @@ msgstr "Instalación fallida."
 
 msgid "Network is not working."
 msgstr "La red no está funcionando."
+
+msgid "System failed to pass pre-install checks."
+msgstr "El sistema no pasó las comprobaciones previas a la instalación."
+
+msgid "System Check Failed"
+msgstr "Comprobación del sistema fallida"
+
+msgid "Unable to read /proc/cpuinfo"
+msgstr "No puede leer /proc/cpuinfo"
+
+msgid "Missing CPU feature: "
+msgstr "Característica de la CPU que falta: "
+
+msgid "Failed to find EFI firmware"
+msgstr "Error al encontrar el firmware EFI"

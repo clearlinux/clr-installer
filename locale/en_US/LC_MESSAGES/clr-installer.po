@@ -483,3 +483,18 @@ msgstr "Installation failed."
 
 msgid "Network is not working."
 msgstr "Network is not working."
+
+msgid "System failed to pass pre-install checks."
+msgstr "System failed to pass pre-install checks."
+
+msgid "System Check Failed"
+msgstr "System Check Failed"
+
+msgid "Unable to read /proc/cpuinfo"
+msgstr "Unable to read /proc/cpuinfo"
+
+msgid "Missing CPU feature: "
+msgstr "Missing CPU feature: "
+
+msgid "Failed to find EFI firmware"
+msgstr "Failed to find EFI firmware"

@@ -12,24 +12,25 @@ import (
 	"strings"
 
 	"github.com/clearlinux/clr-installer/log"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 func getCPUFeature(feature string) error {
 	cpuInfo, err := ioutil.ReadFile("/proc/cpuinfo")
 	if err != nil {
 		log.Error("Unable to read /proc/cpuinfo")
-		return errors.New("Unable to read /proc/cpuinfo")
+		return errors.New(utils.Locale.Get("Unable to read /proc/cpuinfo"))
 	}
 	if strings.Contains(string(cpuInfo), feature) {
 		return nil
 	}
 
-	return errors.New("Missing CPU feature: " + feature)
+	return errors.New(utils.Locale.Get("Missing CPU feature: ") + feature)
 }
 
 func getEFIExist() error {
 	if _, err := os.Stat("/sys/firmware/efi"); os.IsNotExist(err) {
-		return errors.New("Failed to find EFI firmware")
+		return errors.New(utils.Locale.Get("Failed to find EFI firmware"))
 	}
 
 	return nil

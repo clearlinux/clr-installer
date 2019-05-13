@@ -635,7 +635,7 @@ func (window *Window) launchMenuView() {
 		icon.SetVAlign(gtk.ALIGN_START)
 		contentBox.PackStart(icon, false, true, 0)
 
-		label, err := gtk.LabelNew("System failed to pass pre-install checks.\n\n" + retErr.Error())
+		label, err := gtk.LabelNew(utils.Locale.Get("System failed to pass pre-install checks.") + "\n\n" + retErr.Error())
 		if err != nil {
 			log.Warning("Error creating label")
 			return
@@ -644,7 +644,7 @@ func (window *Window) launchMenuView() {
 		label.SetHAlign(gtk.ALIGN_END)
 		contentBox.PackStart(label, false, true, 0)
 
-		dialog, err := common.CreateDialogOneButton(contentBox, "System Check Failed", utils.Locale.Get("EXIT"), "button-cancel")
+		dialog, err := common.CreateDialogOneButton(contentBox, utils.Locale.Get("System Check Failed"), utils.Locale.Get("EXIT"), "button-cancel")
 		if err != nil {
 			log.Warning("Error creating dialog")
 			return
