@@ -483,3 +483,18 @@ msgstr "安装失败。"
 
 msgid "Network is not working."
 msgstr "网络无法正常工作。"
+
+msgid "System failed to pass pre-install checks."
+msgstr "系统无法通过安装前检查。"
+
+msgid "System Check Failed"
+msgstr "系统检查失败"
+
+msgid "Unable to read /proc/cpuinfo"
+msgstr "无法读取 /proc/cpuinfo"
+
+msgid "Missing CPU feature: "
+msgstr "缺少CPU功能： "
+
+msgid "Failed to find EFI firmware"
+msgstr "无法找到EFI固件"
