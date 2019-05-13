@@ -52,6 +52,7 @@ bundles: [
     NetworkManager-extras,
     package-utils,
     pidgin,
+    vlc,
   ]
 
 postArchive: false
