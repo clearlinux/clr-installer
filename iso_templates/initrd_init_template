@@ -110,7 +110,7 @@ mount_root() {
         mkdir /mnt/rootfs
         mount --read-only ${rootfsloop} /mnt/rootfs
     else
-        echo "<1>Failed to initalize loopback device for rootfs.img." |tee /dev/kmsg
+        echo "<1>Failed to initialize loopback device for rootfs.img." |tee /dev/kmsg
     fi
 }
 
@@ -124,7 +124,7 @@ find_and_mount_installer() {
             mount_root ${installer}
             break
         else
-            echo "<1>Failed to find installer media, retrying..."|tee /dev/kmsg
+            echo "<1>Searching for installer media, retrying..."|tee /dev/kmsg
             sleep 1
             (( retries++ ))
         fi
