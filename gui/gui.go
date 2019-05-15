@@ -53,6 +53,10 @@ func (gui *Gui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 	gui.model = md
 	gui.installReboot = false
 
+	// When using the Interactive Installer we always want to copy network
+	// configurations to the target system
+	gui.model.CopyNetwork = options.CopyNetwork
+
 	// Use dark theming if available to differentiate from other apps
 	st, err := gtk.SettingsGetDefault()
 	if err != nil {

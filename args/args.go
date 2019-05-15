@@ -72,6 +72,7 @@ type Args struct {
 	KeepImage               bool
 	KeepImageSet            bool
 	SystemCheck             bool
+	CopyNetwork             bool
 }
 
 func (args *Args) setKernelArgs() (err error) {
@@ -259,6 +260,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.BoolVar(
 		&args.SystemCheck, "system-check", false, "Verify current system is compatible with Clear Linux and exit",
+	)
+
+	flag.BoolVar(
+		&args.CopyNetwork, "copy-network", true, "Copy the network interface configuration files to target",
 	)
 
 	flag.ErrHelp = errors.New("Clear Linux Installer program")

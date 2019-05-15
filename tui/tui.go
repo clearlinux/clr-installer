@@ -72,6 +72,10 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 		return false, err
 	}
 
+	// When using the Interactive Installer we always want to copy network
+	// configurations to the target system
+	tui.model.CopyNetwork = options.CopyNetwork
+
 	clui.SetThemePath(themeDir)
 
 	if !clui.SetCurrentTheme("clr-installer") {
