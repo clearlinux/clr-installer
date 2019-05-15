@@ -76,3 +76,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/GehirnInc/crypt"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/nightlyone/lockfile"
