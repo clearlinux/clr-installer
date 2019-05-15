@@ -9,6 +9,7 @@ import (
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/syscheck"
 	"github.com/clearlinux/clr-installer/utils"
 
 	"github.com/VladimirMarkelov/clui"
@@ -136,6 +137,22 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 			log.ErrorError(paniced)
 		}
 	}()
+
+	// Run system check, if fail report error and exit
+	if retErr := syscheck.RunSystemCheck(true); retErr != nil {
+		msg := "System failed to pass pre-install checks." + "\n" +
+			retErr.Error() + "\n\n" +
+			"The application will now exit."
+
+		if dialog, err := CreateWarningDialogBox(msg); err == nil {
+			dialog.OnClose(func() {
+				clui.Stop()
+				log.ErrorError(retErr)
+			})
+		} else {
+			log.Warning("Failed to create warning dialog: %s", err)
+		}
+	}
 
 	clui.MainLoop()
 
