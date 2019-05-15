@@ -16,6 +16,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/nightlyone/lockfile"
+
 	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/conf"
@@ -36,17 +38,15 @@ import (
 var (
 	frontEndImpls []frontend.Frontend
 	classExp      = regexp.MustCompile(`(?im)(\w+)`)
-)
-
-const (
-	lockFile = "/root/clr-installer.lock"
+	lockFile      = "/root/clr-installer.lock"
+	lock          lockfile.Lockfile
 )
 
 func fatal(err error) {
-	if exists, _ := utils.FileExists(lockFile); exists {
-		err := os.Remove(lockFile)
-		if err != nil {
-			fmt.Println("Warning: Failed to remove lock file: " + lockFile)
+	if lock != "" {
+		lErr := lock.Unlock()
+		if lErr != nil {
+			fmt.Printf("Cannot lock %q, reason: %v\n", lock, lErr)
 		}
 	}
 
@@ -165,22 +165,20 @@ func main() {
 		return
 	}
 
-	if exists, _ := utils.FileExists(lockFile); exists {
-		fmt.Println("Warning: already running: lock file: " + lockFile)
+	lockFile = strings.TrimSuffix(options.LogFile, ".log") + ".lock"
+	lock, err := lockfile.New(lockFile)
+	if err != nil {
+		fmt.Printf("Cannot initialize lock. reason: %v\n", err)
 		os.Exit(1)
-	} else {
-		_, err := os.Create(lockFile)
-		if err != nil {
-			fmt.Println("Warning: Failed to create lock file: " + lockFile)
-			os.Exit(1)
-		}
-		defer func() {
-			err := os.Remove(lockFile)
-			if err != nil {
-				fmt.Println("Warning: Failed to remove lock file: " + lockFile)
-			}
-		}()
 	}
+
+	err = lock.TryLock()
+	if err != nil {
+		fmt.Printf("Cannot lock %q, reason: %v\n", lock, err)
+		os.Exit(1)
+	}
+
+	defer func() { _ = lock.Unlock() }()
 
 	initFrontendList()
 
