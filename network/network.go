@@ -861,17 +861,22 @@ func CopyNetworkInterfaces(rootDir string) error {
 	systemNetworkPaths := []string{systemdNetworkdDir, networkManagerDir}
 
 	for _, systemNetworkPath := range systemNetworkPaths {
+		log.Debug("Checking network interfaces in %q to install to target", systemNetworkPath)
 		if _, err := os.Stat(systemNetworkPath); err != nil {
 			if os.IsNotExist(err) {
-				log.Info("No updated network interfaces in %q to install to target",
+				log.Debug("No updated network interfaces in %q to install to target",
 					systemNetworkPath)
-				return nil
+				continue
 			}
-			return errors.Wrap(err)
+			log.Warning("Issue check interface %q: %v", systemNetworkPath, errors.Wrap(err))
+			continue
 		}
 
 		if err := utils.CopyAllFiles(systemNetworkPath, rootDir); err != nil {
-			log.Warning("Failed to copy image Network configuration data")
+			log.Warning("Failed to copy image Network configuration data to %s", systemNetworkPath)
+		} else {
+			log.Info("Copied image Network configuration data to %s",
+				filepath.Join(rootDir, systemNetworkPath))
 		}
 	}
 
