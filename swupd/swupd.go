@@ -191,7 +191,7 @@ func (s *SoftwareUpdater) VerifyWithBundles(version string, mirror string, bundl
 			"-m",
 			version,
 			"--force",
-			"--no-scripts",
+			"--no-boot-update",
 			"-B",
 		}...)
 
