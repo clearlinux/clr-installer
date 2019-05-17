@@ -409,13 +409,10 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	prg.Success()
 
 	if model.MakeISO {
-		msg = "Generating ISO image"
-		prg = progress.NewLoop(msg)
-		log.Info(msg)
+		log.Info("Generating ISO image")
 		if err = generateISO(rootDir, model, options); err != nil {
 			log.ErrorError(err)
 		}
-		prg.Success()
 	}
 
 	msg = utils.Locale.Get("Installation completed")
@@ -762,9 +759,7 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 // generateISO creates an ISO image from the just created raw image
 func generateISO(rootDir string, md *model.SystemInstall, options args.Args) error {
 	var err error
-	msg := "Building ISO image"
-	prg := progress.NewLoop(msg)
-	log.Info(msg)
+	log.Info("Building ISO image")
 
 	if !md.LegacyBios {
 		for _, alias := range md.StorageAlias {
@@ -775,10 +770,8 @@ func generateISO(rootDir string, md *model.SystemInstall, options args.Args) err
 	} else {
 		err = fmt.Errorf("cannot create ISO images for configurations with LegacyBios enabled")
 		log.ErrorError(err)
-		prg.Failure()
 		return err
 	}
 
-	prg.Success()
 	return err
 }

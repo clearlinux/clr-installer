@@ -37,7 +37,7 @@ var (
 )
 
 func mkTmpDirs() error {
-	msg := "Creating directory trees"
+	msg := "Making temp directories for ISO creation"
 	prg := progress.NewLoop(msg)
 	log.Info(msg)
 	var err error
@@ -79,7 +79,7 @@ func mkTmpDirs() error {
 }
 
 func mkRootfs() error {
-	msg := "making rootfs squashfs"
+	msg := "Making squashfs of rootfs"
 	prg := progress.NewLoop(msg)
 	log.Info(msg)
 
