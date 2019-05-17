@@ -1,21 +1,36 @@
 #!/bin/sh
 
-# Mount temp filesystem
-mount -t proc none /proc
-mount -t sysfs none /sys
-mount -t devtmpfs none /dev
-mount -t tmpfs none /run
+# Set color commands used with echo
+# Refer to man console_codes for more info
+NORMAL="\\033[0;39m"         # grey
+SUCCESS="\\033[1;32m"        # green
+WARNING="\\033[1;33m"        # yellow
+FAILURE="\\033[1;31m"        # red
+INFO="\\033[1;36m"           # light cyan
 
+# Prints msg to TTY and kmsg, stripping color codes for kmsg
+# This echos twice - once for tty0 and once on kmsg for all others
+# $1 - Message string to print
+# Explicitly send boot messages to tty0, /dev/console is ttyS0
+echo_tty_kmsg() {
+    echo -e "$1" > /dev/tty0
+    echo -e "$1" | sed 's/\x1b\[[0-9;]*m//g' > /dev/kmsg
+}
+
+# This is the end point for fatal errors, repeats the fatal message every
+# 30 seconds forever
+# $1 - message to be printed out to user on failure
 shell_trap() {
     local msg="$1"
     while true; do
-        echo "<1>Unable to boot Clear Linux*." |tee /dev/kmsg
-        echo "<1>FATAL: $msg"|tee /dev/kmsg
+        echo_tty_kmsg "Unable to boot Clear Linux*."
+        echo_tty_kmsg "[${FAILURE} FAIL ${NORMAL}] FATAL: $msg"
         sleep 30
     done
 }
 
-get_cpuinfo() { # return details of the first CPU only
+# return details of the first CPU only
+get_cpuinfo() {
     cat /proc/cpuinfo | awk 'BEGIN { RS = "" ; } { printf ("%s\n", $0); exit(0); }'
 }
 
@@ -24,11 +39,14 @@ have_cpu_feature() {
     get_cpuinfo | egrep -q "^flags.*\<$feature\>"
 }
 
+# Checks results, use only with missing CPU features
+# $1 - Return code from previously run check
+# $2 - Message to print to user - specific to CPU feature missing
 check_result() {
     local ret="$1"
     local msg="$2"
-    [ "$ret" -ne 0 ] && { echo "<1>FAIL: $msg"|tee /dev/kmsg; shell_trap "Detected Missing Required CPU Feature: $msg"; }
-    echo "<1>SUCCESS: $msg" |tee /dev/kmsg
+    [ "$ret" -ne 0 ] && { echo_tty_kmsg "[${FAILURE} FAIL ${NORMAL}] $msg"; shell_trap "Detected Missing Required CPU Feature: $msg"; }
+    echo_tty_kmsg "[${SUCCESS}  OK  ${NORMAL}] $msg"
 }
 
 have_vmx() {
@@ -87,51 +105,40 @@ have_64bit_cpu() {
     check_result "$?" "$need"
 }
 
-#Verify CPU features needed to run Clear exist
-echo "<1>Checking if system is capable of running Clear Linux*..." |tee /dev/kmsg
-have_64bit_cpu
-have_ssse3_cpu_feature
-have_sse41_cpu_feature
-have_sse42_cpu_feature
-have_aes_cpu_feature
-have_pclmul_cpu_feature
-
-#insmod required modules
-{{range .Modules}}
-insmod {{.}}
-{{end}}
-
+# Mounts the rootfs on a loopback device
+# $1 - path to the media device the rootfs is stored on
 mount_root() {
     local installer=${1}
     mkdir /mnt/media
     mount --read-only $installer /mnt/media
-    rootfsloop=$(losetup -fP --show /mnt/media/images/rootfs.img)
+    local rootfsloop=$(losetup -fP --show /mnt/media/images/rootfs.img)
     if [ -n "${rootfsloop}" ]; then
         mkdir /mnt/rootfs
         mount --read-only ${rootfsloop} /mnt/rootfs
     else
-        echo "<1>Failed to initialize loopback device for rootfs.img." |tee /dev/kmsg
+        echo_tty_kmsg "[${FAILURE} FAIL ${NORMAL}] Failed to initialize loopback device for rootfs.img."
     fi
 }
 
+# Finds the installer media and calls mount_root if successful
 find_and_mount_installer() {
     local retries=0
 
     while [ $retries -le 5 ]; do
-        installer=$(blkid -L CLR_ISO)
+        local installer=$(blkid -L CLR_ISO)
         if [ -n "${installer}" ]; then
-            echo "<1>Found installer media, continuing boot..."|tee /dev/kmsg
+            echo_tty_kmsg "[${SUCCESS}  OK  ${NORMAL}] Found installer media, continuing boot..."
             mount_root ${installer}
             break
         else
-            echo "<1>Searching for installer media, retrying..."|tee /dev/kmsg
+            echo_tty_kmsg "Searching for installer media, retrying..."
             sleep 1
             (( retries++ ))
         fi
     done
 
     if [ $retries -ge 5 ]; then
-        shell_trap "Failed to find installer media, retries exhausted, failed to boot Clear Linux*."
+        shell_trap "[${FAILURE} FAIL ${NORMAL}] Failed to find installer media, retries exhausted, failed to boot Clear Linux*."
     fi
 }
 
@@ -140,11 +147,36 @@ overlay_and_switch() {
     mount -t tmpfs -o size=512M none /mnt/ramfs
     mkdir -p /mnt/ramfs/w_root /mnt/ramfs/workdir /mnt/ramfs/rw_root
     mount -t overlay -o lowerdir=/mnt/rootfs,upperdir=/mnt/ramfs/w_root,workdir=/mnt/ramfs/workdir none /mnt/ramfs/rw_root
+
+    # Switch root
+    exec switch_root /mnt/ramfs/rw_root /sbin/init
 }
 
-find_and_mount_installer
-overlay_and_switch
+main() {
+    # Mount temp filesystem
+    mount -t proc none /proc
+    mount -t sysfs none /sys
+    mount -t devtmpfs none /dev
+    mount -t tmpfs none /run
 
-# Switch root
-exec switch_root /mnt/ramfs/rw_root /sbin/init
 
+    # Verify CPU features needed to run Clear exist
+    echo_tty_kmsg "Checking if system is capable of running Clear Linux*..."
+    have_64bit_cpu
+    have_ssse3_cpu_feature
+    have_sse41_cpu_feature
+    have_sse42_cpu_feature
+    have_aes_cpu_feature
+    have_pclmul_cpu_feature
+    echo_tty_kmsg "[${SUCCESS}  OK  ${NORMAL}] All checks passed."
+
+    # insmod required modules
+    {{range .Modules}}
+    insmod {{.}}
+    {{end}}
+
+    find_and_mount_installer
+    overlay_and_switch
+}
+
+main
