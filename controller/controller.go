@@ -29,6 +29,7 @@ import (
 	"github.com/clearlinux/clr-installer/progress"
 	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/swupd"
+	"github.com/clearlinux/clr-installer/syscheck"
 	"github.com/clearlinux/clr-installer/telemetry"
 	"github.com/clearlinux/clr-installer/timezone"
 	cuser "github.com/clearlinux/clr-installer/user"
@@ -594,6 +595,68 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 	prg.Success()
 
 	return nil, nil
+}
+
+// ConfigureNetworkNoProgress does the network check without the progress indicator.
+// NOTE: Any logic change to configureNetwork() should be made here too.
+func ConfigureNetworkNoProgress(model *model.SystemInstall) error {
+	cmd.SetHTTPSProxy(model.HTTPSProxy)
+
+	if len(model.NetworkInterfaces) > 0 {
+		msg := "Applying network settings"
+		log.Info(msg)
+		if err := network.Apply("/", model.NetworkInterfaces); err != nil {
+			return err
+		}
+
+		msg = utils.Locale.Get("Restarting network interfaces")
+		log.Info(msg)
+		if err := network.Restart(); err != nil {
+			return err
+		}
+	}
+
+	msg := utils.Locale.Get("Testing connectivity")
+	ok := false
+
+	// 3 attempts to test connectivity
+	for i := 0; i < 3; i++ {
+		time.Sleep(2 * time.Second)
+
+		log.Info(msg)
+		if err := network.VerifyConnectivity(); err == nil {
+			ok = true
+			break
+		}
+		log.Warning("Attempt to verify connectivity failed")
+
+		// Restart networking if we failed
+		// The likely gain is restarting pacdiscovery to fix autoproxy
+		if err := network.Restart(); err != nil {
+			log.Warning("Network restart failed")
+			ok = false
+			break
+		}
+	}
+
+	if !ok {
+		return errors.Errorf(utils.Locale.Get("Network is not working."))
+	}
+
+	return nil
+}
+
+// PreCheck checks if prerequisites for installation are met
+func PreCheck(model *model.SystemInstall) error {
+	if err := syscheck.RunSystemCheck(true); err != nil {
+		return err
+	}
+
+	if err := ConfigureNetworkNoProgress(model); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // configureTimezone applies the model/configured Timezone to the target

@@ -70,6 +70,7 @@ type Controller interface {
 	SetScanDone(bool)
 	GetScanMedia() []*storage.BlockDevice
 	SetScanMedia([]*storage.BlockDevice)
+	GetPreCheck() bool
 }
 
 // ScanInfo holds the information related to scanning the media

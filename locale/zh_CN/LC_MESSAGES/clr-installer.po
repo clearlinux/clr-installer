@@ -502,3 +502,15 @@ msgstr "无法找到EFI固件"
 
 msgid "Rescanning media"
 msgstr "重新扫描媒体"
+
+msgid "Checking prerequisites"
+msgstr "检查先决条件"
+
+msgid "Checking prerequisites for installation."
+msgstr "检查安装的先决条件。"
+
+msgid "Prerequisites for installation are not met."
+msgstr "不满足安装的先决条件。"
+
+msgid "Please exit."
+msgstr "请退出"

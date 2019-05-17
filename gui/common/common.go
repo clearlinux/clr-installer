@@ -17,6 +17,14 @@ const (
 	ButtonSpacing int = 4
 )
 
+const (
+	// ContentTypeInfo is the id for info content
+	ContentTypeInfo = iota
+
+	// ContentTypeError is the id for error content
+	ContentTypeError = iota
+)
+
 // CreateDialog creates a gtk dialog with no buttons
 func CreateDialog(contentBox *gtk.Box, title string) (*gtk.Dialog, error) {
 	var err error
@@ -110,6 +118,66 @@ func SetButton(text, style string) (*gtk.Button, error) {
 	} else {
 		sc.AddClass(style)
 	}
+
+	return widget, nil
+}
+
+// CreateDialogContent creates a gtk box that can be used as dialog content
+func CreateDialogContent(message string, contentType int) (*gtk.Box, error) {
+	contentBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 10)
+	contentBox.SetHAlign(gtk.ALIGN_FILL)
+	contentBox.SetMarginBottom(TopBottomMargin)
+	if err != nil {
+		log.Warning("Error creating box")
+		return nil, err
+	}
+
+	if contentType == ContentTypeError {
+		st, err := contentBox.GetStyleContext()
+		if err != nil {
+			log.Warning("Error getting style context: ", err) // Just log trivial error
+		} else {
+			st.AddClass("dialog-error")
+		}
+
+		icon, err := gtk.ImageNewFromIconName("dialog-error-symbolic", gtk.ICON_SIZE_DIALOG)
+		if err != nil {
+			log.Warning("gtk.ImageNewFromIconName failed for icon dialog-error-symbolic") // Just log trivial error
+		} else {
+			icon.SetMarginEnd(12)
+			icon.SetHAlign(gtk.ALIGN_START)
+			icon.SetVAlign(gtk.ALIGN_START)
+			contentBox.PackStart(icon, false, true, 0)
+		}
+	}
+
+	label, err := gtk.LabelNew(message)
+	if err != nil {
+		log.Warning("Error creating label") // Just log trivial error
+		return nil, err
+	}
+
+	label.SetUseMarkup(true)
+	label.SetHAlign(gtk.ALIGN_END)
+	contentBox.PackStart(label, false, true, 0)
+
+	return contentBox, nil
+}
+
+// SetLabel creates and styles a new gtk Label
+func SetLabel(text, style string, x float64) (*gtk.Label, error) {
+	widget, err := gtk.LabelNew(text)
+	if err != nil {
+		return nil, err
+	}
+
+	sc, err := widget.GetStyleContext()
+	if err != nil {
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass(style)
+	}
+	widget.SetXAlign(x)
 
 	return widget, nil
 }

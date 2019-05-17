@@ -502,3 +502,15 @@ msgstr "Failed to find EFI firmware"
 
 msgid "Rescanning media"
 msgstr "Rescanning media"
+
+msgid "Checking prerequisites"
+msgstr "Checking prerequisites"
+
+msgid "Checking prerequisites for installation."
+msgstr "Checking prerequisites for installation."
+
+msgid "Prerequisites for installation are not met."
+msgstr "Prerequisites for installation are not met."
+
+msgid "Please exit."
+msgstr "Please exit."

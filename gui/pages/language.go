@@ -114,8 +114,10 @@ func (page *LanguagePage) getCode() string {
 }
 
 func (page *LanguagePage) onRowActivated(box *gtk.ListBox, row *gtk.ListBoxRow) {
-	page.selected = page.data[row.GetIndex()]
-	page.controller.SetButtonState(ButtonNext, true)
+	if page.controller.GetPreCheck() { // Do this only if preCheck was successful
+		page.selected = page.data[row.GetIndex()]
+		page.controller.SetButtonState(ButtonNext, true)
+	}
 }
 
 // Select row in the box, activate it and scroll to it

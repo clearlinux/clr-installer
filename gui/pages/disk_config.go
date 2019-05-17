@@ -371,25 +371,14 @@ func (disk *DiskConfig) onRescanClick() {
 
 func (disk *DiskConfig) createRescanDialog() {
 	title := utils.Locale.Get("Rescanning media")
-	text := utils.Locale.Get("Searching the system for available media.") + " " + utils.Locale.Get("Please wait.")
+	message := utils.Locale.Get("Searching the system for available media.")
+	message = message + " " + utils.Locale.Get("Please wait.")
 
-	contentBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	contentBox.SetHAlign(gtk.ALIGN_FILL)
-	contentBox.SetMarginBottom(common.TopBottomMargin)
+	contentBox, err := common.CreateDialogContent(message, common.ContentTypeInfo)
 	if err != nil {
-		log.Warning("Error creating box")
+		log.Warning("Error creating content box")
 		return
 	}
-
-	label, err := gtk.LabelNew(text)
-	if err != nil {
-		log.Warning("Error creating label")
-		return
-	}
-
-	label.SetHAlign(gtk.ALIGN_START)
-	label.SetMarginBottom(common.TopBottomMargin)
-	contentBox.PackStart(label, true, true, 0)
 
 	disk.rescanDialog, err = common.CreateDialog(contentBox, title)
 	if err != nil {

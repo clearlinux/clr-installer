@@ -10,12 +10,12 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 
 	"github.com/clearlinux/clr-installer/args"
+	"github.com/clearlinux/clr-installer/controller"
 	"github.com/clearlinux/clr-installer/gui/common"
 	"github.com/clearlinux/clr-installer/gui/pages"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
-	"github.com/clearlinux/clr-installer/syscheck"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -37,6 +37,7 @@ type Window struct {
 	mainLayout    *gtk.Box    // Content layout (horizontal)
 	banner        *Banner     // Banner
 	contentLayout *gtk.Box    // Content Layout
+	info          *gtk.Label  // Info label
 	rootStack     *gtk.Stack  // Root-level stack
 
 	model   *model.SystemInstall // model
@@ -77,6 +78,7 @@ type Window struct {
 	didInit  bool                // Whether initialized the view animation
 	pages    map[int]gtk.IWidget // Mapping to each root page
 	scanInfo pages.ScanInfo      // Information related to scanning the media
+	preCheck bool                // Whether prerequisites are met
 }
 
 // CreateHeaderBar creates invisible header bar
@@ -130,6 +132,7 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 		return nil, err
 	}
 
+	window.preCheck = true // Set this as the default value
 	// Set up the content layout within main layout
 	window.mainLayout, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
@@ -182,6 +185,13 @@ func (window *Window) createWelcomePage() (*Window, error) {
 		return nil, err
 	}
 	window.contentLayout.PackStart(window.rootStack, true, true, 0)
+
+	window.info, err = common.SetLabel("", "label-warning", 0)
+	if err != nil {
+		return nil, err
+	}
+	window.info.SetMarginStart(24)
+	window.contentLayout.PackStart(window.info, false, false, 0)
 
 	// Set up the menu stack and add to root stack
 	window.menu.stack, err = gtk.StackNew()
@@ -242,6 +252,7 @@ func (window *Window) createMenuPages() (*Window, error) {
 		return nil, err
 	}
 	window.contentLayout.Remove(window.rootStack)
+	window.contentLayout.Remove(window.info)
 	window.contentLayout.PackStart(window.menu.switcher.GetRootWidget(), false, false, 0)
 	window.contentLayout.PackStart(window.rootStack, true, true, 0)
 
@@ -397,7 +408,7 @@ func (window *Window) CreateFooter(store *gtk.Box) error {
 	if window.buttons.next, err = createNavButton(utils.Locale.Get("NEXT"), "button-confirm"); err != nil {
 		return err
 	}
-	if _, err = window.buttons.next.Connect("clicked", func() { window.launchMenuView() }); err != nil {
+	if _, err = window.buttons.next.Connect("clicked", func() { window.onNextClick() }); err != nil {
 		return err
 	}
 
@@ -612,66 +623,41 @@ func (window *Window) launchWelcomeView() {
 	}
 }
 
-// launchMenuView launches the menu view
-func (window *Window) launchMenuView() {
+// onNextClick does pre-check and launches menu view if pre-check is successful
+func (window *Window) onNextClick() {
 	window.menu.currentPage.StoreChanges()
 
-	// If syscheck fails, launch a dialog box and force the user to exit
-	if retErr := syscheck.RunSystemCheck(true); retErr != nil {
-		contentBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 10)
-		contentBox.SetHAlign(gtk.ALIGN_FILL)
-		contentBox.SetMarginBottom(common.TopBottomMargin)
-		if err != nil {
-			log.Warning("Error creating box")
-			return
-		}
-
-		st, err := contentBox.GetStyleContext()
-		if err != nil {
-			log.Warning("Error getting style context")
-			return
-		}
-
-		// Style the dialog
-		st.AddClass("dialog-warning")
-
-		icon, err := gtk.ImageNewFromIconName("dialog-error-symbolic", gtk.ICON_SIZE_DIALOG)
-		if err != nil {
-			log.Warning("gtk.ImageNewFromIconName failed for icon dialog-error-symbolic")
-			return
-		}
-
-		icon.SetMarginEnd(12)
-		icon.SetHAlign(gtk.ALIGN_START)
-		icon.SetVAlign(gtk.ALIGN_START)
-		contentBox.PackStart(icon, false, true, 0)
-
-		label, err := gtk.LabelNew(utils.Locale.Get("System failed to pass pre-install checks.") + "\n\n" + retErr.Error())
-		if err != nil {
-			log.Warning("Error creating label")
-			return
-		}
-		label.SetUseMarkup(true)
-		label.SetHAlign(gtk.ALIGN_END)
-		contentBox.PackStart(label, false, true, 0)
-
-		dialog, err := common.CreateDialogOneButton(contentBox, utils.Locale.Get("System Check Failed"), utils.Locale.Get("EXIT"), "button-cancel")
-		if err != nil {
-			log.Warning("Error creating dialog")
-			return
-		}
-
-		_, err = dialog.Connect("response", func() { gtk.MainQuit() })
-		if err != nil {
-			log.Warning("Error connecting to dialog")
-		}
-		dialog.ShowAll()
-		dialog.Run()
-	} else {
-		if _, err := window.createMenuPages(); err != nil {
-			log.ErrorError(err) // TODO: Handle error
-		}
+	window.info.SetText("")
+	message := utils.Locale.Get("Checking prerequisites for installation.")
+	message = message + " " + utils.Locale.Get("Please wait.")
+	contentBox, err := common.CreateDialogContent(message, common.ContentTypeInfo)
+	if err != nil {
+		log.Warning("Error creating content box")
+		return
 	}
+	dialog, err := common.CreateDialog(contentBox, utils.Locale.Get("Checking prerequisites"))
+	if err != nil {
+		log.Warning("Error creating dialog")
+		return
+	}
+	dialog.ShowAll()
+	go func() {
+		window.preCheck = false
+		if err = controller.PreCheck(window.model); err != nil {
+			text := utils.Locale.Get("Prerequisites for installation are not met.")
+			text = text + " " + strings.Split(err.Error(), "\n")[0]
+			text = text + " " + utils.Locale.Get("Please exit.")
+			window.info.SetText(text)
+			window.SetButtonState(pages.ButtonNext, false)
+		} else {
+			window.preCheck = true
+			if _, err := window.createMenuPages(); err != nil {
+				log.ErrorError(err) // TODO: Handle error
+				gtk.MainQuit()
+			}
+		}
+		dialog.Close()
+	}()
 }
 
 // confirmInstall prompts the user for confirmation before installing
@@ -774,6 +760,11 @@ func (window *Window) GetScanMedia() []*storage.BlockDevice {
 // SetScanMedia is the setter for ScanInfo Media
 func (window *Window) SetScanMedia(scannedMedia []*storage.BlockDevice) {
 	window.scanInfo.Media = scannedMedia
+}
+
+// GetPreCheck is the getter for preCheck
+func (window *Window) GetPreCheck() bool {
+	return window.preCheck
 }
 
 // GetWelcomeMessage gets the welcome message

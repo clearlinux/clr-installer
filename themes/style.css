@@ -161,11 +161,11 @@ window {
     background-color: #414449;
 }
 
-.dialog-warning {
+.dialog-error {
     background-image: none;
     background-color: #414449;
 }
 
-.dialog-warning image {
+.dialog-error image {
     color: #FDB814;
 }
