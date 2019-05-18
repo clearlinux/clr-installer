@@ -123,7 +123,7 @@ func mkInitrd(version string, model *model.SystemInstall, options args.Args) err
 	sw := swupd.New(tmpPaths[clrInitrd], options)
 
 	/* Should install the overridden CoreBundles above (eg. os-core only) */
-	if err := sw.Verify(version, model.SwupdMirror, true); err != nil {
+	if err := sw.VerifyWithBundles(version, model.SwupdMirror, []string{}); err != nil {
 		prg.Failure()
 		return err
 	}
