@@ -154,11 +154,11 @@ func (args *Args) setCommandLineArgs() (err error) {
 	)
 
 	flag.StringVar(
-		&args.SwupdMirror, "swupd-mirror", args.SwupdMirror, "Swupd Installation mirror URL",
+		&args.SwupdMirror, "swupd-mirror", args.SwupdMirror, "Swupd --url; sets target mirror",
 	)
 
 	flag.StringVar(
-		&args.SwupdStateDir, "swupd-state", args.SwupdStateDir, "Swupd state-dir",
+		&args.SwupdStateDir, "swupd-state", args.SwupdStateDir, "Swupd --statedir",
 	)
 
 	flag.StringVar(
