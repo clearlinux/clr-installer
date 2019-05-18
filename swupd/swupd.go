@@ -329,26 +329,6 @@ func (s *SoftwareUpdater) VerifyWithBundles(version string, mirror string, bundl
 	return nil
 }
 
-// Update executes the "swupd update" operation
-func (s *SoftwareUpdater) Update() error {
-	args := []string{
-		"swupd",
-		"update",
-		"--keepcache",
-		fmt.Sprintf("--path=%s", s.rootDir),
-		fmt.Sprintf("--statedir=%s", s.stateDir),
-	}
-
-	log.Info("Checking for swupd updates")
-
-	err := cmd.RunAndLog(args...)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	return nil
-}
-
 // DisableUpdate executes the "systemctl" to disable auto update operation
 // "swupd autoupdate" currently does not --path
 // See Issue https://github.com/clearlinux/swupd-client/issues/527
@@ -540,33 +520,6 @@ func parseSwupdMirror(data []byte) (string, error) {
 	}
 
 	return string(match[1]), nil
-}
-
-// BundleAdd executes the "swupd bundle-add" operation for a single bundle
-func (s *SoftwareUpdater) BundleAdd(bundle string) error {
-	args := []string{
-		"swupd",
-		"bundle-add",
-	}
-
-	if s.skipDiskSpaceCheck {
-		args = append(args, "--skip-diskspace-check")
-	}
-
-	args = s.setExtraFlags(args)
-
-	args = append(args,
-		fmt.Sprintf("--path=%s", s.rootDir),
-		fmt.Sprintf("--statedir=%s", s.stateDir),
-		bundle,
-	)
-
-	err := cmd.RunAndLog(args...)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-
-	return nil
 }
 
 // LoadBundleList loads the bundle definitions
