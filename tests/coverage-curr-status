@@ -8,6 +8,7 @@ ok  	github.com/clearlinux/clr-installer/encrypt	0.026s	coverage: 85.0% of state
 ok  	github.com/clearlinux/clr-installer/errors	0.014s	coverage: 100.0% of statements
 ?   	github.com/clearlinux/clr-installer/frontend	[no test files]
 ok  	github.com/clearlinux/clr-installer/hostname	0.033s	coverage: 100.0% of statements
+?   	github.com/clearlinux/clr-installer/isoutils	[no test files]
 ?   	github.com/clearlinux/clr-installer/kernel	[no test files]
 ?   	github.com/clearlinux/clr-installer/keyboard	[no test files]
 ?   	github.com/clearlinux/clr-installer/language	[no test files]
@@ -15,10 +16,11 @@ ok  	github.com/clearlinux/clr-installer/hostname	0.033s	coverage: 100.0% of sta
 ok  	github.com/clearlinux/clr-installer/log	0.163s	coverage: 100.0% of statements
 ?   	github.com/clearlinux/clr-installer/massinstall	[no test files]
 ok  	github.com/clearlinux/clr-installer/model	0.013s	coverage: 92.0% of statements
-ok  	github.com/clearlinux/clr-installer/network	0.734s	coverage: 20.0% of statements
+ok  	github.com/clearlinux/clr-installer/network	0.734s	coverage: 23.0% of statements
 ?   	github.com/clearlinux/clr-installer/progress	[no test files]
-ok  	github.com/clearlinux/clr-installer/storage	0.026s	coverage: 27.0% of statements
-ok  	github.com/clearlinux/clr-installer/swupd	0.017s	coverage: 13.0% of statements
+ok  	github.com/clearlinux/clr-installer/storage	0.026s	coverage: 32.0% of statements
+ok  	github.com/clearlinux/clr-installer/swupd	0.017s	coverage: 14.0% of statements
+?   	github.com/clearlinux/clr-installer/syscheck	[no test files]
 ok  	github.com/clearlinux/clr-installer/telemetry	0.317s	coverage: 35.6% of statements
 ?   	github.com/clearlinux/clr-installer/timezone	[no test files]
 ?   	github.com/clearlinux/clr-installer/tui	[no test files]
