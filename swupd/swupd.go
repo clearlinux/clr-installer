@@ -40,6 +40,7 @@ var (
 type SoftwareUpdater struct {
 	rootDir            string
 	stateDir           string
+	certPath           string
 	format             string
 	contentURL         string
 	versionURL         string
@@ -152,6 +153,7 @@ func New(rootDir string, options args.Args) *SoftwareUpdater {
 	return &SoftwareUpdater{
 		rootDir,
 		stateDir,
+		options.SwupdCertPath,
 		options.SwupdFormat,
 		options.SwupdContentURL,
 		options.SwupdVersionURL,
@@ -160,6 +162,10 @@ func New(rootDir string, options args.Args) *SoftwareUpdater {
 }
 
 func (s *SoftwareUpdater) setExtraFlags(args []string) []string {
+	if s.certPath != "" {
+		args = append(args, fmt.Sprintf("--certpath=%s", s.certPath))
+	}
+
 	if s.format != "" {
 		args = append(args, fmt.Sprintf("--format=%s", s.format))
 	}
