@@ -282,27 +282,28 @@ func (s *SoftwareUpdater) VerifyWithBundles(version string, mirror string, bundl
 			"--force",
 			"--no-boot-update",
 			"--json-output",
-			"-B",
 		}...)
 
-	// Remove the 'os-core' bundle as it is already
-	// installed and will cause a failure
-	allBundles := []string{}
-	for _, bundle := range CoreBundles {
-		if bundle != "os-core" {
+	if len(bundles) > 0 {
+		// Remove the 'os-core' bundle as it is already
+		// installed and will cause a failure
+		allBundles := []string{}
+		for _, bundle := range CoreBundles {
+			if bundle != "os-core" {
+				allBundles = append(allBundles, bundle)
+			}
+		}
+		// Additional bundles
+		for _, bundle := range bundles {
+			if IsCoreBundle(bundle) {
+				log.Debug("Bundle %s was already installed with the core bundles, skipping", bundle)
+				continue
+			}
 			allBundles = append(allBundles, bundle)
 		}
-	}
-	// Additional bundles
-	for _, bundle := range bundles {
-		if IsCoreBundle(bundle) {
-			log.Debug("Bundle %s was already installed with the core bundles, skipping", bundle)
-			continue
-		}
-		allBundles = append(allBundles, bundle)
-	}
 
-	args = append(args, strings.Join(allBundles, ","))
+		args = append(args, "-B", strings.Join(allBundles, ","))
+	}
 
 	m := Message{}
 	err := cmd.RunAndProcessOutput(m, args...)
