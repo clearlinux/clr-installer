@@ -48,6 +48,7 @@ type Args struct {
 	CryptPassFile           string
 	SwupdMirror             string
 	SwupdStateDir           string
+	SwupdCertPath           string
 	SwupdStateClean         bool
 	SwupdFormat             string
 	SwupdContentURL         string
@@ -158,6 +159,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.StringVar(
 		&args.SwupdStateDir, "swupd-state", args.SwupdStateDir, "Swupd state-dir",
+	)
+
+	flag.StringVar(
+		&args.SwupdCertPath, "swupd-cert", args.SwupdCertPath, "Swupd --certpath",
 	)
 
 	flag.BoolVar(
