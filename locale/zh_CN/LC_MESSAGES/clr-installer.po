@@ -490,8 +490,9 @@ msgstr "系统无法通过安装前检查。"
 msgid "System Check Failed"
 msgstr "系统检查失败"
 
-msgid "Unable to read /proc/cpuinfo"
-msgstr "无法读取 /proc/cpuinfo"
+#, c-format
+msgid "Unable to read %s"
+msgstr "无法读取 %s"
 
 msgid "Missing CPU feature: "
 msgstr "缺少CPU功能： "

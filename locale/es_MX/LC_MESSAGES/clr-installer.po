@@ -490,8 +490,9 @@ msgstr "El sistema no pasó las comprobaciones previas a la instalación."
 msgid "System Check Failed"
 msgstr "Comprobación del sistema fallida"
 
-msgid "Unable to read /proc/cpuinfo"
-msgstr "No puede leer /proc/cpuinfo"
+#, c-format
+msgid "Unable to read %s"
+msgstr "No puede leer %s"
 
 msgid "Missing CPU feature: "
 msgstr "Característica de la CPU que falta: "
