@@ -490,8 +490,9 @@ msgstr "System failed to pass pre-install checks."
 msgid "System Check Failed"
 msgstr "System Check Failed"
 
-msgid "Unable to read /proc/cpuinfo"
-msgstr "Unable to read /proc/cpuinfo"
+#, c-format
+msgid "Unable to read %s"
+msgstr "Unable to read %s"
 
 msgid "Missing CPU feature: "
 msgstr "Missing CPU feature: "

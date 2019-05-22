@@ -16,10 +16,11 @@ import (
 )
 
 func getCPUFeature(feature string) error {
-	cpuInfo, err := ioutil.ReadFile("/proc/cpuinfo")
+	fName := "/proc/cpuinfo"
+	cpuInfo, err := ioutil.ReadFile(fName)
 	if err != nil {
-		log.Error("Unable to read /proc/cpuinfo")
-		return errors.New(utils.Locale.Get("Unable to read /proc/cpuinfo"))
+		log.Error("Unable to read %s", fName)
+		return errors.New(utils.Locale.Get("Unable to read %s", fName))
 	}
 	if strings.Contains(string(cpuInfo), feature) {
 		return nil
