@@ -4,14 +4,20 @@
 As the installer is a part of the Clear Linux OS distribution, this program follows the [Clear Linux OS Security processes](https://clearlinux.org/documentation/clear-linux/concepts/security).
 
 ## Dependencies
-The following bundles are required in order to run clr-installer:
+In order to build and run clr-installer, install the latest clr-installer bundle:
 
-+ sysadmin-basic (for kbd)
-+ storage-utils
-+ network-basic
+Text-based only
+```
+swupd bundle-add clr-installer
+```
+
+Graphical installer
+```
+swupd bundle-add clr-installer-gui
+```
 
 ## How to test?
-Make sure there is extra storage space, such as a USB memory stick, and choose it while running the installer.
+Make sure there is free storage space, such as a USB memory stick, unallocated disk, or unallocated (free) partition on a disk and choose it while running the installer.
 
 ## Clone this repository
 
@@ -35,12 +41,12 @@ Refer to [InstallerYAMLSyntax](../master/scripts/InstallerYAMLSyntax.md) for syn
 
 Create a bootable installer on USB media:
 ```
-sudo .gopath/bin/clr-installer --config scripts/installer.yaml -b installer:<usb device>
+sudo .gopath/bin/clr-installer --config scripts/installer.yaml -b installer:<usb device> --iso
 ```
 
 > Note: Replace ```<usb device>``` with the usb's device file as follows:
 >
-> sudo .gopath/bin/clr-installer --config scripts/installer.yaml -b installer:/dev/sdb
+> sudo .gopath/bin/clr-installer --config scripts/installer.yaml -b installer:/dev/sdb --iso
 >
 
 ## Testing [Run as root]
@@ -54,10 +60,10 @@ sudo .gopath/bin/clr-installer
 ```
 
 # Multiple Installer Modes
-Currently the installer supports 2 modes (a third one is on the way):
+Currently the installer supports 3 modes
 1. Mass Installer - using an install descriptor file
 2. TUI - a text based user interface
-3. GUI - a graphical user interface (yet to come)
+3. GUI - a graphical user interface
 
 ## Using Mass Installer
 In order to use the Mass Installer provide a ```--config```, such as:
@@ -71,6 +77,18 @@ Call the clr-installer executable without any additional flags, such as:
 
 ```
 sudo .gopath/bin/clr-installer
+```
+or
+```
+sudo .gopath/bin/clr-installer-tui
+```
+
+
+## Using GUI
+Call the clr-installer executable without any additional flags, such as:
+
+```
+sudo .gopath/bin/clr-installer-gui
 ```
 
 ## Reboot
