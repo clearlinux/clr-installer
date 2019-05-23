@@ -65,7 +65,6 @@ endif
 endif
 
 .PHONY: gopath
-ifeq (,$(findstring ${GO_PACKAGE_PREFIX},${CURDIR}))
 LOCAL_GOPATH := ${CURDIR}/.gopath
 export GOPATH := ${LOCAL_GOPATH}
 gopath:
@@ -76,13 +75,6 @@ ifeq ($(IS_GIT_REPO),1)
 	@tar cf - `git ls-files` | tar xf - --directory=${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
 else
 	@cp -af * ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
-endif
-else
-LOCAL_GOPATH :=
-GOPATH ?= ${HOME}/go
-gopath:
-	@echo "GRS: $(GRS)"
-	@echo "Code already in existing GOPATH=${GOPATH}"
 endif
 
 install: install-tui install-gui
