@@ -12,6 +12,7 @@ import (
 
 	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/log"
+	"github.com/clearlinux/clr-installer/storage"
 )
 
 // Button allows us to flag up different buttons
@@ -62,6 +63,16 @@ type Controller interface {
 	SetButtonVisible(flags Button, enabled bool)
 	GetRootDir() string
 	GetOptions() args.Args
+	GetScanInfo() ScanInfo
+	GetScannedMedia() []*storage.BlockDevice
+	SetScannedMedia([]*storage.BlockDevice)
+}
+
+// ScanInfo holds the information related to scanning the media
+type ScanInfo struct {
+	Channel chan bool              // Bool channel for scanning media
+	Done    bool                   // Used to check if scanning has been done at least once
+	Media   []*storage.BlockDevice // Scanned media
 }
 
 const (

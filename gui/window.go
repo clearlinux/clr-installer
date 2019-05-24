@@ -74,8 +74,9 @@ type Window struct {
 		cancel  *gtk.Button // Cancel changes
 	}
 
-	didInit bool                // Whether initialized the view animation
-	pages   map[int]gtk.IWidget // Mapping to each root page
+	didInit  bool                // Whether initialized the view animation
+	pages    map[int]gtk.IWidget // Mapping to each root page
+	scanInfo pages.ScanInfo      // Information related to scanning the media
 }
 
 // CreateHeaderBar creates invisible header bar
@@ -144,6 +145,17 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 	if err != nil {
 		return nil, err
 	}
+
+	window.scanInfo.Channel = make(chan bool)
+	go func() {
+		log.Debug("Scanning media")
+		window.scanInfo.Media, err = storage.RescanBlockDevices(window.model.TargetMedias)
+		if err != nil {
+			log.Warning("Error scanning media %s", err.Error())
+		}
+		window.scanInfo.Channel <- true
+		window.scanInfo.Done = true
+	}()
 
 	return window, nil
 }
@@ -738,6 +750,21 @@ func (window *Window) GetOptions() args.Args {
 // GetRootDir returns the root dir
 func (window *Window) GetRootDir() string {
 	return window.rootDir
+}
+
+// GetScanInfo returns the information related to scanning the media
+func (window *Window) GetScanInfo() pages.ScanInfo {
+	return window.scanInfo
+}
+
+// GetScannedMedia returns the scanned media
+func (window *Window) GetScannedMedia() []*storage.BlockDevice {
+	return window.scanInfo.Media
+}
+
+// SetScannedMedia sets the scanned media
+func (window *Window) SetScannedMedia(scannedMedia []*storage.BlockDevice) {
+	window.scanInfo.Media = scannedMedia
 }
 
 // GetWelcomeMessage gets the welcome message
