@@ -708,7 +708,7 @@ func updateBlockDevices(toBeUpdated *BlockDevice, updates []*BlockDevice) {
 	}
 }
 
-// RescanBlockDevices Clear current list available block devices and rescans
+// RescanBlockDevices clears current list available block devices and rescans
 func RescanBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
 	avBlockDevices = nil
 

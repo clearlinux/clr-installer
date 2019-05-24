@@ -6,6 +6,7 @@ package pages
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
@@ -16,6 +17,10 @@ import (
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/utils"
+)
+
+var (
+	loopTimeOutDuration = 10000 * time.Millisecond // 10 seconds
 )
 
 // DiskConfig is a simple page to help with DiskConfig settings
@@ -240,30 +245,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	}
 	disk.rescanButton.SetTooltipText(utils.Locale.Get("Rescan for changes to hot swappable media."))
 
-	if _, err = disk.rescanButton.Connect("clicked", func() {
-		disk.createRescanDialog()
-		disk.rescanDialog.ShowAll()
-		go func() {
-			_ = disk.scanMediaDevices()
-
-			// Check if the active device is still present
-			var found bool
-			for _, bd := range disk.devs {
-				if bd.Serial == disk.activeSerial {
-					found = true
-					disk.activeDisk = bd
-				}
-			}
-			if !found {
-				disk.activeSerial = ""
-				disk.activeDisk = nil
-				disk.model.TargetMedias = nil
-			}
-			disk.ResetChanges()
-			disk.rescanDialog.Close() // Unlike Destroy(), Close() closes the dialog window and seems to not crash
-		}()
-
-	}); err != nil {
+	if _, err = disk.rescanButton.Connect("clicked", disk.onRescanClick); err != nil {
 		return nil, err
 	}
 
@@ -279,14 +261,30 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 
 	disk.box.ShowAll()
 
-	_ = disk.scanMediaDevices()
-
 	return disk, nil
 }
 
 func newListStoreMedia() (*gtk.ListStore, error) {
 	store, err := gtk.ListStoreNew(glib.TYPE_OBJECT, glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
 	return store, err
+}
+
+func runScanLoop(scanInfo ScanInfo) {
+	var duration time.Duration
+	for {
+		select {
+		case <-scanInfo.Channel:
+			return
+		default:
+			time.Sleep(loopWaitDuration)
+			duration += loopWaitDuration
+			// Safety check. In case reading the channel gets delayed for some reason,
+			// do not hold up loading the page.
+			if duration > loopTimeOutDuration {
+				return
+			}
+		}
+	}
 }
 
 // addListStoreMediaRow adds new row to the ListStore widget for the given media
@@ -339,6 +337,36 @@ func addListStoreMediaRow(store *gtk.ListStore, installMedia storage.InstallTarg
 	}
 
 	return nil
+}
+
+func (disk *DiskConfig) onRescanClick() {
+	log.Debug("Rescanning media")
+	disk.createRescanDialog()
+	disk.rescanDialog.ShowAll()
+	go func() {
+		scannedMedia, err := storage.RescanBlockDevices(disk.model.TargetMedias)
+		if err != nil {
+			log.Warning("Error scanning media %s", err.Error())
+		}
+		disk.controller.SetScannedMedia(scannedMedia)
+		disk.devs = disk.controller.GetScannedMedia()
+
+		// Check if the active device is still present
+		var found bool
+		for _, bd := range disk.devs {
+			if bd.Serial == disk.activeSerial {
+				found = true
+				disk.activeDisk = bd
+			}
+		}
+		if !found {
+			disk.activeSerial = ""
+			disk.activeDisk = nil
+			disk.model.TargetMedias = nil
+		}
+		disk.refreshPage()
+		disk.rescanDialog.Close() // Unlike Destroy(), Close() closes the dialog window and seems to not crash
+	}()
 }
 
 func (disk *DiskConfig) createRescanDialog() {
@@ -537,18 +565,6 @@ func (disk *DiskConfig) onEncryptClick(button *gtk.CheckButton) {
 	}
 }
 
-// This is time intensive, mitigate calls
-func (disk *DiskConfig) scanMediaDevices() error {
-	var err error
-
-	disk.devs, err = storage.RescanBlockDevices(disk.model.TargetMedias)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // populateComboBoxes populates the scrollBox with usable widget things
 func (disk *DiskConfig) populateComboBoxes() error {
 	// Clear any previous warning
@@ -711,9 +727,18 @@ func (disk *DiskConfig) StoreChanges() {
 
 // ResetChanges will reset this page to match the model
 func (disk *DiskConfig) ResetChanges() {
-	disk.activeDisk = nil
-	disk.controller.SetButtonState(ButtonConfirm, true)
+	scanInfo := disk.controller.GetScanInfo()
+	if !scanInfo.Done { // If media has not been scanned even once, wait till scanning completes
+		runScanLoop(scanInfo)
+		disk.controller.SetScannedMedia(scanInfo.Media)
+	}
+	disk.devs = disk.controller.GetScannedMedia()
+	disk.refreshPage()
+}
 
+// refreshPage will refresh the UI
+func (disk *DiskConfig) refreshPage() {
+	disk.activeDisk = nil
 	disk.chooserCombo.SetSensitive(false)
 
 	if err := disk.populateComboBoxes(); err != nil {
