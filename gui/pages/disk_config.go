@@ -269,11 +269,11 @@ func newListStoreMedia() (*gtk.ListStore, error) {
 	return store, err
 }
 
-func runScanLoop(scanInfo ScanInfo) {
+func (disk *DiskConfig) runScanLoop() {
 	var duration time.Duration
 	for {
 		select {
-		case <-scanInfo.Channel:
+		case <-disk.controller.GetScanChannel():
 			return
 		default:
 			time.Sleep(loopWaitDuration)
@@ -340,7 +340,7 @@ func addListStoreMediaRow(store *gtk.ListStore, installMedia storage.InstallTarg
 }
 
 func (disk *DiskConfig) onRescanClick() {
-	log.Debug("Rescanning media")
+	log.Debug("Rescanning media...")
 	disk.createRescanDialog()
 	disk.rescanDialog.ShowAll()
 	go func() {
@@ -348,8 +348,8 @@ func (disk *DiskConfig) onRescanClick() {
 		if err != nil {
 			log.Warning("Error scanning media %s", err.Error())
 		}
-		disk.controller.SetScannedMedia(scannedMedia)
-		disk.devs = disk.controller.GetScannedMedia()
+		disk.controller.SetScanMedia(scannedMedia)
+		disk.devs = disk.controller.GetScanMedia()
 
 		// Check if the active device is still present
 		var found bool
@@ -727,17 +727,17 @@ func (disk *DiskConfig) StoreChanges() {
 
 // ResetChanges will reset this page to match the model
 func (disk *DiskConfig) ResetChanges() {
-	scanInfo := disk.controller.GetScanInfo()
-	if !scanInfo.Done { // If media has not been scanned even once, wait till scanning completes
-		runScanLoop(scanInfo)
-		disk.controller.SetScannedMedia(scanInfo.Media)
+	if !disk.controller.GetScanDone() { // If media has not been scanned even once, wait till scanning completes
+		disk.runScanLoop()
+		disk.controller.SetScanDone(true)
 	}
-	disk.devs = disk.controller.GetScannedMedia()
+	disk.devs = disk.controller.GetScanMedia()
 	disk.refreshPage()
 }
 
 // refreshPage will refresh the UI
 func (disk *DiskConfig) refreshPage() {
+	log.Debug("Refreshing page...")
 	disk.activeDisk = nil
 	disk.chooserCombo.SetSensitive(false)
 

@@ -154,7 +154,6 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 			log.Warning("Error scanning media %s", err.Error())
 		}
 		window.scanInfo.Channel <- true
-		window.scanInfo.Done = true
 	}()
 
 	return window, nil
@@ -752,18 +751,28 @@ func (window *Window) GetRootDir() string {
 	return window.rootDir
 }
 
-// GetScanInfo returns the information related to scanning the media
-func (window *Window) GetScanInfo() pages.ScanInfo {
-	return window.scanInfo
+// GetScanChannel is the getter for ScanInfo Channel
+func (window *Window) GetScanChannel() chan bool {
+	return window.scanInfo.Channel
 }
 
-// GetScannedMedia returns the scanned media
-func (window *Window) GetScannedMedia() []*storage.BlockDevice {
+// GetScanDone is the getter for ScanInfo Done
+func (window *Window) GetScanDone() bool {
+	return window.scanInfo.Done
+}
+
+// SetScanDone is the setter for ScanInfo Done
+func (window *Window) SetScanDone(done bool) {
+	window.scanInfo.Done = done
+}
+
+// GetScanMedia is the getter for ScanInfo Media
+func (window *Window) GetScanMedia() []*storage.BlockDevice {
 	return window.scanInfo.Media
 }
 
-// SetScannedMedia sets the scanned media
-func (window *Window) SetScannedMedia(scannedMedia []*storage.BlockDevice) {
+// SetScanMedia is the setter for ScanInfo Media
+func (window *Window) SetScanMedia(scannedMedia []*storage.BlockDevice) {
 	window.scanInfo.Media = scannedMedia
 }
 

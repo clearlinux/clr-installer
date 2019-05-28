@@ -63,9 +63,13 @@ type Controller interface {
 	SetButtonVisible(flags Button, enabled bool)
 	GetRootDir() string
 	GetOptions() args.Args
-	GetScanInfo() ScanInfo
-	GetScannedMedia() []*storage.BlockDevice
-	SetScannedMedia([]*storage.BlockDevice)
+
+	// Getters and Setters for ScanInfo
+	GetScanChannel() chan bool
+	GetScanDone() bool
+	SetScanDone(bool)
+	GetScanMedia() []*storage.BlockDevice
+	SetScanMedia([]*storage.BlockDevice)
 }
 
 // ScanInfo holds the information related to scanning the media
