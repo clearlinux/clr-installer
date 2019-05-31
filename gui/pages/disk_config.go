@@ -19,10 +19,6 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
-var (
-	loopTimeOutDuration = 10000 * time.Millisecond // 10 seconds
-)
-
 // DiskConfig is a simple page to help with DiskConfig settings
 type DiskConfig struct {
 	devs               []*storage.BlockDevice
@@ -276,11 +272,11 @@ func (disk *DiskConfig) runScanLoop() {
 		case <-disk.controller.GetScanChannel():
 			return
 		default:
-			time.Sleep(loopWaitDuration)
-			duration += loopWaitDuration
+			time.Sleep(common.LoopWaitDuration)
+			duration += common.LoopWaitDuration
 			// Safety check. In case reading the channel gets delayed for some reason,
 			// do not hold up loading the page.
-			if duration > loopTimeOutDuration {
+			if duration > common.LoopTimeOutDuration {
 				return
 			}
 		}

@@ -6,6 +6,8 @@ package pages
 
 import (
 	"github.com/gotk3/gotk3/gtk"
+
+	"github.com/clearlinux/clr-installer/log"
 )
 
 // InstallWidget provides a description with tickes/crosses to let the user
@@ -57,14 +59,14 @@ func NewInstallWidget(desc string) (*InstallWidget, error) {
 func (widget *InstallWidget) MarkStatus(success bool) {
 	if success {
 		widget.image.SetFromIconName("object-select-symbolic", gtk.ICON_SIZE_BUTTON)
-		return
-	}
-
-	widget.image.SetFromIconName("window-close-symbolic", gtk.ICON_SIZE_BUTTON)
-	// Make it red.
-	st, err := widget.image.GetStyleContext()
-	if err == nil {
-		st.AddClass("destructive-action")
+	} else {
+		widget.image.SetFromIconName("window-close-symbolic", gtk.ICON_SIZE_BUTTON)
+		sc, err := widget.image.GetStyleContext()
+		if err != nil {
+			log.Warning("Error getting style context: ", err) // Just log trivial error
+		} else {
+			sc.AddClass("label-warning")
+		}
 	}
 }
 

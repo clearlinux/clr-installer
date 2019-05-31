@@ -488,13 +488,13 @@ msgstr "已禁用"
 msgid "Installation failed."
 msgstr "安装失败。"
 
-msgid "Network is not working."
-msgstr "网络无法正常工作。"
+msgid "Network check failed."
+msgstr "网络检查失败。"
 
 msgid "System failed to pass pre-install checks."
 msgstr "系统无法通过安装前检查。"
 
-msgid "System Check Failed"
+msgid "System check failed"
 msgstr "系统检查失败"
 
 #, c-format
@@ -546,3 +546,19 @@ msgstr "安装成功。"
 #, c-format
 msgid "See %s for details."
 msgstr "请参阅 %s 了解详情。"
+
+#, c-format
+msgid "Use %s to configure network."
+msgstr "使用 %s 配置网络。"
+
+msgid "Checking Prerequisites."
+msgstr "检查先决条件。"
+
+msgid "Checking system for compatibility"
+msgstr "检查系统是否兼容"
+
+msgid "System not compatible."
+msgstr "Sistema no compatible."
+
+msgid "Prerequisites passed."
+msgstr "先决条件已过。"

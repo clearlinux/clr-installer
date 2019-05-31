@@ -15,7 +15,6 @@ import (
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
-	"github.com/clearlinux/clr-installer/syscheck"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -45,12 +44,13 @@ type Window struct {
 
 	// Menu
 	menu struct {
-		switcher    *Switcher             // Allow switching between main menu
-		stack       *gtk.Stack            // Menu switching
-		screens     map[bool]*ContentView // Mapping to content views
-		welcomePage pages.Page            // Pointer to the welcome page
-		currentPage pages.Page            // Pointer to the currently open page
-		installPage pages.Page            // Pointer to the installer page
+		switcher     *Switcher             // Allow switching between main menu
+		stack        *gtk.Stack            // Menu switching
+		screens      map[bool]*ContentView // Mapping to content views
+		welcomePage  pages.Page            // Pointer to the welcome page
+		preCheckPage pages.Page            // Pointer to the pre-check page
+		currentPage  pages.Page            // Pointer to the currently open page
+		installPage  pages.Page            // Pointer to the installer page
 	}
 
 	// Buttons
@@ -74,9 +74,10 @@ type Window struct {
 		cancel  *gtk.Button // Cancel changes
 	}
 
-	didInit  bool                // Whether initialized the view animation
-	pages    map[int]gtk.IWidget // Mapping to each root page
-	scanInfo pages.ScanInfo      // Information related to scanning the media
+	didInit      bool                // Whether initialized the view animation
+	pages        map[int]gtk.IWidget // Mapping to each root page
+	scanInfo     pages.ScanInfo      // Information related to scanning the media
+	preCheckDone bool                // Whether pre-check was done
 }
 
 // CreateHeaderBar creates invisible header bar
@@ -225,6 +226,36 @@ func (window *Window) createWelcomePage() (*Window, error) {
 	return window, nil
 }
 
+// createPreCheckPage creates the pre-check page
+func (window *Window) createPreCheckPage() (*Window, error) {
+	window.banner.labelText.SetMarkup(GetWelcomeMessage())
+
+	window.contentLayout.Remove(window.rootStack)
+	window.contentLayout.PackStart(window.rootStack, true, true, 0)
+
+	// Our pages
+	pageCreators := []PageConstructor{
+		// required
+		pages.NewPreCheckPage,
+	}
+
+	for _, f := range pageCreators {
+		page, err := f(window, window.model)
+		if err != nil {
+			return nil, err
+		}
+		if err = window.AddPage(page); err != nil {
+			return nil, err
+		}
+	}
+
+	// Show the whole window now
+	window.handle.ShowAll()
+	window.ActivatePage(window.menu.preCheckPage)
+
+	return window, nil
+}
+
 // createMenuPages creates the menu pages
 func (window *Window) createMenuPages() (*Window, error) {
 	var err error
@@ -250,7 +281,7 @@ func (window *Window) createMenuPages() (*Window, error) {
 		return nil, err
 	}
 
-	// Our pages
+	// Create rest of the pages
 	pageCreators := []PageConstructor{
 		// required
 		pages.NewTimezonePage,
@@ -327,12 +358,14 @@ func (window *Window) AddPage(page pages.Page) error {
 	)
 
 	id = page.GetID()
-
-	if id == pages.PageIDWelcome {
+	switch id {
+	case pages.PageIDWelcome:
 		window.menu.welcomePage = page
-	} else if id == pages.PageIDInstall {
+	case pages.PageIDPreCheck:
+		window.menu.preCheckPage = page
+	case pages.PageIDInstall:
 		window.menu.installPage = page
-	} else { // Add to the required or advanced (optional) screen
+	default: // Add to the required or advanced (optional) screen
 		err := window.menu.screens[page.IsRequired()].AddPage(page)
 		if err != nil {
 			return err
@@ -397,7 +430,7 @@ func (window *Window) CreateFooter(store *gtk.Box) error {
 	if window.buttons.next, err = createNavButton(utils.Locale.Get("NEXT"), "button-confirm"); err != nil {
 		return err
 	}
-	if _, err = window.buttons.next.Connect("clicked", func() { window.launchMenuView() }); err != nil {
+	if _, err = window.buttons.next.Connect("clicked", func() { window.pageNext() }); err != nil {
 		return err
 	}
 
@@ -489,6 +522,16 @@ func (window *Window) UpdateFooter(store *gtk.Box) error {
 	return nil
 }
 
+// pageNext handles next page.
+func (window *Window) pageNext() {
+	if !window.preCheckDone { // If pre-check has not been done at least once, launch the pre-check view first
+		window.launchPreCheckView()
+		window.preCheckDone = true
+	} else {
+		window.launchMenuView()
+	}
+}
+
 // pageClosed handles closure of a page.
 func (window *Window) pageClosed(applied bool) {
 	// If applied, tell page to stash in model
@@ -526,6 +569,11 @@ func (window *Window) ActivatePage(page pages.Page) {
 	case pages.PageIDWelcome:
 		window.banner.Show()
 		window.buttons.stack.SetVisibleChildName("welcome")
+	case pages.PageIDPreCheck:
+		window.banner.Show()
+		window.buttons.stack.SetVisibleChildName("welcome")
+		window.buttons.next.SetLabel(utils.Locale.Get("NEXT")) // This is done just to translate label based on localization
+		window.buttons.exit.SetLabel(utils.Locale.Get("EXIT")) // This is done just to translate label based on localization
 	case pages.PageIDInstall:
 		window.menu.switcher.Hide()
 		window.banner.Show()
@@ -534,10 +582,10 @@ func (window *Window) ActivatePage(page pages.Page) {
 		window.buttons.install.Hide()
 		window.buttons.back.Hide()
 		sc, err := window.buttons.quit.GetStyleContext()
-		sc.RemoveClass("button-cancel")
 		if err != nil {
 			log.Warning("Error getting style context: ", err) // Just log trivial error
 		} else {
+			sc.RemoveClass("button-cancel")
 			sc.AddClass("button-confirm")
 		}
 		window.buttons.quit.SetSensitive(false)
@@ -558,36 +606,47 @@ func (window *Window) ActivatePage(page pages.Page) {
 		window.buttons.confirm.SetLabel(utils.Locale.Get("CONFIRM"))
 		window.buttons.cancel.SetLabel(utils.Locale.Get("CANCEL"))
 	}
-
-	// Allow page to take control now
-	page.ResetChanges()
-
-	// Set the root stack to show the new page
-	window.rootStack.SetVisibleChild(window.pages[id])
+	page.ResetChanges()                                // Allow page to take control now
+	window.rootStack.SetVisibleChild(window.pages[id]) // Set the root stack to show the new page
 }
 
 // SetButtonState is called by the pages to enable/disable certain buttons.
-func (window *Window) SetButtonState(flags pages.Button, enabled bool) {
-	if window.menu.currentPage.GetID() != pages.PageIDWelcome {
-		if flags&pages.ButtonCancel == pages.ButtonCancel {
-			window.buttons.cancel.SetSensitive(enabled)
-		}
-		if flags&pages.ButtonConfirm == pages.ButtonConfirm {
-			window.buttons.confirm.SetSensitive(enabled)
-		}
-		if flags&pages.ButtonQuit == pages.ButtonQuit {
-			window.buttons.quit.SetSensitive(enabled)
-		}
-		if flags&pages.ButtonBack == pages.ButtonBack {
-			window.buttons.back.SetSensitive(enabled)
-		}
-	} else {
-		if flags&pages.ButtonNext == pages.ButtonNext {
-			window.buttons.next.SetSensitive(enabled)
-		}
-		if flags&pages.ButtonExit == pages.ButtonExit {
-			window.buttons.exit.SetSensitive(enabled)
-		}
+func (window *Window) SetButtonState(button pages.Button, enabled bool) {
+	switch button {
+	case pages.ButtonCancel:
+		window.buttons.cancel.SetSensitive(enabled)
+	case pages.ButtonConfirm:
+		window.buttons.confirm.SetSensitive(enabled)
+	case pages.ButtonQuit:
+		window.buttons.quit.SetSensitive(enabled)
+	case pages.ButtonBack:
+		window.buttons.back.SetSensitive(enabled)
+	case pages.ButtonNext:
+		window.buttons.next.SetSensitive(enabled)
+	case pages.ButtonExit:
+		window.buttons.exit.SetSensitive(enabled)
+	default:
+		log.Error("Undefined button")
+	}
+}
+
+// SetButtonVisible is called by the pages to view/hide certain buttons.
+func (window *Window) SetButtonVisible(button pages.Button, visible bool) {
+	switch button {
+	case pages.ButtonCancel:
+		window.buttons.cancel.SetVisible(visible)
+	case pages.ButtonConfirm:
+		window.buttons.confirm.SetVisible(visible)
+	case pages.ButtonQuit:
+		window.buttons.quit.SetVisible(visible)
+	case pages.ButtonBack:
+		window.buttons.back.SetVisible(visible)
+	case pages.ButtonNext:
+		window.buttons.next.SetVisible(visible)
+	case pages.ButtonExit:
+		window.buttons.exit.SetVisible(visible)
+	default:
+		log.Error("Undefined button")
 	}
 }
 
@@ -600,65 +659,23 @@ func (window *Window) launchWelcomeView() {
 	}
 }
 
-// launchMenuView launches the menu view
-func (window *Window) launchMenuView() {
+// launchPreCheckView launches the pre-check view view
+func (window *Window) launchPreCheckView() {
+	log.Debug("Launching PreCheckView")
 	window.menu.currentPage.StoreChanges()
 
-	// If syscheck fails, launch a dialog box and force the user to exit
-	if retErr := syscheck.RunSystemCheck(true); retErr != nil {
-		contentBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 10)
-		contentBox.SetHAlign(gtk.ALIGN_FILL)
-		contentBox.SetMarginBottom(common.TopBottomMargin)
-		if err != nil {
-			log.Warning("Error creating box")
-			return
-		}
+	if _, err := window.createPreCheckPage(); err != nil {
+		log.ErrorError(err) // TODO: Handle error
+	}
+}
 
-		st, err := contentBox.GetStyleContext()
-		if err != nil {
-			log.Warning("Error getting style context")
-			return
-		}
+// launchMenuView launches the menu view
+func (window *Window) launchMenuView() {
+	log.Debug("Launching MenuView")
+	window.menu.currentPage.StoreChanges()
 
-		// Style the dialog
-		st.AddClass("dialog-warning")
-
-		icon, err := gtk.ImageNewFromIconName("dialog-error-symbolic", gtk.ICON_SIZE_DIALOG)
-		if err != nil {
-			log.Warning("gtk.ImageNewFromIconName failed for icon dialog-error-symbolic")
-			return
-		}
-
-		icon.SetMarginEnd(12)
-		icon.SetHAlign(gtk.ALIGN_START)
-		icon.SetVAlign(gtk.ALIGN_START)
-		contentBox.PackStart(icon, false, true, 0)
-
-		label, err := gtk.LabelNew(utils.Locale.Get("System failed to pass pre-install checks.") + "\n\n" + retErr.Error())
-		if err != nil {
-			log.Warning("Error creating label")
-			return
-		}
-		label.SetUseMarkup(true)
-		label.SetHAlign(gtk.ALIGN_END)
-		contentBox.PackStart(label, false, true, 0)
-
-		dialog, err := common.CreateDialogOneButton(contentBox, utils.Locale.Get("System Check Failed"), utils.Locale.Get("EXIT"), "button-cancel")
-		if err != nil {
-			log.Warning("Error creating dialog")
-			return
-		}
-
-		_, err = dialog.Connect("response", func() { gtk.MainQuit() })
-		if err != nil {
-			log.Warning("Error connecting to dialog")
-		}
-		dialog.ShowAll()
-		dialog.Run()
-	} else {
-		if _, err := window.createMenuPages(); err != nil {
-			log.ErrorError(err) // TODO: Handle error
-		}
+	if _, err := window.createMenuPages(); err != nil {
+		log.ErrorError(err) // TODO: Handle error
 	}
 }
 
