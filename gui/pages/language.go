@@ -197,7 +197,7 @@ func (page *LanguagePage) GetTitle() string {
 
 // StoreChanges will store this pages changes into the model
 func (page *LanguagePage) StoreChanges() {
-	page.controller.SetButtonState(ButtonNext, false) // TODO: Determine why the button is not actually being disabled
+	page.controller.SetButtonState(ButtonNext, false)
 	page.model.Language = page.selected
 	language.SetSelectionLanguage(page.model.Language.Code)
 	utils.SetLocale(page.model.Language.Code)

@@ -22,11 +22,11 @@ func getCPUFeature(feature string) error {
 		log.Error("Unable to read %s", fName)
 		return errors.New(utils.Locale.Get("Unable to read %s", fName))
 	}
-	if strings.Contains(string(cpuInfo), feature) {
-		return nil
+	if !strings.Contains(string(cpuInfo), feature) {
+		return errors.New(utils.Locale.Get("Missing CPU feature: ") + feature)
 	}
 
-	return errors.New(utils.Locale.Get("Missing CPU feature: ") + feature)
+	return nil
 }
 
 func getEFIExist() error {

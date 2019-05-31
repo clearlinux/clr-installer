@@ -42,6 +42,11 @@ var (
 	NetworkPassing bool
 )
 
+const (
+	// NetWorkManager is the application to manage network.
+	NetWorkManager = "Network Manager"
+)
+
 func sortMountPoint(bds []*storage.BlockDevice) []*storage.BlockDevice {
 	sort.Slice(bds[:], func(i, j int) bool {
 		return filepath.HasPrefix(bds[j].MountPoint, bds[i].MountPoint)
@@ -568,11 +573,11 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 	}
 
 	msg := utils.Locale.Get("Testing connectivity")
-	prg := progress.NewLoop(msg)
+	attempts := 3
+	prg := progress.MultiStep(attempts, msg)
 	ok := false
-
 	// 3 attempts to test connectivity
-	for i := 0; i < 3; i++ {
+	for i := 0; i < attempts; i++ {
 		time.Sleep(2 * time.Second)
 
 		log.Info(msg)
@@ -589,10 +594,13 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 			ok = false
 			break
 		}
+		prg.Partial(i + 1)
 	}
 
 	if !ok {
-		return prg, errors.Errorf(utils.Locale.Get("Network is not working."))
+		msg = utils.Locale.Get("Network check failed.")
+		msg += " " + utils.Locale.Get("Use %s to configure network.", NetWorkManager)
+		return prg, errors.Errorf(msg)
 	}
 
 	prg.Success()
@@ -654,7 +662,6 @@ func configureLanguage(rootDir string, model *model.SystemInstall) error {
 	log.Info(msg)
 
 	err := language.SetTargetLanguage(rootDir, model.Language.Code)
-	//utils.SetLocale(model.Language.Code)
 	if err != nil {
 		prg.Failure()
 		return err

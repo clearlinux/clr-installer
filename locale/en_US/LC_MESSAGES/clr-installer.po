@@ -488,14 +488,14 @@ msgstr "Disabled"
 msgid "Installation failed."
 msgstr "Installation failed."
 
-msgid "Network is not working."
-msgstr "Network is not working."
+msgid "Network check failed."
+msgstr "Network check failed."
 
 msgid "System failed to pass pre-install checks."
 msgstr "System failed to pass pre-install checks."
 
-msgid "System Check Failed"
-msgstr "System Check Failed"
+msgid "System check failed"
+msgstr "System check failed"
 
 #, c-format
 msgid "Unable to read %s"
@@ -546,3 +546,19 @@ msgstr "Installation successful."
 #, c-format
 msgid "See %s for details."
 msgstr "See %s for details."
+
+#, c-format
+msgid "Use %s to configure network."
+msgstr "Use %s to configure network."
+
+msgid "Checking Prerequisites."
+msgstr "Checking Prerequisites."
+
+msgid "Checking system for compatibility"
+msgstr "Checking system for compatibility"
+
+msgid "System not compatible."
+msgstr "System not compatible."
+
+msgid "Prerequisites passed."
+msgstr "Prerequisites passed."
