@@ -19,7 +19,6 @@ before_install:
     - docker run --network=host --name clear-test -v $(pwd):/travis -v /dev:/dev  -v /var/tmp/test:/tmp -v /sys/fs/cgroup:/sys/fs/cgroup:ro -e container=docker --privileged --tmpfs /run --tmpfs /run/lock -dit --rm clearlinux/clr-installer-ci:latest /sbin/init
     - docker ps
     - docker exec -it clear-test bash -c "swupd clean" # TODO: Remove this when swupd is fixed; needed as of swupd 3.20.0
-    - docker exec -it clear-test bash -c "swupd bundle-add devpkg-gtk3" # TODO: Remove this when the GUI dependencies are installed in the clr-installer-ci image
 
 # Do NOT use -l (login) for the bash shell or the default profile
 # (/usr/share/defaults/etc/profile) will reset PATH removing the
