@@ -114,7 +114,8 @@ func mkRootfs() error {
 
 func mkInitrd(version string, model *model.SystemInstall, options args.Args) error {
 	msg := "Installing the base system for initrd"
-	prg := progress.NewLoop(msg)
+	var prg progress.Progress
+
 	log.Info(msg)
 
 	var err error
@@ -122,12 +123,13 @@ func mkInitrd(version string, model *model.SystemInstall, options args.Args) err
 	options.SwupdFormat = "staging"
 	sw := swupd.New(tmpPaths[clrInitrd], options)
 
-	/* Should install the overridden CoreBundles above (eg. os-core only) */
+	/* Install os-core only as initrd */
 	if err := sw.VerifyWithBundles(version, model.SwupdMirror, []string{}); err != nil {
+		prg = progress.NewLoop(msg)
 		prg.Failure()
 		return err
 	}
-
+	prg = progress.NewLoop(msg)
 	prg.Success()
 	return err
 }
