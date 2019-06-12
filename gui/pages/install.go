@@ -9,9 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 
 	ctrl "github.com/clearlinux/clr-installer/controller"
+	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/network"
 	"github.com/clearlinux/clr-installer/progress"
@@ -176,7 +178,6 @@ func (page *InstallPage) ResetChanges() {
 			page.model,
 			page.controller.GetOptions(),
 		)
-		page.pbar.SetFraction(1.0)
 
 		// Temporary handling of errors
 		if err != nil {
@@ -186,6 +187,13 @@ func (page *InstallPage) ResetChanges() {
 			text = text + " " + strings.Split(err.Error(), "\n")[0]
 			page.warning.SetText(text)
 			page.controller.SetButtonState(ButtonQuit, true)
+		}
+		_, err = glib.IdleAdd(func() {
+			page.pbar.SetFraction(1.0)
+		})
+		if err != nil {
+			log.ErrorError(err) // TODO: Handle error in a better way
+			return
 		}
 
 		go func() {
@@ -202,42 +210,58 @@ func (page *InstallPage) ResetChanges() {
 
 // Desc will push a description box into the view for later marking
 func (page *InstallPage) Desc(desc string) {
-	fmt.Println(desc)
+	_, err := glib.IdleAdd(func() {
+		fmt.Println(desc)
 
-	// Increment selection
-	page.selection++
+		// Increment selection
+		page.selection++
 
-	// do we have an old widget? if so, mark complete
-	if page.selection > 0 {
-		page.widgets[page.selection-1].Completed()
-	}
+		// do we have an old widget? if so, mark complete
+		if page.selection > 0 {
+			page.widgets[page.selection-1].Completed()
+		}
 
-	// Create new install widget
-	widg, err := NewInstallWidget(desc)
+		// Create new install widget
+		widg, err := NewInstallWidget(desc)
+		if err != nil {
+			panic(err)
+		}
+		page.widgets[page.selection] = widg
+
+		// Pack it into the list
+		page.list.Add(widg.GetRootWidget())
+
+		// Scroll to the new item
+		row := page.list.GetRowAtIndex(page.selection)
+		page.list.SelectRow(row)
+		scrollToView(page.scroll, page.list, &row.Widget)
+	})
 	if err != nil {
-		panic(err)
+		log.ErrorError(err) // TODO: Handle error in a better way
+		return
 	}
-	page.widgets[page.selection] = widg
-
-	// Pack it into the list
-	page.list.Add(widg.GetRootWidget())
-
-	// Scroll to the new item
-	row := page.list.GetRowAtIndex(page.selection)
-	page.list.SelectRow(row)
-	scrollToView(page.scroll, page.list, &row.Widget)
 }
 
 // Failure handles failure to install
 func (page *InstallPage) Failure() {
-	page.widgets[page.selection].MarkStatus(false)
-	utils.Locale.Get("Failure")
+	_, err := glib.IdleAdd(func() {
+		page.widgets[page.selection].MarkStatus(false)
+	})
+	if err != nil {
+		log.ErrorError(err) // TODO: Handle error in a better way
+		return
+	}
 }
 
 // Success notes the install was successful
 func (page *InstallPage) Success() {
-	utils.Locale.Get("Success")
-	page.widgets[page.selection].MarkStatus(true)
+	_, err := glib.IdleAdd(func() {
+		page.widgets[page.selection].MarkStatus(true)
+	})
+	if err != nil {
+		log.ErrorError(err) // TODO: Handle error in a better way
+		return
+	}
 }
 
 // LoopWaitDuration will return the duration for step-waits
@@ -247,12 +271,31 @@ func (page *InstallPage) LoopWaitDuration() time.Duration {
 
 // Partial handles an actual progress update
 func (page *InstallPage) Partial(total int, step int) {
-	page.pbar.SetFraction(float64(step) / float64(total))
+	_, err := glib.IdleAdd(func() {
+		page.pbar.SetFraction(float64(step) / float64(total))
+	})
+	if err != nil {
+		log.ErrorError(err) // TODO: Handle error in a better way
+		return
+	}
 }
 
 // Step will step the progressbar in indeterminate mode
 func (page *InstallPage) Step() {
 	// Pulse twice for visual feedback
-	page.pbar.Pulse()
-	page.pbar.Pulse()
+	_, err := glib.IdleAdd(func() {
+		page.pbar.Pulse()
+	})
+	if err != nil {
+		log.ErrorError(err) // TODO: Handle error in a better way
+		return
+	}
+
+	_, err = glib.IdleAdd(func() {
+		page.pbar.Pulse()
+	})
+	if err != nil {
+		log.ErrorError(err) // TODO: Handle error in a better way
+		return
+	}
 }
