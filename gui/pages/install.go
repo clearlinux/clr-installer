@@ -107,53 +107,53 @@ func NewInstallPage(controller Controller, model *model.SystemInstall) (Page, er
 }
 
 // IsRequired is just here for the Page API
-func (install *InstallPage) IsRequired() bool {
+func (page *InstallPage) IsRequired() bool {
 	return true
 }
 
 // IsDone is just here for the Page API
-func (install *InstallPage) IsDone() bool {
+func (page *InstallPage) IsDone() bool {
 	return false
 }
 
 // GetID returns the ID for this page
-func (install *InstallPage) GetID() int {
+func (page *InstallPage) GetID() int {
 	return PageIDInstall
 }
 
 // GetSummary will return the summary for this page
-func (install *InstallPage) GetSummary() string {
+func (page *InstallPage) GetSummary() string {
 	return utils.Locale.Get("Installing Clear Linux* OS")
 }
 
 // GetTitle will return the title for this page
-func (install *InstallPage) GetTitle() string {
+func (page *InstallPage) GetTitle() string {
 	return utils.Locale.Get("Installing Clear Linux* OS")
 }
 
 // GetIcon returns the icon for this page
-func (install *InstallPage) GetIcon() string {
+func (page *InstallPage) GetIcon() string {
 	return "system-software-install-symbolic"
 }
 
 // GetConfiguredValue returns nothing here
-func (install *InstallPage) GetConfiguredValue() string {
+func (page *InstallPage) GetConfiguredValue() string {
 	return ""
 }
 
 // GetRootWidget returns the root embeddable widget for this page
-func (install *InstallPage) GetRootWidget() gtk.IWidget {
-	return install.layout
+func (page *InstallPage) GetRootWidget() gtk.IWidget {
+	return page.layout
 }
 
 // StoreChanges will store this pages changes into the model
-func (install *InstallPage) StoreChanges() {}
+func (page *InstallPage) StoreChanges() {}
 
 // ResetChanges begins as our initial execution point as we're only going
 // to get called when showing our page.
-func (install *InstallPage) ResetChanges() {
+func (page *InstallPage) ResetChanges() {
 	// Validate the model
-	err := install.model.Validate()
+	err := page.model.Validate()
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -164,7 +164,7 @@ func (install *InstallPage) ResetChanges() {
 	// TODO: Disable closing of the installer
 	go func() {
 		// Become the progress hook
-		progress.Set(install)
+		progress.Set(page)
 
 		go func() {
 			_ = network.DownloadInstallerMessage("Pre-Installation",
@@ -172,11 +172,11 @@ func (install *InstallPage) ResetChanges() {
 		}()
 
 		// Go install it
-		err := ctrl.Install(install.controller.GetRootDir(),
-			install.model,
-			install.controller.GetOptions(),
+		err := ctrl.Install(page.controller.GetRootDir(),
+			page.model,
+			page.controller.GetOptions(),
 		)
-		install.pbar.SetFraction(1.0)
+		page.pbar.SetFraction(1.0)
 
 		// Temporary handling of errors
 		if err != nil {
@@ -184,8 +184,8 @@ func (install *InstallPage) ResetChanges() {
 			// TODO: Map errors => error codes => localized error messages.
 			// For the time being, get only the first line of the error.
 			text = text + " " + strings.Split(err.Error(), "\n")[0]
-			install.warning.SetText(text)
-			install.controller.SetButtonState(ButtonQuit, true)
+			page.warning.SetText(text)
+			page.controller.SetButtonState(ButtonQuit, true)
 		}
 
 		go func() {
@@ -193,7 +193,7 @@ func (install *InstallPage) ResetChanges() {
 				network.PostGuiInstallConf)
 		}()
 
-		install.controller.SetButtonState(ButtonQuit, true)
+		page.controller.SetButtonState(ButtonQuit, true)
 	}()
 
 }
@@ -201,15 +201,15 @@ func (install *InstallPage) ResetChanges() {
 // Following methods are for the progress.Client API
 
 // Desc will push a description box into the view for later marking
-func (install *InstallPage) Desc(desc string) {
+func (page *InstallPage) Desc(desc string) {
 	fmt.Println(desc)
 
 	// Increment selection
-	install.selection++
+	page.selection++
 
 	// do we have an old widget? if so, mark complete
-	if install.selection > 0 {
-		install.widgets[install.selection-1].Completed()
+	if page.selection > 0 {
+		page.widgets[page.selection-1].Completed()
 	}
 
 	// Create new install widget
@@ -217,42 +217,42 @@ func (install *InstallPage) Desc(desc string) {
 	if err != nil {
 		panic(err)
 	}
-	install.widgets[install.selection] = widg
+	page.widgets[page.selection] = widg
 
 	// Pack it into the list
-	install.list.Add(widg.GetRootWidget())
+	page.list.Add(widg.GetRootWidget())
 
 	// Scroll to the new item
-	row := install.list.GetRowAtIndex(install.selection)
-	install.list.SelectRow(row)
-	scrollToView(install.scroll, install.list, &row.Widget)
+	row := page.list.GetRowAtIndex(page.selection)
+	page.list.SelectRow(row)
+	scrollToView(page.scroll, page.list, &row.Widget)
 }
 
 // Failure handles failure to install
-func (install *InstallPage) Failure() {
-	install.widgets[install.selection].MarkStatus(false)
+func (page *InstallPage) Failure() {
+	page.widgets[page.selection].MarkStatus(false)
 	utils.Locale.Get("Failure")
 }
 
 // Success notes the install was successful
-func (install *InstallPage) Success() {
+func (page *InstallPage) Success() {
 	utils.Locale.Get("Success")
-	install.widgets[install.selection].MarkStatus(true)
+	page.widgets[page.selection].MarkStatus(true)
 }
 
 // LoopWaitDuration will return the duration for step-waits
-func (install *InstallPage) LoopWaitDuration() time.Duration {
+func (page *InstallPage) LoopWaitDuration() time.Duration {
 	return loopWaitDuration
 }
 
 // Partial handles an actual progress update
-func (install *InstallPage) Partial(total int, step int) {
-	install.pbar.SetFraction(float64(step) / float64(total))
+func (page *InstallPage) Partial(total int, step int) {
+	page.pbar.SetFraction(float64(step) / float64(total))
 }
 
 // Step will step the progressbar in indeterminate mode
-func (install *InstallPage) Step() {
+func (page *InstallPage) Step() {
 	// Pulse twice for visual feedback
-	install.pbar.Pulse()
-	install.pbar.Pulse()
+	page.pbar.Pulse()
+	page.pbar.Pulse()
 }
