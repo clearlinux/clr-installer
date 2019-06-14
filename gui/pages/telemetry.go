@@ -56,57 +56,57 @@ func NewTelemetryPage(controller Controller, model *model.SystemInstall) (Page, 
 }
 
 // IsRequired will return true as we always need a Telemetry
-func (t *Telemetry) IsRequired() bool {
+func (page *Telemetry) IsRequired() bool {
 	return true
 }
 
 // IsDone checks if all the steps are completed
-func (t *Telemetry) IsDone() bool {
-	return t.didConfirm
+func (page *Telemetry) IsDone() bool {
+	return page.didConfirm
 }
 
 // GetID returns the ID for this page
-func (t *Telemetry) GetID() int {
+func (page *Telemetry) GetID() int {
 	return PageIDTelemetry
 }
 
 // GetIcon returns the icon for this page
-func (t *Telemetry) GetIcon() string {
+func (page *Telemetry) GetIcon() string {
 	return "network-transmit-receive"
 }
 
 // GetRootWidget returns the root embeddable widget for this page
-func (t *Telemetry) GetRootWidget() gtk.IWidget {
-	return t.box
+func (page *Telemetry) GetRootWidget() gtk.IWidget {
+	return page.box
 }
 
 // GetSummary will return the summary for this page
-func (t *Telemetry) GetSummary() string {
+func (page *Telemetry) GetSummary() string {
 	return utils.Locale.Get("Telemetry")
 }
 
 // GetTitle will return the title for this page
-func (t *Telemetry) GetTitle() string {
+func (page *Telemetry) GetTitle() string {
 	return utils.Locale.Get("Enable Telemetry")
 }
 
 // StoreChanges will store this pages changes into the model
-func (t *Telemetry) StoreChanges() {
-	t.didConfirm = true
-	t.model.EnableTelemetry(t.check.GetActive())
-	t.controller.SetButtonVisible(ButtonCancel, true)
+func (page *Telemetry) StoreChanges() {
+	page.didConfirm = true
+	page.model.EnableTelemetry(page.check.GetActive())
+	page.controller.SetButtonVisible(ButtonCancel, true)
 }
 
 // ResetChanges will reset this page to match the model
-func (t *Telemetry) ResetChanges() {
-	t.controller.SetButtonVisible(ButtonCancel, false)
-	t.controller.SetButtonState(ButtonConfirm, true)
-	t.check.SetActive(t.model.IsTelemetryEnabled())
+func (page *Telemetry) ResetChanges() {
+	page.controller.SetButtonVisible(ButtonCancel, false)
+	page.controller.SetButtonState(ButtonConfirm, true)
+	page.check.SetActive(page.model.IsTelemetryEnabled())
 }
 
 // GetConfiguredValue returns our current config
-func (t *Telemetry) GetConfiguredValue() string {
-	if t.model.IsTelemetryEnabled() {
+func (page *Telemetry) GetConfiguredValue() string {
+	if page.model.IsTelemetryEnabled() {
 		return utils.Locale.Get("Enabled")
 	}
 	return utils.Locale.Get("Disabled")
