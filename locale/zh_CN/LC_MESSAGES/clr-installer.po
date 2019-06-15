@@ -523,3 +523,9 @@ msgstr "验证文件完整性"
 
 msgid "Downloading missing files"
 msgstr "下载丢失的文件"
+
+msgid "YES"
+msgstr "是"
+
+msgid "NO"
+msgstr "没有"
