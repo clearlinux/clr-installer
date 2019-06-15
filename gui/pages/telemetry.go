@@ -16,8 +16,8 @@ type Telemetry struct {
 	model      *model.SystemInstall
 	controller Controller
 	box        *gtk.Box
-	check      *gtk.CheckButton
 	didConfirm bool
+	firstLoad  bool // Keeps track if the page was loaded for the first time.
 }
 
 // NewTelemetryPage returns a new TelemetryPage
@@ -39,19 +39,12 @@ func NewTelemetryPage(controller Controller, model *model.SystemInstall) (Page, 
 	label.SetMarginBottom(20)
 	box.PackStart(label, true, false, 0)
 
-	check, err := gtk.CheckButtonNewWithLabel(utils.Locale.Get("Enable Telemetry"))
-	if err != nil {
-		return nil, err
-	}
-	check.SetHAlign(gtk.ALIGN_CENTER)
-	box.PackStart(check, true, false, 0)
-
 	return &Telemetry{
 		controller: controller,
 		model:      model,
 		box:        box,
-		check:      check,
 		didConfirm: false,
+		firstLoad:  true,
 	}, nil
 }
 
@@ -93,15 +86,18 @@ func (page *Telemetry) GetTitle() string {
 // StoreChanges will store this pages changes into the model
 func (page *Telemetry) StoreChanges() {
 	page.didConfirm = true
-	page.model.EnableTelemetry(page.check.GetActive())
-	page.controller.SetButtonVisible(ButtonCancel, true)
+	page.model.EnableTelemetry(true)
 }
 
 // ResetChanges will reset this page to match the model
 func (page *Telemetry) ResetChanges() {
-	page.controller.SetButtonVisible(ButtonCancel, false)
-	page.controller.SetButtonState(ButtonConfirm, true)
-	page.check.SetActive(page.model.IsTelemetryEnabled())
+	if page.firstLoad {
+		page.didConfirm = false
+		page.firstLoad = false
+	} else {
+		page.didConfirm = true
+	}
+	page.model.EnableTelemetry(false)
 }
 
 // GetConfiguredValue returns our current config

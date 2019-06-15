@@ -523,3 +523,9 @@ msgstr "Verificando la integridad de archivos"
 
 msgid "Downloading missing files"
 msgstr "Descargando los archivos faltantes"
+
+msgid "YES"
+msgstr "SÍ"
+
+msgid "NO"
+msgstr "NO"
