@@ -141,9 +141,14 @@ window {
 }
 
 .label-warning {
-    font-size: 95%;
+    font-size: 110%;
     font-style: italic;
     color: #FDB814;
+}
+
+.label-info {
+    font-size: 110%;
+    font-style: italic;
 }
 
 .label-entry {

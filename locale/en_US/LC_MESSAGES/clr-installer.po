@@ -536,3 +536,13 @@ msgstr "YES"
 
 msgid "NO"
 msgstr "NO"
+
+msgid "Installation in progress."
+msgstr "Installation in progress."
+
+msgid "Installation successful."
+msgstr "Installation successful."
+
+#, c-format
+msgid "See %s for details."
+msgstr "See %s for details."

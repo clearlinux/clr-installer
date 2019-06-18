@@ -6,7 +6,6 @@ package pages
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/gotk3/gotk3/glib"
@@ -37,7 +36,7 @@ type InstallPage struct {
 	scroll    *gtk.ScrolledWindow // Hold the list
 
 	widgets map[int]*InstallWidget // mapping of widgets
-	warning *gtk.Label             // Display errors during install
+	info    *gtk.Label             // Display info during install
 }
 
 // NewInstallPage constructs a new InstallPage.
@@ -82,12 +81,16 @@ func NewInstallPage(controller Controller, model *model.SystemInstall) (Page, er
 	}
 	st.AddClass("scroller-main")
 
-	page.warning, err = setLabel("", "label-warning", 0)
+	page.info, err = setLabel("", "label-info", 0)
 	if err != nil {
 		return nil, err
 	}
-	page.warning.SetMarginStart(24)
-	page.layout.PackStart(page.warning, false, false, 0)
+	page.info.SetMarginStart(24)
+	page.info.SetMarginEnd(24)
+	page.info.SetMaxWidthChars(1) // The value does not matter but its required for LineWrap to work
+	page.info.SetLineWrap(true)
+	page.info.SetSelectable(true) // Make info label selectable
+	page.layout.PackStart(page.info, false, false, 0)
 
 	// Create progressbar
 	page.pbar, err = gtk.ProgressBarNew()
@@ -154,14 +157,16 @@ func (page *InstallPage) StoreChanges() {}
 // ResetChanges begins as our initial execution point as we're only going
 // to get called when showing our page.
 func (page *InstallPage) ResetChanges() {
+	msg := utils.Locale.Get("Installation in progress.")
+	msg = msg + " " + utils.Locale.Get("Please wait.")
+	page.info.SetText(msg)
+
 	// Validate the model
 	err := page.model.Validate()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
-	utils.Locale.Get("Validation passed")
 
 	// TODO: Disable closing of the installer
 	go func() {
@@ -182,12 +187,20 @@ func (page *InstallPage) ResetChanges() {
 		// Temporary handling of errors
 		if err != nil {
 			text := utils.Locale.Get("Installation failed.")
-			// TODO: Map errors => error codes => localized error messages.
-			// For the time being, get only the first line of the error.
-			text = text + " " + strings.Split(err.Error(), "\n")[0]
-			page.warning.SetText(text)
-			page.controller.SetButtonState(ButtonQuit, true)
+			text = text + " " + utils.Locale.Get("See %s for details.", page.controller.GetOptions().LogFile)
+			page.info.SetText(text)
+			sc, err := page.info.GetStyleContext()
+			if err != nil {
+				log.Warning("Error getting style context: ", err) // Just log trivial error
+			} else {
+				sc.RemoveClass("label-info")
+				sc.AddClass("label-warning")
+			}
+		} else {
+			text := utils.Locale.Get("Installation successful.")
+			page.info.SetText(text)
 		}
+
 		_, err = glib.IdleAdd(func() {
 			page.pbar.SetFraction(1.0)
 		})

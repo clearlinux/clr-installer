@@ -536,3 +536,13 @@ msgstr "是"
 
 msgid "NO"
 msgstr "没有"
+
+msgid "Installation in progress."
+msgstr "安装正在进行中。"
+
+msgid "Installation successful."
+msgstr "安装成功。"
+
+#, c-format
+msgid "See %s for details."
+msgstr "请参阅 %s 了解详情。"
