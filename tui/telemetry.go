@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -53,6 +53,9 @@ func newTelemetryPage(tui *Tui) (Page, error) {
 	helpCnt := strings.Count(telemetry.Help, "\n")
 	helpLbl := clui.CreateLabel(page.content, 2, helpCnt, telemetry.Help, Fixed)
 	helpLbl.SetMultiline(true)
+
+	aboutLbl := clui.CreateLabel(page.content, 2, 2, "For more details, see: \n"+telemetry.TelemetryAboutURL, Fixed)
+	aboutLbl.SetMultiline(true)
 
 	lastWidth, _ := helpLbl.Size()
 	policyLength := len(telemetry.Policy)
