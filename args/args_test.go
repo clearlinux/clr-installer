@@ -423,8 +423,8 @@ func TestKernelAndCommandlineAllArgs(t *testing.T) {
 	if testArgs.PamSalt != "" {
 		t.Errorf("Command Line 'genpwd' is not defaulted to ''")
 	}
-	if testArgs.LogLevel != log.LogLevelInfo {
-		t.Errorf("Command Line 'log-level' is not defaulted to '%d'", log.LogLevelInfo)
+	if testArgs.LogLevel != log.LogLevelDebug {
+		t.Errorf("Command Line 'log-level' is not defaulted to '%d'", log.LogLevelDebug)
 	}
 	if testArgs.LogFile == "" {
 		t.Errorf("Command Line 'log-file' is NOT set to value")
