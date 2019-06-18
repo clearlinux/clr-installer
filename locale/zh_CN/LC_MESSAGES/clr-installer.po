@@ -68,11 +68,15 @@ msgstr "主机名最多只能含有 %d 个字符"
 msgid "No target system hostname assigned"
 msgstr "未分配任何目标系统主机名"
 
-msgid "Allow the Clear Linux* OS to collect anonymous reports to improve system stability?"
+msgid "Allow Clear Linux* OS to collect anonymized system data and usage statistics for continuous improvement?"
 msgstr "是否允许 Clear Linux* OS 收集匿名报告来提高系统稳定性？"
 
 msgid "These reports only relate to operating system details. No personally identifiable information is collected."
 msgstr "这些报告仅与操作系统详细信息相关。\n不会收集个人可识别信息。"
+
+#, c-format
+msgid "See %s for more information."
+msgstr "有关详细信息, 请参阅 %s。"
 
 msgid "Intel's privacy policy can be found at: http://www.intel.com/privacy."
 msgstr "有关英特尔隐私政策，请访问：http://www.intel.com/privacy。"
