@@ -327,7 +327,7 @@ func (args *Args) setCommandLineArgs() (err error) {
 // setting the results into the Args member variables.
 func (args *Args) ParseArgs() (err error) {
 	// Set the default log level
-	args.LogLevel = log.LogLevelInfo
+	args.LogLevel = log.LogLevelDebug
 
 	err = args.setKernelArgs()
 	if err != nil {
