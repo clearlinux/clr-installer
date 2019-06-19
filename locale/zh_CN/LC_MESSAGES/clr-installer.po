@@ -68,6 +68,9 @@ msgstr "主机名最多只能含有 %d 个字符"
 msgid "No target system hostname assigned"
 msgstr "未分配任何目标系统主机名"
 
+msgid "No choice made"
+msgstr "无选择"
+
 msgid "Allow Clear Linux* OS to collect anonymized system data and usage statistics for continuous improvement?"
 msgstr "是否允许 Clear Linux* OS 收集匿名报告来提高系统稳定性？"
 

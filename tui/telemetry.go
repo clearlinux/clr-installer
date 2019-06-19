@@ -5,7 +5,6 @@
 package tui
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/VladimirMarkelov/clui"
@@ -20,19 +19,13 @@ type TelemetryPage struct {
 
 // GetConfiguredValue Returns the string representation of currently value set
 func (tp *TelemetryPage) GetConfiguredValue() string {
-	var obs string
-	var res string
-
-	if tp.getModel().Telemetry.Defined {
-		obs = " (Acknowledgment required)"
+	if tp.getModel().Telemetry.IsUserDefined() {
+		if tp.getModel().IsTelemetryEnabled() {
+			return "Enabled"
+		}
+		return "Disabled"
 	}
-
-	res = "Disabled"
-	if tp.getModel().Telemetry.Enabled {
-		res = "Enabled"
-	}
-
-	return fmt.Sprintf("%s %s", res, obs)
+	return "No choice made"
 }
 
 func newTelemetryPage(tui *Tui) (Page, error) {
@@ -95,6 +88,7 @@ func (tp *TelemetryPage) DeActivate() {
 	}
 
 	tp.SetDone(true)
+	model.Telemetry.SetUserDefined(true)
 }
 
 // Activate activates the proper button depending on the current model value

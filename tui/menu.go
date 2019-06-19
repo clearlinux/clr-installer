@@ -80,26 +80,29 @@ func (page *MenuPage) Activate() {
 		btn.SetMenuItemValue(curr.GetConfiguredValue())
 		btn.SetStatus(GetMenuStatus(curr))
 
-		// Does the menu item added have the data set completed?
-		completed := GetMenuStatus(curr) != MenuButtonStatusDefault
+		if curr.IsRequired() {
+			// Does the menu item added have the data set completed?
+			completed := GetMenuStatus(curr) != MenuButtonStatusDefault
 
-		// If we haven't found the first active choice, set it
-		if !activeSet && !completed {
-			// Make last button added Active
-			page.activated = btn
-			activeSet = true
-		}
+			// If we haven't found the first active choice, set it
+			if !activeSet && !completed {
+				// Make last button added Active
+				page.activated = btn
+				activeSet = true
+			}
 
-		// Special case if the previous page and the data set is not completed
-		// we want THIS to be the active choice for easy return
-		if previous && !completed && !activeSet {
-			// Make last button added Active
-			page.activated = btn
-			activeSet = true
+			// Special case if the previous page and the data set is not completed
+			// we want THIS to be the active choice for easy return
+			if previous && !completed && !activeSet {
+				// Make last button added Active
+				page.activated = btn
+				activeSet = true
+			}
 		}
 	}
 
-	if page.getModel() != nil && page.getModel().Validate() == nil {
+	if page.getModel() != nil && page.getModel().Validate() == nil &&
+		page.getModel().Telemetry.IsUserDefined() {
 		page.installBtn.SetEnabled(true)
 		page.activated = page.installBtn
 	} else {

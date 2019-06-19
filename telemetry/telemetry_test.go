@@ -48,8 +48,13 @@ func TestTelemetryDefaults(t *testing.T) {
 		t.Fatal("Forced value for telemetry requested should be true")
 	}
 
-	telem.SetEnable(true)
+	telem.SetUserDefined(true)
 	if telem.IsUserDefined() != true {
+		t.Fatal("Value for telemetry user defined should be true")
+	}
+
+	telem.SetEnable(true)
+	if telem.Enabled != true {
 		t.Fatal("Value for telemetry user defined should be true")
 	}
 }

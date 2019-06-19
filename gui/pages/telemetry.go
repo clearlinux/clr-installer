@@ -103,10 +103,13 @@ func (page *Telemetry) ResetChanges() {
 
 // GetConfiguredValue returns our current config
 func (page *Telemetry) GetConfiguredValue() string {
-	if page.model.IsTelemetryEnabled() {
-		return utils.Locale.Get("Enabled")
+	if page.didConfirm {
+		if page.model.IsTelemetryEnabled() {
+			return utils.Locale.Get("Enabled")
+		}
+		return utils.Locale.Get("Disabled")
 	}
-	return utils.Locale.Get("Disabled")
+	return utils.Locale.Get("No choice made")
 }
 
 // GetTelemetryMessage gets the telemetry message
