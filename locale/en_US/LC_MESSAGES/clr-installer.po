@@ -68,6 +68,9 @@ msgstr "Hostname can only have a maximum of %d characters"
 msgid "No target system hostname assigned"
 msgstr "No target system hostname assigned"
 
+msgid "No choice made"
+msgstr "No choice made"
+
 msgid "Allow Clear Linux* OS to collect anonymized system data and usage statistics for continuous improvement?"
 msgstr "Allow Clear Linux* OS to collect anonymized system data and usage statistics for continuous improvement?"
 

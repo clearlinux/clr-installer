@@ -68,6 +68,9 @@ msgstr "El nombre de host solo puede tener una cantidad máxima de %d caractere
 msgid "No target system hostname assigned"
 msgstr "No se asignó ningún nombre de host al sistema de destino."
 
+msgid "No choice made"
+msgstr "No hay elección tomada"
+
 msgid "Allow Clear Linux* OS to collect anonymized system data and usage statistics for continuous improvement?"
 msgstr "¿Desea permitir que Clear Linux* OS recopile datos anónimos del sistema y estadísticas de uso para una mejora continua?"
 

@@ -95,6 +95,11 @@ func init() {
 	eventID = fmt.Sprintf("%x", md5.Sum(randData))
 }
 
+// SetUserDefined set the user defined flag
+func (tl *Telemetry) SetUserDefined(userDefined bool) {
+	tl.userDefined = userDefined
+}
+
 // IsUserDefined returns true if the configuration was interactively
 // defined by the user
 func (tl *Telemetry) IsUserDefined() bool {
@@ -125,14 +130,12 @@ func (tl *Telemetry) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	tl.Enabled = enabled
-	tl.userDefined = false
 	return nil
 }
 
 // SetEnable sets the enabled flag and sets this is an user defined configuration
 func (tl *Telemetry) SetEnable(enable bool) {
 	tl.Enabled = enable
-	tl.userDefined = true
 
 	if tl.server == "" {
 		tl.server = defaultTelemtryServer
