@@ -38,6 +38,8 @@ func NewTelemetryPage(controller Controller, model *model.SystemInstall) (Page, 
 	label.SetLineWrap(true)
 	label.SetMaxWidthChars(70)
 	label.SetMarginBottom(20)
+	label.SetSelectable(true) // Make label selectable
+	label.SetCanFocus(false)  // This is required so that the label is not selected by default
 	box.PackStart(label, true, false, 0)
 
 	return &Telemetry{
