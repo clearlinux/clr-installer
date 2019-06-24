@@ -27,6 +27,7 @@ import (
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/network"
 	"github.com/clearlinux/clr-installer/progress"
+	"github.com/clearlinux/clr-installer/proxy"
 	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/swupd"
 	"github.com/clearlinux/clr-installer/telemetry"
@@ -546,7 +547,7 @@ func ConfigureNetwork(model *model.SystemInstall) error {
 }
 
 func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
-	cmd.SetHTTPSProxy(model.HTTPSProxy)
+	proxy.SetHTTPSProxy(model.HTTPSProxy)
 
 	if len(model.NetworkInterfaces) > 0 {
 		msg := "Applying network settings"

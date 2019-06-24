@@ -93,6 +93,9 @@ func (gui *Gui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 	}
 	gui.window = win
 
+	// Configure the Gnome proxy function
+	SetupGnomeProxy()
+
 	// Main loop
 	gtk.Main()
 

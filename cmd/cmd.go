@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/clearlinux/clr-installer/log"
+	"github.com/clearlinux/clr-installer/proxy"
 )
 
 // Output interface allows implementors to process the output from a
@@ -22,15 +23,6 @@ type Output interface {
 }
 
 type runLogger struct{}
-
-var (
-	httpsProxy string
-)
-
-// SetHTTPSProxy defines the HTTPS_PROXY env var value for all the cmd executions
-func SetHTTPSProxy(addr string) {
-	httpsProxy = addr
-}
 
 func (rl runLogger) Write(p []byte) (n int, err error) {
 	for _, curr := range strings.Split(string(p), "\n") {
@@ -87,9 +79,11 @@ func run(sw func(cmd *exec.Cmd) error, writer io.Writer, env map[string]string, 
 
 	cmd := exec.Command(exe, cmdArgs...)
 
-	if httpsProxy != "" {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("https_proxy=%s", httpsProxy))
+	// Add any proxy environment variables
+	for _, pvar := range proxy.GetProxyValues() {
+		cmd.Env = append(cmd.Env, pvar)
 	}
+	log.Debug("cmd.Env: %+v", cmd.Env)
 
 	if sw != nil {
 		if err := sw(cmd); err != nil {
@@ -139,9 +133,11 @@ func RunAndProcessOutput(output Output, args ...string) error {
 
 	cmd := exec.Command(exe, cmdArgs...)
 
-	if httpsProxy != "" {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("https_proxy=%s", httpsProxy))
+	// Add any proxy environment variables
+	for _, pvar := range proxy.GetProxyValues() {
+		cmd.Env = append(cmd.Env, pvar)
 	}
+	log.Debug("cmd.Env: %+v", cmd.Env)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
