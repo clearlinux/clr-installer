@@ -262,6 +262,7 @@ func (window *Window) createMenuPages() (*Window, error) {
 		// advanced
 		pages.NewBundlePage,
 		pages.NewHostnamePage,
+		pages.NewConfigKernelPage,
 
 		// always last
 		pages.NewInstallPage,
