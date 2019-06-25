@@ -412,3 +412,10 @@ func TestConfigNotChanged(t *testing.T) {
 		}
 	}
 }
+
+// Exercise running environment function
+func TestTelemetryRunningEnvironment(t *testing.T) {
+	telem := &Telemetry{}
+	hypervisor := telem.RunningEnvironment()
+	t.Logf("TestTelemetryRunningEnvironment: hypervisor: %s", hypervisor)
+}

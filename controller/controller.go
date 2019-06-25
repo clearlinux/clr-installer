@@ -695,7 +695,12 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 	}
 
 	var payload string
-	confBytes, bytesErr = yaml.Marshal(cleanModel)
+	hypervisor := md.Telemetry.RunningEnvironment()
+	extendedModel := model.SystemUsage{
+		InstallModel: cleanModel,
+		Hypervisor:   hypervisor,
+	}
+	confBytes, bytesErr = yaml.Marshal(extendedModel)
 	if bytesErr != nil {
 		log.Error("Failed to generate a sanitized data (%v)", bytesErr)
 		errMsgs = append(errMsgs, "Failed to generate a sanitized YAML file")
