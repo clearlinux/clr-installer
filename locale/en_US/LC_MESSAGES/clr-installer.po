@@ -177,8 +177,8 @@ msgid "Must start with letter. Can use numbers, commas, - and _. Max %d characte
 msgstr "Must start with letter. Can use numbers, commas, - and _. Max %d characters."
 
 #, c-format
-msgid "Must start with letter. Can use numbers, - and _. Max %d characters."
-msgstr "Must start with letter. Can use numbers, - and _. Max %d characters."
+msgid "Must begin with a letter. You can use letters, numbers, hyphens, underscores, and periods. Up to %d characters."
+msgstr "Must begin with a letter. You can use letters, numbers, hyphens, underscores, and periods. Up to %d characters."
 
 #, c-format
 msgid "Min %d and Max %d characters."
@@ -237,8 +237,8 @@ msgstr "Login is required"
 msgid "Login maximum length is %d"
 msgstr "Login maximum length is %d"
 
-msgid "Login must contain only numbers, lower case letters, - or _"
-msgstr "Login must contain only numbers, lower case letters, - or _"
+msgid "Login must contain only numbers, letters, -, _ or ."
+msgstr "Login must contain only numbers, letters, -, _ or ."
 
 msgid "Password is required"
 msgstr "Password is required"

@@ -49,7 +49,7 @@ const (
 
 var (
 	usernameExp     = regexp.MustCompile("^([a-zA-Z]+[0-9a-zA-Z-_ ,'.]*|)$")
-	loginExp        = regexp.MustCompile("^[a-z]+[0-9a-z-_]*$")
+	loginExp        = regexp.MustCompile("^[a-zA-Z]+[0-9a-zA-Z-_.]*$")
 	sysDefaultUsers = []string{}
 )
 
@@ -441,7 +441,7 @@ func IsValidLogin(login string) (bool, string) {
 	}
 
 	if !loginExp.MatchString(login) {
-		return false, utils.Locale.Get("Login must contain only numbers, lower case letters, - or _")
+		return false, utils.Locale.Get("Login must contain only numbers, letters, -, _ or .")
 	}
 
 	return true, ""

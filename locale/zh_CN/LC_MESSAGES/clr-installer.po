@@ -177,8 +177,8 @@ msgid "Must start with letter. Can use numbers, commas, - and _. Max %d characte
 msgstr "必须以字母开头。可以使用数字、逗号、连字符和下划线。最多 %d 个字符。"
 
 #, c-format
-msgid "Must start with letter. Can use numbers, - and _. Max %d characters."
-msgstr "必须以字母开头。可以使用数字、连字符和下划线。最多 %d 个字符。"
+msgid "Must begin with a letter. You can use letters, numbers, hyphens, underscores, and periods. Up to %d characters."
+msgstr "必须以一封信开头。您可以使用字母、数字、连字符、下划线和句点。最多 %d 字符。"
 
 #, c-format
 msgid "Min %d and Max %d characters."
@@ -237,8 +237,8 @@ msgstr "需要登录"
 msgid "Login maximum length is %d"
 msgstr "登录名最大长度为 %d"
 
-msgid "Login must contain only numbers, lower case letters, - or _"
-msgstr "登录名必须仅包含数字、小写字母、连字符和下划线"
+msgid "Login must contain only numbers, letters, -, _ or ."
+msgstr "登录名必须仅包含数字、字母、连字符、下划线或句点。"
 
 msgid "Password is required"
 msgstr "需要密码"
