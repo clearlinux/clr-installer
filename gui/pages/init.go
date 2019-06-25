@@ -108,6 +108,9 @@ const (
 
 	// PageIDInstall is the special installation page key
 	PageIDInstall = iota
+
+	// PageIDConfigKernel is the advanced option page for kernel selection
+	PageIDConfigKernel = iota
 )
 
 // Private helper to assist in the ugliness of forcibly scrolling a GtkListBox
