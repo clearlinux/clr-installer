@@ -177,8 +177,8 @@ msgid "Must start with letter. Can use numbers, commas, - and _. Max %d characte
 msgstr "Debe comenzar con una letra. Puede contener números, comas, - y _. Máx. %d caracteres."
 
 #, c-format
-msgid "Must start with letter. Can use numbers, - and _. Max %d characters."
-msgstr "Debe comenzar con una letra. Puede contener números, - y _. Máx. %d caracteres."
+msgid "Must begin with a letter. You can use letters, numbers, hyphens, underscores, and periods. Up to %d characters."
+msgstr "Debe comenzar con una carta. Puede usar letras, números, guiones, guiones y puntos. Hasta %d caracteres."
 
 #, c-format
 msgid "Min %d and Max %d characters."
@@ -237,8 +237,8 @@ msgstr "Debe iniciar sesión."
 msgid "Login maximum length is %d"
 msgstr "La extensión máxima del inicio de sesión debe ser de %d."
 
-msgid "Login must contain only numbers, lower case letters, - or _"
-msgstr "El inicio de sesión solo debe contener números, letras minúsculas, - o _."
+msgid "Login must contain only numbers, letters, -, _ or ."
+msgstr "El inicio de sesión debe contener solo números, letras, -, _ o ."
 
 msgid "Password is required"
 msgstr "Se requiere una contraseña."
