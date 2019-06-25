@@ -86,6 +86,12 @@ type SystemInstall struct {
 	KeepImage         bool                   `yaml:"keepImage,omitempty,flow"`
 }
 
+// SystemUsage is used to include additional information into the telemetry payload
+type SystemUsage struct {
+	InstallModel SystemInstall `yaml:",inline"`
+	Hypervisor   string        `yaml:"hypervisor,omitempty,flow"`
+}
+
 // InstallHook is a commands to be executed in a given point of the install process
 type InstallHook struct {
 	Chroot bool   `yaml:"chroot,omitempty,flow"`

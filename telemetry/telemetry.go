@@ -12,9 +12,11 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"syscall"
 
 	"github.com/clearlinux/clr-installer/cmd"
@@ -55,6 +57,9 @@ is collected.
 
 	maxPayload = 8 * 1024
 	baseClass  = "org.clearlinux/clr-installer"
+
+	// Detect hypervisor if running in VM
+	envCmd = "/usr/bin/systemd-detect-virt"
 )
 
 var (
@@ -409,4 +414,16 @@ func (tl *Telemetry) LogRecord(class string, severity int, payload string) error
 	}
 
 	return nil
+}
+
+// RunningEnvironment returns the name of the hypervisor if running in a
+// virtual machine, otherwise none
+func (tl *Telemetry) RunningEnvironment() string {
+
+	out, err := exec.Command(envCmd).Output()
+	if err == nil {
+		return strings.TrimRight(string(out), "\n")
+	}
+
+	return "none"
 }
