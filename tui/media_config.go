@@ -359,6 +359,12 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 		page.GotoPage(TuiPageDiskConfig)
 	})
 
+	// Add a Disk Util button
+	diskUtilBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Disk Utility", Fixed)
+	diskUtilBtn.OnClick(func(ev clui.Event) {
+		page.GotoPage(TuiPageDiskUtil)
+	})
+
 	page.activated = page.backBtn
 
 	page.setConfirmButton()
