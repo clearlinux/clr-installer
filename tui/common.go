@@ -106,15 +106,6 @@ const (
 	// TuiPageMediaConfig is the id for media configuration menu
 	TuiPageMediaConfig
 
-	// TuiPageDiskConfig is the id for disk configuration menu
-	TuiPageDiskConfig
-
-	// TuiPageDiskPart is the id for disk partition configuration page
-	TuiPageDiskPart
-
-	// TuiPageDiskUtil is the id for disk util launches page
-	TuiPageDiskUtil
-
 	// TuiPageNetwork is the id for network configuration page
 	TuiPageNetwork
 

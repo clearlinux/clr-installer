@@ -11,6 +11,7 @@ import (
 	"github.com/VladimirMarkelov/clui"
 	term "github.com/nsf/termbox-go"
 
+	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
 )
@@ -26,6 +27,7 @@ type ConfirmInstallDialog struct {
 	modelSI       *model.SystemInstall
 	warningLabel  *clui.Label
 	mediaLabel    *clui.Label
+	mediaDetail   *clui.TextView
 	cancelButton  *SimpleButton
 	confirmButton *SimpleButton
 }
@@ -54,8 +56,8 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 
 	const wBuff = 5
 	const hBuff = 5
-	const dWidth = 50
-	const dHeight = 8
+	const dWidth = 55
+	const dHeight = 10
 
 	sw, sh := clui.ScreenSize()
 
@@ -100,21 +102,34 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 	}
 
 	if dialog.modelSI.InstallSelected.EraseDisk {
-		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, storage.DestructiveWarning, 1)
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 1, storage.DestructiveWarning, 1)
 	} else if dialog.modelSI.InstallSelected.DataLoss {
-		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, storage.DataLossWarning, 1)
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 1, storage.DataLossWarning, 1)
 	} else if dialog.modelSI.InstallSelected.WholeDisk {
-		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, storage.SafeWholeWarning, 1)
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 1, storage.SafeWholeWarning, 1)
 	} else {
-		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 2, storage.SafePartialWarning, 1)
+		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 1, storage.SafePartialWarning, 1)
 	}
 	dialog.warningLabel.SetMultiline(true)
 
 	dialog.mediaLabel = clui.CreateLabel(borderFrame, 1, 1, "Target Media"+": "+strings.Join(targets, ", "), 1)
 	dialog.mediaLabel.SetMultiline(true)
+
 	if dialog.modelSI.InstallSelected.EraseDisk {
 		dialog.mediaLabel.SetBackColor(term.ColorRed)
 	}
+
+	dialog.mediaDetail = clui.CreateTextView(borderFrame, 50, 5, 1)
+	dialog.mediaDetail.SetWordWrap(true)
+	dialog.mediaDetail.SetTextColor(term.ColorWhite | term.AttrBold)
+	dialog.mediaDetail.SetBackColor(term.ColorBlack)
+	medias := storage.GetPlannedMediaChanges(dialog.modelSI.InstallSelected, dialog.modelSI.TargetMedias)
+	for _, media := range medias {
+		log.Debug("MediaChange: %s", media)
+	}
+	dialog.mediaDetail.AddText(medias)
+	// Add buffer to ensure we see all media changes
+	dialog.mediaDetail.AddText([]string{"---", "=-="})
 
 	buttonFrame := clui.CreateFrame(borderFrame, AutoSize, 1, clui.BorderNone, clui.Fixed)
 	buttonFrame.SetPack(clui.Horizontal)
