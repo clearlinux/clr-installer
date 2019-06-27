@@ -10,6 +10,7 @@ import (
 	"github.com/VladimirMarkelov/clui"
 
 	"github.com/clearlinux/clr-installer/controller"
+	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/network"
 )
 
@@ -101,8 +102,14 @@ func (page *MenuPage) Activate() {
 		}
 	}
 
-	if page.getModel() != nil && page.getModel().Validate() == nil &&
-		page.getModel().Telemetry.IsUserDefined() {
+	var err error
+	if page.getModel() != nil {
+		if err = page.getModel().Validate(); err != nil {
+			log.Debug("Model not valid: %s", err.Error())
+		}
+	}
+
+	if err == nil && page.getModel().Telemetry.IsUserDefined() {
 		page.installBtn.SetEnabled(true)
 		page.activated = page.installBtn
 	} else {

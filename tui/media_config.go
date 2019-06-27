@@ -5,17 +5,28 @@
 package tui
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
+	"syscall"
+
 	"github.com/VladimirMarkelov/clui"
 	term "github.com/nsf/termbox-go"
+	"gopkg.in/yaml.v2"
 
 	"github.com/clearlinux/clr-installer/log"
+	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 const (
 	mediaConfigMenuTitle = `Configure Installation Media`
 	mediaConfigTitle     = `Select Installation Media`
+	diskUtil             = `cgdisk`
 )
 
 // MediaConfigPage is the Page implementation for the disk partitioning menu page
@@ -24,9 +35,11 @@ type MediaConfigPage struct {
 
 	safeRadio             *clui.Radio
 	destructiveRadio      *clui.Radio
+	advancedRadio         *clui.Radio
 	group                 *clui.RadioGroup
 	isSafeSelected        bool
 	isDestructiveSelected bool
+	isAdvancedSelected    bool
 
 	chooserList   *clui.ListBox
 	listBackColor term.Attribute
@@ -40,6 +53,8 @@ type MediaConfigPage struct {
 
 	encryptCheck *clui.CheckBox
 
+	advancedCfgBtn *SimpleButton
+
 	devs         []*storage.BlockDevice
 	activeDisk   *storage.BlockDevice
 	activeSerial string
@@ -47,6 +62,14 @@ type MediaConfigPage struct {
 
 // GetConfiguredValue Returns the string representation of currently value set
 func (page *MediaConfigPage) GetConfiguredValue() string {
+	if page.isAdvancedSelected {
+		results := storage.ValidateAdvancedPartitions(page.getModel().TargetMedias)
+		if len(results) > 0 {
+			return fmt.Sprintf("Advanced: %s", strings.Join(results, ", "))
+		}
+		return fmt.Sprintf("Advanced: %s", strings.Join(storage.GetAdvancedPartitions(page.getModel().TargetMedias), ", "))
+	}
+
 	tm := page.getModel().TargetMedias
 	if len(tm) == 0 {
 		return "No -media- selected"
@@ -73,6 +96,12 @@ func (page *MediaConfigPage) GetConfiguredValue() string {
 // GetConfigDefinition returns if the config was interactively defined by the user,
 // was loaded from a config file or if the config is not set.
 func (page *MediaConfigPage) GetConfigDefinition() int {
+	if len(page.safeTargets) == 0 && len(page.destructiveTargets) == 0 {
+		if err := page.buildMediaLists(); err != nil {
+			page.Panic(err)
+		}
+	}
+
 	tm := page.getModel().TargetMedias
 
 	if tm == nil {
@@ -104,6 +133,8 @@ func (page *MediaConfigPage) SetDone(done bool) bool {
 	} else if page.destructiveRadio.Selected() {
 		page.getModel().InstallSelected = page.destructiveTargets[page.chooserList.SelectedItem()]
 		log.Debug("Destructive Install Target %v", page.getModel().InstallSelected)
+	} else if page.advancedRadio.Selected() {
+		log.Debug("Advanced Install Confirmed")
 	} else {
 		log.Warning("Failed to find and save the selected installation media")
 	}
@@ -153,6 +184,7 @@ func (page *MediaConfigPage) SetDone(done bool) bool {
 func (page *MediaConfigPage) Activate() {
 
 	page.confirmBtn.SetEnabled(false)
+	page.encryptCheck.SetEnabled(true)
 
 	if len(page.safeTargets) == 0 && len(page.destructiveTargets) == 0 {
 		if err := page.buildMediaLists(); err != nil {
@@ -164,6 +196,9 @@ func (page *MediaConfigPage) Activate() {
 		page.activated = page.safeRadio
 	} else if page.isDestructiveSelected {
 		page.activated = page.destructiveRadio
+	} else if page.isAdvancedSelected {
+		page.activated = page.advancedRadio
+		page.encryptCheck.SetEnabled(false)
 	} else {
 		page.activated = page.cancelBtn
 	}
@@ -213,11 +248,14 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 			page.labelWarning.SetTitle("")
 			page.labelDestructive.SetTitle("")
 			page.isDestructiveSelected = false
+			page.isAdvancedSelected = false
+			page.encryptCheck.SetEnabled(true)
+			page.advancedCfgBtn.SetEnabled(false)
 		}
 		// Disable the Confirm Button if we toggled
 		if !page.isSafeSelected && active {
-			page.confirmBtn.SetEnabled(false)
 			page.isSafeSelected = true
+			page.confirmBtn.SetEnabled(false)
 
 			page.buildChooserList()
 		}
@@ -232,7 +270,7 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 		}
 	})
 	// Description of Safe
-	descLabel := clui.CreateLabel(radioButtonFrame, 2, 2,
+	descLabel := clui.CreateLabel(radioButtonFrame, 1, 1,
 		"Install on an unallocated disk or alongside existing partitions.", Fixed)
 	descLabel.SetMultiline(true)
 
@@ -246,11 +284,14 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 			page.labelWarning.SetTitle("")
 			page.labelDestructive.SetTitle("")
 			page.isSafeSelected = false
+			page.isAdvancedSelected = false
+			page.encryptCheck.SetEnabled(true)
+			page.advancedCfgBtn.SetEnabled(false)
 		}
 		// Disable the Confirm Button if we toggled
 		if !page.isDestructiveSelected && active {
-			page.confirmBtn.SetEnabled(false)
 			page.isDestructiveSelected = true
+			page.confirmBtn.SetEnabled(false)
 
 			page.buildChooserList()
 		}
@@ -267,9 +308,75 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 		}
 	})
 	// Description of Destructive
-	clui.CreateLabel(radioButtonFrame, 2, 1, "Erase all data on selected media and install Clear Linux* OS.", Fixed)
+	clui.CreateLabel(radioButtonFrame, 1, 1, "Erase all data on selected media and install Clear Linux* OS.", Fixed)
 
-	listFrame := clui.CreateFrame(contentFrame, 60, 3, BorderNone, Fixed)
+	radioLabel = fmt.Sprintf("Advanced Installation")
+	page.advancedRadio = clui.CreateRadio(radioButtonFrame, 50, radioLabel, AutoSize)
+	page.advancedRadio.SetStyle("Media")
+	page.advancedRadio.SetPack(clui.Horizontal)
+	page.group.AddItem(page.advancedRadio)
+	page.advancedRadio.OnChange(func(active bool) {
+		if active {
+			page.labelWarning.SetTitle("")
+			page.labelDestructive.SetTitle("")
+			page.isSafeSelected = false
+			page.isDestructiveSelected = false
+			page.encryptCheck.SetEnabled(false)
+			page.encryptCheck.SetState(0)
+			page.advancedCfgBtn.SetEnabled(true)
+		}
+
+		// Disable the Confirm Button if we toggled
+		if !page.isAdvancedSelected && active {
+			page.isAdvancedSelected = true
+
+			if err := page.buildMediaLists(); err != nil {
+				page.Panic(err)
+			}
+		}
+
+		if active {
+			if len(page.devs) < 1 {
+				warning := "No media found for installation"
+				log.Warning(warning)
+				warning = fmt.Sprintf("Warning: %s", warning)
+				page.labelWarning.SetTitle(warning)
+			} else {
+				si := page.getModel()
+				/*
+					if storage.AdvancedPartitionsRequireEncryption(si.TargetMedias) && si.CryptPass == "" {
+						if dialog, err := CreateEncryptPassphraseDialogBox(si); err == nil {
+							dialog.OnClose(func() {
+								if dialog.Confirmed {
+									page.encryptCheck.SetState(1)
+								} else {
+									page.encryptCheck.SetState(0)
+								}
+							})
+						}
+					}
+				*/
+				results := storage.ValidateAdvancedPartitions(si.TargetMedias)
+				if len(results) > 0 {
+					page.confirmBtn.SetEnabled(false)
+					warning := strings.Join(results, ", ")
+					warning = fmt.Sprintf("Advanced: %s", warning)
+					// Truncate long messages
+					max, _ := page.labelWarning.Size()
+					if len(warning) > max {
+						warning = warning[0:max-3] + "..."
+					}
+					page.labelWarning.SetTitle(warning)
+				} else {
+					page.confirmBtn.SetEnabled(true)
+				}
+			}
+		}
+	})
+	// Description of Advanced
+	clui.CreateLabel(radioButtonFrame, 1, 1, "User selected media via partition labels.", Fixed)
+
+	listFrame := clui.CreateFrame(contentFrame, 60, 4, BorderNone, Fixed)
 	listFrame.SetPack(clui.Vertical)
 
 	page.chooserList = clui.CreateListBox(listFrame, 60, 3, Fixed)
@@ -299,13 +406,12 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 	})
 
 	// Warning label
-	page.labelWarning = clui.CreateLabel(contentFrame, 1, 2, "", Fixed)
-	page.labelWarning.SetMultiline(true)
+	page.labelWarning = clui.CreateLabel(contentFrame, 1, 1, "", Fixed)
 	page.labelWarning.SetBackColor(errorLabelBg)
 	page.labelWarning.SetTextColor(errorLabelFg)
 
 	// Destructive label
-	page.labelDestructive = clui.CreateLabel(contentFrame, 1, 2, "", Fixed)
+	page.labelDestructive = clui.CreateLabel(contentFrame, 1, 1, "", Fixed)
 	page.labelDestructive.SetBackColor(errorLabelBg)
 	page.labelDestructive.SetTextColor(errorLabelFg)
 
@@ -354,16 +460,18 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 	})
 
 	// Add an Advanced Configuration  button
-	advancedCfgBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Advanced Configuration", Fixed)
-	advancedCfgBtn.OnClick(func(ev clui.Event) {
-		page.GotoPage(TuiPageDiskConfig)
+	page.advancedCfgBtn = CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Partition", Fixed)
+	page.advancedCfgBtn.OnClick(func(ev clui.Event) {
+		log.Debug("%s diskUtil called for Target %v", diskUtil,
+			page.destructiveTargets[page.chooserList.SelectedItem()])
+		page.rundiskUtil(page.destructiveTargets[page.chooserList.SelectedItem()].Name)
 	})
 
-	// Add a Disk Util button
-	diskUtilBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Disk Utility", Fixed)
-	diskUtilBtn.OnClick(func(ev clui.Event) {
-		page.GotoPage(TuiPageDiskUtil)
-	})
+	if len(page.safeTargets) == 0 && len(page.destructiveTargets) == 0 {
+		if err := page.buildMediaLists(); err != nil {
+			page.Panic(err)
+		}
+	}
 
 	page.activated = page.backBtn
 
@@ -381,7 +489,13 @@ func (page *MediaConfigPage) buildChooserList() {
 
 	found := false
 
-	if page.isSafeSelected {
+	if page.isAdvancedSelected {
+		for _, target := range page.destructiveTargets {
+			target.Advanced = true
+			page.chooserList.AddItem(fmtInstallTarget(target))
+			found = true
+		}
+	} else if page.isSafeSelected {
 		for _, target := range page.safeTargets {
 			page.chooserList.AddItem(fmtInstallTarget(target))
 			found = true
@@ -402,6 +516,8 @@ func (page *MediaConfigPage) buildChooserList() {
 	}
 }
 
+// buildMediaLists is used to create the valid chooser lists for Safe and
+// Destructive Media choices. Also scans for Advanced Media configurations.
 func (page *MediaConfigPage) buildMediaLists() error {
 	page.labelWarning.SetTitle("")
 	page.labelDestructive.SetTitle("")
@@ -414,24 +530,146 @@ func (page *MediaConfigPage) buildMediaLists() error {
 
 	page.safeTargets = storage.FindSafeInstallTargets(storage.MinimumServerInstallSize, page.devs)
 	page.destructiveTargets = storage.FindAllInstallTargets(page.devs)
+	// Hook for searching CLR_*?
+	model := page.getModel()
+	for _, curr := range storage.FindAdvancedInstallTargets(page.devs) {
+		model.AddTargetMedia(curr)
+		log.Debug("AddTargetMedia %+v", curr)
+		page.isAdvancedSelected = true
+	}
 
-	if len(page.safeTargets) > 0 {
-		if !page.group.SelectItem(page.safeRadio) {
-			log.Warning("Could not select the safe install radio button")
+	if page.isAdvancedSelected {
+		if !page.group.SelectItem(page.advancedRadio) {
+			log.Warning("Could not select the advanced install radio button")
 		}
-		page.isSafeSelected = true
+		page.isAdvancedSelected = true
 	} else {
-		if !page.group.SelectItem(page.destructiveRadio) {
-			log.Warning("Could not select the destructive install radio button")
+		if len(page.safeTargets) > 0 {
+			if !page.group.SelectItem(page.safeRadio) {
+				log.Warning("Could not select the safe install radio button")
+			}
+			page.isSafeSelected = true
+		} else {
+			if !page.group.SelectItem(page.destructiveRadio) {
+				log.Warning("Could not select the destructive install radio button")
+			}
+			page.isDestructiveSelected = true
 		}
-		page.isDestructiveSelected = true
 	}
 
 	page.buildChooserList()
 
+	if page.isAdvancedSelected {
+		log.Debug("Found Advanced partitions")
+	}
+
 	clui.RefreshScreen()
 
 	return nil
+}
+
+func (page *MediaConfigPage) rundiskUtil(disk string) {
+
+	stdMsg := "Could not launch " + diskUtil + ". Check A " + log.GetLogFileName()
+	msg := ""
+
+	// We need to save the current state for the relaunch of clr-installer
+	tmpYaml, err := ioutil.TempFile("", "clr-installer-diskUtil-*.yaml")
+	if err != nil {
+		log.Warning("Could not make YAML tempfile: %v", err)
+		msg = stdMsg
+	}
+
+	scrubbed := scrubModel(page.getModel())
+
+	if saveErr := scrubbed.WriteFile(tmpYaml.Name()); saveErr != nil {
+		log.Warning("Could not save config to %s %s", tmpYaml.Name(), msg)
+		msg = stdMsg
+	}
+
+	tmpBash, err := ioutil.TempFile("", "clr-installer-diskUtil-*.sh")
+	if err != nil {
+		log.Warning("Could not make BASH tempfile: %v", err)
+		msg = stdMsg
+	}
+
+	drive := filepath.Join("/dev", disk)
+	exists, err := utils.FileExists(drive)
+	if err != nil {
+		log.Warning("Failed to check drive %s: %v", drive, err)
+		msg = stdMsg
+	} else if !exists {
+		log.Warning("Request drive %s does not exist", drive)
+		msg = stdMsg
+	}
+
+	var content bytes.Buffer
+	_, _ = fmt.Fprintf(&content, "#!/bin/bash\n")
+	_, _ = fmt.Fprintf(&content, "echo Switching to %s %s\n", diskUtil, drive)
+	_, _ = fmt.Fprintf(&content, "sleep 2\n")
+	_, _ = fmt.Fprintf(&content, "/usr/bin/%s %s\n", diskUtil, drive)
+	_, _ = fmt.Fprintf(&content, "sleep 1\n")
+	_, _ = fmt.Fprintf(&content, "echo Checking partitions with partprobe %s\n", drive)
+	_, _ = fmt.Fprintf(&content, "/usr/bin/partprobe %s\n", drive)
+	_, _ = fmt.Fprintf(&content, "sleep 1\n")
+	_, _ = fmt.Fprintf(&content, "/bin/rm %s\n", tmpBash.Name())
+	_, _ = fmt.Fprintf(&content, "echo Restarting Clear Linux OS Installer ...\n")
+	_, _ = fmt.Fprintf(&content, "sleep 2\n")
+	args := append(os.Args, "--config", tmpYaml.Name(), "--tui")
+	allArgs := strings.Join(args, " ")
+	_, err = fmt.Fprintf(&content, "exec %s", allArgs)
+	if err != nil {
+		log.Warning("Could not write BASH buffer: %v", err)
+		msg = stdMsg
+	}
+	if _, err := tmpBash.Write(content.Bytes()); err != nil {
+		log.Warning("Could not write BASH tempfile: %v", err)
+		msg = stdMsg
+	}
+	_ = tmpBash.Close()
+	_ = os.Chmod(tmpBash.Name(), 0700)
+
+	if msg != "" {
+		if _, err := CreateWarningDialogBox(msg); err != nil {
+			log.Warning("Attempt to launch %s: warning dialog failed: %s", diskUtil, err)
+		}
+		return
+	}
+
+	// We will NEVER return from this function
+	clui.Stop()
+	clui.DeinitLibrary()
+	term := os.Getenv("TERM")
+	err = syscall.Exec("/bin/bash", []string{"/bin/bash", "-l", "-c", tmpBash.Name()}, []string{"TERM=" + term})
+	if err != nil {
+		log.Warning("Could not start disk utility: %v", err)
+		msg = stdMsg
+		if _, err := CreateWarningDialogBox(msg); err != nil {
+			log.Warning("Attempt to launch %s: warning dialog failed: %s", diskUtil, err)
+		}
+		return
+	}
+}
+
+func scrubModel(md *model.SystemInstall) *model.SystemInstall {
+	// Sanitized the model to remove meida
+	var cleanModel model.SystemInstall
+	// Marshal current into bytes
+	confBytes, bytesErr := yaml.Marshal(md)
+	if bytesErr != nil {
+		log.Error("Failed to generate a copy of YAML data for %s (%v)", diskUtil, bytesErr)
+		return nil
+	}
+	// Unmarshal into a copy
+	if yamlErr := yaml.Unmarshal(confBytes, &cleanModel); yamlErr != nil {
+		log.Error("Failed to duplicate YAML data for %s (%v)", diskUtil, bytesErr)
+		return nil
+	}
+	// Sanitize the config data to remove any potential
+	// Remove the target media
+	cleanModel.TargetMedias = nil
+
+	return &cleanModel
 }
 
 func fmtInstallTarget(target storage.InstallTarget) string {
