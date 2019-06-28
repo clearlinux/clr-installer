@@ -543,6 +543,45 @@ msgstr "Installation in progress."
 msgid "Installation successful."
 msgstr "Installation successful."
 
+msgid " (default)"
+msgstr " (default)"
+
+msgid "Add Extra Arguments"
+msgstr "Add Extra Arguments"
+
+msgid "Remove Arguments"
+msgstr "Remove Arguments"
+
+msgid "Kernel Configuration"
+msgstr "Kernel Configuration"
+
+msgid " with custom command line arguments"
+msgstr " with custom command line arguments"
+
+msgid "No custom options specified"
+msgstr "No custom options specified"
+
+msgid "Note: The boot manager tool will first include the \"Add Extra Arguments\" items."
+msgstr "Note: The boot manager tool will first include the \"Add Extra Arguments\" items."
+
+msgid "Then, the \"Remove Arguments\" items are removed."
+msgstr "Then, the \"Remove Arguments\" items are removed."
+
+msgid "The final argument list contains the kernel bundle's configured arguments and the ones configured by the user."
+msgstr "The final argument list contains the kernel bundle's configured arguments and the ones configured by the user."
+
+msgid "Bleeding edge bare metal tailored Linux kernel"
+msgstr "Bleeding edge bare metal tailored Linux kernel"
+
+msgid "Run the latest Long Term Support (LTS) Linux Kernel"
+msgstr "Run the latest Long Term Support (LTS) Linux Kernel"
+
+msgid "Run the Long Term Support (LTS) 2018 Linux Kernel 4.19"
+msgstr "Run the Long Term Support (LTS) 2018 Linux Kernel 4.19"
+
+msgid "Run the Long Term Support (LTS) 2017 Linux Kernel 4.14"
+msgstr "Run the Long Term Support (LTS) 2017 Linux Kernel 4.14"
+
 #, c-format
 msgid "See %s for details."
 msgstr "See %s for details."
