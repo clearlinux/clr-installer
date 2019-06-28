@@ -656,7 +656,7 @@ func (window *Window) launchWelcomeView() {
 	window.mainLayout.Remove(window.contentLayout)
 	window.mainLayout.Remove(window.banner.GetRootWidget())
 	if _, err := window.createWelcomePage(); err != nil {
-		log.ErrorError(err) // TODO: Handle error
+		window.Panic(err)
 	}
 }
 
@@ -666,7 +666,7 @@ func (window *Window) launchPreCheckView() {
 	window.menu.currentPage.StoreChanges()
 
 	if _, err := window.createPreCheckPage(); err != nil {
-		log.ErrorError(err) // TODO: Handle error
+		window.Panic(err)
 	}
 }
 
@@ -676,7 +676,7 @@ func (window *Window) launchMenuView() {
 	window.menu.currentPage.StoreChanges()
 
 	if _, err := window.createMenuPages(); err != nil {
-		log.ErrorError(err) // TODO: Handle error
+		window.Panic(err)
 	}
 }
 
@@ -713,13 +713,13 @@ func (window *Window) confirmInstall() {
 	contentBox.SetHAlign(gtk.ALIGN_FILL)
 	contentBox.SetMarginBottom(common.TopBottomMargin)
 	if err != nil {
-		log.Warning("Error creating box")
+		log.Error("Error creating box", err)
 		return
 	}
 
 	label, err := gtk.LabelNew(text)
 	if err != nil {
-		log.Warning("Error creating label")
+		log.Error("Error creating label", err)
 		return
 	}
 	label.SetUseMarkup(true)
@@ -728,12 +728,13 @@ func (window *Window) confirmInstall() {
 
 	dialog, err := common.CreateDialogOkCancel(contentBox, title, utils.Locale.Get("CONFIRM"), utils.Locale.Get("CANCEL"))
 	if err != nil {
-		log.Warning("Error creating dialog")
+		log.Error("Error creating dialog", err)
 		return
 	}
 	_, err = dialog.Connect("response", window.dialogResponse)
 	if err != nil {
-		log.Warning("Error connecting to dialog")
+		log.Error("Error connecting to dialog", err)
+		return
 	}
 	dialog.ShowAll()
 	dialog.Run()
@@ -782,6 +783,16 @@ func (window *Window) SetScanMedia(scannedMedia []*storage.BlockDevice) {
 	window.scanInfo.Media = scannedMedia
 }
 
+// Panic handles the gui crashes
+func (window *Window) Panic(err error) {
+	log.Debug("Panic")
+	if errLog := window.model.Telemetry.LogRecord("guipanic", 3, err.Error()); errLog != nil {
+		log.Error("Failed to log Telemetry fail record: %s", "guipanic")
+	}
+	log.RequestCrashInfo()
+	displayErrorDialog(err)
+}
+
 // GetWelcomeMessage gets the welcome message
 func GetWelcomeMessage() string {
 	text := "<span font-size='xx-large'>" + utils.Locale.Get("Welcome to Clear Linux* OS Desktop Installation") + "</span>"
@@ -800,4 +811,40 @@ func GetThankYouMessage() string {
 	}
 
 	return text
+}
+
+func displayErrorDialog(err error) {
+	contentBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	contentBox.SetHAlign(gtk.ALIGN_FILL)
+	if err != nil {
+		log.Error("Error creating box", err)
+		return
+	}
+
+	label, err := gtk.LabelNew(log.GetCrashInfoMsg())
+	if err != nil {
+		log.Error("Error creating label", err)
+		return
+	}
+	label.SetHAlign(gtk.ALIGN_CENTER)
+	label.SetMarginBottom(common.TopBottomMargin)
+	label.SetSelectable(true)
+	contentBox.PackStart(label, true, true, 0)
+
+	title := utils.Locale.Get("Something went wrong...")
+	dialog, err := common.CreateDialogOneButton(contentBox, title, utils.Locale.Get("OK"), "button-confirm")
+	if err != nil {
+		log.Error("Error creating dialog", err)
+		return
+	}
+	_, err = dialog.Connect("response", func() {
+		dialog.Destroy()
+		gtk.MainQuit() // Exit Installer
+	})
+	if err != nil {
+		log.Error("Error connecting to dialog", err)
+		return
+	}
+	dialog.ShowAll()
+	dialog.Run()
 }

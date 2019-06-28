@@ -604,3 +604,19 @@ msgstr "System not compatible."
 
 msgid "Prerequisites passed."
 msgstr "Prerequisites passed."
+
+msgid "Something went wrong..."
+msgstr "Something went wrong..."
+
+#, c-format
+msgid "Please report this crash using %s"
+msgstr "Please report this crash using %s"
+
+msgid "Include the following as attachments to enable diagnosis:"
+msgstr "Include the following as attachments to enable diagnosis:"
+
+msgid "You may need to remove any personal data of concern from the attachments."
+msgstr "You may need to remove any personal data of concern from the attachments."
+
+msgid "The Installer will now exit."
+msgstr "The Installer will now exit."

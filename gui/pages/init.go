@@ -69,6 +69,7 @@ type Controller interface {
 	SetScanDone(bool)
 	GetScanMedia() []*storage.BlockDevice
 	SetScanMedia([]*storage.BlockDevice)
+	Panic(err error)
 }
 
 // ScanInfo holds the information related to scanning the media

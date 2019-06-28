@@ -29,9 +29,7 @@ const (
 // Gui is the main gui data struct and holds data about the higher level data for this
 // front end, it also implements the Frontend interface
 type Gui struct {
-	window        *Window
-	model         *model.SystemInstall
-	installReboot bool
+	window *Window // TODO: Technically there need NOT be a separate Window struct. Its contents can be in this Gui struct.
 }
 
 // New creates a new Gui frontend instance
@@ -50,12 +48,10 @@ func (gui *Gui) MustRun(args *args.Args) bool {
 
 // Run is part of the Frontend interface implementation and is the gui frontend main entry point
 func (gui *Gui) Run(md *model.SystemInstall, rootDir string, options args.Args) (bool, error) {
-	gui.model = md
-	gui.installReboot = false
 
 	// When using the Interactive Installer we always want to copy network
 	// configurations to the target system
-	gui.model.CopyNetwork = options.CopyNetwork
+	md.CopyNetwork = options.CopyNetwork
 
 	// Use dark theming if available to differentiate from other apps
 	st, err := gtk.SettingsGetDefault()
@@ -87,11 +83,12 @@ func (gui *Gui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 	gtk.AddProviderForScreen(screen, sc, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 	// Construct window
-	win, err := NewWindow(md, rootDir, options)
+	gui.window, err = NewWindow(md, rootDir, options)
 	if err != nil {
+		// NOTE: Error popup dialog i.e Panic() should not be called for crashes during initial window creation
+		// as gtk.Main() is not running at this point. Such errors are only logged.
 		return false, err
 	}
-	gui.window = win
 
 	// Configure the Gnome proxy function
 	SetupGnomeProxy()
@@ -99,5 +96,5 @@ func (gui *Gui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 	// Main loop
 	gtk.Main()
 
-	return gui.installReboot, nil
+	return false, nil
 }

@@ -604,3 +604,19 @@ msgstr "Sistema no compatible."
 
 msgid "Prerequisites passed."
 msgstr "先决条件已过。"
+
+msgid "Something went wrong..."
+msgstr "出问题了..."
+
+#, c-format
+msgid "Please report this crash using %s"
+msgstr "请使用 %s 报告此崩溃"
+
+msgid "Include the following as attachments to enable diagnosis:"
+msgstr "包括以下附件作为附件,以便启用诊断:"
+
+msgid "You may need to remove any personal data of concern from the attachments."
+msgstr "您可能需要从附件中删除任何值得关注的个人数据。"
+
+msgid "The Installer will now exit."
+msgstr "安装程序现在将退出。"
