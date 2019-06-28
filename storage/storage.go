@@ -419,31 +419,34 @@ func (bd *BlockDevice) DeviceHasSwap() bool {
 }
 
 // Validate checks if the minimal requirements for a installation is met
-func (bd *BlockDevice) Validate(legacyBios bool, cryptPass string) error {
+func Validate(medias []*BlockDevice, legacyBios bool, cryptPass string) error {
 	bootPartition := false
 	rootPartition := false
 	encrypted := false
 
-	for _, ch := range bd.Children {
-		if ch.FsType == "vfat" && ch.MountPoint == "/boot" {
-			bootPartition = true
+	for _, bd := range medias {
+		for _, ch := range bd.Children {
+			if ch.FsType == "vfat" && ch.MountPoint == "/boot" {
+				bootPartition = true
 
-			if ch.Type == BlockDeviceTypeCrypt {
-				return errors.Errorf("Encryption of /boot is not supported")
+				if ch.Type == BlockDeviceTypeCrypt {
+					return errors.Errorf("Encryption of /boot is not supported")
+				}
+			}
+
+			if ch.MountPoint == "/" {
+				rootPartition = true
+			}
+
+			if ch.Type == BlockDeviceTypeCrypt && ch.FsTypeNotSwap() {
+				encrypted = true
+			}
+
+			if bd.Type != BlockDeviceTypeDisk && bd.Size == 0 && ch.Size == 0 {
+				return errors.Errorf("Both image size and partition size cannot be 0")
 			}
 		}
 
-		if ch.MountPoint == "/" {
-			rootPartition = true
-		}
-
-		if ch.Type == BlockDeviceTypeCrypt && ch.FsTypeNotSwap() {
-			encrypted = true
-		}
-
-		if bd.Type != BlockDeviceTypeDisk && bd.Size == 0 && ch.Size == 0 {
-			return errors.Errorf("Both image size and partition size cannot be 0")
-		}
 	}
 
 	if !bootPartition && !legacyBios {
