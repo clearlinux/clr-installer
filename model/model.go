@@ -271,10 +271,8 @@ func (si *SystemInstall) Validate() error {
 		return errors.ValidationErrorf("System Installation must provide a target media")
 	}
 
-	for _, curr := range si.TargetMedias {
-		if err := curr.Validate(si.LegacyBios, si.CryptPass); err != nil {
-			return err
-		}
+	if err := storage.Validate(si.TargetMedias, si.LegacyBios, si.CryptPass); err != nil {
+		return err
 	}
 
 	if si.Timezone == nil {
