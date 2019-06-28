@@ -13,6 +13,7 @@ import (
 
 	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/errors"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 const (
@@ -86,26 +87,23 @@ func SetOutputFilename(logFile string) (*os.File, error) {
 	return filehandle, nil
 }
 
+// GetCrashInfoMsg returns the crash info message.
+func GetCrashInfoMsg() string {
+	msg := utils.Locale.Get("Please report this crash using %s", "GitHub Issues:")
+	msg += "\n" + "https://github.com/clearlinux/clr-installer/issues"
+	msg += "\n\n" + utils.Locale.Get("Include the following as attachments to enable diagnosis:")
+	msg += "\n" + preConfName
+	msg += "\n" + logFileName
+	msg += "\n\n" + utils.Locale.Get("You may need to remove any personal data of concern from the attachments.")
+	msg += "\n" + utils.Locale.Get("The Installer will now exit.")
+
+	return msg
+}
+
 // RequestCrashInfo prints information for the user on how to properly report the
 // crash of the installer and how to gather more information
 func RequestCrashInfo() {
-	fmt.Println("Please report this crash using GitHub Issues:")
-	fmt.Println("\thttps://github.com/clearlinux/clr-installer/issues")
-
-	fmt.Println("")
-
-	fmt.Println("Include the following as attachments to enable diagnosis:")
-	fmt.Printf("\t%s\n", preConfName)
-	fmt.Printf("\t%s\n", logFileName)
-
-	fmt.Println("")
-
-	fmt.Println("If the problem persists, enabling additional logging will be helpful in")
-	fmt.Println("diagnosing the issue. At the OS Boot screen, hit 'e' to edit the kernel")
-	fmt.Println("command line. Add the following to the end of the line:")
-	fmt.Println("\tclri.loglevel=4")
-
-	fmt.Println("")
+	fmt.Println(GetCrashInfoMsg())
 }
 
 // GetLogFileName ... returns the filename of the current log

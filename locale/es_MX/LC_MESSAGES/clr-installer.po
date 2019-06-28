@@ -562,3 +562,19 @@ msgstr "Sistema no compatible."
 
 msgid "Prerequisites passed."
 msgstr "Requisitos previos aprobados."
+
+msgid "Something went wrong..."
+msgstr "Hemos detectado un problema desconocido."
+
+#, c-format
+msgid "Please report this crash using %s"
+msgstr "Por favor, informe de este accidente usando %s"
+
+msgid "Include the following as attachments to enable diagnosis:"
+msgstr "Incluya lo siguiente como datos adjuntos para habilitar el diagnóstico:"
+
+msgid "You may need to remove any personal data of concern from the attachments."
+msgstr "Es posible que deba eliminar cualquier dato personal de preocupación de los archivos adjuntos."
+
+msgid "The Installer will now exit."
+msgstr "El instalador se cerrará ahora."

@@ -17,6 +17,10 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
+func init() {
+	utils.SetLocale("en_US.UTF-8")
+}
+
 func setLog(t *testing.T) *os.File {
 	var handle *os.File
 
