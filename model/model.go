@@ -105,6 +105,15 @@ type StorageAlias struct {
 	DeviceFile bool   `yaml:"devicefile,omitempty,flow"`
 }
 
+// ClearExtraKernelArguments clears all of the of custom extra kernel arguments
+func (si *SystemInstall) ClearExtraKernelArguments() {
+	if si.KernelArguments == nil {
+		si.KernelArguments = &kernel.Arguments{}
+	}
+
+	si.KernelArguments.Add = []string{}
+}
+
 // AddExtraKernelArguments adds a set of custom extra kernel arguments to be added to the
 // clr-boot-manager configuration
 func (si *SystemInstall) AddExtraKernelArguments(args []string) {
@@ -119,6 +128,15 @@ func (si *SystemInstall) AddExtraKernelArguments(args []string) {
 
 		si.KernelArguments.Add = append(si.KernelArguments.Add, curr)
 	}
+}
+
+// ClearRemoveKernelArguments clears all of the of custom remove kernel arguments
+func (si *SystemInstall) ClearRemoveKernelArguments() {
+	if si.KernelArguments == nil {
+		si.KernelArguments = &kernel.Arguments{}
+	}
+
+	si.KernelArguments.Remove = []string{}
 }
 
 // RemoveKernelArguments adds a set of kernel arguments to be "black listed" on

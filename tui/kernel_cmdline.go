@@ -118,10 +118,14 @@ func newKernelCMDLine(tui *Tui) (Page, error) {
 
 		if addKernelArguments != "" {
 			page.getModel().AddExtraKernelArguments(strings.Split(addKernelArguments, " "))
+		} else {
+			page.getModel().ClearExtraKernelArguments()
 		}
 
 		if remKernelArguments != "" {
 			page.getModel().RemoveKernelArguments(strings.Split(remKernelArguments, " "))
+		} else {
+			page.getModel().ClearRemoveKernelArguments()
 		}
 
 		done := page.addKernelArgEdit.Title() != "" || page.remKernelArgEdit.Title() != ""
