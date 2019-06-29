@@ -229,12 +229,12 @@ func (page *ConfigKernelPage) StoreChanges() {
 	if adds != "" {
 		page.model.AddExtraKernelArguments(strings.Split(adds, " "))
 	} else {
-		page.model.KernelArguments.Add = nil
+		page.model.ClearExtraKernelArguments()
 	}
 	if removes != "" {
 		page.model.RemoveKernelArguments(strings.Split(removes, " "))
 	} else {
-		page.model.KernelArguments.Remove = nil
+		page.model.ClearRemoveKernelArguments()
 	}
 
 	page.model.Kernel = page.selected
