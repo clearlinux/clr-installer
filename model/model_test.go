@@ -493,6 +493,36 @@ func TestRemoveKernelArguments(t *testing.T) {
 	}
 }
 
+func TestClearExtraKernelArguments(t *testing.T) {
+	args := []string{"arg1", "arg2", "arg3"}
+
+	si := &SystemInstall{}
+	si.AddExtraKernelArguments(args)
+
+	si.ClearExtraKernelArguments()
+
+	l := len(si.KernelArguments.Add)
+
+	if l > 0 {
+		t.Fatal("Extra Add arguments failed to be cleared")
+	}
+}
+
+func TestClearRemoveKernelArguments(t *testing.T) {
+	args := []string{"arg1", "arg2", "arg3"}
+
+	si := &SystemInstall{}
+	si.RemoveKernelArguments(args)
+
+	si.ClearRemoveKernelArguments()
+
+	l := len(si.KernelArguments.Remove)
+
+	if l > len(si.KernelArguments.Remove) {
+		t.Fatal("Remove arguments failed to be cleared")
+	}
+}
+
 func TestAddEncryptedTargetMedia(t *testing.T) {
 	path := filepath.Join(testsDir, "encrypt-valid-descriptor.yaml")
 	loaded, err := LoadFile(path, args.Args{})
