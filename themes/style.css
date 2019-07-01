@@ -110,6 +110,7 @@ window {
 
 .search-entry,
 .entry,
+.entry-no-top-margin,
 .scroller,
 .list-scroller {
     background-image: none;
@@ -129,7 +130,7 @@ window {
 .list-label-description,
 .list-label-code {
     color: white;
-    padding-left: 20px;
+    padding-left: 10px;
 }
 
 .list-label-description {
