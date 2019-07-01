@@ -543,8 +543,11 @@ msgstr "Installation in progress."
 msgid "Installation successful."
 msgstr "Installation successful."
 
-msgid " (default)"
-msgstr " (default)"
+msgid "(default)"
+msgstr "(default)"
+
+msgid "Select Kernel"
+msgstr "Select Kernel"
 
 msgid "Add Extra Arguments"
 msgstr "Add Extra Arguments"

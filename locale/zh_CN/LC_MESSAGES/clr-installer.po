@@ -543,8 +543,11 @@ msgstr "安装正在进行中。"
 msgid "Installation successful."
 msgstr "安装成功。"
 
-msgid " (default)"
-msgstr " (默认)"
+msgid "(default)"
+msgstr "(默认)"
+
+msgid "Select Kernel"
+msgstr "选择内核"
 
 msgid "Add Extra Arguments"
 msgstr "添加额外参数"

@@ -17,17 +17,18 @@ import (
 
 // ConfigKernelPage is a page to change kernel installation configuration
 type ConfigKernelPage struct {
-	controller Controller
-	model      *model.SystemInstall
-	box        *gtk.Box
-	addEntry   *gtk.Entry
-	remEntry   *gtk.Entry
-	addLabel   *gtk.Label
-	remLabel   *gtk.Label
-	scroll     *gtk.ScrolledWindow
-	list       *gtk.ListBox
-	data       []*kernel.Kernel
-	selected   *kernel.Kernel
+	controller  Controller
+	model       *model.SystemInstall
+	box         *gtk.Box
+	addEntry    *gtk.Entry
+	remEntry    *gtk.Entry
+	kernelLabel *gtk.Label
+	addLabel    *gtk.Label
+	remLabel    *gtk.Label
+	scroll      *gtk.ScrolledWindow
+	list        *gtk.ListBox
+	data        []*kernel.Kernel
+	selected    *kernel.Kernel
 }
 
 // NewConfigKernelPage returns a new NewConfigKernelPage
@@ -54,6 +55,18 @@ func NewConfigKernelPage(controller Controller, model *model.SystemInstall) (Pag
 	if err != nil {
 		return nil, err
 	}
+
+	// kernelLabel: Tell users they can select a kernel
+	kernelText := utils.Locale.Get("Select Kernel")
+
+	page.kernelLabel, err = setLabel(kernelText, "label-entry", 0.0)
+	if err != nil {
+		return nil, err
+	}
+
+	page.kernelLabel.SetMarginStart(common.StartEndMargin)
+	page.kernelLabel.SetHAlign(gtk.ALIGN_START)
+	page.box.PackStart(page.kernelLabel, false, false, 10)
 
 	// ScrolledWindow
 	page.scroll, err = setScrolledWindow(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC, "scroller")
@@ -82,7 +95,7 @@ func NewConfigKernelPage(controller Controller, model *model.SystemInstall) (Pag
 		//Add default label to kernel already in model
 		if page.model.Kernel != nil {
 			if v.Bundle == page.model.Kernel.Bundle {
-				name = v.Name + utils.Locale.Get(" (default)")
+				name = v.Name + " " + utils.Locale.Get("(default)")
 			}
 		}
 
@@ -91,13 +104,13 @@ func NewConfigKernelPage(controller Controller, model *model.SystemInstall) (Pag
 			return nil, err
 		}
 
-		labelName, err := setLabel(name, "list-label-name", 0.0)
+		labelName, err := setLabel(name, "list-label-description", 0.0)
 		if err != nil {
 			return nil, err
 		}
 		box.PackStart(labelName, false, false, 0)
 
-		labelDesc, err := setLabel(desc, "list-label-desc", 0.0)
+		labelDesc, err := setLabel(desc, "list-label-code", 0.0)
 		if err != nil {
 			return nil, err
 		}
@@ -118,7 +131,7 @@ func NewConfigKernelPage(controller Controller, model *model.SystemInstall) (Pag
 	page.box.PackStart(page.addLabel, false, false, 10)
 
 	// addEntry: Args to add to the kernel command line
-	page.addEntry, err = setEntry("entry")
+	page.addEntry, err = setEntry("entry-no-top-margin")
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +151,7 @@ func NewConfigKernelPage(controller Controller, model *model.SystemInstall) (Pag
 	page.box.PackStart(page.remLabel, false, false, 10)
 
 	// remEntry: Args to remove to the kernel command line.
-	page.remEntry, err = setEntry("entry")
+	page.remEntry, err = setEntry("entry-no-top-margin")
 	if err != nil {
 		return nil, err
 	}
