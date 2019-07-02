@@ -593,6 +593,9 @@ msgstr "请参阅 %s 了解详情。"
 msgid "Use %s to configure network."
 msgstr "使用 %s 配置网络。"
 
+msgid "Checking Prerequisites"
+msgstr "检查先决条件"
+
 msgid "Checking Prerequisites."
 msgstr "检查先决条件。"
 

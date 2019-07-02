@@ -593,6 +593,9 @@ msgstr "See %s for details."
 msgid "Use %s to configure network."
 msgstr "Use %s to configure network."
 
+msgid "Checking Prerequisites"
+msgstr "Checking Prerequisites"
+
 msgid "Checking Prerequisites."
 msgstr "Checking Prerequisites."
 
