@@ -120,3 +120,21 @@ func SetButton(text, style string) (*gtk.Button, error) {
 
 	return widget, nil
 }
+
+// SetLabel creates and styles a new gtk Label
+func SetLabel(text, style string, x float64) (*gtk.Label, error) {
+	widget, err := gtk.LabelNew(text)
+	if err != nil {
+		return nil, err
+	}
+
+	sc, err := widget.GetStyleContext()
+	if err != nil {
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass(style)
+	}
+	widget.SetXAlign(x)
+
+	return widget, nil
+}

@@ -821,7 +821,7 @@ func displayErrorDialog(err error) {
 		return
 	}
 
-	label, err := gtk.LabelNew(log.GetCrashInfoMsg())
+	label, err := common.SetLabel(log.GetCrashInfoMsg(), "label-error", 0.0)
 	if err != nil {
 		log.Error("Error creating label", err)
 		return
