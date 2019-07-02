@@ -140,10 +140,14 @@ window {
     font-size: 80%;
 }
 
+.label-warning,
+.label-error {
+    color: #FDB814;
+}
+
 .label-warning {
     font-size: 110%;
     font-style: italic;
-    color: #FDB814;
 }
 
 .label-info {
