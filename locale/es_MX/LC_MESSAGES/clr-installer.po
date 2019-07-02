@@ -551,6 +551,9 @@ msgstr "Ver %s para más detalles."
 msgid "Use %s to configure network."
 msgstr "Utilice %s para configurar la red."
 
+msgid "Checking Prerequisites"
+msgstr "Comprobación de los requisitos previos"
+
 msgid "Checking Prerequisites."
 msgstr "Comprobación de los requisitos previos."
 
