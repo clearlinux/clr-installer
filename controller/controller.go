@@ -541,7 +541,7 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 func ConfigureNetwork(model *model.SystemInstall) error {
 	prg, err := configureNetwork(model)
 	if err != nil {
-		prg.Success()
+		prg.Failure()
 		NetworkPassing = false
 		return err
 	}
