@@ -64,8 +64,7 @@ func (page *SwupdMirrorPage) setConfirmButton() {
 func newSwupdMirrorPage(tui *Tui) (Page, error) {
 	page := &SwupdMirrorPage{}
 	page.setupMenu(tui, TuiPageSwupdMirror, "Swupd Mirror", NoButtons, TuiPageMenu)
-
-	clui.CreateLabel(page.content, 2, 2, "Configure the Installation Source (swupd) Mirror", Fixed)
+	clui.CreateLabel(page.content, 2, 2, swupd.MirrorDesc1, Fixed)
 
 	frm := clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
 	frm.SetPack(clui.Horizontal)
@@ -73,8 +72,8 @@ func newSwupdMirrorPage(tui *Tui) (Page, error) {
 	lblFrm := clui.CreateFrame(frm, 20, AutoSize, BorderNone, Fixed)
 	lblFrm.SetPack(clui.Vertical)
 	lblFrm.SetPaddings(1, 0)
-
-	newFieldLabel(lblFrm, "Mirror URL:")
+	title := swupd.MirrorTitle + ":"
+	newFieldLabel(lblFrm, title)
 
 	fldFrm := clui.CreateFrame(frm, 30, AutoSize, BorderNone, Fixed)
 	fldFrm.SetPack(clui.Vertical)
@@ -90,7 +89,7 @@ func newSwupdMirrorPage(tui *Tui) (Page, error) {
 		if userURL != "" {
 			_, err := url.ParseRequestURI(page.swupdMirrorEdit.Title())
 			if err != nil {
-				warning = "Invalid URL"
+				warning = swupd.InvalidURL
 			}
 		}
 
@@ -102,7 +101,7 @@ func newSwupdMirrorPage(tui *Tui) (Page, error) {
 	page.swupdMirrorWarning.SetMultiline(true)
 	page.swupdMirrorWarning.SetBackColor(errorLabelBg)
 	page.swupdMirrorWarning.SetTextColor(errorLabelFg)
-	lbl := clui.CreateLabel(iframe, 2, 11, "HTTPS sites must use a publicly signed CA", Fixed)
+	lbl := clui.CreateLabel(iframe, 2, 11, swupd.MirrorDesc2, Fixed)
 	lbl.SetMultiline(true)
 
 	btnFrm := clui.CreateFrame(fldFrm, 50, 1, BorderNone, Fixed)
@@ -133,7 +132,7 @@ func newSwupdMirrorPage(tui *Tui) (Page, error) {
 				page.swupdMirrorWarning.SetTitle(err.Error())
 			} else {
 				if url != mirror {
-					page.swupdMirrorWarning.SetTitle("Mirror not set correctly: " + url)
+					page.swupdMirrorWarning.SetTitle(swupd.IncorrectMirror + ": " + url)
 				} else {
 					page.userDefined = true
 					page.getModel().SwupdMirror = mirror

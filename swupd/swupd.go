@@ -25,6 +25,53 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
+const (
+	// MirrorTitle specifies title of swupd mirror
+	MirrorTitle = "Mirror URL"
+
+	// MirrorDesc1 specifies line 1 of swupd mirror desc
+	MirrorDesc1 = "Specify a different installation source (swupd) URL than the default."
+
+	// MirrorDesc2 specifies line 2 of swupd mirror desc
+	MirrorDesc2 = "HTTPS sites must use a publicly signed CA."
+
+	// AutoUpdateTitle specifies title of auto updates
+	AutoUpdateTitle = "Automatic OS Updates"
+
+	// AutoUpdateDesc1 specifies line 1 of auto updates desc
+	AutoUpdateDesc1 = "Allow Clear Linux OS to continuously update as new versions are released."
+
+	// AutoUpdateDesc2 specifies line 2 of auto updates desc
+	AutoUpdateDesc2 = "This is the default, preferred behavior for Clear Linux OS to ensure that the latest security concerns are always addressed."
+
+	// AutoUpdateDesc3 specifies line 3 of auto updates desc
+	AutoUpdateDesc3 = "To enable this post installation use:"
+
+	// AutoUpdateDesc4 specifies line 4 of auto updates desc
+	AutoUpdateDesc4 = "See %s for more information."
+
+	// AutoUpdateCommand specifies auto updates enable command
+	AutoUpdateCommand = "\"swupd autoupdate --enable\""
+
+	// AutoUpdateLink specifies document link of auto updates
+	AutoUpdateLink = "https://clearlinux.org/documentation/clear-linux/concepts/swupd-about"
+
+	// AutoUpdateLabel specifies label of auto updates
+	AutoUpdateLabel = "Enable Auto Updates"
+
+	// AutoUpdateWarning1 specifies part 1 of auto updates warning
+	AutoUpdateWarning1 = "WARNING: Disabling Automatic OS Updates puts the system at risk of "
+
+	// AutoUpdateWarning2 specifies part 2 of auto updates desc
+	AutoUpdateWarning2 = "missing critical security patches."
+
+	// InvalidURL specifies invalid url error message
+	InvalidURL = "Invalid URL"
+
+	// IncorrectMirror specifies incorrect mirror error message
+	IncorrectMirror = "Mirror not set correctly"
+)
+
 var (
 	// CoreBundles represents the core bundles installed in the Verify() operation
 	CoreBundles = []string{
