@@ -213,6 +213,11 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 				}
 			}
 
+			// if we have a mount point set it for future mounting
+			if ch.MountPoint != "" {
+				mountPoints = append(mountPoints, ch)
+			}
+
 			// Do not overwrite File System content for pre-existing
 			if !ch.FormatPartition {
 				msg := utils.Locale.Get("Skipping new file system for %s", ch.Name)
@@ -230,11 +235,6 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 				return err
 			}
 			prg.Success()
-
-			// if we have a mount point set it for future mounting
-			if ch.MountPoint != "" {
-				mountPoints = append(mountPoints, ch)
-			}
 		}
 	}
 
