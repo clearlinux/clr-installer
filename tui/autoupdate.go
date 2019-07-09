@@ -6,32 +6,13 @@ package tui
 
 import (
 	"github.com/VladimirMarkelov/clui"
+	"github.com/clearlinux/clr-installer/swupd"
 )
 
 // AutoUpdatePage is the Page implementation for the auto update enable configuration page
 type AutoUpdatePage struct {
 	BasePage
 }
-
-const (
-	autoUpdateHelp = `
-Automatic OS Updates
-
-Allow the Clear Linux OS to continuously update as new versions are
-released. This is the default, preferred behavior for Clear Linux OS
-to ensure the latest security concerns are always addressed.
-
-See
-https://clearlinux.org/documentation/clear-linux/concepts/swupd-about
-for more information.
-
-WARNING: Disabling Automatic OS Updates puts your system at risk of
-missing critical security patches.
-To enable post-installation, use:
-    # swupd autoupdate --enable
-
-`
-)
 
 // GetConfiguredValue Returns the string representation of currently value set
 func (aup *AutoUpdatePage) GetConfiguredValue() string {
@@ -44,10 +25,22 @@ func (aup *AutoUpdatePage) GetConfiguredValue() string {
 func newAutoUpdatePage(tui *Tui) (Page, error) {
 	page := &AutoUpdatePage{}
 
-	page.setupMenu(tui, TuiPageAutoUpdate, "Automatic OS Updates",
+	page.setupMenu(tui, TuiPageAutoUpdate, swupd.AutoUpdateTitle,
 		BackButton|ConfirmButton, TuiPageMenu)
 
-	lbl := clui.CreateLabel(page.content, 2, 16, autoUpdateHelp, Fixed)
+	desc := swupd.AutoUpdateTitle
+	desc += "\n\n"
+	desc += swupd.AutoUpdateDesc1
+	desc += "\n"
+	desc += swupd.AutoUpdateDesc2
+	desc += "\n\n"
+	desc += swupd.AutoUpdateDesc3 + " " + swupd.AutoUpdateCommand
+	desc += "\n\n"
+	desc += "See" + "\n" + swupd.AutoUpdateLink + "\n" + "for more information."
+	desc += "\n\n"
+	desc += swupd.AutoUpdateWarning1 + "\n" + swupd.AutoUpdateWarning2
+
+	lbl := clui.CreateLabel(page.content, 2, 16, desc, Fixed)
 	lbl.SetMultiline(true)
 
 	page.backBtn.SetTitle("No [Disable]")

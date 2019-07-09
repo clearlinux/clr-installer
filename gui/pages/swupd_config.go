@@ -18,18 +18,19 @@ import (
 
 // SwupdConfigPage is a page to change swupd configuration
 type SwupdConfigPage struct {
-	controller        Controller
-	model             *model.SystemInstall
-	box               *gtk.Box
-	mirrorHeading     *gtk.Label
-	mirrorDesc        *gtk.Label
-	mirrorEntry       *gtk.Entry
-	mirrorWarning     *gtk.Label
-	autoUpdateHeading *gtk.Label
-	autoUpdateDesc    *gtk.Label
-	autoUpdateButton  *gtk.CheckButton
-	autoUpdateNote    *gtk.Label
-	done              bool
+	controller           Controller
+	model                *model.SystemInstall
+	box                  *gtk.Box
+	mirrorTitle          *gtk.Label
+	mirrorDesc           *gtk.Label
+	mirrorEntry          *gtk.Entry
+	mirrorWarning        *gtk.Label
+	autoUpdateTitle      *gtk.Label
+	autoUpdateDesc       *gtk.Label
+	autoUpdateButton     *gtk.CheckButton
+	autoUpdateWarning    *gtk.Label
+	autoUpdateWarningMsg string
+	done                 bool
 }
 
 // NewSwupdConfigPage returns a new NewSwupdConfigPage
@@ -37,9 +38,10 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 	var err error
 
 	page := &SwupdConfigPage{
-		controller: controller,
-		model:      model,
-		done:       true,
+		controller:           controller,
+		model:                model,
+		done:                 true,
+		autoUpdateWarningMsg: swupd.AutoUpdateWarning1 + swupd.AutoUpdateWarning2,
 	}
 
 	// Page Box
@@ -49,17 +51,17 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 	}
 
 	// Mirror URL
-	page.mirrorHeading, err = setLabel(utils.Locale.Get("Mirror URL"), "label-entry", 0.0)
+	page.mirrorTitle, err = setLabel(utils.Locale.Get(swupd.MirrorTitle), "label-entry", 0.0)
 	if err != nil {
 		return nil, err
 	}
-	page.mirrorHeading.SetMarginStart(common.StartEndMargin)
-	page.mirrorHeading.SetMarginTop(common.TopBottomMargin)
-	page.mirrorHeading.SetHAlign(gtk.ALIGN_START)
-	page.box.PackStart(page.mirrorHeading, false, false, 0)
+	page.mirrorTitle.SetMarginStart(common.StartEndMargin)
+	page.mirrorTitle.SetMarginTop(common.TopBottomMargin)
+	page.mirrorTitle.SetHAlign(gtk.ALIGN_START)
+	page.box.PackStart(page.mirrorTitle, false, false, 0)
 
-	desc := utils.Locale.Get("Specify a different installation source %s than the default.", "(swupd) URL")
-	desc += " " + utils.Locale.Get("%s sites must use a publicly signed CA.", "HTTPS")
+	desc := utils.Locale.Get(swupd.MirrorDesc1)
+	desc += " " + utils.Locale.Get(swupd.MirrorDesc2)
 	page.mirrorDesc, err = setLabel(desc, "", 0)
 	if err != nil {
 		return nil, err
@@ -87,23 +89,22 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 	}
 
 	// Auto Updates
-	page.autoUpdateHeading, err = setLabel(utils.Locale.Get("Automatic OS Updates"), "label-entry", 0.0)
+	page.autoUpdateTitle, err = setLabel(utils.Locale.Get(swupd.AutoUpdateTitle), "label-entry", 0.0)
 	if err != nil {
 		return nil, err
 	}
-	page.autoUpdateHeading.SetMarginStart(common.StartEndMargin)
-	page.autoUpdateHeading.SetMarginTop(common.TopBottomMargin)
-	page.autoUpdateHeading.SetHAlign(gtk.ALIGN_START)
-	page.box.PackStart(page.autoUpdateHeading, false, false, 0)
+	page.autoUpdateTitle.SetMarginStart(common.StartEndMargin)
+	page.autoUpdateTitle.SetMarginTop(common.TopBottomMargin)
+	page.autoUpdateTitle.SetHAlign(gtk.ALIGN_START)
+	page.box.PackStart(page.autoUpdateTitle, false, false, 0)
 
-	desc = utils.Locale.Get("Allow the Clear Linux OS to continuously update as new versions are released.")
+	desc = utils.Locale.Get(swupd.AutoUpdateDesc1)
 	desc += "\n"
-	desc += utils.Locale.Get("This is the default, preferred behavior for Clear Linux OS to ensure that the latest security concerns are always addressed.")
+	desc += utils.Locale.Get(swupd.AutoUpdateDesc2)
+	desc += "\n\n"
+	desc += utils.Locale.Get(swupd.AutoUpdateDesc3) + " " + swupd.AutoUpdateCommand
 	desc += "\n"
-	desc += utils.Locale.Get("This can also be enabled post installation using the command %s.", "\"swupd autoupdate --enable\"")
-	desc += "\n"
-	swupdDoc := "https://clearlinux.org/documentation/clear-linux/concepts/swupd-about"
-	desc += utils.Locale.Get("See %s for more information.", swupdDoc)
+	desc += utils.Locale.Get(swupd.AutoUpdateDesc4, swupd.AutoUpdateLink)
 	page.autoUpdateDesc, err = setLabel(desc, "", 0)
 	if err != nil {
 		return nil, err
@@ -117,7 +118,7 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 	if err != nil {
 		return nil, err
 	}
-	page.autoUpdateButton.SetLabel("  " + utils.Locale.Get("Enable Auto Updates"))
+	page.autoUpdateButton.SetLabel("  " + utils.Locale.Get(swupd.AutoUpdateLabel))
 	page.autoUpdateButton.SetMarginStart(14)         // Custom margin to align properly
 	page.autoUpdateButton.SetHAlign(gtk.ALIGN_START) // Ensures that clickable area is only within the label
 	page.box.PackStart(page.autoUpdateButton, false, false, 10)
@@ -125,16 +126,21 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 		return nil, err
 	}
 
-	desc = utils.Locale.Get("NOTE:")
-	desc += " "
-	desc += "Disabling Automatic OS Updates puts your system at risk of missing critical security patches."
-	page.autoUpdateNote, err = setLabel(desc, "", 0)
+	var warning, style string
+	if page.model.AutoUpdate {
+		style = ""
+		warning = ""
+	} else {
+		style = "label-error"
+		warning = utils.Locale.Get(page.autoUpdateWarningMsg)
+	}
+	page.autoUpdateWarning, err = setLabel(warning, style, 0)
 	if err != nil {
 		return nil, err
 	}
-	page.autoUpdateNote.SetMarginStart(common.StartEndMargin)
-	page.autoUpdateNote.SetSelectable(true)
-	page.box.PackStart(page.autoUpdateNote, false, false, 0)
+	page.autoUpdateWarning.SetMarginStart(common.StartEndMargin)
+	page.autoUpdateWarning.SetSelectable(true)
+	page.box.PackStart(page.autoUpdateWarning, false, false, 0)
 
 	return page, nil
 }
@@ -145,7 +151,7 @@ func (page *SwupdConfigPage) onMirrorChange(entry *gtk.Entry) {
 	if mirror != "" {
 		_, err := url.ParseRequestURI(mirror)
 		if err != nil {
-			page.mirrorWarning.SetText(utils.Locale.Get("Invalid URL"))
+			page.mirrorWarning.SetText(utils.Locale.Get(swupd.InvalidURL))
 		}
 	}
 
@@ -167,7 +173,7 @@ func (page *SwupdConfigPage) validateMirror() {
 			page.mirrorWarning.SetText(err.Error()) // failure
 		} else {
 			if url != mirror { // At this point, url and mirror are expected to be the same
-				page.mirrorWarning.SetText(utils.Locale.Get("Mirror not set correctly")) // failure
+				page.mirrorWarning.SetText(utils.Locale.Get(swupd.IncorrectMirror)) // failure
 			} else {
 				page.model.SwupdMirror = mirror // success
 			}
@@ -178,16 +184,19 @@ func (page *SwupdConfigPage) validateMirror() {
 }
 
 func (page *SwupdConfigPage) onAutoUpdateClick(button *gtk.CheckButton) {
-	var removeStyle, addStyle string
+	var removeStyle, addStyle, warning string
 	if button.GetActive() {
 		removeStyle = "label-error"
 		addStyle = ""
+		warning = ""
 	} else {
 		removeStyle = ""
 		addStyle = "label-error"
+		warning = utils.Locale.Get(page.autoUpdateWarningMsg)
 	}
 
-	sc, err := page.autoUpdateNote.GetStyleContext()
+	page.autoUpdateWarning.SetText(warning)
+	sc, err := page.autoUpdateWarning.GetStyleContext()
 	if err != nil {
 		log.Warning("Error getting style context: ", err) // Just log trivial error
 	} else {
