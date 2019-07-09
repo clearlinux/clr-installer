@@ -412,7 +412,7 @@ func setMirror(swupdArgs []string, t string) (string, error) {
 func SetHostMirror(url string) (string, error) {
 
 	if urlErr := network.CheckURL(url); urlErr != nil {
-		return "", fmt.Errorf("Server not responding")
+		return "", fmt.Errorf(utils.Locale.Get("Server not responding"))
 	}
 
 	args := []string{
@@ -487,7 +487,7 @@ func checkSwupd(swupdArgs []string, t string) error {
 		// Swupd uses exit status '1' when there are no updates (and no errors)
 		if !strings.Contains(w.String(), "There are no updates available") {
 			log.Debug("%s swupd check-update failed: %q", t, fmt.Errorf("%s", w.String()))
-			err = fmt.Errorf("Server does not report any version")
+			err = fmt.Errorf(utils.Locale.Get("Server does not report any version"))
 		} else {
 			log.Debug("%s swupd check-update results ignored: %q", t, err)
 			err = nil
@@ -517,7 +517,7 @@ func parseSwupdMirror(data []byte) (string, error) {
 	match := versionExp.FindSubmatch(data)
 
 	if len(match) != 2 {
-		return "", errors.Errorf("swupd mirror Version URL not found")
+		return "", errors.Errorf(utils.Locale.Get("swupd mirror Version %s not found", "URL"))
 	}
 
 	return string(match[1]), nil

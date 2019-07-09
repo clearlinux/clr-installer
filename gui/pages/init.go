@@ -112,6 +112,9 @@ const (
 
 	// PageIDConfigKernel is the advanced option page for kernel selection
 	PageIDConfigKernel = iota
+
+	// PageIDConfigSwupd is the advanced option page to configure swupd
+	PageIDConfigSwupd = iota
 )
 
 // Private helper to assist in the ugliness of forcibly scrolling a GtkListBox
