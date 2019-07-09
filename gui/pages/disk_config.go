@@ -6,6 +6,8 @@ package pages
 
 import (
 	"fmt"
+	"os"
+	"syscall"
 	"time"
 
 	"github.com/gotk3/gotk3/gdk"
@@ -17,6 +19,10 @@ import (
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/utils"
+)
+
+const (
+	diskUtil = `gparted`
 )
 
 // DiskConfig is a simple page to help with DiskConfig settings
@@ -32,12 +38,17 @@ type DiskConfig struct {
 	scroll             *gtk.ScrolledWindow
 	scrollBox          *gtk.Box
 	mediaGrid          *gtk.Grid
+	optionsGrid        *gtk.Grid
+	advancedGrid       *gtk.Grid
 	safeButton         *gtk.RadioButton
 	destructiveButton  *gtk.RadioButton
+	advancedButton     *gtk.RadioButton
 	chooserCombo       *gtk.ComboBox
 	errorMessage       *gtk.Label
+	advancedMessage    *gtk.Label
 	rescanButton       *gtk.Button
 	rescanDialog       *gtk.Dialog
+	partitionButton    *gtk.Button
 	encryptCheck       *gtk.CheckButton
 	passphraseDialog   *gtk.Dialog
 	passphrase         *gtk.Entry
@@ -203,6 +214,12 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	separator.ShowAll()
 	disk.scrollBox.Add(separator)
 
+	// Options Grid
+	disk.optionsGrid, err = gtk.GridNew()
+	if err != nil {
+		return nil, err
+	}
+
 	// Error Message Label
 	disk.errorMessage, err = gtk.LabelNew("")
 	if err != nil {
@@ -210,7 +227,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	}
 	disk.errorMessage.SetUseMarkup(true)
 	disk.errorMessage.SetMarginStart(common.StartEndMargin)
-	disk.scrollBox.Add(disk.errorMessage)
+	disk.optionsGrid.Attach(disk.errorMessage, 0, 0, 2, 1)
 
 	// Encryption button
 	disk.encryptCheck, err = gtk.CheckButtonNew()
@@ -221,7 +238,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	disk.encryptCheck.SetLabel("  " + utils.Locale.Get("Enable Encryption"))
 	disk.encryptCheck.SetMarginStart(common.StartEndMargin)
 	disk.encryptCheck.SetHAlign(gtk.ALIGN_START) // Ensures that clickable area is only within the label
-	disk.scrollBox.PackStart(disk.encryptCheck, false, false, 0)
+	disk.optionsGrid.Attach(disk.encryptCheck, 0, 1, 1, 1)
 
 	// Generate signal on encryptCheck button click
 	if _, err := disk.encryptCheck.Connect("clicked", disk.onEncryptClick); err != nil {
@@ -247,7 +264,103 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	rescanBox.PackStart(disk.rescanButton, false, false, 10)
 
 	rescanBox.ShowAll()
-	disk.scrollBox.Add(rescanBox)
+	rescanBox.SetHAlign(gtk.ALIGN_END)
+	disk.optionsGrid.Attach(rescanBox, 1, 1, 1, 1)
+
+	disk.optionsGrid.SetRowSpacing(10)
+	disk.optionsGrid.SetColumnSpacing(10)
+	disk.optionsGrid.SetColumnHomogeneous(true)
+	disk.scrollBox.Add(disk.optionsGrid)
+
+	separator2, err := gtk.SeparatorNew(gtk.ORIENTATION_HORIZONTAL)
+	if err != nil {
+		return nil, err
+	}
+	separator2.ShowAll()
+	disk.scrollBox.Add(separator2)
+
+	// Advanced Grid
+	disk.advancedGrid, err = gtk.GridNew()
+	if err != nil {
+		return nil, err
+	}
+
+	// Build Advanced Install Section
+	advancedBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	advancedBox.SetMarginStart(common.StartEndMargin)
+	disk.advancedButton, err = gtk.RadioButtonNewWithLabelFromWidget(disk.destructiveButton,
+		utils.Locale.Get("Advanced Disk Partitioning"))
+	if err != nil {
+		return nil, err
+	}
+	sc, err = disk.advancedButton.GetStyleContext()
+	if err != nil {
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass("label-radio")
+	}
+	advancedBox.PackStart(disk.advancedButton, false, false, 0)
+	if _, err := disk.advancedButton.Connect("toggled", func() {
+		// Enable/Disable the Combo Choose Box based on the radio button
+		if err := disk.populateComboBoxes(); err != nil {
+			log.Warning("Problem populating possible disk selections")
+		}
+	}); err != nil {
+		return nil, err
+	}
+
+	advancedDescription := utils.Locale.Get("Use partitioning tool to configure and select media via partition labels.")
+	advancedLabel, err := gtk.LabelNew(advancedDescription)
+	if err != nil {
+		return nil, err
+	}
+	advancedLabel.SetLineWrap(true)
+	advancedLabel.SetXAlign(0.0)
+	advancedLabel.SetMarginStart(30)
+	advancedLabel.SetUseMarkup(true)
+	advancedBox.PackStart(advancedLabel, false, false, 0)
+
+	advancedBox.ShowAll()
+	disk.advancedGrid.Attach(advancedBox, 0, 0, 1, 1)
+
+	// Partitioning Button
+	disk.partitionButton, err = setButton(utils.Locale.Get("PARTITION MEDIA"), "button-page")
+	if err != nil {
+		return nil, err
+	}
+	disk.partitionButton.SetTooltipText(utils.Locale.Get("Launch the external partitioning tool to label the partitions to be used for the installation."))
+
+	if _, err = disk.partitionButton.Connect("clicked", disk.runDiskPartitionTool); err != nil {
+		return nil, err
+	}
+
+	partitionBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+	if err != nil {
+		return nil, err
+	}
+	partitionBox.SetMarginStart(common.StartEndMargin)
+	partitionBox.PackStart(disk.partitionButton, false, false, 10)
+
+	partitionBox.SetHAlign(gtk.ALIGN_END)
+	partitionBox.SetVAlign(gtk.ALIGN_CENTER)
+	partitionBox.ShowAll()
+	disk.advancedGrid.Attach(partitionBox, 1, 0, 1, 1)
+
+	// Advanced Message Label
+	disk.advancedMessage, err = gtk.LabelNew("")
+	if err != nil {
+		return nil, err
+	}
+	disk.advancedMessage.SetUseMarkup(true)
+	disk.advancedMessage.SetMarginStart(common.StartEndMargin * 2)
+	disk.advancedMessage.SetHAlign(gtk.ALIGN_START)
+	disk.advancedMessage.SetVAlign(gtk.ALIGN_CENTER)
+	disk.advancedGrid.Attach(disk.advancedMessage, 0, 1, 2, 1)
+
+	disk.advancedGrid.SetRowSpacing(10)
+	disk.advancedGrid.SetColumnSpacing(10)
+	disk.advancedGrid.SetColumnHomogeneous(true)
+	disk.scrollBox.Add(disk.advancedGrid)
 
 	disk.box.ShowAll()
 
@@ -601,12 +714,14 @@ func (disk *DiskConfig) populateComboBoxes() error {
 	disk.safeTargets = storage.FindSafeInstallTargets(storage.MinimumDesktopInstallSize, disk.devs)
 	disk.destructiveTargets = storage.FindAllInstallTargets(disk.devs)
 
-	// Hook for searching CLR_*?
-	disk.model.TargetMedias = nil
-	for _, curr := range storage.FindAdvancedInstallTargets(disk.devs) {
-		disk.model.AddTargetMedia(curr)
-		log.Debug("AddTargetMedia %+v", curr)
-	}
+	/*
+		// Hook for searching CLR_*?
+		disk.model.TargetMedias = nil
+		for _, curr := range storage.FindAdvancedInstallTargets(disk.devs) {
+			disk.model.AddTargetMedia(curr)
+			log.Debug("AddTargetMedia %+v", curr)
+		}
+	*/
 
 	if disk.safeButton.GetActive() {
 		if len(disk.safeTargets) > 0 {
@@ -651,7 +766,10 @@ func (disk *DiskConfig) IsRequired() bool {
 
 // IsDone checks if all the steps are completed
 func (disk *DiskConfig) IsDone() bool {
-	return disk.model.TargetMedias != nil
+	if disk.model.TargetMedias == nil || len(disk.model.TargetMedias) == 0 {
+		return false
+	}
+	return true
 }
 
 // GetID returns the ID for this page
@@ -804,4 +922,79 @@ func (disk *DiskConfig) GetConfiguredValue() string {
 	}
 
 	return fmt.Sprintf("%s (%s) %s%s %s", target.Friendly, target.Name, portion, encrypted, size)
+}
+
+func (disk *DiskConfig) runDiskPartitionTool() {
+	stdMsg := utils.Locale.Get("Could not launch %s. Check log %s", diskUtil, log.GetLogFileName())
+	msg := ""
+
+	diskUtilCmd := fmt.Sprintf("/usr/bin/%s", diskUtil)
+
+	tmpYaml, err := disk.model.WriteScrubModelTargetMedias()
+	if err != nil {
+		log.Warning("%v", err)
+		msg = stdMsg
+	}
+
+	lockFile := disk.model.LockFile
+
+	script, err := utils.RunDiskPartitionTool(tmpYaml, lockFile, diskUtilCmd, true)
+	if err != nil {
+		log.Warning("%v", err)
+		msg = stdMsg
+	}
+
+	if msg != "" {
+		title := utils.Locale.Get("PARTITION MEDIA")
+		contentBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+		contentBox.SetHAlign(gtk.ALIGN_FILL)
+		contentBox.SetMarginBottom(common.TopBottomMargin)
+		if err != nil {
+			log.Warning("Error creating box")
+			return
+		}
+		label, err := gtk.LabelNew(msg)
+		if err != nil {
+			log.Warning("Error creating label")
+			return
+		}
+
+		label.SetHAlign(gtk.ALIGN_START)
+		label.SetMarginBottom(common.TopBottomMargin)
+		contentBox.PackStart(label, true, true, 0)
+
+		dialog, err := common.CreateDialogOneButton(contentBox, title, utils.Locale.Get("OK"), "button-confirm")
+		if err != nil {
+			log.Warning("Attempt to launch %s: warning dialog failed: %s", diskUtil, err)
+			return
+		}
+
+		_, err = dialog.Connect("response", disk.warningDialogResponse)
+		if err != nil {
+			log.Error("Error connecting to dialog", err)
+			return
+		}
+
+		dialog.ShowAll()
+		dialog.Run()
+	}
+
+	// We will NEVER return from this function
+	gtk.MainQuit() // Exit Installer
+	term := os.Getenv("TERM")
+	display := os.Getenv("DISPLAY")
+	home := os.Getenv("HOME")
+	sudoUser := common.GetSudoUser()
+	err = syscall.Exec("/bin/bash", []string{"/bin/bash", "-l", "-c", script},
+		[]string{"TERM=" + term, "DISPLAY=" + display,
+			"SUDO_USER=" + sudoUser, "HOME=" + home})
+	if err != nil {
+		log.Warning("Could not start disk utility: %v", err)
+		return
+	}
+}
+
+// warningDialogResponse handles the response from the dialog message
+func (disk *DiskConfig) warningDialogResponse(msgDialog *gtk.Dialog, responseType gtk.ResponseType) {
+	msgDialog.Destroy()
 }

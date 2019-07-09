@@ -1,6 +1,7 @@
 package common
 
 import (
+	"os"
 	"time"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -17,6 +18,8 @@ const (
 
 	// ButtonSpacing is generic spacing between buttons
 	ButtonSpacing int = 4
+
+	installerDefaultUID = "1000"
 )
 
 var (
@@ -137,4 +140,21 @@ func SetLabel(text, style string, x float64) (*gtk.Label, error) {
 	widget.SetXAlign(x)
 
 	return widget, nil
+}
+
+// GetSudoUser finds the real user that launched the installer
+func GetSudoUser() string {
+	sudoUser := os.Getenv("SUDO_USER") // launched by sudo
+	tag := "sudo_user"
+	if sudoUser == "" { // no SUDO_USER defined
+		sudoUser = "#" + os.Getenv("PKEXEC_UID") // launched by pkexec (polkit)
+		tag = "PKEXEC_UID"
+	}
+	if sudoUser == "#" { // no PKEXEC_UID defined
+		sudoUser = "#" + installerDefaultUID // fallback
+		tag = "fallback UID"
+	}
+	log.Debug("sync user is %s=%s", tag, sudoUser)
+
+	return sudoUser
 }

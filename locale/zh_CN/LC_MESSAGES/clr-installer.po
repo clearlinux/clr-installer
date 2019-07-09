@@ -314,6 +314,22 @@ msgstr "破坏性安装"
 msgid "Erase all data on selected media and install Clear Linux* OS."
 msgstr "擦除选定媒介上的所有数据，然后安装 Clear Linux* OS。"
 
+msgid "Advanced Disk Partitioning"
+msgstr "CN: Advanced Disk Partitioning"
+
+msgid "Use partitioning tool to configure and select media via partition labels."
+msgstr "CN: Use partitioning tool to configure and select media via partition labels."
+
+msgid "PARTITION MEDIA"
+msgstr "CN: PARTITION MEDIA"
+
+msgid "Launch the external partitioning tool to label the partitions to be used for the installation."
+msgstr "CN: Launch the external partitioning tool to label the partitions to be used for the installation."
+
+#, c-format
+msgid "Could not launch %s. Check log %s"
+msgstr "CN: Could not launch %s. Check log %s"
+
 msgid "CHANGE LANGUAGE"
 msgstr "更改语言"
 

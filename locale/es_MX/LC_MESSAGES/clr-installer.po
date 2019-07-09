@@ -314,6 +314,22 @@ msgstr "Instalación destructiva"
 msgid "Erase all data on selected media and install Clear Linux* OS."
 msgstr "Elimina todos los datos del medio seleccionado y permite instalar el sistema operativo Clear Linux*."
 
+msgid "Advanced Disk Partitioning"
+msgstr "MX: Advanced Disk Partitioning"
+
+msgid "Use partitioning tool to configure and select media via partition labels."
+msgstr "MX: Use partitioning tool to configure and select media via partition labels."
+
+msgid "PARTITION MEDIA"
+msgstr "MX: PARTITION MEDIA"
+
+msgid "Launch the external partitioning tool to label the partitions to be used for the installation."
+msgstr "MX: Launch the external partitioning tool to label the partitions to be used for the installation."
+
+#, c-format
+msgid "Could not launch %s. Check log %s"
+msgstr "MX: Could not launch %s. Check log %s"
+
 msgid "CHANGE LANGUAGE"
 msgstr "CAMBIAR IDIOMA"
 
