@@ -13,14 +13,14 @@ import (
 
 	"github.com/gotk3/gotk3/glib"
 
+	"github.com/clearlinux/clr-installer/gui/common"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/proxy"
 )
 
 const (
-	gProxySchema        = "org.gnome.system.proxy"
-	dconfProxyDir       = "/system/proxy/"
-	installerDefaultUID = "1000"
+	gProxySchema  = "org.gnome.system.proxy"
+	dconfProxyDir = "/system/proxy/"
 )
 
 // SetupGnomeProxy configures the Gnome proxy function
@@ -110,17 +110,8 @@ func GnomeGetProxyValue(prefix string) string {
 func SyncNetworkProxies() {
 	// To avoid recursion, since this function is called as part of the standard
 	// cmd run, we have our only customer local exec function.
-	sudoUser := os.Getenv("SUDO_USER") // launched by sudo
-	tag := "sudo_user"
-	if sudoUser == "" { // no SUDO_USER defined
-		sudoUser = "#" + os.Getenv("PKEXEC_UID") // launched by pkexec (polkit)
-		tag = "PKEXEC_UID"
-	}
-	if sudoUser == "#" { // no PKEXEC_UID defined
-		sudoUser = "#" + installerDefaultUID // fallback
-		tag = "fallback UID"
-	}
-	log.Debug("sync user is %s=%s", tag, sudoUser)
+
+	sudoUser := common.GetSudoUser()
 
 	dumpCmd := exec.Command(
 		"sudo", fmt.Sprintf("--user=%s", sudoUser),

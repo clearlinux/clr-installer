@@ -75,10 +75,9 @@ type Window struct {
 		cancel  *gtk.Button // Cancel changes
 	}
 
-	didInit      bool                // Whether initialized the view animation
-	pages        map[int]gtk.IWidget // Mapping to each root page
-	scanInfo     pages.ScanInfo      // Information related to scanning the media
-	preCheckDone bool                // Whether pre-check was done
+	didInit  bool                // Whether initialized the view animation
+	pages    map[int]gtk.IWidget // Mapping to each root page
+	scanInfo pages.ScanInfo      // Information related to scanning the media
 }
 
 // CreateHeaderBar creates invisible header bar
@@ -145,6 +144,14 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 	window, err = window.createWelcomePage()
 	if err != nil {
 		return nil, err
+	}
+
+	// Launch the first page
+	// If pre-check has not been done at least once, start on the welcome page
+	if !window.model.PreCheckDone {
+		window.launchWelcomeView()
+	} else {
+		window.launchMenuView()
 	}
 
 	window.scanInfo.Channel = make(chan bool)
@@ -526,9 +533,9 @@ func (window *Window) UpdateFooter() error {
 
 // onNextClick handles the Next button click
 func (window *Window) onNextClick() {
-	if !window.preCheckDone { // If pre-check has not been done at least once, launch the pre-check view first
+	if !window.model.PreCheckDone { // If pre-check has not been done at least once, launch the pre-check view first
 		window.launchPreCheckView()
-		window.preCheckDone = true
+		window.model.PreCheckDone = true
 	} else {
 		window.launchMenuView()
 	}
@@ -683,7 +690,9 @@ func (window *Window) launchPreCheckView() {
 // launchMenuView launches the menu view
 func (window *Window) launchMenuView() {
 	log.Debug("Launching MenuView")
-	window.menu.currentPage.StoreChanges()
+	if window.menu.currentPage != nil {
+		window.menu.currentPage.StoreChanges()
+	}
 
 	if _, err := window.createMenuPages(); err != nil {
 		window.Panic(err)
