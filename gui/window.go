@@ -294,6 +294,7 @@ func (window *Window) createMenuPages() (*Window, error) {
 		pages.NewBundlePage,
 		pages.NewHostnamePage,
 		pages.NewConfigKernelPage,
+		pages.NewSwupdConfigPage,
 
 		// always last
 		pages.NewInstallPage,
@@ -545,19 +546,22 @@ func (window *Window) pageClosed(applied bool) {
 
 	// Let installation continue if possible
 	done := window.menu.screens[ContentViewRequired].IsDone()
-	window.buttons.install.SetSensitive(done)
 
-	// Reset the SummaryWidget for responsible controller
-	window.menu.screens[window.menu.currentPage.IsRequired()].UpdateView(window.menu.currentPage)
+	if window.menu.currentPage.IsDone() {
+		window.buttons.install.SetSensitive(done)
 
-	// Reset currentPage
-	window.menu.currentPage = nil
+		// Reset the SummaryWidget for responsible controller
+		window.menu.screens[window.menu.currentPage.IsRequired()].UpdateView(window.menu.currentPage)
 
-	// Switch UI back to primary view
-	window.rootStack.SetVisibleChildName("menu")
-	window.banner.Show()
-	window.menu.switcher.Show()
-	window.buttons.stack.SetVisibleChildName("primary")
+		// Reset currentPage
+		window.menu.currentPage = nil
+
+		// Switch UI back to primary view
+		window.rootStack.SetVisibleChildName("menu")
+		window.banner.Show()
+		window.menu.switcher.Show()
+		window.buttons.stack.SetVisibleChildName("primary")
+	}
 }
 
 // ActivatePage customizes common widgets and displays the page
