@@ -623,3 +623,61 @@ msgstr "您可能需要从附件中删除任何值得关注的个人数据。"
 
 msgid "The Installer will now exit."
 msgstr "安装程序现在将退出。"
+
+msgid "Mirror URL"
+msgstr "镜子 URL"
+
+msgid "Specify a different installation source (swupd) URL than the default."
+msgstr "指定与默认安装源(swupd) URL 不同的 URL。"
+
+msgid "HTTPS sites must use a publicly signed CA."
+msgstr "HTTPS 站点必须使用公开签名的 CA。"
+
+msgid "Automatic OS Updates"
+msgstr "自动操作系统更新"
+
+msgid "Allow Clear Linux* OS to continuously update as new versions are released."
+msgstr "允许 Clear Linux* OS 在发布新版本时持续更新。"
+
+msgid "This is the default, preferred behavior for Clear Linux* OS to ensure that the latest security concerns are always addressed."
+msgstr "这是 Clear Linux* OS 的默认首选行为,可确保始终解决最新的安全问题。"
+
+msgid "To enable this post installation use:"
+msgstr "要启用此安装后使用:"
+
+#, c-format
+msgid "See %s for more information."
+msgstr "有关详细信息,请参阅 %s。"
+
+msgid "Enable Auto Updates"
+msgstr "启用自动更新"
+
+msgid "WARNING: Disabling Automatic OS Updates puts the system at risk of missing critical security patches."
+msgstr "警告: 禁用自动操作系统更新会使系统面临丢失关键安全修补程序的风险。"
+
+msgid "Invalid URL"
+msgstr "无效 URL"
+
+msgid "Mirror not set correctly"
+msgstr "镜像设置不正确"
+
+msgid "Software Updater Configuration"
+msgstr "软件更新器配置"
+
+msgid "Auto updates enabled"
+msgstr "启用自动更新"
+
+msgid "Auto updates disabled"
+msgstr "已禁用自动更新"
+
+msgid ". Custom mirror set."
+msgstr ".自定义镜像集。"
+
+msgid "Server not responding"
+msgstr "服务器未响应"
+
+msgid "Server does not report any version"
+msgstr "服务器不报告任何版本"
+
+msgid "Version URL of mirror not found"
+msgstr "未找到镜像的版本 URL"

@@ -39,10 +39,10 @@ const (
 	AutoUpdateTitle = "Automatic OS Updates"
 
 	// AutoUpdateDesc1 specifies line 1 of auto updates desc
-	AutoUpdateDesc1 = "Allow Clear Linux OS to continuously update as new versions are released."
+	AutoUpdateDesc1 = "Allow Clear Linux* OS to continuously update as new versions are released."
 
 	// AutoUpdateDesc2 specifies line 2 of auto updates desc
-	AutoUpdateDesc2 = "This is the default, preferred behavior for Clear Linux OS to ensure that the latest security concerns are always addressed."
+	AutoUpdateDesc2 = "This is the default, preferred behavior for Clear Linux* OS to ensure that the latest security concerns are always addressed."
 
 	// AutoUpdateDesc3 specifies line 3 of auto updates desc
 	AutoUpdateDesc3 = "To enable this post installation use:"
@@ -564,7 +564,7 @@ func parseSwupdMirror(data []byte) (string, error) {
 	match := versionExp.FindSubmatch(data)
 
 	if len(match) != 2 {
-		return "", errors.Errorf(utils.Locale.Get("swupd mirror Version %s not found", "URL"))
+		return "", errors.Errorf(utils.Locale.Get("Version URL of mirror not found"))
 	}
 
 	return string(match[1]), nil

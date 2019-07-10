@@ -623,3 +623,61 @@ msgstr "Es posible que deba eliminar cualquier dato personal de preocupación de
 
 msgid "The Installer will now exit."
 msgstr "El instalador se cerrará ahora."
+
+msgid "Mirror URL"
+msgstr "URL de espejo"
+
+msgid "Specify a different installation source (swupd) URL than the default."
+msgstr "Especifique un origen de instalación (swupd) URL diferente al predeterminado."
+
+msgid "HTTPS sites must use a publicly signed CA."
+msgstr "Los sitios HTTPS deben usar una CA firmada públicamente."
+
+msgid "Automatic OS Updates"
+msgstr "Actualizaciones automáticas del sistema operativo"
+
+msgid "Allow Clear Linux* OS to continuously update as new versions are released."
+msgstr "Permita que Clear Linux* OS se actualice continuamente a medida que se lanzan nuevas versiones."
+
+msgid "This is the default, preferred behavior for Clear Linux* OS to ensure that the latest security concerns are always addressed."
+msgstr "Este es el comportamiento predeterminado y preferido para Clear Linux* OS para asegurarse de que siempre se abordan los problemas de seguridad más recientes."
+
+msgid "To enable this post installation use:"
+msgstr "Para habilitar este uso posterior a la instalación:"
+
+#, c-format
+msgid "See %s for more information."
+msgstr "Consulte %s para obtener más información."
+
+msgid "Enable Auto Updates"
+msgstr "Habilitar actualizaciones automáticas"
+
+msgid "WARNING: Disabling Automatic OS Updates puts the system at risk of missing critical security patches."
+msgstr "ADVERTENCIA: La desactivación de las actualizaciones automáticas del sistema operativo pone al sistema en riesgo de perder parches de seguridad críticos."
+
+msgid "Invalid URL"
+msgstr "URL no válida"
+
+msgid "Mirror not set correctly"
+msgstr "Espejo no configurado correctamente"
+
+msgid "Software Updater Configuration"
+msgstr "Configuración del actualizador de software"
+
+msgid "Auto updates enabled"
+msgstr "Actualizaciones automáticas habilitadas"
+
+msgid "Auto updates disabled"
+msgstr "Actualizaciones automáticas desactivadas"
+
+msgid ". Custom mirror set."
+msgstr ". Conjunto de espejos personalizado."
+
+msgid "Server not responding"
+msgstr "Servidor que no responde"
+
+msgid "Server does not report any version"
+msgstr "El servidor no informa de ninguna versión"
+
+msgid "Version URL of mirror not found"
+msgstr "Versión URL del espejo no encontrada"
