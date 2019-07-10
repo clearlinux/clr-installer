@@ -28,12 +28,9 @@ targetMedia:
 
 bundles: [
     bootloader,
-    editors,
-    network-basic,
     openssh-server,
     os-core,
     os-core-update,
-    sysadmin-basic,
   ]
 
 autoUpdate: false
