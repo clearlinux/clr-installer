@@ -4,12 +4,13 @@
 echo "Creating custom telemetry configuration for $1"
 mkdir -p $1/etc/telemetrics/
 
-cp $1/usr/share/defaults/telemetrics/telemetrics.conf \
-   $1/etc/telemetrics/telemetrics.conf
-
-sed -i -e '/server=/s/clr.telemetry.intel.com/localhost/' \
-    -e '/spool_process_time/s/=120/=300/' \
-    -e '/record_retention_enabled/s/=false/=true/' \
-    $1/etc/telemetrics/telemetrics.conf
+# Create configuration to keep data private
+if [[ ! -f "$1/etc/telemetrics/telemetrics.conf" ]];then
+        cat <<EOF > $1/etc/telemetrics/telemetrics.conf
+server=http://localhost/v2/collector
+record_server_delivery_enabled=false
+record_retention_enabled=true
+EOF
+fi
 
 exit 0

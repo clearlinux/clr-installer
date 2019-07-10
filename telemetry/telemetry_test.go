@@ -5,13 +5,11 @@
 package telemetry
 
 import (
-	"bytes"
 	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -236,14 +234,6 @@ func TestWriteTargetConfig(t *testing.T) {
 		_ = os.RemoveAll(dir)
 	}()
 
-	defConfFile := filepath.Join(dir, defaultTelemetryConf)
-	defConfDir := filepath.Dir(defConfFile)
-	if err = utils.MkdirAll(defConfDir, 0755); err != nil {
-		t.Fatalf("Failed to create directories to write config file: %v\n", err)
-	}
-	if copyErr := utils.CopyFile(defaultTelemetryConf, defConfFile); copyErr != nil {
-		t.Fatalf("Failed to copy default config file %q: %v\n", defaultTelemetryConf, copyErr)
-	}
 	err = telem.CreateTelemetryConf(dir)
 	if err != nil {
 		t.Fatalf("Should have succeeded to write config file: %v\n", err)
@@ -287,72 +277,6 @@ func TestFailedToWriteTargetConfig(t *testing.T) {
 	}
 }
 
-func TestWriteLocalConfig(t *testing.T) {
-	var url string
-	tid := "MyTid"
-	policy := "Policy of the State"
-
-	telem := &Telemetry{
-		URL: url,
-		TID: tid,
-	}
-
-	if !utils.IsClearLinux() {
-		t.Skip("Not a Clear Linux system, skipping test")
-	}
-
-	if utils.IsRoot() {
-		custConf := "/etc/telemetrics/telemetrics.conf"
-		if doesExist, existsErr := utils.FileExists(custConf); doesExist {
-			// Save a copy of the custom file
-			copyConf := custConf + ".orig"
-			if copyErr := utils.CopyFile(custConf, copyConf); copyErr != nil {
-				t.Fatalf("Failed to copy local conf %q: %v\n", custConf, copyErr)
-			}
-
-			defer func() {
-				if copyErr := utils.CopyFile(copyConf, custConf); copyErr != nil {
-					t.Fatalf("Failed to restore local conf %q: %v\n", custConf, copyErr)
-				} else {
-					_ = os.Remove(copyConf)
-					_ = telem.RestartLocalTelemetryServer()
-				}
-			}()
-		} else {
-			if existsErr != nil {
-				t.Fatalf("Telemetry: Failed to detect %q file for testing: %s\n", custConf, existsErr)
-			}
-		}
-	} else {
-		t.Skip("Not running as 'root', skipping Local Config write test")
-	}
-
-	url = "http://www.google.com"
-	if err := telem.SetTelemetryServer(url, tid, policy); err != nil {
-		t.Fatalf("Setting telemetry server (%q) should not return error: %s\n", url, err)
-	}
-
-	err := telem.CreateLocalTelemetryConf()
-	if err != nil {
-		t.Fatal("Should have succeeded to write local config file")
-	}
-
-	err = telem.UpdateLocalTelemetryServer()
-	if err != nil {
-		t.Fatal("Should have succeeded to update local config file")
-	}
-
-	err = telem.StopLocalTelemetryServer()
-	if err != nil {
-		t.Fatal("Should have succeeded to stop local config file")
-	}
-
-	err = telem.RestartLocalTelemetryServer()
-	if err != nil {
-		t.Fatal("Should have succeeded to restart local config file")
-	}
-}
-
 func TestCopyRecords(t *testing.T) {
 	var url string
 	tid := "MyTid"
@@ -387,29 +311,7 @@ func TestCopyRecords(t *testing.T) {
 
 	err = telem.CopyTelemetryRecords(dir)
 	if err != nil {
-		t.Fatal("Should have succeeded to copy telemetry records")
-	}
-}
-
-// Since the Telemetry login is highly dependent on the contents of
-// the default telemetry configuration file, this text ensures that
-// the file has not changed.
-func TestConfigNotChanged(t *testing.T) {
-	if !utils.IsClearLinux() {
-		t.Skip("Not a Clear Linux system, skipping test")
-	}
-
-	w := bytes.NewBuffer(nil)
-
-	baseConf := filepath.Join(testsDir, "telemetrics.conf")
-
-	err := cmd.Run(w, "diff", baseConf, defaultTelemetryConf)
-	if err != nil {
-		if result := w.String(); result != "" {
-			t.Fatalf("Baseline telemetrics.conf file has changed:%s\n", result)
-		} else {
-			t.Fatalf("Failed to compare telemetrics.conf file : %v\n", err)
-		}
+		t.Fatalf("Should have succeeded to copy telemetry records, %s", err)
 	}
 }
 
@@ -418,4 +320,22 @@ func TestTelemetryRunningEnvironment(t *testing.T) {
 	telem := &Telemetry{}
 	hypervisor := telem.RunningEnvironment()
 	t.Logf("TestTelemetryRunningEnvironment: hypervisor: %s", hypervisor)
+}
+
+// Validate randomString
+func TestRandomString(t *testing.T) {
+	if str, _ := randomString(); len(str) == 0 {
+		t.Fatal("randomString should return more than 0 characters")
+	}
+}
+
+// Generating record
+func TestLogRecord(t *testing.T) {
+	telem := &Telemetry{}
+	if !utils.IsRoot() {
+		t.Skip("Not running as 'root', skipping log record test")
+	}
+	if err := telem.LogRecord("success", 2, "Hello"); err != nil {
+		t.Logf("TestLogRecord failed with %s", err)
+	}
 }
