@@ -107,12 +107,12 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 		{"bundle selection", newBundlePage},
 		{"add manager", newUserManagerPage},
 		{"add user", newUseraddPage},
+		{"hostname", newHostnamePage},
 		{"telemetry enabling", newTelemetryPage},
 		{"kernel cmdline", newKernelCMDLine},
 		{"kernel selection", newKernelPage},
 		{"install", newInstallPage},
 		{"swupd mirror", newSwupdMirrorPage},
-		{"hostname", newHostnamePage},
 		{"autoupdate", newAutoUpdatePage},
 		{"save config", newSaveConfigPage},
 	}
