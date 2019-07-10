@@ -89,20 +89,6 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		if err = applyHooks("pre-install", vars, model.PreInstall); err != nil {
 			return err
 		}
-
-		if model.Telemetry.Enabled {
-			if err = model.Telemetry.CreateLocalTelemetryConf(); err != nil {
-				return err
-			}
-			if model.Telemetry.URL != "" {
-				if err = model.Telemetry.UpdateLocalTelemetryServer(); err != nil {
-					return err
-				}
-			}
-			if err = model.Telemetry.RestartLocalTelemetryServer(); err != nil {
-				return err
-			}
-		}
 	}
 
 	if model.Version == 0 {
@@ -748,14 +734,6 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 	}
 
 	if md.IsTelemetryEnabled() {
-		// Give Telemetry a chance to send before we shutdown and copy
-		time.Sleep(2 * time.Second)
-
-		if err := md.Telemetry.StopLocalTelemetryServer(); err != nil {
-			log.Warning("Failed to stop image Telemetry server")
-			errMsgs = append(errMsgs, "Failed to stop image Telemetry server")
-		}
-
 		log.Info("Copying telemetry records to target system.")
 		if err := md.Telemetry.CopyTelemetryRecords(rootDir); err != nil {
 			log.Warning("Failed to copy image Telemetry data")
