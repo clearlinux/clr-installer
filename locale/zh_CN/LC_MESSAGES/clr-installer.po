@@ -670,8 +670,8 @@ msgstr "启用自动更新"
 msgid "Auto updates disabled"
 msgstr "已禁用自动更新"
 
-msgid ". Custom mirror set."
-msgstr ".自定义镜像集。"
+msgid "Custom mirror set."
+msgstr "自定义镜像集。"
 
 msgid "Server not responding"
 msgstr "服务器未响应"
@@ -681,3 +681,6 @@ msgstr "服务器不报告任何版本"
 
 msgid "Version URL of mirror not found"
 msgstr "未找到镜像的版本 URL"
+
+msgid "."
+msgstr "。"

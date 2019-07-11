@@ -670,8 +670,8 @@ msgstr "Actualizaciones automáticas habilitadas"
 msgid "Auto updates disabled"
 msgstr "Actualizaciones automáticas desactivadas"
 
-msgid ". Custom mirror set."
-msgstr ". Conjunto de espejos personalizado."
+msgid "Custom mirror set."
+msgstr "Conjunto de espejos personalizado."
 
 msgid "Server not responding"
 msgstr "Servidor que no responde"
@@ -681,3 +681,6 @@ msgstr "El servidor no informa de ninguna versión"
 
 msgid "Version URL of mirror not found"
 msgstr "Versión URL del espejo no encontrada"
+
+msgid "."
+msgstr "."

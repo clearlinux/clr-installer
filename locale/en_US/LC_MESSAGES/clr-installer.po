@@ -670,8 +670,8 @@ msgstr "Auto updates enabled"
 msgid "Auto updates disabled"
 msgstr "Auto updates disabled"
 
-msgid ". Custom mirror set."
-msgstr ". Custom mirror set."
+msgid "Custom mirror set."
+msgstr "Custom mirror set."
 
 msgid "Server not responding"
 msgstr "Server not responding"
@@ -681,3 +681,6 @@ msgstr "Server does not report any version"
 
 msgid "Version URL of mirror not found"
 msgstr "Version URL of mirror not found"
+
+msgid "."
+msgstr "."

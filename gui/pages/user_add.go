@@ -438,6 +438,8 @@ func (page *UserAddPage) setSimilarWidgets(entryText, rulesText string, maxSize 
 		return nil, nil, err
 	}
 	rulesLabel.SetMarginStart(CommonSetting + common.StartEndMargin)
+	rulesLabel.SetMaxWidthChars(1) // The value does not matter but its required for LineWrap to work
+	rulesLabel.SetLineWrap(true)
 	page.box.PackStart(rulesLabel, false, false, 0)
 
 	// Warning
@@ -446,6 +448,8 @@ func (page *UserAddPage) setSimilarWidgets(entryText, rulesText string, maxSize 
 		return nil, nil, err
 	}
 	warningLabel.SetMarginStart(CommonSetting + common.StartEndMargin)
+	warningLabel.SetMaxWidthChars(1) // The value does not matter but its required for LineWrap to work
+	warningLabel.SetLineWrap(true)
 	page.box.PackStart(warningLabel, false, false, 0)
 
 	return entry, warningLabel, err
@@ -467,6 +471,8 @@ func (page *UserAddPage) setPasswordWidgets(rulesText string, maxSize int) (*gtk
 		return nil, nil, nil, err
 	}
 	rulesLabel.SetMarginStart(CommonSetting + common.StartEndMargin)
+	rulesLabel.SetMaxWidthChars(1) // The value does not matter but its required for LineWrap to work
+	rulesLabel.SetLineWrap(true)
 	page.box.PackStart(rulesLabel, false, false, 0)
 
 	boxPasswordConfirm, passwordConfirm, err := setLabelAndEntry(utils.Locale.Get("Confirm")+" *", maxSize)
@@ -484,6 +490,8 @@ func (page *UserAddPage) setPasswordWidgets(rulesText string, maxSize int) (*gtk
 		return nil, nil, nil, err
 	}
 	warningLabel.SetMarginStart(CommonSetting + common.StartEndMargin)
+	warningLabel.SetMaxWidthChars(1) // The value does not matter but its required for LineWrap to work
+	warningLabel.SetLineWrap(true)
 	page.box.PackStart(warningLabel, false, false, 0)
 
 	return password, passwordConfirm, warningLabel, err
