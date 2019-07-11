@@ -67,6 +67,8 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 		return nil, err
 	}
 	page.mirrorDesc.SetMarginStart(common.StartEndMargin)
+	page.mirrorDesc.SetMaxWidthChars(1) // The value does not matter but its required for LineWrap to work
+	page.mirrorDesc.SetLineWrap(true)
 	page.box.PackStart(page.mirrorDesc, false, false, 10)
 
 	page.mirrorEntry, err = setEntry("entry-no-top-margin")
@@ -83,6 +85,8 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 	}
 	page.mirrorWarning.SetMarginStart(common.StartEndMargin)
 	page.mirrorWarning.SetMarginBottom(common.TopBottomMargin)
+	page.mirrorWarning.SetMaxWidthChars(1) // The value does not matter but its required for LineWrap to work
+	page.mirrorWarning.SetLineWrap(true)
 	page.box.PackStart(page.mirrorWarning, false, false, 0)
 	if _, err := page.mirrorEntry.Connect("changed", page.onMirrorChange); err != nil {
 		return nil, err
@@ -111,6 +115,8 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 	}
 	page.autoUpdateDesc.SetMarginStart(common.StartEndMargin)
 	page.autoUpdateDesc.SetMarginTop(common.TopBottomMargin)
+	page.autoUpdateDesc.SetMaxWidthChars(1) // The value does not matter but its required for LineWrap to work
+	page.autoUpdateDesc.SetLineWrap(true)
 	page.autoUpdateDesc.SetSelectable(true)
 	page.box.PackStart(page.autoUpdateDesc, false, false, 0)
 
@@ -139,7 +145,8 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 		return nil, err
 	}
 	page.autoUpdateWarning.SetMarginStart(common.StartEndMargin)
-	page.autoUpdateWarning.SetSelectable(true)
+	page.autoUpdateWarning.SetMaxWidthChars(1) // The value does not matter but its required for LineWrap to work
+	page.autoUpdateWarning.SetLineWrap(true)
 	page.box.PackStart(page.autoUpdateWarning, false, false, 0)
 
 	return page, nil
@@ -277,7 +284,7 @@ func (page *SwupdConfigPage) GetConfiguredValue() string {
 	}
 
 	if page.model.SwupdMirror != "" {
-		ret += utils.Locale.Get(". Custom mirror set.")
+		ret += utils.Locale.Get(".") + " " + utils.Locale.Get("Custom mirror set.")
 	}
 
 	return ret
