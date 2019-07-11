@@ -17,7 +17,7 @@ type Telemetry struct {
 	model      *model.SystemInstall
 	controller Controller
 	box        *gtk.Box
-	didConfirm bool
+	done       bool
 	firstLoad  bool // Keeps track if the page was loaded for the first time.
 }
 
@@ -46,7 +46,7 @@ func NewTelemetryPage(controller Controller, model *model.SystemInstall) (Page, 
 		controller: controller,
 		model:      model,
 		box:        box,
-		didConfirm: false,
+		done:       false,
 		firstLoad:  true,
 	}, nil
 }
@@ -58,7 +58,7 @@ func (page *Telemetry) IsRequired() bool {
 
 // IsDone checks if all the steps are completed
 func (page *Telemetry) IsDone() bool {
-	return page.didConfirm
+	return page.done
 }
 
 // GetID returns the ID for this page
@@ -88,24 +88,24 @@ func (page *Telemetry) GetTitle() string {
 
 // StoreChanges will store this pages changes into the model
 func (page *Telemetry) StoreChanges() {
-	page.didConfirm = true
+	page.done = true
 	page.model.EnableTelemetry(true)
 }
 
 // ResetChanges will reset this page to match the model
 func (page *Telemetry) ResetChanges() {
 	if page.firstLoad {
-		page.didConfirm = false
+		page.done = false
 		page.firstLoad = false
 	} else {
-		page.didConfirm = true
+		page.done = true
 	}
 	page.model.EnableTelemetry(false)
 }
 
 // GetConfiguredValue returns our current config
 func (page *Telemetry) GetConfiguredValue() string {
-	if page.didConfirm {
+	if page.done {
 		if page.model.IsTelemetryEnabled() {
 			return utils.Locale.Get("Enabled")
 		}
