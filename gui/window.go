@@ -131,7 +131,6 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 		return nil, err
 	}
 
-	// Set up the content layout within main layout
 	window.mainLayout, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
 		return nil, err
@@ -216,7 +215,7 @@ func (window *Window) createWelcomePage() (*Window, error) {
 	}
 
 	// Create footer area now
-	if err = window.CreateFooter(window.contentLayout); err != nil {
+	if err = window.CreateFooter(); err != nil {
 		return nil, err
 	}
 
@@ -277,7 +276,7 @@ func (window *Window) createMenuPages() (*Window, error) {
 	window.contentLayout.PackStart(window.rootStack, true, true, 0)
 
 	// Create footer area
-	if err = window.UpdateFooter(window.contentLayout); err != nil {
+	if err = window.UpdateFooter(); err != nil {
 		return nil, err
 	}
 
@@ -407,7 +406,7 @@ func createNavButton(label, style string) (*gtk.Button, error) {
 }
 
 // CreateFooter creates the navigation footer area
-func (window *Window) CreateFooter(store *gtk.Box) error {
+func (window *Window) CreateFooter() error {
 	var err error
 
 	// Create stack for buttons
@@ -421,7 +420,7 @@ func (window *Window) CreateFooter(store *gtk.Box) error {
 	window.buttons.stack.SetMarginEnd(18)
 	window.buttons.stack.SetHAlign(gtk.ALIGN_FILL)
 	window.buttons.stack.SetTransitionType(gtk.STACK_TRANSITION_TYPE_CROSSFADE)
-	store.PackEnd(window.buttons.stack, false, false, 0)
+	window.contentLayout.PackEnd(window.buttons.stack, false, false, 0)
 
 	// Create box for welcome page buttons
 	if window.buttons.boxWelcome, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0); err != nil {
@@ -432,7 +431,7 @@ func (window *Window) CreateFooter(store *gtk.Box) error {
 	if window.buttons.next, err = createNavButton(utils.Locale.Get("NEXT"), "button-confirm"); err != nil {
 		return err
 	}
-	if _, err = window.buttons.next.Connect("clicked", func() { window.pageNext() }); err != nil {
+	if _, err = window.buttons.next.Connect("clicked", func() { window.onNextClick() }); err != nil {
 		return err
 	}
 
@@ -455,7 +454,7 @@ func (window *Window) CreateFooter(store *gtk.Box) error {
 }
 
 // UpdateFooter updates the navigation footer area
-func (window *Window) UpdateFooter(store *gtk.Box) error {
+func (window *Window) UpdateFooter() error {
 	var err error
 
 	// Install button
@@ -490,7 +489,7 @@ func (window *Window) UpdateFooter(store *gtk.Box) error {
 	if window.buttons.confirm, err = createNavButton(utils.Locale.Get("CONFIRM"), "button-confirm"); err != nil {
 		return err
 	}
-	if _, err = window.buttons.confirm.Connect("clicked", func() { window.pageClosed(true) }); err != nil {
+	if _, err = window.buttons.confirm.Connect("clicked", func() { window.onConfirmClick() }); err != nil {
 		return err
 	}
 
@@ -498,7 +497,7 @@ func (window *Window) UpdateFooter(store *gtk.Box) error {
 	if window.buttons.cancel, err = createNavButton(utils.Locale.Get("CANCEL"), "button-cancel"); err != nil {
 		return err
 	}
-	if _, err = window.buttons.cancel.Connect("clicked", func() { window.pageClosed(false) }); err != nil {
+	if _, err = window.buttons.cancel.Connect("clicked", func() { window.onCancelClick() }); err != nil {
 		return err
 	}
 
@@ -524,8 +523,8 @@ func (window *Window) UpdateFooter(store *gtk.Box) error {
 	return nil
 }
 
-// pageNext handles next page.
-func (window *Window) pageNext() {
+// onNextClick handles the Next button click
+func (window *Window) onNextClick() {
 	if !window.preCheckDone { // If pre-check has not been done at least once, launch the pre-check view first
 		window.launchPreCheckView()
 		window.preCheckDone = true
@@ -534,34 +533,40 @@ func (window *Window) pageNext() {
 	}
 }
 
-// pageClosed handles closure of a page.
-func (window *Window) pageClosed(applied bool) {
-	// If applied, tell page to stash in model
-	// otherwise, reset from existing model
-	if applied {
-		window.menu.currentPage.StoreChanges()
-	} else {
-		window.menu.currentPage.ResetChanges()
-	}
+// onConfirmClick handles the Confirm button click.
+func (window *Window) onConfirmClick() {
+	window.menu.currentPage.StoreChanges()
 
-	// Let installation continue if possible
-	done := window.menu.screens[ContentViewRequired].IsDone()
-
+	// Close the page only if the page is done.
 	if window.menu.currentPage.IsDone() {
-		window.buttons.install.SetSensitive(done)
-
-		// Reset the SummaryWidget for responsible controller
-		window.menu.screens[window.menu.currentPage.IsRequired()].UpdateView(window.menu.currentPage)
-
-		// Reset currentPage
-		window.menu.currentPage = nil
-
-		// Switch UI back to primary view
-		window.rootStack.SetVisibleChildName("menu")
-		window.banner.Show()
-		window.menu.switcher.Show()
-		window.buttons.stack.SetVisibleChildName("primary")
+		window.closePage()
 	}
+}
+
+// onCancelClick handles the Cancel button click.
+func (window *Window) onCancelClick() {
+	window.menu.currentPage.ResetChanges()
+
+	window.closePage()
+}
+
+// closePage closes the current page and displays the Menu page
+func (window *Window) closePage() {
+	// Reset the SummaryWidget for responsible controller
+	window.menu.screens[window.menu.currentPage.IsRequired()].UpdateView(window.menu.currentPage)
+
+	// Reset currentPage
+	window.menu.currentPage = nil
+
+	// Switch UI back to primary view
+	window.rootStack.SetVisibleChildName("menu")
+	window.banner.Show()
+	window.menu.switcher.Show()
+	window.buttons.stack.SetVisibleChildName("primary")
+
+	// Enable installation if all required pages are done
+	requiredDone := window.menu.screens[ContentViewRequired].IsDone()
+	window.buttons.install.SetSensitive(requiredDone)
 }
 
 // ActivatePage customizes common widgets and displays the page
