@@ -121,6 +121,9 @@ const (
 
 	// BlockDeviceStateLive identifies a BlockDevice as live
 	BlockDeviceStateLive
+	
+	// BlockDeviceStateConnected identifies a BlockDevice as Connected
+	BlockDeviceStateConnected
 
 	// MinimumPartitionSize is smallest size for any partition
 	MinimumPartitionSize = 1048576
@@ -155,9 +158,10 @@ var (
 	mountExp            = regexp.MustCompile(`^(/|(/[[:word:]-+_]+)+)$`)
 	devNameSuffixExp    = regexp.MustCompile(`([0-9]*)$`)
 	blockDeviceStateMap = map[BlockDeviceState]string{
-		BlockDeviceStateRunning: "running",
-		BlockDeviceStateLive:    "live",
-		BlockDeviceStateUnknown: "",
+		BlockDeviceStateRunning:   "running",
+		BlockDeviceStateLive:      "live",
+		BlockDeviceStateConnected: "Connected",
+		BlockDeviceStateUnknown:   "",
 	}
 	blockDeviceTypeMap = map[BlockDeviceType]string{
 		BlockDeviceTypeDisk:       "disk",
