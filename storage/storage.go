@@ -121,7 +121,7 @@ const (
 
 	// BlockDeviceStateLive identifies a BlockDevice as live
 	BlockDeviceStateLive
-	
+
 	// BlockDeviceStateConnected identifies a BlockDevice as Connected
 	BlockDeviceStateConnected
 
