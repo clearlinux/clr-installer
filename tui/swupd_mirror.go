@@ -5,8 +5,6 @@
 package tui
 
 import (
-	"net/url"
-
 	"github.com/VladimirMarkelov/clui"
 
 	"github.com/clearlinux/clr-installer/swupd"
@@ -86,11 +84,8 @@ func newSwupdMirrorPage(tui *Tui) (Page, error) {
 		warning := ""
 		userURL := page.swupdMirrorEdit.Title()
 
-		if userURL != "" {
-			_, err := url.ParseRequestURI(page.swupdMirrorEdit.Title())
-			if err != nil {
-				warning = swupd.InvalidURL
-			}
+		if userURL != "" && swupd.IsValidMirror(userURL) == false {
+			warning = swupd.InvalidURL
 		}
 
 		page.swupdMirrorWarning.SetTitle(warning)

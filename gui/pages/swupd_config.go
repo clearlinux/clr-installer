@@ -5,8 +5,6 @@
 package pages
 
 import (
-	"net/url"
-
 	"github.com/gotk3/gotk3/gtk"
 
 	"github.com/clearlinux/clr-installer/gui/common"
@@ -155,11 +153,8 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 func (page *SwupdConfigPage) onMirrorChange(entry *gtk.Entry) {
 	mirror := getTextFromEntry(entry)
 	page.mirrorWarning.SetText("")
-	if mirror != "" {
-		_, err := url.ParseRequestURI(mirror)
-		if err != nil {
-			page.mirrorWarning.SetText(utils.Locale.Get(swupd.InvalidURL))
-		}
+	if mirror != "" && swupd.IsValidMirror(mirror) == false {
+		page.mirrorWarning.SetText(utils.Locale.Get(swupd.InvalidURL))
 	}
 
 	page.setConfirmButton()
