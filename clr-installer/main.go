@@ -43,13 +43,6 @@ var (
 )
 
 func fatal(err error) {
-	if lock != "" {
-		lErr := lock.Unlock()
-		if lErr != nil {
-			fmt.Printf("Cannot lock %q, reason: %v\n", lock, lErr)
-		}
-	}
-
 	log.ErrorError(err)
 	panic(err)
 }
@@ -166,16 +159,16 @@ func main() {
 	}
 
 	lockFile = strings.TrimSuffix(options.LogFile, ".log") + ".lock"
-	lock, err := lockfile.New(lockFile)
+	lock, err = lockfile.New(lockFile)
 	if err != nil {
 		fmt.Printf("Cannot initialize lock. reason: %v\n", err)
-		os.Exit(1)
+		fatal(err)
 	}
 
 	err = lock.TryLock()
 	if err != nil {
 		fmt.Printf("Cannot lock %q, reason: %v\n", lock, err)
-		os.Exit(1)
+		fatal(err)
 	}
 
 	defer func() { _ = lock.Unlock() }()
@@ -184,6 +177,7 @@ func main() {
 
 	sigs := make(chan os.Signal, 1)
 	done := make(chan bool, 1)
+	errChan := make(chan error)
 
 	signal.Notify(sigs, os.Interrupt, syscall.SIGINT, syscall.SIGTERM,
 		syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP,
@@ -300,9 +294,9 @@ func main() {
 	if options.SystemCheck {
 		err = syscheck.RunSystemCheck(false)
 		if err != nil {
-			os.Exit(1)
+			fatal(err)
 		} else {
-			os.Exit(0)
+			return
 		}
 	}
 
@@ -326,11 +320,10 @@ func main() {
 
 				if errors.IsValidationError(err) {
 					fmt.Println("Error: Invalid configuration:")
-					fmt.Printf("  %s\n", err)
-					os.Exit(1)
+					errChan <- err
 				} else {
 					log.RequestCrashInfo()
-					fatal(err)
+					errChan <- err
 				}
 			}
 
@@ -349,7 +342,12 @@ func main() {
 		done <- true
 	}()
 
-	<-done
+	select {
+	case <-done:
+		break
+	case err = <-errChan:
+		fatal(err)
+	}
 
 	// Stop the signal handlers
 	// or we get a SIGTERM from reboot
