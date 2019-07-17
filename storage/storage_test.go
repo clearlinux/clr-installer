@@ -572,7 +572,7 @@ func TestWritePartition(t *testing.T) {
 		bd.Children = children
 
 		//write the partition table
-		if err = bd.WritePartitionTable(false, true); err != nil {
+		if err = bd.WritePartitionTable(false, true, nil); err != nil {
 			t.Fatalf("Could not write partition table (%s): %s", file, err)
 		}
 

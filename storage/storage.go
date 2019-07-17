@@ -135,11 +135,29 @@ const (
 	// SafePartialWarning specifies the warning message for partial disk partition
 	SafePartialWarning = "Selected media will have partitions added."
 
+	// MediaToBeUsed identified a disk which will be used during the installation
+	MediaToBeUsed = "Selected media will be used for installation."
+
 	// DestructiveWarning specifies the warning message for destructive installation
 	DestructiveWarning = "WARNING: Selected media will be erased."
 
 	// DataLossWarning specifies the warning message for data loss installation
 	DataLossWarning = "WARNING: Selected media will have data loss."
+
+	// RemoveParitionWarning specifies the warning message for removing a media partition
+	RemoveParitionWarning = "WARNING: partition will be removed."
+
+	// AddPartitionInfo specifies the warning message for removing a media partition
+	AddPartitionInfo = "Adding new partition."
+
+	// FailedPartitionWarning specifies the warning message when we can not find partitions
+	FailedPartitionWarning = "WARNING: Failed to detected partition information."
+
+	// FormattingPartitionInfo specifies the warning message for formatting a media partition
+	FormattingPartitionInfo = "Formatting partition as %s."
+
+	// ReusingPartitionInfo specifies the warning message for reusing a media partition
+	ReusingPartitionInfo = "Reusing existing partition."
 
 	// ConfirmInstallation specifies the installation warning title
 	ConfirmInstallation = "Confirm Installation"

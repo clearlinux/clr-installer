@@ -218,31 +218,43 @@ func (bd *BlockDevice) WritePartitionLabel() error {
 }
 
 // WritePartitionTable writes the defined partitions to the actual block device
-func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) error {
+func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryRun *[]string) error {
 	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop {
 		return errors.Errorf("Type is partition, disk required")
 	}
 
+	var prg progress.Progress
+
 	//write the partition label
 	if wholeDisk {
-		if err := bd.WritePartitionLabel(); err != nil {
-			return err
+		if dryRun == nil {
+			if err := bd.WritePartitionLabel(); err != nil {
+				return err
+			}
+		} else {
+			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(DestructiveWarning))
 		}
 	} else {
-		log.Debug("WritePartitionTable: partial disk, skipping mklabel for %s", bd.Name)
+		if dryRun == nil {
+			log.Debug("WritePartitionTable: partial disk, skipping mklabel for %s", bd.Name)
+		}
 	}
 
 	mesg := utils.Locale.Get("Updating partition table for: %s", bd.Name)
-	prg := progress.NewLoop(mesg)
-	log.Info(mesg)
+	if dryRun == nil {
+		prg = progress.NewLoop(mesg)
+		log.Info(mesg)
+	}
 
 	var err error
 	var start uint64
 	maxFound := false
 
 	// First remove any user removed partitions
-	log.Debug("WritePartitionTable: remove partitions : %v", bd.removedParts)
 	if len(bd.removedParts) > 0 {
+		if dryRun == nil {
+			log.Debug("WritePartitionTable: remove partitions : %v", bd.removedParts)
+		}
 		rmArgs := []string{
 			"parted",
 			"-a",
@@ -253,11 +265,19 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) erro
 			"--",
 		}
 		for _, curr := range bd.removedParts {
-			rmArgs = append(rmArgs, fmt.Sprintf("rm %d", curr))
+			if dryRun == nil {
+				rmArgs = append(rmArgs, fmt.Sprintf("rm %d", curr))
+			} else {
+				*dryRun = append(*dryRun, fmt.Sprintf("%s: %s",
+					bd.GetNewPartitionName(curr),
+					utils.Locale.Get(RemoveParitionWarning)))
+			}
 		}
-		err = cmd.RunAndLog(rmArgs...)
-		if err != nil {
-			log.Warning("Failed to remove existing partition: %v (%s)", bd.removedParts, err)
+		if dryRun == nil {
+			err = cmd.RunAndLog(rmArgs...)
+			if err != nil {
+				log.Warning("Failed to remove existing partition: %v (%s)", bd.removedParts, err)
+			}
 		}
 	}
 
@@ -279,180 +299,192 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) erro
 
 	// Make the needed new partitions
 	for _, curr := range bd.Children {
-		log.Debug("WritePartitionTable: processing child: %v", curr)
-		baseArgs := []string{
-			"parted",
-			"-a",
-			"optimal",
-			bd.GetDeviceFile(),
-			"unit", "MB",
-			"--script",
-			"--",
+		if dryRun == nil {
+			log.Debug("WritePartitionTable: processing child: %v", curr)
+			baseArgs := []string{
+				"parted",
+				"-a",
+				"optimal",
+				bd.GetDeviceFile(),
+				"unit", "MB",
+				"--script",
+				"--",
+			}
+
+			if !curr.MakePartition {
+				if dryRun == nil {
+					log.Debug("WritePartitionTable: skipping partition %s", curr.Name)
+				}
+				continue
+			}
+
+			var mkPart string
+
+			op, found := bdOps[curr.FsType]
+			if !found {
+				return errors.Errorf("No makePartCommand() implementation for: %s",
+					curr.FsType)
+			}
+
+			mkPart, err = op.makePartCommand(curr)
+			if err != nil {
+				return err
+			}
+
+			size := uint64(curr.Size)
+			end := start + size
+			if !wholeDisk {
+				start, end = bd.getPartitionStartEnd(curr.partition)
+			} else {
+				log.Debug("WritePartitionTable: WholeDisk mode")
+			}
+			log.Debug("WritePartitionTable: start: %d, end: %d", start, end)
+
+			if size < 1 {
+				if maxFound {
+					return errors.Errorf("Found more than one partition with size 0 for %s!", bd.Name)
+				}
+				maxFound = true
+				end = 0
+			}
+
+			retries := 3
+			for {
+				mkPartCmd := mkPart + " " + getStartEndMB(start, end)
+				log.Debug("WritePartitionTable: mkPartCmd: %s", mkPartCmd)
+
+				args := append(baseArgs, mkPartCmd)
+
+				err = cmd.RunAndLog(args...)
+
+				if err == nil || retries == 0 {
+					break
+				}
+
+				// Move the start position ahead one MB in an attempt
+				// to find a working optimal partition entry
+				start = start + (1000 * 1000)
+
+				retries--
+			}
+			if err != nil {
+				return errors.Wrap(err)
+			}
+
+			// Get the new list of partitions
+			newPartitions := bd.getPartitionList()
+			// The current partition is new one added
+			curr.SetPartitionNumber(findNewPartition(currentPartitions, newPartitions).Number)
+
+			start = end
+			currentPartitions = newPartitions
+		} else {
+			if curr.MakePartition {
+				size, _ := HumanReadableSizeWithPrecision(curr.Size, 1)
+				*dryRun = append(*dryRun, fmt.Sprintf("%s: %s [%s]",
+					bd.Name, utils.Locale.Get(AddPartitionInfo), size))
+			}
+		}
+	}
+
+	if dryRun == nil {
+		var bootPartition uint64
+		bootStyle := "boot"
+		guids := map[int]string{}
+
+		// Now that all new partitions are created,
+		// and we know their assigned numbers ...
+		for _, curr := range bd.Children {
+			// First, check if we have the standard /boot partition
+			// We have a /boot partition, use this
+			if curr.MountPoint == "/boot" {
+				bootPartition = curr.partition
+				if legacyBios {
+					bootStyle = "legacy_boot"
+				}
+			}
+
+			// Only set GUIDs on newly created partitions
+			if !curr.MakePartition {
+				continue
+			}
+
+			var guid string
+			guid, err = curr.getGUID()
+			if err != nil {
+				log.Warning("%s", err)
+			}
+
+			if curr.FsType != "swap" || curr.Type != BlockDeviceTypeCrypt {
+				guids[int(curr.partition)] = guid
+			}
 		}
 
-		if !curr.MakePartition {
-			log.Debug("WritePartitionTable: skipping partition %s", curr.Name)
-			continue
+		prg.Success()
+
+		msg := utils.Locale.Get("Adjusting filesystem configurations")
+		prg = progress.MultiStep(len(guids), msg)
+		log.Info(msg)
+		cnt := 1
+		for idx, guid := range guids {
+			if guid == "none" {
+				continue
+			}
+
+			args := []string{
+				"sgdisk",
+				bd.GetDeviceFile(),
+				fmt.Sprintf("--typecode=%d:%s", idx, guid),
+			}
+
+			err = cmd.RunAndLog(args...)
+			if err != nil {
+				return errors.Wrap(err)
+			}
+
+			prg.Partial(cnt)
+			cnt = cnt + 1
 		}
 
-		var mkPart string
+		// In case we didn't have a /boot partition, we
+		// need to set / as boot
+		for _, curr := range bd.Children {
+			// Only check for / in new partitions
+			if !curr.MakePartition {
+				continue
+			}
 
-		op, found := bdOps[curr.FsType]
-		if !found {
-			return errors.Errorf("No makePartCommand() implementation for: %s",
-				curr.FsType)
+			if curr.MountPoint == "/" {
+				// If legacyBios mode and we do not have a boot, use root
+				if legacyBios && bootPartition == 0 {
+					bootPartition = curr.partition
+					bootStyle = "legacy_boot"
+				}
+			}
 		}
 
-		mkPart, err = op.makePartCommand(curr)
-		if err != nil {
+		if bootPartition != 0 {
+			args := []string{
+				"parted",
+				bd.GetDeviceFile(),
+				fmt.Sprintf("set %d %s on", bootPartition, bootStyle),
+			}
+
+			err = cmd.RunAndLog(args...)
+			if err != nil {
+				return errors.Wrap(err)
+			}
+		}
+
+		if err = bd.PartProbe(); err != nil {
+			prg.Failure()
 			return err
 		}
 
-		size := uint64(curr.Size)
-		end := start + size
-		if !wholeDisk {
-			start, end = bd.getPartitionStartEnd(curr.partition)
-		} else {
-			log.Debug("WritePartitionTable: WholeDisk mode")
-		}
-		log.Debug("WritePartitionTable: start: %d, end: %d", start, end)
+		time.Sleep(time.Duration(4) * time.Second)
 
-		if size < 1 {
-			if maxFound {
-				return errors.Errorf("Found more than one partition with size 0 for %s!", bd.Name)
-			}
-			maxFound = true
-			end = 0
-		}
-
-		retries := 3
-		for {
-			mkPartCmd := mkPart + " " + getStartEndMB(start, end)
-			log.Debug("WritePartitionTable: mkPartCmd: %s", mkPartCmd)
-
-			args := append(baseArgs, mkPartCmd)
-
-			err = cmd.RunAndLog(args...)
-
-			if err == nil || retries == 0 {
-				break
-			}
-
-			// Move the start position ahead one MB in an attempt
-			// to find a working optimal partition entry
-			start = start + (1000 * 1000)
-
-			retries--
-		}
-		if err != nil {
-			return errors.Wrap(err)
-		}
-
-		// Get the new list of partitions
-		newPartitions := bd.getPartitionList()
-		// The current partition is new one added
-		curr.SetPartitionNumber(findNewPartition(currentPartitions, newPartitions).Number)
-
-		start = end
-		currentPartitions = newPartitions
+		prg.Success()
 	}
-
-	var bootPartition uint64
-	bootStyle := "boot"
-	guids := map[int]string{}
-
-	// Now that all new partitions are created,
-	// and we know their assigned numbers ...
-	for _, curr := range bd.Children {
-		// First, check if we have the standard /boot partition
-		// We have a /boot partition, use this
-		if curr.MountPoint == "/boot" {
-			bootPartition = curr.partition
-			if legacyBios {
-				bootStyle = "legacy_boot"
-			}
-		}
-
-		// Only set GUIDs on newly created partitions
-		if !curr.MakePartition {
-			continue
-		}
-
-		var guid string
-		guid, err = curr.getGUID()
-		if err != nil {
-			log.Warning("%s", err)
-		}
-
-		if curr.FsType != "swap" || curr.Type != BlockDeviceTypeCrypt {
-			guids[int(curr.partition)] = guid
-		}
-	}
-
-	prg.Success()
-
-	msg := utils.Locale.Get("Adjusting filesystem configurations")
-	prg = progress.MultiStep(len(guids), msg)
-	log.Info(msg)
-	cnt := 1
-	for idx, guid := range guids {
-		if guid == "none" {
-			continue
-		}
-
-		args := []string{
-			"sgdisk",
-			bd.GetDeviceFile(),
-			fmt.Sprintf("--typecode=%d:%s", idx, guid),
-		}
-
-		err = cmd.RunAndLog(args...)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-
-		prg.Partial(cnt)
-		cnt = cnt + 1
-	}
-
-	// In case we didn't have a /boot partition, we
-	// need to set / as boot
-	for _, curr := range bd.Children {
-		// Only check for / in new partitions
-		if !curr.MakePartition {
-			continue
-		}
-
-		if curr.MountPoint == "/" {
-			// If legacyBios mode and we do not have a boot, use root
-			if legacyBios && bootPartition == 0 {
-				bootPartition = curr.partition
-				bootStyle = "legacy_boot"
-			}
-		}
-	}
-
-	if bootPartition != 0 {
-		args := []string{
-			"parted",
-			bd.GetDeviceFile(),
-			fmt.Sprintf("set %d %s on", bootPartition, bootStyle),
-		}
-
-		err = cmd.RunAndLog(args...)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-	}
-
-	if err = bd.PartProbe(); err != nil {
-		prg.Failure()
-		return err
-	}
-
-	time.Sleep(time.Duration(4) * time.Second)
-
-	prg.Success()
 
 	return nil
 }
@@ -1474,6 +1506,98 @@ func GetAdvancedPartitions(medias []*BlockDevice) []string {
 				}
 
 				results = append(results, name)
+			}
+		}
+	}
+
+	return results
+}
+
+func getPlannedPartitionChanges(media *BlockDevice) []string {
+	results := []string{}
+
+	for _, ch := range media.Children {
+		if ch.FormatPartition {
+			partName := ch.Name
+			if partName == "" {
+				partName = ch.GetNewPartitionName(ch.partition)
+			}
+
+			part := fmt.Sprintf("%s: %s", partName,
+				utils.Locale.Get(FormattingPartitionInfo, ch.FsType))
+
+			if ch.MountPoint != "" {
+				part = part + fmt.Sprintf(" [%s]", ch.MountPoint)
+			}
+
+			if ch.Type == BlockDeviceTypeCrypt {
+				part = part + " Encrypted"
+			}
+
+			results = append(results, part)
+
+		} else if ch.MountPoint != "" || !ch.FsTypeNotSwap() {
+			partName := ch.Name
+			if partName == "" {
+				partName = ch.GetNewPartitionName(ch.partition)
+			}
+
+			part := fmt.Sprintf("%s: %s", partName, utils.Locale.Get(ReusingPartitionInfo))
+
+			if ch.MountPoint != "" {
+				part = part + fmt.Sprintf(" [%s]", ch.MountPoint)
+			} else if ch.FsType != "" {
+				part = part + fmt.Sprintf(" (%s)", ch.FsType)
+			}
+
+			if ch.Type == BlockDeviceTypeCrypt {
+				part = part + " Encrypted"
+			}
+			results = append(results, part)
+		}
+	}
+
+	return results
+}
+
+// GetPlannedMediaChanges returns an array of strings with all of
+// disk and partition planned changes to advise the user before start
+func GetPlannedMediaChanges(target InstallTarget, medias []*BlockDevice) []string {
+	results := []string{}
+	target.Name = medias[0].Name
+	targets := []InstallTarget{target}
+
+	if len(targets) != len(medias) {
+		log.Warning("The number of install targets (%d) != media devices (%d)",
+			len(targets), len(medias))
+
+		for _, target := range targets {
+			log.Warning("Install Target: %+v", target)
+		}
+		for _, curr := range medias {
+			log.Warning("Media Device: %+v", curr)
+		}
+	}
+
+	for _, target := range targets {
+		if target.EraseDisk {
+			results = append(results, target.Name+": "+utils.Locale.Get(DestructiveWarning))
+		} else if target.DataLoss {
+			results = append(results, target.Name+": "+utils.Locale.Get(DataLossWarning))
+		} else if target.WholeDisk {
+			results = append(results, target.Name+": "+utils.Locale.Get(SafeWholeWarning))
+		} else {
+			results = append(results, target.Name+": "+utils.Locale.Get(MediaToBeUsed))
+		}
+
+		for _, curr := range medias {
+			if target.Name == curr.Name {
+				if err := curr.WritePartitionTable(false, target.WholeDisk, &results); err != nil {
+					results = append(results, FailedPartitionWarning)
+				}
+				if partChanges := getPlannedPartitionChanges(curr); len(partChanges) > 0 {
+					results = append(results, partChanges...)
+				}
 			}
 		}
 	}
