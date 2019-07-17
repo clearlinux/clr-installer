@@ -193,7 +193,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	// prepare all the target block devices
 	for _, curr := range model.TargetMedias {
 		// based on the description given, write the partition table
-		if err = curr.WritePartitionTable(model.LegacyBios, model.InstallSelected.WholeDisk); err != nil {
+		if err = curr.WritePartitionTable(model.LegacyBios, model.InstallSelected.WholeDisk, nil); err != nil {
 			return err
 		}
 
