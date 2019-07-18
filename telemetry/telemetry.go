@@ -140,7 +140,10 @@ func (tl *Telemetry) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 
+	// Including telemetry in the YAML will set the default
+	// as if the user had selected it in the UI
 	tl.Enabled = enabled
+	tl.userDefined = true
 	return nil
 }
 
