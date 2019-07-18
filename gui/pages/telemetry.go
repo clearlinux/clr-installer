@@ -46,7 +46,7 @@ func NewTelemetryPage(controller Controller, model *model.SystemInstall) (Page, 
 		controller: controller,
 		model:      model,
 		box:        box,
-		done:       false,
+		done:       model.Telemetry.IsUserDefined(),
 		firstLoad:  true,
 	}, nil
 }
@@ -95,7 +95,7 @@ func (page *Telemetry) StoreChanges() {
 // ResetChanges will reset this page to match the model
 func (page *Telemetry) ResetChanges() {
 	if page.firstLoad {
-		page.done = false
+		page.done = page.model.Telemetry.IsUserDefined()
 		page.firstLoad = false
 	} else {
 		page.done = true

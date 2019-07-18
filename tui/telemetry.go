@@ -17,6 +17,11 @@ type TelemetryPage struct {
 	BasePage
 }
 
+// GetDone returns the current value of a page's done flag
+func (tp *TelemetryPage) GetDone() bool {
+	return tp.getModel().Telemetry.IsUserDefined()
+}
+
 // GetConfiguredValue Returns the string representation of currently value set
 func (tp *TelemetryPage) GetConfiguredValue() string {
 	if tp.getModel().Telemetry.IsUserDefined() {
@@ -105,10 +110,5 @@ func (tp *TelemetryPage) Activate() {
 // GetConfigDefinition returns if the config was interactively defined by the user,
 // was loaded from a config file or if the config is not set.
 func (tp *TelemetryPage) GetConfigDefinition() int {
-
-	if tp.getModel().Telemetry.Defined {
-		return ConfigDefinedByConfig
-	}
-
 	return ConfigNotDefined
 }
