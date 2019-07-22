@@ -1452,3 +1452,7 @@ func (bd *BlockDevice) DiskSize() (uint64, error) {
 
 	return childSize, nil
 }
+
+func (bd *BlockDevice) logDetails() {
+	log.Debug(bd.Name, bd.FsType, bd.MountPoint, bd.Size, bd.Type)
+}
