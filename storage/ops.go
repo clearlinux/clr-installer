@@ -264,6 +264,19 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool) erro
 	// Initialize the partition list before we add new ones
 	currentPartitions := bd.getPartitionList()
 
+	// Sort the partitions by name before writing the partition table
+	log.Debug("Partitions before sorting:")
+	for _, part := range bd.Children {
+		part.logDetails()
+	}
+
+	sort.Sort(ByBDName(bd.Children))
+
+	log.Debug("Partitions after sorting:")
+	for _, part := range bd.Children {
+		part.logDetails()
+	}
+
 	// Make the needed new partitions
 	for _, curr := range bd.Children {
 		log.Debug("WritePartitionTable: processing child: %v", curr)
@@ -1321,3 +1334,10 @@ func FormatInstallPortion(target InstallTarget) string {
 
 	return "[" + portion + "]"
 }
+
+// ByBDName implements sort.Interface for []*BlockDevice based on the Name field.
+type ByBDName []*BlockDevice
+
+func (a ByBDName) Len() int           { return len(a) }
+func (a ByBDName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByBDName) Less(i, j int) bool { return a[i].Name < a[j].Name }
