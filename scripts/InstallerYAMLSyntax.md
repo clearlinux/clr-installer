@@ -150,7 +150,7 @@ Item | Description | Required?
 ```yaml
 kernel-arguments: {
   add: ["nomodeset", "i915.modeset=0"],
-  remove: [console=ttyS0,115200n8]
+  remove: ["console=ttyS0,115200n8"]
 }
 ```
 
