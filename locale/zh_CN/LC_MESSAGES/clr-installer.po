@@ -655,8 +655,8 @@ msgstr "启用自动更新"
 msgid "WARNING: Disabling Automatic OS Updates puts the system at risk of missing critical security patches."
 msgstr "警告: 禁用自动操作系统更新会使系统面临丢失关键安全修补程序的风险。"
 
-msgid "Invalid URL"
-msgstr "无效 URL"
+msgid "Invalid URL: Use HTTPS"
+msgstr "无效 URL: 使用 HTTPS"
 
 msgid "Mirror not set correctly"
 msgstr "镜像设置不正确"

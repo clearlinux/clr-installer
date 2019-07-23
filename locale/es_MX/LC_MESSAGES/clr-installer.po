@@ -655,8 +655,8 @@ msgstr "Habilitar actualizaciones automáticas"
 msgid "WARNING: Disabling Automatic OS Updates puts the system at risk of missing critical security patches."
 msgstr "ADVERTENCIA: La desactivación de las actualizaciones automáticas del sistema operativo pone al sistema en riesgo de perder parches de seguridad críticos."
 
-msgid "Invalid URL"
-msgstr "URL no válida"
+msgid "Invalid URL: Use HTTPS"
+msgstr "URL no válida: Utilizar HTTPS"
 
 msgid "Mirror not set correctly"
 msgstr "Espejo no configurado correctamente"

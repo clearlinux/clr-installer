@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -66,7 +67,7 @@ const (
 	AutoUpdateWarning2 = "missing critical security patches."
 
 	// InvalidURL specifies invalid url error message
-	InvalidURL = "Invalid URL"
+	InvalidURL = "Invalid URL: Use HTTPS"
 
 	// IncorrectMirror specifies incorrect mirror error message
 	IncorrectMirror = "Mirror not set correctly"
@@ -523,6 +524,22 @@ func UnSetHostMirror() (string, error) {
 	}
 
 	return unSetMirror(args, "Host")
+}
+
+// IsValidMirror checks for valid URIs that use the HTTPS or FILE protocol
+func IsValidMirror(mirror string) bool {
+	_, err := url.ParseRequestURI(mirror)
+	if err != nil {
+		return false
+	}
+
+	httpsPrefix := strings.HasPrefix(strings.ToLower(mirror), "https:")
+	filePrefix := strings.HasPrefix(strings.ToLower(mirror), "file:")
+	if httpsPrefix != true && filePrefix != true {
+		return false
+	}
+
+	return true
 }
 
 // checkSwupd executes the "swupd check-update" to verify connectivity

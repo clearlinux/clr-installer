@@ -123,6 +123,10 @@ func main() {
 	log.Info(path.Base(os.Args[0]) + ": " + model.Version +
 		", built on " + model.BuildDate)
 
+	if options.SwupdContentURL != "" && swupd.IsValidMirror(options.SwupdContentURL) == false {
+		fatal(errors.Errorf("swupd-contenturl %s must use HTTPS or FILE protocol", options.SwupdContentURL))
+	}
+
 	if options.PamSalt != "" {
 		hashed, errHash := encrypt.Crypt(options.PamSalt)
 		if err != nil {
