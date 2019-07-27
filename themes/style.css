@@ -179,3 +179,13 @@ window {
 .dialog-warning image {
     color: #FDB814;
 }
+
+.label-radio,
+.label-radio-warning {
+    font-size: 120%;
+    font-weight: bold;
+}
+
+.label-radio-warning {
+    color: #FDB814;
+}
