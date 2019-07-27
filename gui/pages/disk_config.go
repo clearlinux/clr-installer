@@ -87,21 +87,22 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	}
 
 	// Build the Safe Install Section
-	disk.safeButton, err = gtk.RadioButtonNewFromWidget(nil)
-	if err != nil {
-		return nil, err
-	}
-
-	safeBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-	if err != nil {
-		return nil, err
-	}
-	safeBox.SetMarginTop(10)
+	safeBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	safeBox.SetMarginStart(common.StartEndMargin)
-	safeBox.PackStart(disk.safeButton, false, false, 10)
+	safeBox.SetMarginTop(common.TopBottomMargin)
+	disk.safeButton, err = gtk.RadioButtonNewWithLabelFromWidget(nil, utils.Locale.Get("Safe Installation"))
+	if err != nil {
+		return nil, err
+	}
+	sc, err := disk.safeButton.GetStyleContext()
+	if err != nil {
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass("label-radio")
+	}
+	safeBox.PackStart(disk.safeButton, false, false, 0)
 	if _, err := disk.safeButton.Connect("toggled", func() {
 		// Enable/Disable the Combo Choose Box based on the radio button
-		//disk.safeCombo.SetSensitive(disk.safeButton.GetActive())
 		if err := disk.populateComboBoxes(); err != nil {
 			log.Warning("Problem populating possible disk selections")
 		}
@@ -109,42 +110,36 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		return nil, err
 	}
 
-	safeVerticalBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
-	safeBox.PackStart(safeVerticalBox, true, true, 0)
-	safeTitle := utils.Locale.Get("Safe Installation")
 	safeDescription := utils.Locale.Get("Install on an unallocated disk or alongside existing partitions.")
-	text := fmt.Sprintf("<big>%s</big>\n", safeTitle)
-	text = text + safeDescription
-	safeLabel, err := gtk.LabelNew(text)
+	safeLabel, err := gtk.LabelNew(safeDescription)
 	if err != nil {
 		return nil, err
 	}
-	safeLabel.SetXAlign(0.0)
 	safeLabel.SetLineWrap(true)
-	safeLabel.SetHAlign(gtk.ALIGN_START)
+	safeLabel.SetXAlign(0.0)
+	safeLabel.SetMarginStart(30)
 	safeLabel.SetUseMarkup(true)
-	safeVerticalBox.PackStart(safeLabel, false, false, 0)
+	safeBox.PackStart(safeLabel, false, false, 0)
 
-	log.Debug("Before safeBox ShowAll")
 	safeBox.ShowAll()
 	disk.mediaGrid.Attach(safeBox, 0, 0, 1, 1)
 
-	// Build the Destructive Install Section
-	log.Debug("Before disk.destructiveButton")
-	disk.destructiveButton, err = gtk.RadioButtonNewFromWidget(disk.safeButton)
-	if err != nil {
-		return nil, err
-	}
-
-	destructiveBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-	if err != nil {
-		return nil, err
-	}
+	// Build Destructive Install Section
+	destructiveBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	destructiveBox.SetMarginStart(common.StartEndMargin)
-	destructiveBox.PackStart(disk.destructiveButton, false, false, 10)
+	disk.destructiveButton, err = gtk.RadioButtonNewWithLabelFromWidget(disk.safeButton, utils.Locale.Get("Destructive Installation"))
+	if err != nil {
+		return nil, err
+	}
+	sc, err = disk.destructiveButton.GetStyleContext()
+	if err != nil {
+		log.Warning("Error getting style context: ", err) // Just log trivial error
+	} else {
+		sc.AddClass("label-radio-warning")
+	}
+	destructiveBox.PackStart(disk.destructiveButton, false, false, 0)
 	if _, err := disk.destructiveButton.Connect("toggled", func() {
 		// Enable/Disable the Combo Choose Box based on the radio button
-		//disk.destructiveCombo.SetSensitive(disk.destructiveButton.GetActive())
 		if err := disk.populateComboBoxes(); err != nil {
 			log.Warning("Problem populating possible disk selections")
 		}
@@ -152,21 +147,16 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		return nil, err
 	}
 
-	destructiveVerticalBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 10)
-	destructiveBox.PackStart(destructiveVerticalBox, true, true, 0)
-	destructiveTitle := utils.Locale.Get("Destructive Installation")
 	destructiveDescription := utils.Locale.Get("Erase all data on selected media and install Clear Linux* OS.")
-	text = fmt.Sprintf("<big><b><span foreground=\"#FDB814\">%s</span></b></big>\n", destructiveTitle)
-	text = text + destructiveDescription
-	destructiveLabel, err := gtk.LabelNew(text)
+	destructiveLabel, err := gtk.LabelNew(destructiveDescription)
 	if err != nil {
 		return nil, err
 	}
-	destructiveLabel.SetXAlign(0.0)
 	destructiveLabel.SetLineWrap(true)
-	destructiveLabel.SetHAlign(gtk.ALIGN_START)
+	destructiveLabel.SetXAlign(0.0)
+	destructiveLabel.SetMarginStart(30)
 	destructiveLabel.SetUseMarkup(true)
-	destructiveVerticalBox.PackStart(destructiveLabel, false, false, 0)
+	destructiveBox.PackStart(destructiveLabel, false, false, 0)
 
 	destructiveBox.ShowAll()
 	disk.mediaGrid.Attach(destructiveBox, 0, 1, 1, 1)
