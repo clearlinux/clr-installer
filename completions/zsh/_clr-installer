@@ -1,0 +1,98 @@
+#compdef clr-installer clr-installer-gui
+# -----------------------------------------------------------------------
+#   Clear Linux OS* Installer - autocompletion script
+#
+#   Author: Lucius Hu - http://github.com/lebensterben
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, version 2 or later of the License.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# -----------------------------------------------------------------------
+
+# Variables required by zsh completion system
+local variant context curcontext="$curcontext" ret=1
+local -a line state state_descr
+local -A opt_args val_args
+
+# Options
+local -a global_opts; global_opts=(
+  '(-)'{-v,--version}'[Version of the Installer]'
+  '(-)--system-check[Verify current system is compatible with Clear Linux and exit]'
+  '--archive[Archive data to target after finishing]:archive:((
+             true\:Archive\ data.\ \(default\)
+             false\:Don`t\archive\ data.))'
+  '(-b --block-device)'{-b,--block-device}'[Adds a new block-device`s entry to configuration file. Format: <alias:filename>]:block-device: _clr_installer_block_device'
+  '(-c --config)'{-c,--config}'[Installation configuration file]:config file: _files -g \*.yaml'
+  '--copy-network[Copy the network interface configuration files to target]:copy network:((
+                  true\:Copy\ the\ network\ interface\ configuration\ files\ to\ target\ \(default\)
+                  false\:Don`t\ copy\ the\ network\ interface\ configuration\ files\ to\ target))'
+  '--crypt-file[File containing the cryptsetup password]:crypt file: _files'
+  '--genpass[Generates a PAM compatible password hash based on the provided salt string]:salt string:()'
+  '--iso[Generate Hybrid ISO image (Legacy/UEFI bootable)]'
+  '(-j --json-yaml)'{-j,--json-yaml}'[Converts ister JSON config to clr-installer YAML config]:convert config file: _files -g \*.json'
+  '--keep-image[Keep the generated image file (when creating ISO)]:keep-image:((
+                true\:Keep\ the\ generated\ image\ file\ \(default\)
+                false\:Don`t\ keep\ generated\ image\ file))'
+  '--log-file[The log file path (default \"$HOME/clr-installer.log\")]:log file: _files'
+  '(-l --log-level)'{-l,--log-level}'[Set log level]:log level:((
+                                      4\:debug\ \(default\)
+                                      3\:info
+                                      2\:warning
+                                      1\:error))'
+  '--reboot[Reboot after finishing (default true)]:reboot:((
+               true\:Reboot\ after\ finishing\ \(default\)
+               false\:Don`t\ reboot\ after\ finishing))'
+  '(-S --stub-image)'{-S,--stub-image}'[Creates the filesystems only - dont perform an actual install]'
+  '--swupd-cert[Specify alternative path to swupd certificates]:swupd certification path: _files -/'
+  '--swupd-clean[Clean Swupd state-dir content after install]'
+  '--swupd-contenturl[RFC-3986 encoded url for content file downloads]:content url: _urls -i https\://'
+  '--swupd-format[The format suffix for version file downloads]:format: _message -r \"staging,1,2,etc\"'
+  '--swupd-mirror[RFC-3986 encoded url for version string and content file downloads]:swupd mirror url: _urls -i https\://'
+  '--swupd-skip-diskspace-check[Do not check free disk space before adding bundle]:swupd skip diskspace check:((
+                                true\:Do\ not\ check\ free\ disk\ space\ \(default\)
+                                false\:Check\ free\ disk\ space))'
+  '--swupd-state[Specify alternative swupd state directory]:swupd state dir: _files -/'
+  '--swupd-versionurl[RFC-3986 encoded url for version file downloads]:swupd version url: _urls -i https\://'
+  '--telemetry[Enable Telemetry]:telemetry: _clr_installer_telemetry'
+  '--telemetry-policy[Telemetry Policy text]:telemetry-policy:()'
+  '--telemetry-tid[Telemetry server TID]:telemetry-tid:()'
+  '--telemetry-url[Telemetry server URL]:telemetry-url: _urls -i https\://'
+  '--tui[Force to use TUI frontend]'
+)
+
+# Display valid argument format to `-b|--block-device` flag
+(( $+functions[_clr_installer_block_device] )) ||
+  _clr_installer_block_device () {
+    local -a blockdevice=($(lsblk --noheadings --raw --paths | cut -d' ' -f1))
+    if [ -z $words[-1] ] || [[ ${words[-1]##*,} != *\:* ]]; then
+      _message -r 'Format: alias1:filename1[,alias2:filename2,...]'
+    else
+      compset -P '*:'
+    _alternative 'blockdevice:blockdevice: _values -s , -S : \
+                  $blockdevice'
+    fi
+  }
+
+# Remind user to specify --telemetry-url and --telemetry-tid
+(( $+functions[_clr_installer_telemetry] )) ||
+  _clr_installer_telemetry () {
+    if [[ $words == *--telemetry-url* ]] && [[ $words == *--telemetry-tid* ]]; then
+      _alternatives 'telemetry:telemetry:((true\:Enable\ Telemetry
+                                           flase\:Disable\ Telemetry))'
+    else
+      _message -r 'Please specify --telemetry-url and --telemetry-tid first'
+    fi
+  }
+
+# Level-1 completion for sub-command and options to swupd
+_arguments $global_opts && ret=0
+
+return $ret

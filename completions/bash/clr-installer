@@ -1,0 +1,108 @@
+#!/bin/bash
+# shellcheck disable=SC2207
+# -----------------------------------------------------------------------
+#   Clear Linux OS* Installer - autocompletion script
+#
+#   Author: Lucius Hu - http://github.com/lebensterben
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, version 2 or later of the License.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# -----------------------------------------------------------------------
+
+_clr_installer() {
+  local IFS opts prev cur
+
+  _init_completion -s || return
+
+  case "$prev" in
+    --archive|--copy-network|--iso|--keep-image|--reboot|--stub-image|--swupd-skip-diskspace-check|--telemetry)
+      COMPREPLY=($(compgen -W "true false" -- "$cur"))
+      return
+      ;;
+    --block-device)
+      local blockdevice; blockdevice="$(lsblk --noheadings --raw --paths | cut -d' ' -f1 | tr '\n' ',')"
+      # The trick is to insert any UNICODE space(s), e.g. non-breaking space, before the message
+      #    so that 'word' is not likely to be matched by a user's input
+      # And add at least one other 'word' start with any UNICODE space(s)
+      #    otherwise completion system will push the only candidate to the command line
+      # The drawback is, this special character may not shown correctly, for example in `tty`, it's
+      #    it's shown as a rectangle
+
+      # here, before F and B, there is a UNICODE tag space U+E0020
+      opts="󠀠Format:\"alias1:filename1[,alias2:filename2,...]\" 󠀠BlockDevices:${blockdevice:0:-1}"
+      COMPREPLY=($(compgen -W "$opts" -- "$cur"))
+      return
+      ;;
+    --config)
+      COMPREPLY=($(compgen -f -X "!*.yaml" -- "$cur"))
+      return
+      ;;
+    --json-yaml)
+      COMPREPLY=($(compgen -f -X "!*.json" -- "$cur"))
+      return
+      ;;
+    --crypt-file|--log-file)
+      COMPREPLY=($(compgen -f -- "$cur"))
+      return
+      ;;
+    --swupd-cert|--swupd-state)
+      COMPREPLY=($(compgen -d -- "$cur"))
+      return
+      ;;
+    --swupd-contenturl|--swupd-mirror|--swupd-versionurl|--telemetry-url)
+      # a zero-width space before `h`, and at the last character
+      opts='​https://...  '
+      COMPREPLY=($(compgen -W "$opts" -- "$cur"))
+      return
+      ;;
+    --log-level)
+      # shellcheck disable=1018
+      case "$2" in
+        ​e*)
+          opts="1"
+          COMPREPLY=($(compgen -W "$opts" -- "$opts"))
+          ;;
+        ​w*)
+          opts="2"
+          COMPREPLY=($(compgen -W "$opts" -- "$opts"))
+          ;;
+        ​i*)
+          opts="3"
+          COMPREPLY=($(compgen -W "$opts" -- "$opts"))
+          ;;
+        ​d*)
+          opts="4"
+          COMPREPLY=($(compgen -W "$opts" -- "$opts"))
+          ;;
+        *)
+          # a zero-width space before each alternative
+          opts="​error-->1 ​warning-->2 ​info-->3 ​debug--->4"
+          COMPREPLY=($(compgen -W "$opts" -- "$cur"))
+          ;;
+      esac
+      return
+      ;;
+    --help|--version)
+      return
+      ;;
+  esac
+
+  if [[ $cur == -* ]]; then
+    # shellcheck disable=SC2016
+    COMPREPLY=( $( compgen -W '$( _parse_help "$1" )' -- "$cur" ) )
+    # shellcheck disable=SC2128
+    [[ $COMPREPLY == *= ]] && compopt -o nospace
+  fi
+}
+
+complete -o nosort -F _clr_installer clr-installer
+complete -o nosort -F _clr_installer clr-installer-gui
