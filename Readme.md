@@ -101,6 +101,6 @@ sudo .gopath/bin/clr-installer --reboot=false
 or if using the Mass Installer mode:
 
 ```
-sudo .gopath/bin/clr-installer --config=~/my-install.yaml --reboot=false
+sudo .gopath/bin/clr-installer --config ~/my-install.yaml --reboot=false
 ```
 
