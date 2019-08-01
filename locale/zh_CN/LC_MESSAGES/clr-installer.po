@@ -178,7 +178,7 @@ msgstr "必须以字母开头。可以使用数字、逗号、连字符和下划
 
 #, c-format
 msgid "Must begin with a letter. You can use letters, numbers, hyphens, underscores, and periods. Up to %d characters."
-msgstr "必须以一封信开头。您可以使用字母、数字、连字符、下划线和句点。最多 %d 字符。"
+msgstr "必须以字母开头。您可以使用字母、数字、连字符、下划线和句点。最多 %d 字符。"
 
 #, c-format
 msgid "Min %d and Max %d characters."
