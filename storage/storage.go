@@ -138,6 +138,9 @@ const (
 	// MediaToBeUsed identified a disk which will be used during the installation
 	MediaToBeUsed = "Selected media will be used for installation."
 
+	// PartitioningWarning specifies the warning message for writing partition table
+	PartitioningWarning = "WARNING: Partition table will be erased."
+
 	// DestructiveWarning specifies the warning message for destructive installation
 	DestructiveWarning = "WARNING: Selected media will be erased."
 

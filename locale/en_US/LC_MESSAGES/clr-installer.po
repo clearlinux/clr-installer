@@ -447,6 +447,9 @@ msgstr "Selected media will be partitioned."
 msgid "Selected media will have partitions added."
 msgstr "Selected media will have partitions added."
 
+msgid "WARNING: Partition table will be erased."
+msgstr "WARNING: Partition table will be erased."
+
 msgid "WARNING: Selected media will be erased."
 msgstr "WARNING: Selected media will be erased."
 
