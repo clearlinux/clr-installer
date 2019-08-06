@@ -620,6 +620,10 @@ func (page *MediaConfigPage) rundiskUtil(disk string) {
 
 	var content bytes.Buffer
 	_, _ = fmt.Fprintf(&content, "#!/bin/bash\n")
+	// To ensure another instance is not launched, first recreate the
+	// the installer lock file using the PID of the running script
+	lockFile := page.getModel().LockFile
+	_, _ = fmt.Fprintf(&content, "echo $$ > %s\n", lockFile)
 	_, _ = fmt.Fprintf(&content, "echo Switching to %s %s\n", diskUtil, drive)
 	_, _ = fmt.Fprintf(&content, "sleep 2\n")
 	_, _ = fmt.Fprintf(&content, "/usr/bin/%s %s\n", diskUtil, drive)
@@ -627,7 +631,7 @@ func (page *MediaConfigPage) rundiskUtil(disk string) {
 	_, _ = fmt.Fprintf(&content, "echo Checking partitions with partprobe %s\n", drive)
 	_, _ = fmt.Fprintf(&content, "/usr/bin/partprobe %s\n", drive)
 	_, _ = fmt.Fprintf(&content, "sleep 1\n")
-	_, _ = fmt.Fprintf(&content, "/bin/rm %s\n", tmpBash.Name())
+	_, _ = fmt.Fprintf(&content, "/bin/rm %s %s\n", tmpBash.Name(), lockFile)
 	_, _ = fmt.Fprintf(&content, "echo Restarting Clear Linux OS Installer ...\n")
 	_, _ = fmt.Fprintf(&content, "sleep 2\n")
 	args := append(os.Args, "--config", tmpYaml.Name(), "--tui")
