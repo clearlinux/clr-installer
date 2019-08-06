@@ -262,6 +262,10 @@ func main() {
 		md.KeepImage = true
 	}
 
+	// Store the name of the LockFile which is needed during
+	// interactive installs when launch the external partitioning tool
+	md.LockFile = lockFile
+
 	if !options.StubImage {
 		// Now validate the mirror from the config or command line
 		if md.SwupdMirror != "" {

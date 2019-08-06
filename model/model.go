@@ -84,6 +84,7 @@ type SystemInstall struct {
 	CryptPass         string                 `yaml:"-"`
 	MakeISO           bool                   `yaml:"iso,omitempty,flow"`
 	KeepImage         bool                   `yaml:"keepImage,omitempty,flow"`
+	LockFile          string                 `yaml:"-"`
 }
 
 // SystemUsage is used to include additional information into the telemetry payload
