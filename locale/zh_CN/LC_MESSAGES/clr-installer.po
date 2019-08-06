@@ -447,6 +447,9 @@ msgstr "将对选定的媒介进行分区。"
 msgid "Selected media will have partitions added."
 msgstr "选定的媒介将添加分区。"
 
+msgid "WARNING: Partition table will be erased."
+msgstr "ZH: WARNING: Partition table will be erased."
+
 msgid "WARNING: Selected media will be erased."
 msgstr "警告: 选定的媒介将被删除。"
 

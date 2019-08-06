@@ -232,7 +232,7 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 				return err
 			}
 		} else {
-			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(DestructiveWarning))
+			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(PartitioningWarning))
 		}
 	} else {
 		if dryRun == nil {
