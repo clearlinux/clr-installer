@@ -299,6 +299,9 @@ msgstr "Cifrado"
 msgid "No Media Selected"
 msgstr "Ningún medio seleccionado"
 
+msgid "Too many media found"
+msgstr "MX: Too many media found"
+
 msgid "Safe Installation"
 msgstr "Instalación segura"
 
@@ -447,8 +450,8 @@ msgstr "Los medios seleccionados se dividirán en particiones."
 msgid "Selected media will have partitions added."
 msgstr "Se añadirán particiones a los medios seleccionados."
 
-msgid "WARNING: Partition table will be erased."
-msgstr "MX: WARNING: Partition table will be erased."
+msgid "WARNING: New Partition table will be created."
+msgstr "MX:WARNING: New Partition table will be created."
 
 msgid "WARNING: Selected media will be erased."
 msgstr "ADVERTENCIA: los medios seleccionados se borrarán."

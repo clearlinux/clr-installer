@@ -299,6 +299,9 @@ msgstr "Encryption"
 msgid "No Media Selected"
 msgstr "No Media Selected"
 
+msgid "Too many media found"
+msgstr "Too many media found"
+
 msgid "Safe Installation"
 msgstr "Safe Installation"
 
@@ -447,8 +450,8 @@ msgstr "Selected media will be partitioned."
 msgid "Selected media will have partitions added."
 msgstr "Selected media will have partitions added."
 
-msgid "WARNING: Partition table will be erased."
-msgstr "WARNING: Partition table will be erased."
+msgid "WARNING: New Partition table will be created."
+msgstr "WARNING: New Partition table will be created."
 
 msgid "WARNING: Selected media will be erased."
 msgstr "WARNING: Selected media will be erased."
