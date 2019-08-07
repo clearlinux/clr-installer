@@ -6,6 +6,7 @@ package tui
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/VladimirMarkelov/clui"
@@ -93,19 +94,29 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 
 	// Build the string with the media being modified
 	targets := []string{}
+	eraseDisk := false
+	dataLoss := false
+	wholeDisk := false
+
 	if len(dialog.modelSI.TargetMedias) == 0 {
 		targets = append(targets, "None")
 	} else {
 		for _, media := range dialog.modelSI.TargetMedias {
 			targets = append(targets, media.GetDeviceFile())
+			if val, ok := dialog.modelSI.InstallSelected[media.Name]; ok {
+				eraseDisk = eraseDisk || val.EraseDisk
+				dataLoss = dataLoss || val.DataLoss
+				wholeDisk = wholeDisk || val.WholeDisk
+			}
 		}
 	}
+	sort.Strings(targets)
 
-	if dialog.modelSI.InstallSelected.EraseDisk {
+	if eraseDisk {
 		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 1, storage.DestructiveWarning, 1)
-	} else if dialog.modelSI.InstallSelected.DataLoss {
+	} else if dataLoss {
 		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 1, storage.DataLossWarning, 1)
-	} else if dialog.modelSI.InstallSelected.WholeDisk {
+	} else if wholeDisk {
 		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 1, storage.SafeWholeWarning, 1)
 	} else {
 		dialog.warningLabel = clui.CreateLabel(borderFrame, 1, 1, storage.SafePartialWarning, 1)
@@ -115,7 +126,7 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 	dialog.mediaLabel = clui.CreateLabel(borderFrame, 1, 1, "Target Media"+": "+strings.Join(targets, ", "), 1)
 	dialog.mediaLabel.SetMultiline(true)
 
-	if dialog.modelSI.InstallSelected.EraseDisk {
+	if eraseDisk {
 		dialog.mediaLabel.SetBackColor(term.ColorRed)
 	}
 
