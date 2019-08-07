@@ -129,56 +129,58 @@ func (page *MediaConfigPage) GetConfigDefinition() int {
 func (page *MediaConfigPage) SetDone(done bool) bool {
 	var installBlockDevice *storage.BlockDevice
 
-	page.getModel().ClearInstallSelected()
-
 	if page.safeRadio.Selected() {
+		page.getModel().ClearInstallSelected()
 		selected := page.safeTargets[page.chooserList.SelectedItem()]
 		page.getModel().InstallSelected[selected.Name] = selected
 		log.Debug("Safe Install Target %v", page.getModel().InstallSelected)
 		page.getModel().TargetMedias = nil
 	} else if page.destructiveRadio.Selected() {
+		page.getModel().ClearInstallSelected()
 		selected := page.destructiveTargets[page.chooserList.SelectedItem()]
 		page.getModel().InstallSelected[selected.Name] = selected
 		log.Debug("Destructive Install Target %v", page.getModel().InstallSelected)
 		page.getModel().TargetMedias = nil
-	} else if page.advancedRadio.Selected() {
-		log.Debug("Advanced Install Confirmed")
 	} else {
 		log.Warning("Failed to find and save the selected installation media")
 	}
 
-	bds, err := storage.ListAvailableBlockDevices(page.getModel().TargetMedias)
-	if err != nil {
-		log.Error("Failed to find storage media for install during save: %s", err)
-	}
+	if page.advancedRadio.Selected() {
+		log.Debug("Advanced Install Confirmed")
+	} else {
+		bds, err := storage.ListAvailableBlockDevices(page.getModel().TargetMedias)
+		if err != nil {
+			log.Error("Failed to find storage media for install during save: %s", err)
+		}
 
-	for _, selected := range page.getModel().InstallSelected {
-		for _, curr := range bds {
+		for _, selected := range page.getModel().InstallSelected {
+			for _, curr := range bds {
 
-			if curr.Name == selected.Name {
-				installBlockDevice = curr.Clone()
-				// Using the whole disk
-				if selected.WholeDisk {
-					storage.NewStandardPartitions(installBlockDevice)
-				} else {
-					// Partial Disk, Add our partitions
-					size := selected.FreeEnd - selected.FreeStart
-					size = size - storage.AddBootStandardPartition(installBlockDevice)
-					if !installBlockDevice.DeviceHasSwap() {
-						size = size - storage.AddSwapStandardPartition(installBlockDevice)
+				if curr.Name == selected.Name {
+					installBlockDevice = curr.Clone()
+					// Using the whole disk
+					if selected.WholeDisk {
+						storage.NewStandardPartitions(installBlockDevice)
+					} else {
+						// Partial Disk, Add our partitions
+						size := selected.FreeEnd - selected.FreeStart
+						size = size - storage.AddBootStandardPartition(installBlockDevice)
+						if !installBlockDevice.DeviceHasSwap() {
+							size = size - storage.AddSwapStandardPartition(installBlockDevice)
+						}
+						storage.AddRootStandardPartition(installBlockDevice, size)
 					}
-					storage.AddRootStandardPartition(installBlockDevice, size)
+					page.getModel().AddTargetMedia(installBlockDevice)
+					break
 				}
-				page.getModel().AddTargetMedia(installBlockDevice)
-				break
 			}
 		}
-	}
 
-	if page.encryptCheck.State() != 0 {
-		for _, child := range installBlockDevice.Children {
-			if child.MountPoint == "/" {
-				child.Type = storage.BlockDeviceTypeCrypt
+		if page.encryptCheck.State() != 0 {
+			for _, child := range installBlockDevice.Children {
+				if child.MountPoint == "/" {
+					child.Type = storage.BlockDeviceTypeCrypt
+				}
 			}
 		}
 	}
@@ -546,6 +548,8 @@ func (page *MediaConfigPage) buildMediaLists() error {
 	for _, curr := range storage.FindAdvancedInstallTargets(page.devs) {
 		model.AddTargetMedia(curr)
 		log.Debug("AddTargetMedia %+v", curr)
+		model.InstallSelected[curr.Name] = storage.InstallTarget{Name: curr.Name, Friendly: curr.Model,
+			Removable: curr.RemovableDevice}
 		page.isAdvancedSelected = true
 	}
 
