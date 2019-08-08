@@ -35,6 +35,12 @@ var (
 
 	// errorLabelFg is a custom theme element, it has the error label foreground color definition
 	errorLabelFg termbox.Attribute
+
+	// infoLabelBg is a custom theme element, it has the info label background color definition
+	infoLabelBg termbox.Attribute
+
+	// infoLabelFg is a custom theme element, it has the info label foreground color definition
+	infoLabelFg termbox.Attribute
 )
 
 // New creates a new Tui frontend instance
@@ -85,6 +91,8 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 
 	errorLabelBg = clui.RealColor(clui.ColorDefault, "ErrorLabel", "Back")
 	errorLabelFg = clui.RealColor(clui.ColorDefault, "ErrorLabel", "Text")
+	infoLabelBg = clui.RealColor(clui.ColorDefault, "InfoLabel", "Back")
+	infoLabelFg = clui.RealColor(clui.ColorDefault, "InfoLabel", "Text")
 
 	tui.rootDir = rootDir
 	tui.paniced = make(chan error, 1)
