@@ -5,6 +5,7 @@
 package gui
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -691,8 +692,7 @@ func (window *Window) launchMenuView() {
 
 // confirmInstall prompts the user for confirmation before installing
 func (window *Window) confirmInstall() {
-	var text, primaryText, secondaryText string
-	var err error
+	var primaryText, secondaryText string
 
 	eraseDisk := false
 	dataLoss := false
@@ -712,6 +712,7 @@ func (window *Window) confirmInstall() {
 			}
 		}
 	}
+	sort.Strings(targets)
 
 	if eraseDisk {
 		primaryText = utils.Locale.Get(storage.DestructiveWarning)
@@ -723,11 +724,6 @@ func (window *Window) confirmInstall() {
 		primaryText = utils.Locale.Get(storage.SafePartialWarning)
 	}
 
-	secondaryText = utils.Locale.Get("Target Media") + ": " + strings.Join(targets, ", ")
-
-	title := utils.Locale.Get(storage.ConfirmInstallation)
-	text = primaryText + "\n" + "<small>" + secondaryText + "</small>"
-
 	contentBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	contentBox.SetHAlign(gtk.ALIGN_FILL)
 	contentBox.SetMarginBottom(common.TopBottomMargin)
@@ -736,25 +732,78 @@ func (window *Window) confirmInstall() {
 		return
 	}
 
-	label, err := gtk.LabelNew(text)
+	secondaryText = utils.Locale.Get("Target Media") + ": " + strings.Join(targets, ", ")
+
+	title := utils.Locale.Get(storage.ConfirmInstallation)
+
+	style := ""
+	if eraseDisk {
+		style = "label-error"
+	}
+	pLabel, err := common.SetLabel(primaryText, style, 0)
 	if err != nil {
-		log.Error("Error creating label", err)
+		log.Error("Error creating pLabel", err)
 		return
 	}
-	label.SetUseMarkup(true)
-	label.SetHAlign(gtk.ALIGN_START)
-	contentBox.PackStart(label, false, true, 0)
+	pLabel.SetUseMarkup(true)
+	pLabel.SetHAlign(gtk.ALIGN_START)
+	contentBox.PackStart(pLabel, false, true, 2)
+
+	sLabel, err := common.SetLabel(secondaryText, "", 0)
+	if err != nil {
+		log.Error("Error creating sLabel", err)
+		return
+	}
+	sLabel.SetUseMarkup(true)
+	sLabel.SetHAlign(gtk.ALIGN_START)
+	contentBox.PackStart(sLabel, false, true, 0)
+
+	textArea, err := gtk.TextViewNew()
+	if err != nil {
+		log.Error("Error creating textArea", err)
+		return
+	}
+	textArea.SetEditable(false)
+
+	buffer, err := textArea.GetBuffer()
+	if err != nil {
+		log.Error("Error getter textArea buffer", err)
+		return
+	}
+	// Set up the scroller
+	scroll, err := gtk.ScrolledWindowNew(nil, nil)
+	if err != nil {
+		log.Error("Error creating ScrolledWindow", err)
+		return
+	}
+	scroll.SetMarginTop(20)
+	// Set the scroll policy
+	scroll.SetPolicy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+	// Set shadow type
+	scroll.SetShadowType(gtk.SHADOW_NONE)
+
+	scroll.SetSizeRequest(300, 200)
+	scroll.Add(textArea)
+	contentBox.PackStart(scroll, false, true, 0)
+
+	medias := storage.GetPlannedMediaChanges(window.model.InstallSelected, window.model.TargetMedias)
+	for _, media := range medias {
+		log.Debug("MediaChange: %s", media)
+		buffer.Insert(buffer.GetEndIter(), media+"\n")
+	}
 
 	dialog, err := common.CreateDialogOkCancel(contentBox, title, utils.Locale.Get("CONFIRM"), utils.Locale.Get("CANCEL"))
 	if err != nil {
 		log.Error("Error creating dialog", err)
 		return
 	}
+
 	_, err = dialog.Connect("response", window.dialogResponse)
 	if err != nil {
 		log.Error("Error connecting to dialog", err)
 		return
 	}
+
 	dialog.ShowAll()
 	dialog.Run()
 }

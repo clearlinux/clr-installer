@@ -684,12 +684,14 @@ func (disk *DiskConfig) StoreChanges() {
 	var installBlockDevice *storage.BlockDevice
 
 	if disk.safeButton.GetActive() {
+		disk.model.ClearInstallSelected()
 		log.Debug("Safe Install chooserCombo selected %v", disk.chooserCombo.GetActive())
 		selected := disk.safeTargets[disk.chooserCombo.GetActive()]
 		disk.model.InstallSelected[selected.Name] = selected
 		log.Debug("Safe Install Target %v", selected)
 		disk.model.TargetMedias = nil
 	} else if disk.destructiveButton.GetActive() {
+		disk.model.ClearInstallSelected()
 		log.Debug("Destructive Install chooserCombo selected %v", disk.chooserCombo.GetActive())
 		selected := disk.destructiveTargets[disk.chooserCombo.GetActive()]
 		disk.model.InstallSelected[selected.Name] = selected
