@@ -110,6 +110,14 @@ func (page *MediaConfigPage) GetConfigDefinition() int {
 		return ConfigNotDefined
 	}
 
+	if page.isAdvancedSelected {
+		results := storage.ValidateAdvancedPartitions(tm)
+		if len(results) > 0 {
+			return ConfigDefinedByUser
+		}
+		return ConfigNotDefined
+	}
+
 	for _, bd := range tm {
 		if !bd.IsUserDefined() {
 			return ConfigDefinedByConfig
@@ -219,10 +227,15 @@ func (page *MediaConfigPage) Activate() {
 }
 
 func (page *MediaConfigPage) setConfirmButton() {
-	if page.labelWarning.Title() == "" {
-		page.confirmBtn.SetEnabled(true)
+	if page.labelWarning.BackColor() == errorLabelBg &&
+		page.labelWarning.TextColor() == errorLabelFg {
+		if page.labelWarning.Title() == "" {
+			page.confirmBtn.SetEnabled(true)
+		} else {
+			page.confirmBtn.SetEnabled(false)
+		}
 	} else {
-		page.confirmBtn.SetEnabled(false)
+		page.confirmBtn.SetEnabled(true)
 	}
 }
 
@@ -369,19 +382,27 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 					}
 				*/
 				results := storage.ValidateAdvancedPartitions(si.TargetMedias)
+				warning := ""
 				if len(results) > 0 {
-					page.confirmBtn.SetEnabled(false)
-					warning := strings.Join(results, ", ")
+					warning = strings.Join(results, ", ")
 					warning = fmt.Sprintf("Advanced: %s", warning)
+					page.labelWarning.SetBackColor(errorLabelBg)
+					page.labelWarning.SetTextColor(errorLabelFg)
+				} else {
+					// No warning, so re-use the label to show what is configured
+					warning = page.GetConfiguredValue()
+					page.labelWarning.SetBackColor(infoLabelBg)
+					page.labelWarning.SetTextColor(infoLabelFg)
+				}
+				if len(warning) > 0 {
 					// Truncate long messages
 					max, _ := page.labelWarning.Size()
 					if len(warning) > max {
 						warning = warning[0:max-3] + "..."
 					}
 					page.labelWarning.SetTitle(warning)
-				} else {
-					page.confirmBtn.SetEnabled(true)
 				}
+				page.setConfirmButton()
 			}
 		}
 	})
@@ -576,6 +597,7 @@ func (page *MediaConfigPage) buildMediaLists() error {
 
 	if page.isAdvancedSelected {
 		log.Debug("Found Advanced partitions")
+		page.setConfirmButton()
 	}
 
 	clui.RefreshScreen()

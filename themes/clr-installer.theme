@@ -10,7 +10,7 @@
 //----------------- Theme properties -----------------
 title=Clear Linux Installer
 author=Leandro Dorileo
-version=0.3
+version=0.4
 parent=default
 
 //----------------- Colors -----------------
@@ -101,6 +101,8 @@ TableView=─│┼▼▲
 ManualPartition.Back = blue
 ErrorLabel.Back = blue
 ErrorLabel.Text = red bold
+InfoLabel.Back = blue
+InfoLabel.Text = cyan bold
 
 Menu.ButtonBack=blue
 Menu.ButtonText=white
