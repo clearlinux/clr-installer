@@ -5,6 +5,7 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -397,4 +398,48 @@ func LookupISOTemplateDir() (string, error) {
 	}
 
 	return result, nil
+}
+
+// RunDiskPartitionTool creates and executes a script which launches
+// the disk partitioning tool and then returns to the installer.
+func RunDiskPartitionTool(tmpYaml string, lockFile string, diskUtilCmd string, gui bool) (string, error) {
+	// We need to save the current state model for the relaunch of clr-installer
+	tmpBash, err := ioutil.TempFile("", "clr-installer-diskUtil-*.sh")
+	if err != nil {
+		return "", errors.Errorf("Could not make BASH tempfile: %v", err)
+	}
+	defer func() { _ = tmpBash.Close() }()
+
+	var content bytes.Buffer
+	_, _ = fmt.Fprintf(&content, "#!/bin/bash\n")
+	// To ensure another instance is not launched, first recreate the
+	// installer lock file using the PID of the running script
+	_, _ = fmt.Fprintf(&content, "echo $$ > %s\n", lockFile)
+	_, _ = fmt.Fprintf(&content, "echo Switching to Disk Partitioning tool\n")
+	_, _ = fmt.Fprintf(&content, "sleep 2\n")
+	_, _ = fmt.Fprintf(&content, "%s\n", diskUtilCmd)
+	_, _ = fmt.Fprintf(&content, "sleep 1\n")
+	_, _ = fmt.Fprintf(&content, "echo Checking partitions with partprobe\n")
+	_, _ = fmt.Fprintf(&content, "/usr/bin/partprobe\n")
+	_, _ = fmt.Fprintf(&content, "sleep 1\n")
+	_, _ = fmt.Fprintf(&content, "/bin/rm %s %s\n", tmpBash.Name(), lockFile)
+	_, _ = fmt.Fprintf(&content, "echo Restarting Clear Linux OS Installer ...\n")
+	_, _ = fmt.Fprintf(&content, "sleep 2\n")
+	args := append(os.Args, "--config", tmpYaml)
+	if gui {
+		args = append(args, "--gui")
+	} else {
+		args = append(args, "--tui")
+	}
+	allArgs := strings.Join(args, " ")
+	_, err = fmt.Fprintf(&content, "exec %s", allArgs)
+	if err != nil {
+		return "", errors.Errorf("Could not write BASH buffer: %v", err)
+	}
+	if _, err := tmpBash.Write(content.Bytes()); err != nil {
+		return "", errors.Errorf("Could not write BASH tempfile: %v", err)
+	}
+	_ = os.Chmod(tmpBash.Name(), 0700)
+
+	return tmpBash.Name(), nil
 }
