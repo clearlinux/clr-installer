@@ -5,9 +5,7 @@
 package tui
 
 import (
-	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,10 +13,8 @@ import (
 
 	"github.com/VladimirMarkelov/clui"
 	term "github.com/nsf/termbox-go"
-	"gopkg.in/yaml.v2"
 
 	"github.com/clearlinux/clr-installer/log"
-	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/utils"
 )
@@ -497,7 +493,7 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 	page.advancedCfgBtn.OnClick(func(ev clui.Event) {
 		log.Debug("%s diskUtil called for Target %v", diskUtil,
 			page.destructiveTargets[page.chooserList.SelectedItem()])
-		page.rundiskUtil(page.destructiveTargets[page.chooserList.SelectedItem()].Name)
+		page.runDiskPartitionTool(page.destructiveTargets[page.chooserList.SelectedItem()].Name)
 	})
 
 	if len(page.safeTargets) == 0 && len(page.destructiveTargets) == 0 {
@@ -605,30 +601,10 @@ func (page *MediaConfigPage) buildMediaLists() error {
 	return nil
 }
 
-func (page *MediaConfigPage) rundiskUtil(disk string) {
+func (page *MediaConfigPage) runDiskPartitionTool(disk string) {
 
-	stdMsg := "Could not launch " + diskUtil + ". Check A " + log.GetLogFileName()
+	stdMsg := "Could not launch " + diskUtil + ". Check " + log.GetLogFileName()
 	msg := ""
-
-	// We need to save the current state for the relaunch of clr-installer
-	tmpYaml, err := ioutil.TempFile("", "clr-installer-diskUtil-*.yaml")
-	if err != nil {
-		log.Warning("Could not make YAML tempfile: %v", err)
-		msg = stdMsg
-	}
-
-	scrubbed := scrubModel(page.getModel())
-
-	if saveErr := scrubbed.WriteFile(tmpYaml.Name()); saveErr != nil {
-		log.Warning("Could not save config to %s %s", tmpYaml.Name(), msg)
-		msg = stdMsg
-	}
-
-	tmpBash, err := ioutil.TempFile("", "clr-installer-diskUtil-*.sh")
-	if err != nil {
-		log.Warning("Could not make BASH tempfile: %v", err)
-		msg = stdMsg
-	}
 
 	drive := filepath.Join("/dev", disk)
 	exists, err := utils.FileExists(drive)
@@ -640,35 +616,21 @@ func (page *MediaConfigPage) rundiskUtil(disk string) {
 		msg = stdMsg
 	}
 
-	var content bytes.Buffer
-	_, _ = fmt.Fprintf(&content, "#!/bin/bash\n")
-	// To ensure another instance is not launched, first recreate the
-	// the installer lock file using the PID of the running script
-	lockFile := page.getModel().LockFile
-	_, _ = fmt.Fprintf(&content, "echo $$ > %s\n", lockFile)
-	_, _ = fmt.Fprintf(&content, "echo Switching to %s %s\n", diskUtil, drive)
-	_, _ = fmt.Fprintf(&content, "sleep 2\n")
-	_, _ = fmt.Fprintf(&content, "/usr/bin/%s %s\n", diskUtil, drive)
-	_, _ = fmt.Fprintf(&content, "sleep 1\n")
-	_, _ = fmt.Fprintf(&content, "echo Checking partitions with partprobe %s\n", drive)
-	_, _ = fmt.Fprintf(&content, "/usr/bin/partprobe %s\n", drive)
-	_, _ = fmt.Fprintf(&content, "sleep 1\n")
-	_, _ = fmt.Fprintf(&content, "/bin/rm %s %s\n", tmpBash.Name(), lockFile)
-	_, _ = fmt.Fprintf(&content, "echo Restarting Clear Linux OS Installer ...\n")
-	_, _ = fmt.Fprintf(&content, "sleep 2\n")
-	args := append(os.Args, "--config", tmpYaml.Name(), "--tui")
-	allArgs := strings.Join(args, " ")
-	_, err = fmt.Fprintf(&content, "exec %s", allArgs)
+	diskUtilCmd := fmt.Sprintf("/usr/bin/%s %s", diskUtil, drive)
+
+	tmpYaml, err := page.getModel().WriteScrubModelTargetMedias()
 	if err != nil {
-		log.Warning("Could not write BASH buffer: %v", err)
+		log.Warning("%v", err)
 		msg = stdMsg
 	}
-	if _, err := tmpBash.Write(content.Bytes()); err != nil {
-		log.Warning("Could not write BASH tempfile: %v", err)
+
+	lockFile := page.getModel().LockFile
+
+	script, err := utils.RunDiskPartitionTool(tmpYaml, lockFile, diskUtilCmd, false)
+	if err != nil {
+		log.Warning("%v", err)
 		msg = stdMsg
 	}
-	_ = tmpBash.Close()
-	_ = os.Chmod(tmpBash.Name(), 0700)
 
 	if msg != "" {
 		if _, err := CreateWarningDialogBox(msg); err != nil {
@@ -681,7 +643,7 @@ func (page *MediaConfigPage) rundiskUtil(disk string) {
 	clui.Stop()
 	clui.DeinitLibrary()
 	term := os.Getenv("TERM")
-	err = syscall.Exec("/bin/bash", []string{"/bin/bash", "-l", "-c", tmpBash.Name()}, []string{"TERM=" + term})
+	err = syscall.Exec("/bin/bash", []string{"/bin/bash", "-l", "-c", script}, []string{"TERM=" + term})
 	if err != nil {
 		log.Warning("Could not start disk utility: %v", err)
 		msg = stdMsg
@@ -690,27 +652,6 @@ func (page *MediaConfigPage) rundiskUtil(disk string) {
 		}
 		return
 	}
-}
-
-func scrubModel(md *model.SystemInstall) *model.SystemInstall {
-	// Sanitized the model to remove meida
-	var cleanModel model.SystemInstall
-	// Marshal current into bytes
-	confBytes, bytesErr := yaml.Marshal(md)
-	if bytesErr != nil {
-		log.Error("Failed to generate a copy of YAML data for %s (%v)", diskUtil, bytesErr)
-		return nil
-	}
-	// Unmarshal into a copy
-	if yamlErr := yaml.Unmarshal(confBytes, &cleanModel); yamlErr != nil {
-		log.Error("Failed to duplicate YAML data for %s (%v)", diskUtil, bytesErr)
-		return nil
-	}
-	// Sanitize the config data to remove any potential
-	// Remove the target media
-	cleanModel.TargetMedias = nil
-
-	return &cleanModel
 }
 
 func fmtInstallTarget(target storage.InstallTarget) string {
