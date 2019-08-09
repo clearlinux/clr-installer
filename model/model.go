@@ -524,3 +524,36 @@ func (si *SystemInstall) WriteFile(path string) error {
 
 	return nil
 }
+
+// WriteScrubModelTargetMedias writes out a copy the model with the
+// TargetMedias removed to a temporary file
+func (si *SystemInstall) WriteScrubModelTargetMedias() (string, error) {
+	// Sanitized the model to remove media
+	var cleanModel SystemInstall
+
+	// Marshal current into bytes
+	confBytes, bytesErr := yaml.Marshal(si)
+	if bytesErr != nil {
+		return "", errors.Wrap(bytesErr)
+	}
+
+	// Unmarshal into a copy
+	if yamlErr := yaml.Unmarshal(confBytes, &cleanModel); yamlErr != nil {
+		return "", errors.Wrap(bytesErr)
+	}
+
+	// Sanitize the config data to remove any potential
+	// Remove the target media
+	cleanModel.TargetMedias = nil
+
+	tmpYaml, err := ioutil.TempFile("", "clr-installer-noMedia-*.yaml")
+	if err != nil {
+		return "", errors.Errorf("Could not make YAML tempfile: %v", err)
+	}
+
+	if saveErr := cleanModel.WriteFile(tmpYaml.Name()); saveErr != nil {
+		return "", errors.Errorf("Could not save config to %s", tmpYaml.Name())
+	}
+
+	return tmpYaml.Name(), nil
+}
