@@ -113,7 +113,7 @@ func (mi *MassInstall) Failure() {
 // MustRun is part of the Frontend implementation and tells the core implementation that this
 // frontend wants or should be executed
 func (mi *MassInstall) MustRun(args *args.Args) bool {
-	return args.ConfigFile != "" && !args.ForceTUI
+	return args.ConfigFile != "" && (!args.ForceTUI && !args.ForceGUI)
 }
 
 func shouldReboot() (bool, bool, error) {

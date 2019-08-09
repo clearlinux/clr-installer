@@ -62,6 +62,7 @@ type Args struct {
 	PamSalt                 string
 	LogLevel                int
 	ForceTUI                bool
+	ForceGUI                bool
 	Archive                 bool
 	ArchiveSet              bool
 	DemoMode                bool
@@ -138,6 +139,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.BoolVar(
 		&args.ForceTUI, "tui", false, "Use TUI frontend",
+	)
+
+	flag.BoolVar(
+		&args.ForceGUI, "gui", false, "Use GUI frontend",
 	)
 
 	flag.StringSliceVarP(

@@ -162,6 +162,22 @@ func main() {
 		return
 	}
 
+	// Check for exclusive option
+	if options.ForceTUI && options.ForceGUI {
+		exclusive := "Options --tui and --gui are mutually exclusive."
+		fmt.Println(exclusive)
+		log.Error("Command Line Error: %s", exclusive)
+		return
+	}
+
+	if (options.ForceTUI || options.ForceGUI) &&
+		(options.MakeISOSet && options.MakeISO) {
+		exclusive := "Option --iso not compatible with --tui or --gui."
+		fmt.Println(exclusive)
+		log.Error("Command Line Error: %s", exclusive)
+		return
+	}
+
 	lockFile = strings.TrimSuffix(options.LogFile, ".log") + ".lock"
 	lock, err = lockfile.New(lockFile)
 	if err != nil {

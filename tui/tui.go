@@ -51,6 +51,9 @@ func New() *Tui {
 // MustRun is part of the Frontend interface implementation and tells the core that this
 // frontend wants/must run.
 func (tui *Tui) MustRun(args *args.Args) bool {
+	if args.ForceGUI {
+		return false
+	}
 	return true
 }
 

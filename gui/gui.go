@@ -5,6 +5,7 @@
 package gui
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/gotk3/gotk3/gdk"
@@ -43,7 +44,17 @@ func (gui *Gui) MustRun(args *args.Args) bool {
 	if args.ForceTUI {
 		return false
 	}
-	return gtk.InitCheck(nil) == nil
+
+	// Can graphics be initialized?
+	if gtk.InitCheck(nil) == nil {
+		return true
+	} else if args.ForceGUI {
+		fmt.Println("Error: Could not initialize graphics.")
+		return false
+	} else {
+		return false
+	}
+
 }
 
 // Run is part of the Frontend interface implementation and is the gui frontend main entry point
