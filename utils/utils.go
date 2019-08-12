@@ -415,24 +415,36 @@ func RunDiskPartitionTool(tmpYaml string, lockFile string, diskUtilCmd string, g
 	// To ensure another instance is not launched, first recreate the
 	// installer lock file using the PID of the running script
 	_, _ = fmt.Fprintf(&content, "echo $$ > %s\n", lockFile)
+
+	args := append(os.Args, "--config", tmpYaml)
+	if gui {
+		_, _ = fmt.Fprintf(&content, "if [ -n \"${SUDO_USER}\" ]; then\n")
+		_, _ = fmt.Fprintf(&content, "    sudo --user=${SUDO_USER} xauth nlist | xauth nmerge -\n")
+		_, _ = fmt.Fprintf(&content, "fi\n")
+	}
 	_, _ = fmt.Fprintf(&content, "echo Switching to Disk Partitioning tool\n")
-	_, _ = fmt.Fprintf(&content, "sleep 2\n")
+	if !gui {
+		_, _ = fmt.Fprintf(&content, "sleep 2\n")
+	}
 	_, _ = fmt.Fprintf(&content, "%s\n", diskUtilCmd)
-	_, _ = fmt.Fprintf(&content, "sleep 1\n")
+	if !gui {
+		_, _ = fmt.Fprintf(&content, "sleep 1\n")
+	}
 	_, _ = fmt.Fprintf(&content, "echo Checking partitions with partprobe\n")
 	_, _ = fmt.Fprintf(&content, "/usr/bin/partprobe\n")
-	_, _ = fmt.Fprintf(&content, "sleep 1\n")
+	if !gui {
+		_, _ = fmt.Fprintf(&content, "sleep 1\n")
+	}
 	_, _ = fmt.Fprintf(&content, "/bin/rm %s %s\n", tmpBash.Name(), lockFile)
 	_, _ = fmt.Fprintf(&content, "echo Restarting Clear Linux OS Installer ...\n")
-	_, _ = fmt.Fprintf(&content, "sleep 2\n")
-	args := append(os.Args, "--config", tmpYaml)
 	if gui {
 		args = append(args, "--gui")
 	} else {
+		_, _ = fmt.Fprintf(&content, "sleep 2\n")
 		args = append(args, "--tui")
 	}
 	allArgs := strings.Join(args, " ")
-	_, err = fmt.Fprintf(&content, "exec %s", allArgs)
+	_, err = fmt.Fprintf(&content, "exec %s\n", allArgs)
 	if err != nil {
 		return "", errors.Errorf("Could not write BASH buffer: %v", err)
 	}
