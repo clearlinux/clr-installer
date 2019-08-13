@@ -330,6 +330,22 @@ msgstr "Launch the external partitioning tool to label the partitions to be used
 msgid "Could not launch %s. Check log %s"
 msgstr "Could not launch %s. Check log %s"
 
+#, c-format
+msgid "%s must be %s"
+msgstr "%s must be %s"
+
+#, c-format
+msgid "Found multiple %s partition labels"
+msgstr "Found multiple %s partition labels"
+
+#, c-format
+msgid "Encryption of %s is not supported"
+msgstr "Encryption of %s is not supported"
+
+#, c-format
+msgid "Missing %s partition label"
+msgstr "Missing %s partition label"
+
 msgid "CHANGE LANGUAGE"
 msgstr "CHANGE LANGUAGE"
 
@@ -706,3 +722,29 @@ msgstr "Version URL of mirror not found"
 
 msgid "."
 msgstr "."
+
+#, c-format
+msgid "Formatting partition as %s."
+msgstr "Formatting partition as %s."
+
+msgid "Selected media will be used for installation."
+msgstr "Selected media will be used for installation."
+
+#, c-format
+msgid "Updating partition table for: %s"
+msgstr "Updating partition table for: %s"
+
+msgid "WARNING: partition will be removed."
+msgstr "WARNING: partition will be removed."
+
+msgid "Adding new partition."
+msgstr "Adding new partition."
+
+msgid "WARNING: Failed to detected partition information."
+msgstr "WARNING: Failed to detected partition information."
+
+msgid "Reusing existing partition."
+msgstr "Reusing existing partition."
+
+msgid "Encrypted"
+msgstr "Encrypted"

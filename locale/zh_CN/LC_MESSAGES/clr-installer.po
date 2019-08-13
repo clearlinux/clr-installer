@@ -330,6 +330,22 @@ msgstr "CN: Launch the external partitioning tool to label the partitions to be 
 msgid "Could not launch %s. Check log %s"
 msgstr "CN: Could not launch %s. Check log %s"
 
+#, c-format
+msgid "%s must be %s"
+msgstr "CN: %s must be %s"
+
+#, c-format
+msgid "Found multiple %s partition labels"
+msgstr "CN: Found multiple %s partition labels"
+
+#, c-format
+msgid "Encryption of %s is not supported"
+msgstr "CN: Encryption of %s is not supported"
+
+#, c-format
+msgid "Missing %s partition label"
+msgstr "CN: Missing %s partition label"
+
 msgid "CHANGE LANGUAGE"
 msgstr "更改语言"
 
@@ -706,3 +722,29 @@ msgstr "未找到镜像的版本 URL"
 
 msgid "."
 msgstr "。"
+
+#, c-format
+msgid "Formatting partition as %s."
+msgstr "CN: Formatting partition as %s."
+
+msgid "Selected media will be used for installation."
+msgstr "CN: Selected media will be used for installation."
+
+#, c-format
+msgid "Updating partition table for: %s"
+msgstr "CN: Updating partition table for: %s"
+
+msgid "WARNING: partition will be removed."
+msgstr "CN: WARNING: partition will be removed."
+
+msgid "Adding new partition."
+msgstr "CN: Adding new partition."
+
+msgid "WARNING: Failed to detected partition information."
+msgstr "CN: WARNING: Failed to detected partition information."
+
+msgid "Reusing existing partition."
+msgstr "CN: Reusing existing partition."
+
+msgid "Encrypted"
+msgstr "CN: Encrypted"

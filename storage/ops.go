@@ -1519,34 +1519,34 @@ func ValidateAdvancedPartitions(medias []*BlockDevice) []string {
 				switch lowerPart {
 				case "boot":
 					if bootFound {
-						warning := fmt.Sprintf("Found multiple %s partition labels", "CLR_BOOT")
+						warning := utils.Locale.Get("Found multiple %s partition labels", "CLR_BOOT")
 						results = append(results, warning)
 						log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
 					} else {
 						bootFound = true
 						if ch.FsType != "vfat" {
-							warning := fmt.Sprintf("%s must be %s", "CLR_BOOT", "vfat")
+							warning := utils.Locale.Get("%s must be %s", "CLR_BOOT", "vfat")
 							results = append(results, warning)
 							log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
 						}
 					}
 				case "root":
 					if rootFound {
-						warning := fmt.Sprintf("Found multiple %s partition labels", "CLR_ROOT")
+						warning := utils.Locale.Get("Found multiple %s partition labels", "CLR_ROOT")
 						results = append(results, warning)
 						log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
 					} else {
 						rootFound = true
 						if !(ch.FsType == "ext2" || ch.FsType == "ext3" ||
 							ch.FsType == "ext4" || ch.FsType == "xfs") {
-							warning := fmt.Sprintf("%s must be %s", "CLR_ROOT", "ext*|xfs")
+							warning := utils.Locale.Get("%s must be %s", "CLR_ROOT", "ext*|xfs")
 							results = append(results, warning)
 							log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
 						}
 					}
 				case "swap":
 					if swapFound {
-						warning := fmt.Sprintf("Found multiple %s partition labels", "CLR_SWAP")
+						warning := utils.Locale.Get("Found multiple %s partition labels", "CLR_SWAP")
 						results = append(results, warning)
 						log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
 					} else {
@@ -1554,7 +1554,7 @@ func ValidateAdvancedPartitions(medias []*BlockDevice) []string {
 					}
 				case "e":
 					if strings.HasPrefix(strings.ToLower(ch.PartitionLabel), "clr_boot") {
-						warning := fmt.Sprintf("Encryption of %s is not supported", "CLR_BOOT")
+						warning := utils.Locale.Get("Encryption of %s is not supported", "CLR_BOOT")
 						results = append(results, warning)
 						log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
 					}
@@ -1564,19 +1564,19 @@ func ValidateAdvancedPartitions(medias []*BlockDevice) []string {
 	}
 
 	if !bootFound {
-		warning := fmt.Sprintf("Missing %s partition label", "CLR_BOOT")
+		warning := utils.Locale.Get("Missing %s partition label", "CLR_BOOT")
 		results = append(results, warning)
 		log.Warning("ValidateAdvancedPartitions: %s", warning)
 	}
 
 	if !swapFound {
-		warning := fmt.Sprintf("Missing %s partition label", "CLR_SWAP")
+		warning := utils.Locale.Get("Missing %s partition label", "CLR_SWAP")
 		results = append(results, warning)
 		log.Warning("ValidateAdvancedPartitions: %s", warning)
 	}
 
 	if !rootFound {
-		warning := fmt.Sprintf("Missing %s partition label", "CLR_ROOT")
+		warning := utils.Locale.Get("Missing %s partition label", "CLR_ROOT")
 		results = append(results, warning)
 		log.Warning("ValidateAdvancedPartitions: %s", warning)
 	}
@@ -1665,7 +1665,7 @@ func getPlannedPartitionChanges(media *BlockDevice) []string {
 			}
 
 			if ch.Type == BlockDeviceTypeCrypt {
-				part = part + " Encrypted"
+				part = part + " " + utils.Locale.Get("Encrypted")
 			}
 
 			results = append(results, part)
@@ -1685,7 +1685,7 @@ func getPlannedPartitionChanges(media *BlockDevice) []string {
 			}
 
 			if ch.Type == BlockDeviceTypeCrypt {
-				part = part + " Encrypted"
+				part = part + " " + utils.Locale.Get("Encrypted")
 			}
 			results = append(results, part)
 		}
