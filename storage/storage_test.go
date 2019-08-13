@@ -560,16 +560,22 @@ func TestWritePartition(t *testing.T) {
 			}
 		}()
 		bd.Name = path.Base(file)
-		part1 := &BlockDevice{Name: bd.Name + "p1", FsType: "vfat", Size: 157286400, Type: BlockDeviceTypePart, MountPoint: "/boot"}
-		part2 := &BlockDevice{Name: bd.Name + "p2", FsType: "swap", Size: 125829120, Type: BlockDeviceTypePart, MountPoint: ""}
-		part3 := &BlockDevice{Name: bd.Name + "p3", FsType: "ext4", Size: 502267904, Type: BlockDeviceTypePart, MountPoint: "/"}
-		part4 := &BlockDevice{Name: bd.Name + "p4", FsType: "ext4", Size: 502267904, Type: BlockDeviceTypeCrypt, MountPoint: "/home"}
+		part1 := &BlockDevice{Name: bd.Name + "p1", FsType: "vfat", Size: 157286400, PartitionLabel: "CLR_BOOT", Type: BlockDeviceTypePart, MountPoint: "/boot"}
+		part2 := &BlockDevice{Name: bd.Name + "p2", FsType: "swap", Size: 125829120, PartitionLabel: "CLR_SWAP", Type: BlockDeviceTypePart, MountPoint: ""}
+		part3 := &BlockDevice{Name: bd.Name + "p3", FsType: "ext4", Size: 502267904, PartitionLabel: "CLR_ROOT_F_E", Type: BlockDeviceTypePart, MountPoint: "/"}
+		part4 := &BlockDevice{Name: bd.Name + "p4", FsType: "ext4", Size: 502267904, PartitionLabel: "CLR_MNT_/home", Type: BlockDeviceTypeCrypt, MountPoint: "/home"}
 
 		children = append(children, part1)
 		children = append(children, part2)
 		children = append(children, part3)
 		children = append(children, part4)
 		bd.Children = children
+
+		//write the partition table (dryrun)
+		results := []string{}
+		if err = bd.WritePartitionTable(false, true, &results); err != nil {
+			t.Fatalf("Could not dryrun write partition table (%s): %s", file, err)
+		}
 
 		//write the partition table
 		if err = bd.WritePartitionTable(false, true, nil); err != nil {
@@ -591,6 +597,16 @@ func TestWritePartition(t *testing.T) {
 			}
 		}
 		bds := []*BlockDevice{bd}
+
+		found := FindAdvancedInstallTargets(bds)
+		if len(found) > 0 {
+			t.Fatalf("Should not have found any advanced targets %+v", found)
+		}
+
+		if !AdvancedPartitionsRequireEncryption(bds) {
+			t.Fatalf("Advanced targets should require encryption")
+		}
+
 		if scanErr := UpdateBlockDevices(bds); scanErr != nil {
 			t.Fatalf("Could not UpdateBlockDevices: %s", scanErr)
 		}

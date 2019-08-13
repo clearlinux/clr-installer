@@ -330,6 +330,22 @@ msgstr "MX: Launch the external partitioning tool to label the partitions to be 
 msgid "Could not launch %s. Check log %s"
 msgstr "MX: Could not launch %s. Check log %s"
 
+#, c-format
+msgid "%s must be %s"
+msgstr "MX: %s must be %s"
+
+#, c-format
+msgid "Found multiple %s partition labels"
+msgstr "MX: Found multiple %s partition labels"
+
+#, c-format
+msgid "Encryption of %s is not supported"
+msgstr "MX: Encryption of %s is not supported"
+
+#, c-format
+msgid "Missing %s partition label"
+msgstr "MX: Missing %s partition label"
+
 msgid "CHANGE LANGUAGE"
 msgstr "CAMBIAR IDIOMA"
 
@@ -706,3 +722,29 @@ msgstr "Versión URL del espejo no encontrada"
 
 msgid "."
 msgstr "."
+
+#, c-format
+msgid "Formatting partition as %s."
+msgstr "MX: Formatting partition as %s."
+
+msgid "Selected media will be used for installation."
+msgstr "MX: Selected media will be used for installation."
+
+#, c-format
+msgid "Updating partition table for: %s"
+msgstr "MX: Updating partition table for: %s"
+
+msgid "WARNING: partition will be removed."
+msgstr "MX: WARNING: partition will be removed."
+
+msgid "Adding new partition."
+msgstr "MX: Adding new partition."
+
+msgid "WARNING: Failed to detected partition information."
+msgstr "MX: WARNING: Failed to detected partition information."
+
+msgid "Reusing existing partition."
+msgstr "MX: Reusing existing partition."
+
+msgid "Encrypted"
+msgstr "MX: Encrypted"
