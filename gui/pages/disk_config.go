@@ -173,17 +173,21 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	disk.chooserCombo.PackStart(mediaRenderer, true)
 	disk.chooserCombo.AddAttribute(mediaRenderer, "pixbuf", 0)
 
+	friendlyRenderer, _ := gtk.CellRendererTextNew()
+	disk.chooserCombo.PackStart(friendlyRenderer, true)
+	disk.chooserCombo.AddAttribute(friendlyRenderer, "text", 1)
+
 	nameRenderer, _ := gtk.CellRendererTextNew()
 	disk.chooserCombo.PackStart(nameRenderer, true)
-	disk.chooserCombo.AddAttribute(nameRenderer, "text", 1)
+	disk.chooserCombo.AddAttribute(nameRenderer, "text", 2)
 
 	portionRenderer, _ := gtk.CellRendererTextNew()
 	disk.chooserCombo.PackStart(portionRenderer, true)
-	disk.chooserCombo.AddAttribute(portionRenderer, "text", 2)
+	disk.chooserCombo.AddAttribute(portionRenderer, "text", 3)
 
 	sizeRenderer, _ := gtk.CellRendererTextNew()
 	disk.chooserCombo.PackStart(sizeRenderer, true)
-	disk.chooserCombo.AddAttribute(sizeRenderer, "text", 3)
+	disk.chooserCombo.AddAttribute(sizeRenderer, "text", 4)
 
 	disk.mediaGrid.Attach(disk.chooserCombo, 1, 0, 1, 2)
 
@@ -251,7 +255,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 }
 
 func newListStoreMedia() (*gtk.ListStore, error) {
-	store, err := gtk.ListStoreNew(glib.TYPE_OBJECT, glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
+	store, err := gtk.ListStoreNew(glib.TYPE_OBJECT, glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
 	return store, err
 }
 
@@ -296,10 +300,19 @@ func addListStoreMediaRow(store *gtk.ListStore, installMedia storage.InstallTarg
 		return err
 	}
 
-	// Name string
-	nameString := installMedia.Friendly
+	// Friendly string
+	friendlyString := installMedia.Friendly
 
-	err = store.SetValue(iter, 1, nameString)
+	err = store.SetValue(iter, 1, friendlyString)
+	if err != nil {
+		log.Warning("SetValue store failed for friendly string: %q", friendlyString)
+		return err
+	}
+
+	// Name string
+	nameString := installMedia.Name
+
+	err = store.SetValue(iter, 2, nameString)
 	if err != nil {
 		log.Warning("SetValue store failed for name string: %q", nameString)
 		return err
@@ -307,7 +320,7 @@ func addListStoreMediaRow(store *gtk.ListStore, installMedia storage.InstallTarg
 
 	// Portion string
 	portionString := storage.FormatInstallPortion(installMedia)
-	err = store.SetValue(iter, 2, portionString)
+	err = store.SetValue(iter, 3, portionString)
 	if err != nil {
 		log.Warning("SetValue store failed for portion string: %q", portionString)
 		return err
@@ -316,7 +329,7 @@ func addListStoreMediaRow(store *gtk.ListStore, installMedia storage.InstallTarg
 	// Size string
 	sizeString, _ := storage.HumanReadableSizeWithPrecision(installMedia.FreeEnd-installMedia.FreeStart, 1)
 
-	err = store.SetValue(iter, 3, sizeString)
+	err = store.SetValue(iter, 4, sizeString)
 	if err != nil {
 		log.Warning("SetValue store failed for size string: %q", sizeString)
 		return err
