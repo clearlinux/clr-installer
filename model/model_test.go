@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/clearlinux/clr-installer/args"
+	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/user"
 	"github.com/clearlinux/clr-installer/utils"
 )
@@ -579,5 +580,30 @@ func TestBackupFile(t *testing.T) {
 	info, err = os.Stat(bf)
 	if os.IsNotExist(err) {
 		t.Fatalf("%s should exist and shouldn't return an error: %v", cf, err)
+	}
+}
+
+func TestWriteScrubModelTargetMedias(t *testing.T) {
+	si := &SystemInstall{}
+	yaml, err := si.WriteScrubModelTargetMedias()
+	defer func() { _ = os.Remove(yaml) }()
+	if err != nil {
+		t.Fatalf("WriteScrubModelTargetMedias shouldn't return an error: %v", err)
+	}
+}
+
+func TestClearInstallSelected(t *testing.T) {
+	si := &SystemInstall{}
+	si.ClearInstallSelected()
+
+	si.InstallSelected["name"] = storage.InstallTarget{Name: "name", Friendly: "friendly"}
+
+	if si.InstallSelected["name"].Friendly != "friendly" {
+		t.Fatalf("Name %s should exist with friendly as friendly", "name")
+	}
+
+	si.ClearInstallSelected()
+	if si.InstallSelected["name"].Friendly == "friendly" {
+		t.Fatalf("Name %s should NOT exist with friendly as friendly", "name")
 	}
 }
