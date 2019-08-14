@@ -573,8 +573,8 @@ msgstr "Then, the \"Remove Arguments\" items are removed."
 msgid "The final argument list contains the kernel bundle's configured arguments and the ones configured by the user."
 msgstr "The final argument list contains the kernel bundle's configured arguments and the ones configured by the user."
 
-msgid "Bleeding edge bare metal tailored Linux kernel"
-msgstr "Bleeding edge bare metal tailored Linux kernel"
+msgid "Cutting-edge Linux kernel tailored for bare metal"
+msgstr "Cutting-edge Linux kernel tailored for bare metal"
 
 msgid "Run the latest Long Term Support (LTS) Linux Kernel"
 msgstr "Run the latest Long Term Support (LTS) Linux Kernel"

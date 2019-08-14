@@ -573,8 +573,8 @@ msgstr "然后，删除“删除参数”项。"
 msgid "The final argument list contains the kernel bundle's configured arguments and the ones configured by the user."
 msgstr "最后的参数列表包含内核包的配置参数和用户配置的参数"
 
-msgid "Bleeding edge bare metal tailored Linux kernel"
-msgstr "出血边缘裸机定制Linux内核"
+msgid "Cutting-edge Linux kernel tailored for bare metal"
+msgstr "针对裸机定制的尖端 Linux 内核"
 
 msgid "Run the latest Long Term Support (LTS) Linux Kernel"
 msgstr "运行最新的长期支持 (LTS) Linux 内核"
