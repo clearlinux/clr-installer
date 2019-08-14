@@ -3,7 +3,7 @@
 		{
       "bundle": "kernel-native",
       "name": "Native",
-      "desc": "Bleeding edge bare metal tailored Linux kernel"
+      "desc": "Cutting-edge Linux kernel tailored for bare metal"
     },
 		{
       "bundle": "kernel-lts",
