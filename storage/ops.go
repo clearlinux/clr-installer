@@ -400,11 +400,6 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 				}
 			}
 
-			// Only set GUIDs on newly created partitions
-			if !curr.MakePartition {
-				continue
-			}
-
 			var guid string
 			guid, err = curr.getGUID()
 			if err != nil {
