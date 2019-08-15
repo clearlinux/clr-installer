@@ -58,15 +58,21 @@ type MediaConfigPage struct {
 
 // GetConfiguredValue Returns the string representation of currently value set
 func (page *MediaConfigPage) GetConfiguredValue() string {
+	model := page.getModel()
+	tm := model.TargetMedias
+
 	if page.isAdvancedSelected {
-		results := storage.ValidateAdvancedPartitions(page.getModel().TargetMedias)
-		if len(results) > 0 {
-			return fmt.Sprintf("Advanced: %s", strings.Join(results, ", "))
+		if storage.AdvancedPartitionsRequireEncryption(tm) && model.CryptPass == "" {
+			return fmt.Sprintf("Advanced: %s", "Encryption passphrase required")
+		} else {
+			results := storage.ValidateAdvancedPartitions(tm)
+			if len(results) > 0 {
+				return fmt.Sprintf("Advanced: %s", strings.Join(results, ", "))
+			}
+			return fmt.Sprintf("Advanced: %s", strings.Join(storage.GetAdvancedPartitions(tm), ", "))
 		}
-		return fmt.Sprintf("Advanced: %s", strings.Join(storage.GetAdvancedPartitions(page.getModel().TargetMedias), ", "))
 	}
 
-	tm := page.getModel().TargetMedias
 	if len(tm) == 0 {
 		return "No -media- selected"
 	} else if len(tm) > 1 {
@@ -75,7 +81,7 @@ func (page *MediaConfigPage) GetConfiguredValue() string {
 	}
 
 	bd := tm[0]
-	target := page.getModel().InstallSelected[bd.Name]
+	target := model.InstallSelected[bd.Name]
 	portion := storage.FormatInstallPortion(target)
 
 	// Size string
@@ -208,18 +214,29 @@ func (page *MediaConfigPage) Activate() {
 		}
 	}
 
+	si := page.getModel()
+	advEncryption := storage.AdvancedPartitionsRequireEncryption(si.TargetMedias)
+
 	if page.isSafeSelected {
 		page.activated = page.safeRadio
 	} else if page.isDestructiveSelected {
 		page.activated = page.destructiveRadio
 	} else if page.isAdvancedSelected {
 		page.activated = page.advancedRadio
-		page.encryptCheck.SetEnabled(false)
+		if !advEncryption {
+			page.encryptCheck.SetEnabled(false)
+		}
 	} else {
 		page.activated = page.cancelBtn
 	}
 
 	clui.RefreshScreen()
+
+	if page.isAdvancedSelected {
+		if advEncryption && si.CryptPass == "" {
+			page.encryptCheck.SetState(1)
+		}
+	}
 }
 
 func (page *MediaConfigPage) setConfirmButton() {
@@ -232,6 +249,61 @@ func (page *MediaConfigPage) setConfirmButton() {
 		}
 	} else {
 		page.confirmBtn.SetEnabled(true)
+	}
+}
+
+func (page *MediaConfigPage) advancedRadioOnChange(active bool) {
+	if active {
+		page.labelWarning.SetTitle("")
+		page.labelDestructive.SetTitle("")
+		page.isSafeSelected = false
+		page.isDestructiveSelected = false
+
+		page.encryptCheck.SetEnabled(storage.AdvancedPartitionsRequireEncryption(page.getModel().TargetMedias))
+
+		page.advancedCfgBtn.SetEnabled(true)
+	}
+
+	// Disable the Confirm Button if we toggled
+	if !page.isAdvancedSelected && active {
+		page.isAdvancedSelected = true
+
+		if err := page.buildMediaLists(); err != nil {
+			page.Panic(err)
+		}
+	}
+
+	if active {
+		if len(page.devs) < 1 {
+			warning := "No media found for installation"
+			log.Warning(warning)
+			warning = fmt.Sprintf("Warning: %s", warning)
+			page.labelWarning.SetTitle(warning)
+		} else {
+			si := page.getModel()
+			results := storage.ValidateAdvancedPartitions(si.TargetMedias)
+			warning := ""
+			if len(results) > 0 {
+				warning = strings.Join(results, ", ")
+				warning = fmt.Sprintf("Advanced: %s", warning)
+				page.labelWarning.SetBackColor(errorLabelBg)
+				page.labelWarning.SetTextColor(errorLabelFg)
+			} else {
+				// No warning, so re-use the label to show what is configured
+				warning = page.GetConfiguredValue()
+				page.labelWarning.SetBackColor(infoLabelBg)
+				page.labelWarning.SetTextColor(infoLabelFg)
+			}
+			if len(warning) > 0 {
+				// Truncate long messages
+				max, _ := page.labelWarning.Size()
+				if len(warning) > max {
+					warning = warning[0:max-3] + "..."
+				}
+				page.labelWarning.SetTitle(warning)
+			}
+			page.setConfirmButton()
+		}
 	}
 }
 
@@ -336,72 +408,8 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 	page.advancedRadio.SetStyle("Media")
 	page.advancedRadio.SetPack(clui.Horizontal)
 	page.group.AddItem(page.advancedRadio)
-	page.advancedRadio.OnChange(func(active bool) {
-		if active {
-			page.labelWarning.SetTitle("")
-			page.labelDestructive.SetTitle("")
-			page.isSafeSelected = false
-			page.isDestructiveSelected = false
-			page.encryptCheck.SetEnabled(false)
-			page.encryptCheck.SetState(0)
-			page.advancedCfgBtn.SetEnabled(true)
-		}
+	page.advancedRadio.OnChange(page.advancedRadioOnChange)
 
-		// Disable the Confirm Button if we toggled
-		if !page.isAdvancedSelected && active {
-			page.isAdvancedSelected = true
-
-			if err := page.buildMediaLists(); err != nil {
-				page.Panic(err)
-			}
-		}
-
-		if active {
-			if len(page.devs) < 1 {
-				warning := "No media found for installation"
-				log.Warning(warning)
-				warning = fmt.Sprintf("Warning: %s", warning)
-				page.labelWarning.SetTitle(warning)
-			} else {
-				si := page.getModel()
-				/*
-					if storage.AdvancedPartitionsRequireEncryption(si.TargetMedias) && si.CryptPass == "" {
-						if dialog, err := CreateEncryptPassphraseDialogBox(si); err == nil {
-							dialog.OnClose(func() {
-								if dialog.Confirmed {
-									page.encryptCheck.SetState(1)
-								} else {
-									page.encryptCheck.SetState(0)
-								}
-							})
-						}
-					}
-				*/
-				results := storage.ValidateAdvancedPartitions(si.TargetMedias)
-				warning := ""
-				if len(results) > 0 {
-					warning = strings.Join(results, ", ")
-					warning = fmt.Sprintf("Advanced: %s", warning)
-					page.labelWarning.SetBackColor(errorLabelBg)
-					page.labelWarning.SetTextColor(errorLabelFg)
-				} else {
-					// No warning, so re-use the label to show what is configured
-					warning = page.GetConfiguredValue()
-					page.labelWarning.SetBackColor(infoLabelBg)
-					page.labelWarning.SetTextColor(infoLabelFg)
-				}
-				if len(warning) > 0 {
-					// Truncate long messages
-					max, _ := page.labelWarning.Size()
-					if len(warning) > max {
-						warning = warning[0:max-3] + "..."
-					}
-					page.labelWarning.SetTitle(warning)
-				}
-				page.setConfirmButton()
-			}
-		}
-	})
 	// Description of Advanced
 	clui.CreateLabel(radioButtonFrame, 1, 1, "User selected media via partition labels.", Fixed)
 
@@ -452,6 +460,9 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 				dialog.OnClose(func() {
 					if !dialog.Confirmed {
 						page.encryptCheck.SetState(0)
+					} else {
+						// Redraw the screen to update the advanced message
+						page.advancedRadioOnChange(true)
 					}
 				})
 			}
@@ -559,7 +570,7 @@ func (page *MediaConfigPage) buildMediaLists() error {
 
 	page.safeTargets = storage.FindSafeInstallTargets(storage.MinimumServerInstallSize, page.devs)
 	page.destructiveTargets = storage.FindAllInstallTargets(page.devs)
-	// Hook for searching CLR_*?
+
 	model := page.getModel()
 	model.TargetMedias = nil
 	for _, curr := range storage.FindAdvancedInstallTargets(page.devs) {
