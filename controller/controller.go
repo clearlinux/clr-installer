@@ -185,15 +185,24 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 
 	// expand block device's name case we've detected image replacement cases
 	for _, tm := range expandMe {
+		oldName := tm.Name
 		tm.ExpandName(aliasMap)
+		newName := tm.Name
+		// Remap the InstallSelected
+		model.InstallSelected[newName] = model.InstallSelected[oldName]
+		delete(model.InstallSelected, oldName)
 	}
 
 	mountPoints := []*storage.BlockDevice{}
 
 	// prepare all the target block devices
 	for _, curr := range model.TargetMedias {
+		var wholeDisk bool
+		if val, ok := model.InstallSelected[curr.Name]; ok {
+			wholeDisk = val.WholeDisk
+		}
 		// based on the description given, write the partition table
-		if err = curr.WritePartitionTable(model.LegacyBios, model.InstallSelected.WholeDisk, nil); err != nil {
+		if err = curr.WritePartitionTable(model.LegacyBios, wholeDisk, nil); err != nil {
 			return err
 		}
 

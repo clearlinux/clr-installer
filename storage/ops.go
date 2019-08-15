@@ -1696,10 +1696,8 @@ func getPlannedPartitionChanges(media *BlockDevice) []string {
 
 // GetPlannedMediaChanges returns an array of strings with all of
 // disk and partition planned changes to advise the user before start
-func GetPlannedMediaChanges(target InstallTarget, medias []*BlockDevice) []string {
+func GetPlannedMediaChanges(targets map[string]InstallTarget, medias []*BlockDevice) []string {
 	results := []string{}
-	target.Name = medias[0].Name
-	targets := []InstallTarget{target}
 
 	if len(targets) != len(medias) {
 		log.Warning("The number of install targets (%d) != media devices (%d)",

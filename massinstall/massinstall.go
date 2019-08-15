@@ -153,7 +153,9 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 
 	// Need to ensure the partitioner knows we are running from
 	// the command line and will be using the whole disk
-	md.InstallSelected = storage.InstallTarget{WholeDisk: true}
+	for _, curr := range md.TargetMedias {
+		md.InstallSelected[curr.Name] = storage.InstallTarget{WholeDisk: true}
+	}
 
 	progress.Set(mi)
 
