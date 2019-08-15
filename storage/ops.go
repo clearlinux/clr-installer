@@ -1429,6 +1429,7 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 				case "swap":
 					log.Debug("AdvancedPartitioning: Swap on %s", ch.Name)
 					clrAdded = true
+					ch.FsType = "swap"
 				case "mnt":
 					clrMountFound = true
 					log.Debug("FindAdvancedInstallTargets: Extra mount found %s", ch.Name)
