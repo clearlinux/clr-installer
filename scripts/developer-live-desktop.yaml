@@ -15,11 +15,9 @@ block-devices: [
    {name: "bdevice", file: "dev-clear-live-desktop.img"}
 ]
 
-# Ensure this fits on an 8GB USB driver by sizing
-# to less then 8 billion bytes like manufactures
 targetMedia:
 - name: ${bdevice}
-  size: "7800000000"
+  size: "10G"
   type: disk
   children:
   - name: ${bdevice}1
