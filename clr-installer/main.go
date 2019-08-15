@@ -216,6 +216,7 @@ func main() {
 	if md, err = model.LoadFile(cf, options); err != nil {
 		fatal(err)
 	}
+	md.ClearInstallSelected()
 
 	log.Info("Querying Clear Linux version")
 	if err := utils.ParseOSClearVersion(); err != nil {

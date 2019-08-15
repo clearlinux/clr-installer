@@ -48,43 +48,38 @@ var testAlias = []string{}
 // SystemInstall represents the system install "configuration", the target
 // medias, bundles to install and whatever state a install may require
 type SystemInstall struct {
-	// Even though TargetMedias is an array, we currently only support
-	// it containing a single BlockDevice which matches/maps to the InstallTarget
-	// TODO: Change InstallSelected to be a map with the key being the
-	// device name for which it holds InstallTarget information when/if
-	// we add support for installing across multiple disks.
-	InstallSelected   storage.InstallTarget  `yaml:"-"`
-	TargetMedias      []*storage.BlockDevice `yaml:"targetMedia"`
-	NetworkInterfaces []*network.Interface   `yaml:"networkInterfaces,omitempty,flow"`
-	Keyboard          *keyboard.Keymap       `yaml:"keyboard,omitempty,flow"`
-	Language          *language.Language     `yaml:"language,omitempty,flow"`
-	Bundles           []string               `yaml:"bundles,omitempty,flow"`
-	UserBundles       []string               `yaml:"userBundles,omitempty,flow"`
-	HTTPSProxy        string                 `yaml:"httpsProxy,omitempty,flow"`
-	Telemetry         *telemetry.Telemetry   `yaml:"telemetry,omitempty,flow"`
-	Timezone          *timezone.TimeZone     `yaml:"timezone,omitempty,flow"`
-	Users             []*user.User           `yaml:"users,omitempty,flow"`
-	KernelArguments   *kernel.Arguments      `yaml:"kernel-arguments,omitempty,flow"`
-	Kernel            *kernel.Kernel         `yaml:"kernel,omitempty,flow"`
-	PostReboot        bool                   `yaml:"postReboot,omitempty,flow"`
-	SwupdMirror       string                 `yaml:"swupdMirror,omitempty,flow"`
-	PostArchive       bool                   `yaml:"postArchive,omitempty,flow"`
-	Hostname          string                 `yaml:"hostname,omitempty,flow"`
-	AutoUpdate        bool                   `yaml:"autoUpdate,omitempty,flow"`
-	TelemetryURL      string                 `yaml:"telemetryURL,omitempty,flow"`
-	TelemetryTID      string                 `yaml:"telemetryTID,omitempty,flow"`
-	TelemetryPolicy   string                 `yaml:"telemetryPolicy,omitempty,flow"`
-	PreInstall        []*InstallHook         `yaml:"pre-install,omitempty,flow"`
-	PostInstall       []*InstallHook         `yaml:"post-install,omitempty,flow"`
-	Version           uint                   `yaml:"version,omitempty,flow"`
-	StorageAlias      []*StorageAlias        `yaml:"block-devices,omitempty,flow"`
-	LegacyBios        bool                   `yaml:"legacyBios,omitempty,flow"`
-	CopyNetwork       bool                   `yaml:"copyNetwork,omitempty,flow"`
-	Environment       map[string]string      `yaml:"env,omitempty,flow"`
-	CryptPass         string                 `yaml:"-"`
-	MakeISO           bool                   `yaml:"iso,omitempty,flow"`
-	KeepImage         bool                   `yaml:"keepImage,omitempty,flow"`
-	LockFile          string                 `yaml:"-"`
+	InstallSelected   map[string]storage.InstallTarget `yaml:"-"`
+	TargetMedias      []*storage.BlockDevice           `yaml:"targetMedia"`
+	NetworkInterfaces []*network.Interface             `yaml:"networkInterfaces,omitempty,flow"`
+	Keyboard          *keyboard.Keymap                 `yaml:"keyboard,omitempty,flow"`
+	Language          *language.Language               `yaml:"language,omitempty,flow"`
+	Bundles           []string                         `yaml:"bundles,omitempty,flow"`
+	UserBundles       []string                         `yaml:"userBundles,omitempty,flow"`
+	HTTPSProxy        string                           `yaml:"httpsProxy,omitempty,flow"`
+	Telemetry         *telemetry.Telemetry             `yaml:"telemetry,omitempty,flow"`
+	Timezone          *timezone.TimeZone               `yaml:"timezone,omitempty,flow"`
+	Users             []*user.User                     `yaml:"users,omitempty,flow"`
+	KernelArguments   *kernel.Arguments                `yaml:"kernel-arguments,omitempty,flow"`
+	Kernel            *kernel.Kernel                   `yaml:"kernel,omitempty,flow"`
+	PostReboot        bool                             `yaml:"postReboot,omitempty,flow"`
+	SwupdMirror       string                           `yaml:"swupdMirror,omitempty,flow"`
+	PostArchive       bool                             `yaml:"postArchive,omitempty,flow"`
+	Hostname          string                           `yaml:"hostname,omitempty,flow"`
+	AutoUpdate        bool                             `yaml:"autoUpdate,omitempty,flow"`
+	TelemetryURL      string                           `yaml:"telemetryURL,omitempty,flow"`
+	TelemetryTID      string                           `yaml:"telemetryTID,omitempty,flow"`
+	TelemetryPolicy   string                           `yaml:"telemetryPolicy,omitempty,flow"`
+	PreInstall        []*InstallHook                   `yaml:"pre-install,omitempty,flow"`
+	PostInstall       []*InstallHook                   `yaml:"post-install,omitempty,flow"`
+	Version           uint                             `yaml:"version,omitempty,flow"`
+	StorageAlias      []*StorageAlias                  `yaml:"block-devices,omitempty,flow"`
+	LegacyBios        bool                             `yaml:"legacyBios,omitempty,flow"`
+	CopyNetwork       bool                             `yaml:"copyNetwork,omitempty,flow"`
+	Environment       map[string]string                `yaml:"env,omitempty,flow"`
+	CryptPass         string                           `yaml:"-"`
+	MakeISO           bool                             `yaml:"iso,omitempty,flow"`
+	KeepImage         bool                             `yaml:"keepImage,omitempty,flow"`
+	LockFile          string                           `yaml:"-"`
 }
 
 // SystemUsage is used to include additional information into the telemetry payload
@@ -110,6 +105,11 @@ type StorageAlias struct {
 	Name       string `yaml:"name,omitempty,flow"`
 	File       string `yaml:"file,omitempty,flow"`
 	DeviceFile bool   `yaml:"devicefile,omitempty,flow"`
+}
+
+// ClearInstallSelected clears the map of Installation Selected targets
+func (si *SystemInstall) ClearInstallSelected() {
+	si.InstallSelected = map[string]storage.InstallTarget{}
 }
 
 // ClearExtraKernelArguments clears all of the of custom extra kernel arguments
