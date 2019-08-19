@@ -279,6 +279,7 @@ func (page *MediaConfigPage) advancedRadioOnChange(active bool) {
 			log.Warning(warning)
 			warning = fmt.Sprintf("Warning: %s", warning)
 			page.labelWarning.SetTitle(warning)
+			page.advancedCfgBtn.SetEnabled(false)
 		} else {
 			si := page.getModel()
 			results := storage.ValidateAdvancedPartitions(si.TargetMedias)
