@@ -694,15 +694,9 @@ func (window *Window) confirmInstall() {
 	var text, primaryText, secondaryText string
 	var err error
 
-	if window.model.InstallSelected.EraseDisk {
-		primaryText = utils.Locale.Get(storage.DestructiveWarning)
-	} else if window.model.InstallSelected.DataLoss {
-		primaryText = utils.Locale.Get(storage.DataLossWarning)
-	} else if window.model.InstallSelected.WholeDisk {
-		primaryText = utils.Locale.Get(storage.SafeWholeWarning)
-	} else {
-		primaryText = utils.Locale.Get(storage.SafePartialWarning)
-	}
+	eraseDisk := false
+	dataLoss := false
+	wholeDisk := false
 
 	// Build the string with the media being modified
 	targets := []string{}
@@ -711,8 +705,24 @@ func (window *Window) confirmInstall() {
 	} else {
 		for _, media := range window.model.TargetMedias {
 			targets = append(targets, media.GetDeviceFile())
+			if val, ok := window.model.InstallSelected[media.Name]; ok {
+				eraseDisk = eraseDisk || val.EraseDisk
+				dataLoss = dataLoss || val.DataLoss
+				wholeDisk = wholeDisk || val.WholeDisk
+			}
 		}
 	}
+
+	if eraseDisk {
+		primaryText = utils.Locale.Get(storage.DestructiveWarning)
+	} else if dataLoss {
+		primaryText = utils.Locale.Get(storage.DataLossWarning)
+	} else if wholeDisk {
+		primaryText = utils.Locale.Get(storage.SafeWholeWarning)
+	} else {
+		primaryText = utils.Locale.Get(storage.SafePartialWarning)
+	}
+
 	secondaryText = utils.Locale.Get("Target Media") + ": " + strings.Join(targets, ", ")
 
 	title := utils.Locale.Get(storage.ConfirmInstallation)

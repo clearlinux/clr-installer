@@ -601,6 +601,13 @@ func (disk *DiskConfig) populateComboBoxes() error {
 	disk.safeTargets = storage.FindSafeInstallTargets(storage.MinimumDesktopInstallSize, disk.devs)
 	disk.destructiveTargets = storage.FindAllInstallTargets(disk.devs)
 
+	// Hook for searching CLR_*?
+	disk.model.TargetMedias = nil
+	for _, curr := range storage.FindAdvancedInstallTargets(disk.devs) {
+		disk.model.AddTargetMedia(curr)
+		log.Debug("AddTargetMedia %+v", curr)
+	}
+
 	if disk.safeButton.GetActive() {
 		if len(disk.safeTargets) > 0 {
 			for _, target := range disk.safeTargets {
@@ -678,12 +685,16 @@ func (disk *DiskConfig) StoreChanges() {
 
 	if disk.safeButton.GetActive() {
 		log.Debug("Safe Install chooserCombo selected %v", disk.chooserCombo.GetActive())
-		disk.model.InstallSelected = disk.safeTargets[disk.chooserCombo.GetActive()]
-		log.Debug("Safe Install Target %v", disk.model.InstallSelected)
+		selected := disk.safeTargets[disk.chooserCombo.GetActive()]
+		disk.model.InstallSelected[selected.Name] = selected
+		log.Debug("Safe Install Target %v", selected)
+		disk.model.TargetMedias = nil
 	} else if disk.destructiveButton.GetActive() {
 		log.Debug("Destructive Install chooserCombo selected %v", disk.chooserCombo.GetActive())
-		disk.model.InstallSelected = disk.destructiveTargets[disk.chooserCombo.GetActive()]
-		log.Debug("Destructive Install Target %v", disk.model.InstallSelected)
+		selected := disk.destructiveTargets[disk.chooserCombo.GetActive()]
+		disk.model.InstallSelected[selected.Name] = selected
+		log.Debug("Destructive Install Target %v", selected)
+		disk.model.TargetMedias = nil
 	} else {
 		log.Warning("Failed to find and save the selected installation media")
 	}
@@ -693,25 +704,26 @@ func (disk *DiskConfig) StoreChanges() {
 		log.Error("Failed to find storage media for install during save: %s", err)
 	}
 
-	for _, curr := range bds {
-		if curr.Name == disk.model.InstallSelected.Name {
-			installBlockDevice = curr.Clone()
-			// Using the whole disk
-			if disk.model.InstallSelected.WholeDisk {
-				storage.NewStandardPartitions(installBlockDevice)
-			} else {
-				// Partial Disk, Add our partitions
-				size := disk.model.InstallSelected.FreeEnd - disk.model.InstallSelected.FreeStart
-				size = size - storage.AddBootStandardPartition(installBlockDevice)
-				if !installBlockDevice.DeviceHasSwap() {
-					size = size - storage.AddSwapStandardPartition(installBlockDevice)
+	for _, selected := range disk.model.InstallSelected {
+		for _, curr := range bds {
+			if curr.Name == selected.Name {
+				installBlockDevice = curr.Clone()
+				// Using the whole disk
+				if selected.WholeDisk {
+					storage.NewStandardPartitions(installBlockDevice)
+				} else {
+					// Partial Disk, Add our partitions
+					size := selected.FreeEnd - selected.FreeStart
+					size = size - storage.AddBootStandardPartition(installBlockDevice)
+					if !installBlockDevice.DeviceHasSwap() {
+						size = size - storage.AddSwapStandardPartition(installBlockDevice)
+					}
+					storage.AddRootStandardPartition(installBlockDevice, size)
 				}
-				storage.AddRootStandardPartition(installBlockDevice, size)
+				// Give the active disk to the model
+				disk.model.AddTargetMedia(installBlockDevice)
+				break
 			}
-			disk.model.TargetMedias = nil
-			// Give the active disk to the model
-			disk.model.AddTargetMedia(installBlockDevice)
-			break
 		}
 	}
 
@@ -770,20 +782,22 @@ func (disk *DiskConfig) GetConfiguredValue() string {
 	tm := disk.model.TargetMedias
 	if len(tm) == 0 {
 		return utils.Locale.Get("No Media Selected")
+	} else if len(tm) > 1 {
+		log.Warning("Too many media found, one 1 supported: %+v", tm)
+		return utils.Locale.Get("Too many media found")
 	}
 
-	target := disk.model.InstallSelected
+	bd := tm[0]
+	target := disk.model.InstallSelected[bd.Name]
 	portion := storage.FormatInstallPortion(target)
 
 	// Size string
 	size, _ := storage.HumanReadableSizeWithPrecision(target.FreeEnd-target.FreeStart, 1)
 
 	encrypted := ""
-	for _, bd := range tm {
-		for _, ch := range bd.Children {
-			if ch.Type == storage.BlockDeviceTypeCrypt {
-				encrypted = " " + utils.Locale.Get("Encryption")
-			}
+	for _, ch := range bd.Children {
+		if ch.Type == storage.BlockDeviceTypeCrypt {
+			encrypted = " " + utils.Locale.Get("Encryption")
 		}
 	}
 
