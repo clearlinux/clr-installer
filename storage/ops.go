@@ -1318,6 +1318,119 @@ func FindModifyInstallTargets(medias []*BlockDevice) []InstallTarget {
 	return sortInstallTargets(installTargets)
 }
 
+// FindAdvancedInstallTargets creates a list of advanced installation targets
+// We use Partition Labels to tag and convey which partitions should be used
+// for an advanced installations.
+//	CLR_BOOT = The /boot partition; must be vfat
+//	CLR_SWAP = A swap partition to use; can be more than one
+//	CLR_ROOT = The / root partition; must be ext[234] or xfs
+//		due to clr-boot-manager
+//	CLR_EXTRA = Any additional partitions that should be
+//		included in the install like /srv, /home, ...
+//
+// Appending "_E" to the label marks it for encryption; not valid for CLR_BOOT
+func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
+	var targetMedias []*BlockDevice
+	defaultFsType := "ext4"
+	defaultBootFsType := "vfat"
+
+	for _, curr := range medias {
+		var installBlockDevice *BlockDevice
+		clrAdded := false
+		installBlockDevice = curr.Clone()
+
+		for _, ch := range installBlockDevice.Children {
+			clrFound := false
+			clrMountFound := false
+			label := ch.PartitionLabel
+
+			if label != "" {
+				log.Debug("FindAdvancedInstallTargets: Found partition %s with label %s", ch.Name, label)
+			}
+
+			for _, part := range strings.Split(label, "_") {
+				lowerPart := strings.ToLower(part)
+				if clrMountFound {
+					log.Debug("AdvancedPartitioning: Extra mount %q for %s", part, ch.Name)
+					ch.MountPoint = part
+					if ch.FsType == "" {
+						log.Debug("AdvancedPartitioning: No FsType set for %s, defaulting to %s", ch.Name, defaultFsType)
+						ch.FsType = defaultFsType
+						log.Debug("AdvancedPartitioning: Forcing Format partition %s enabled", ch.Name)
+						ch.FormatPartition = true
+					}
+					clrAdded = true
+					clrMountFound = false
+					continue
+				}
+
+				if !clrFound {
+					if lowerPart == "clr" {
+						log.Debug("FindAdvancedInstallTargets: Partition label contains clr %s", ch.Name)
+						clrFound = true
+					}
+					continue
+				}
+
+				switch lowerPart {
+				case "boot":
+					if ch.Type == BlockDeviceTypeCrypt {
+						log.Warning("AdvancedPartitioning: /boot can no be encrypted, skipping")
+						ch.Type = BlockDeviceTypePart
+					}
+					log.Debug("AdvancedPartitioning: Boot is %s", ch.Name)
+					ch.MountPoint = "/boot"
+					if ch.FsType == "" {
+						log.Debug("AdvancedPartitioning: No FsType set for %s, defaulting to %s", ch.Name, defaultBootFsType)
+						ch.FsType = defaultBootFsType
+						log.Debug("AdvancedPartitioning: Forcing Format partition %s enabled", ch.Name)
+						ch.FormatPartition = true
+					}
+					clrAdded = true
+				case "root":
+					log.Debug("AdvancedPartitioning: Root is %s", ch.Name)
+					ch.MountPoint = "/"
+					if ch.FsType == "" {
+						log.Debug("AdvancedPartitioning: No FsType set for %s, defaulting to %s", ch.Name, defaultFsType)
+						ch.FsType = defaultFsType
+						log.Debug("AdvancedPartitioning: Forcing Format partition %s enabled", ch.Name)
+						ch.FormatPartition = true
+					}
+					clrAdded = true
+				case "swap":
+					log.Debug("AdvancedPartitioning: Swap on %s", ch.Name)
+					clrAdded = true
+				case "mnt":
+					clrMountFound = true
+					log.Debug("FindAdvancedInstallTargets: Extra mount found %s", ch.Name)
+				case "e":
+					if ch.MountPoint == "/boot" {
+						log.Warning("AdvancedPartitioning: /boot can no be encrypted, skipping")
+					} else {
+						ch.Type = BlockDeviceTypeCrypt
+						log.Debug("AdvancedPartitioning: Encrypt partition %s", ch.Name)
+					}
+				case "f":
+					ch.FormatPartition = true
+					log.Debug("AdvancedPartitioning: Format partition %s enabled", ch.Name)
+				}
+			}
+		}
+
+		if clrAdded {
+			targetMedias = append(targetMedias, installBlockDevice)
+		}
+	}
+
+	for _, curr := range targetMedias {
+		for _, ch := range curr.Children {
+			log.Debug("FindAdvancedInstallTargets: child: %+v", ch)
+		}
+	}
+
+	return targetMedias
+}
+
 // FormatInstallPortion is the common code for describing
 // the amount of disk used
 func FormatInstallPortion(target InstallTarget) string {
@@ -1341,3 +1454,29 @@ type ByBDName []*BlockDevice
 func (a ByBDName) Len() int           { return len(a) }
 func (a ByBDName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByBDName) Less(i, j int) bool { return a[i].Name < a[j].Name }
+
+// GetAdvancedPartitions returns an array of strings for the
+// assigned advanced partitions used
+func GetAdvancedPartitions(medias []*BlockDevice) []string {
+	results := []string{}
+
+	for _, curr := range medias {
+		for _, ch := range curr.Children {
+			if strings.HasPrefix(ch.PartitionLabel, "CLR_") {
+				var name string
+				if ch.MountPoint != "" {
+					name = ch.Name + ":" + ch.MountPoint
+				} else {
+					name = ch.Name + ":" + ch.FsType
+				}
+				if ch.Type == BlockDeviceTypeCrypt {
+					name = name + "*"
+				}
+
+				results = append(results, name)
+			}
+		}
+	}
+
+	return results
+}

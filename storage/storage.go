@@ -45,7 +45,8 @@ type BlockDevice struct {
 	UUID            string             // filesystem uuid
 	Serial          string             // device serial number
 	MountPoint      string             // where the device is mounted
-	Label           string             // label for the partition; set with mkfs
+	Label           string             // label for the filesystem; set with mkfs
+	PartitionLabel  string             // label for the partition; set with cgdisk/parted/gparted
 	Size            uint64             // size of the device
 	Type            BlockDeviceType    // device type
 	State           BlockDeviceState   // device state (running, live etc)
@@ -323,6 +324,7 @@ func (bd *BlockDevice) Clone() *BlockDevice {
 		Serial:          bd.Serial,
 		MountPoint:      bd.MountPoint,
 		Label:           bd.Label,
+		PartitionLabel:  bd.PartitionLabel,
 		Size:            bd.Size,
 		Type:            bd.Type,
 		State:           bd.State,
@@ -426,6 +428,7 @@ func Validate(medias []*BlockDevice, legacyBios bool, cryptPass string) error {
 
 	for _, bd := range medias {
 		for _, ch := range bd.Children {
+			log.Debug("storage.Validate: bd: %+v, child: %+v", bd, ch)
 			if ch.FsType == "vfat" && ch.MountPoint == "/boot" {
 				bootPartition = true
 
@@ -1141,6 +1144,15 @@ func (bd *BlockDevice) UnmarshalJSON(b []byte) error {
 			}
 
 			bd.Label = label
+		case "partlabel":
+			var label string
+
+			label, err = getNextStrToken(dec, "partlabel")
+			if err != nil {
+				return err
+			}
+
+			bd.PartitionLabel = label
 		case "ro":
 			bd.ReadOnly, err = getNextBoolToken(dec, "ro")
 			if err != nil {
