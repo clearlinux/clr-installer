@@ -226,22 +226,20 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 	var prg progress.Progress
 
 	//write the partition label
-	if wholeDisk {
-		if dryRun == nil {
+	if dryRun != nil {
+		if wholeDisk {
+			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(PartitioningWarning))
+		}
+	} else {
+		if wholeDisk {
 			if err := bd.WritePartitionLabel(); err != nil {
 				return err
 			}
 		} else {
-			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(PartitioningWarning))
-		}
-	} else {
-		if dryRun == nil {
 			log.Debug("WritePartitionTable: partial disk, skipping mklabel for %s", bd.Name)
 		}
-	}
 
-	mesg := utils.Locale.Get("Updating partition table for: %s", bd.Name)
-	if dryRun == nil {
+		mesg := utils.Locale.Get("Updating partition table for: %s", bd.Name)
 		prg = progress.NewLoop(mesg)
 		log.Info(mesg)
 	}
@@ -252,9 +250,6 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 
 	// First remove any user removed partitions
 	if len(bd.removedParts) > 0 {
-		if dryRun == nil {
-			log.Debug("WritePartitionTable: remove partitions : %v", bd.removedParts)
-		}
 		rmArgs := []string{
 			"parted",
 			"-a",
@@ -273,7 +268,9 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 					utils.Locale.Get(RemoveParitionWarning)))
 			}
 		}
+
 		if dryRun == nil {
+			log.Debug("WritePartitionTable: remove partitions : %v", bd.removedParts)
 			err = cmd.RunAndLog(rmArgs...)
 			if err != nil {
 				log.Warning("Failed to remove existing partition: %v (%s)", bd.removedParts, err)
@@ -299,92 +296,91 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 
 	// Make the needed new partitions
 	for _, curr := range bd.Children {
-		if dryRun == nil {
-			log.Debug("WritePartitionTable: processing child: %v", curr)
-			baseArgs := []string{
-				"parted",
-				"-a",
-				"optimal",
-				bd.GetDeviceFile(),
-				"unit", "MB",
-				"--script",
-				"--",
-			}
-
-			if !curr.MakePartition {
-				if dryRun == nil {
-					log.Debug("WritePartitionTable: skipping partition %s", curr.Name)
-				}
-				continue
-			}
-
-			var mkPart string
-
-			op, found := bdOps[curr.FsType]
-			if !found {
-				return errors.Errorf("No makePartCommand() implementation for: %s",
-					curr.FsType)
-			}
-
-			mkPart, err = op.makePartCommand(curr)
-			if err != nil {
-				return err
-			}
-
-			size := uint64(curr.Size)
-			end := start + size
-			if !wholeDisk {
-				start, end = bd.getPartitionStartEnd(curr.partition)
-			} else {
-				log.Debug("WritePartitionTable: WholeDisk mode")
-			}
-			log.Debug("WritePartitionTable: start: %d, end: %d", start, end)
-
-			if size < 1 {
-				if maxFound {
-					return errors.Errorf("Found more than one partition with size 0 for %s!", bd.Name)
-				}
-				maxFound = true
-				end = 0
-			}
-
-			retries := 3
-			for {
-				mkPartCmd := mkPart + " " + getStartEndMB(start, end)
-				log.Debug("WritePartitionTable: mkPartCmd: %s", mkPartCmd)
-
-				args := append(baseArgs, mkPartCmd)
-
-				err = cmd.RunAndLog(args...)
-
-				if err == nil || retries == 0 {
-					break
-				}
-
-				// Move the start position ahead one MB in an attempt
-				// to find a working optimal partition entry
-				start = start + (1000 * 1000)
-
-				retries--
-			}
-			if err != nil {
-				return errors.Wrap(err)
-			}
-
-			// Get the new list of partitions
-			newPartitions := bd.getPartitionList()
-			// The current partition is new one added
-			curr.SetPartitionNumber(findNewPartition(currentPartitions, newPartitions).Number)
-
-			start = end
-			currentPartitions = newPartitions
-		} else {
+		if dryRun != nil {
 			if curr.MakePartition {
 				size, _ := HumanReadableSizeWithPrecision(curr.Size, 1)
 				*dryRun = append(*dryRun, fmt.Sprintf("%s: %s [%s]",
 					bd.Name, utils.Locale.Get(AddPartitionInfo), size))
 			}
+			continue
 		}
+
+		log.Debug("WritePartitionTable: processing child: %v", curr)
+		baseArgs := []string{
+			"parted",
+			"-a",
+			"optimal",
+			bd.GetDeviceFile(),
+			"unit", "MB",
+			"--script",
+			"--",
+		}
+
+		if !curr.MakePartition {
+			log.Debug("WritePartitionTable: skipping partition %s", curr.Name)
+			continue
+		}
+
+		var mkPart string
+
+		op, found := bdOps[curr.FsType]
+		if !found {
+			return errors.Errorf("No makePartCommand() implementation for: %s",
+				curr.FsType)
+		}
+
+		mkPart, err = op.makePartCommand(curr)
+		if err != nil {
+			return err
+		}
+
+		size := uint64(curr.Size)
+		end := start + size
+		if !wholeDisk {
+			start, end = bd.getPartitionStartEnd(curr.partition)
+		} else {
+			log.Debug("WritePartitionTable: WholeDisk mode")
+		}
+		log.Debug("WritePartitionTable: start: %d, end: %d", start, end)
+
+		if size < 1 {
+			if maxFound {
+				return errors.Errorf("Found more than one partition with size 0 for %s!", bd.Name)
+			}
+			maxFound = true
+			end = 0
+		}
+
+		retries := 3
+		for {
+			mkPartCmd := mkPart + " " + getStartEndMB(start, end)
+			log.Debug("WritePartitionTable: mkPartCmd: %s", mkPartCmd)
+
+			args := append(baseArgs, mkPartCmd)
+
+			err = cmd.RunAndLog(args...)
+
+			if err == nil || retries == 0 {
+				break
+			}
+
+			// Move the start position ahead one MB in an attempt
+			// to find a working optimal partition entry
+			start = start + (1000 * 1000)
+
+			retries--
+		}
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		// Get the new list of partitions
+		newPartitions := bd.getPartitionList()
+		// The current partition is new one added
+		curr.SetPartitionNumber(findNewPartition(currentPartitions, newPartitions).Number)
+
+		start = end
+		currentPartitions = newPartitions
 	}
 
 	if dryRun == nil {
