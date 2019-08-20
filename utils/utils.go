@@ -435,7 +435,6 @@ func RunDiskPartitionTool(tmpYaml string, lockFile string, diskUtilCmd string, g
 	if !gui {
 		_, _ = fmt.Fprintf(&content, "sleep 1\n")
 	}
-	_, _ = fmt.Fprintf(&content, "/bin/rm %s %s\n", tmpBash.Name(), lockFile)
 	_, _ = fmt.Fprintf(&content, "echo Restarting Clear Linux OS Installer ...\n")
 	if gui {
 		args = append(args, "--gui")
@@ -443,6 +442,8 @@ func RunDiskPartitionTool(tmpYaml string, lockFile string, diskUtilCmd string, g
 		_, _ = fmt.Fprintf(&content, "sleep 2\n")
 		args = append(args, "--tui")
 	}
+
+	_, _ = fmt.Fprintf(&content, "/bin/rm %s %s\n", tmpBash.Name(), lockFile)
 	allArgs := strings.Join(args, " ")
 	_, err = fmt.Fprintf(&content, "exec %s\n", allArgs)
 	if err != nil {
