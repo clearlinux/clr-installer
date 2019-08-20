@@ -1357,10 +1357,11 @@ func FindModifyInstallTargets(medias []*BlockDevice) []InstallTarget {
 //	CLR_SWAP = A swap partition to use; can be more than one
 //	CLR_ROOT = The / root partition; must be ext[234] or xfs
 //		due to clr-boot-manager
-//	CLR_EXTRA = Any additional partitions that should be
+//	CLR_MNT = Any additional partitions that should be
 //		included in the install like /srv, /home, ...
 //
 // Appending "_E" to the label marks it for encryption; not valid for CLR_BOOT
+// Appending "_F" to the label marks it for formatting (newfs)
 func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 	var targetMedias []*BlockDevice
 	defaultFsType := "ext4"
@@ -1486,6 +1487,139 @@ type ByBDName []*BlockDevice
 func (a ByBDName) Len() int           { return len(a) }
 func (a ByBDName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByBDName) Less(i, j int) bool { return a[i].Name < a[j].Name }
+
+// ValidateAdvancedPartitions returns an array of validation error
+// strings for the advanced partitions
+func ValidateAdvancedPartitions(medias []*BlockDevice) []string {
+	results := []string{}
+
+	bootFound := false
+	swapFound := false
+	rootFound := false
+
+	for _, curr := range medias {
+		for _, ch := range curr.Children {
+			clrFound := false
+			label := ch.PartitionLabel
+
+			if label != "" {
+				log.Debug("ValidateAdvancedPartitions: Found partition %s with label %s", ch.Name, label)
+			}
+
+			for _, part := range strings.Split(label, "_") {
+				lowerPart := strings.ToLower(part)
+
+				if !clrFound {
+					if lowerPart == "clr" {
+						clrFound = true
+					}
+					continue
+				}
+
+				switch lowerPart {
+				case "boot":
+					if bootFound {
+						warning := fmt.Sprintf("Found multiple %s partition labels", "CLR_BOOT")
+						results = append(results, warning)
+						log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
+					} else {
+						bootFound = true
+						if ch.FsType != "vfat" {
+							warning := fmt.Sprintf("%s must be %s", "CLR_BOOT", "vfat")
+							results = append(results, warning)
+							log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
+						}
+					}
+				case "root":
+					if rootFound {
+						warning := fmt.Sprintf("Found multiple %s partition labels", "CLR_ROOT")
+						results = append(results, warning)
+						log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
+					} else {
+						rootFound = true
+						if !(ch.FsType == "ext2" || ch.FsType == "ext3" ||
+							ch.FsType == "ext4" || ch.FsType == "xfs") {
+							warning := fmt.Sprintf("%s must be %s", "CLR_ROOT", "ext*|xfs")
+							results = append(results, warning)
+							log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
+						}
+					}
+				case "swap":
+					if swapFound {
+						warning := fmt.Sprintf("Found multiple %s partition labels", "CLR_SWAP")
+						results = append(results, warning)
+						log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
+					} else {
+						swapFound = true
+					}
+				case "e":
+					if strings.HasPrefix(strings.ToLower(ch.PartitionLabel), "clr_boot") {
+						warning := fmt.Sprintf("Encryption of %s is not supported", "CLR_BOOT")
+						results = append(results, warning)
+						log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
+					}
+				}
+			}
+		}
+	}
+
+	if !bootFound {
+		warning := fmt.Sprintf("Missing %s partition label", "CLR_BOOT")
+		results = append(results, warning)
+		log.Warning("ValidateAdvancedPartitions: %s", warning)
+	}
+
+	if !swapFound {
+		warning := fmt.Sprintf("Missing %s partition label", "CLR_SWAP")
+		results = append(results, warning)
+		log.Warning("ValidateAdvancedPartitions: %s", warning)
+	}
+
+	if !rootFound {
+		warning := fmt.Sprintf("Missing %s partition label", "CLR_ROOT")
+		results = append(results, warning)
+		log.Warning("ValidateAdvancedPartitions: %s", warning)
+	}
+
+	return results
+}
+
+// AdvancedPartitionsRequireEncryption returns an array of validation error
+// strings for the advanced partitions
+func AdvancedPartitionsRequireEncryption(medias []*BlockDevice) bool {
+	encryptionFound := false
+
+	for _, curr := range medias {
+		for _, ch := range curr.Children {
+			clrFound := false
+			label := ch.PartitionLabel
+
+			for _, part := range strings.Split(label, "_") {
+				lowerPart := strings.ToLower(part)
+
+				if !clrFound {
+					if lowerPart == "clr" {
+						clrFound = true
+					}
+					continue
+				}
+
+				switch lowerPart {
+				case "boot":
+					break
+				case "e":
+					encryptionFound = true
+				}
+			}
+		}
+	}
+
+	if encryptionFound {
+		log.Debug("AdvancedPartitionsRequireEncryption Found at least one partition which requires encryption")
+	}
+
+	return encryptionFound
+}
 
 // GetAdvancedPartitions returns an array of strings for the
 // assigned advanced partitions used
