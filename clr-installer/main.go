@@ -257,6 +257,10 @@ func main() {
 		md.PostReboot = options.Reboot
 	}
 
+	if options.OfflineSet {
+		md.Offline = options.Offline
+	}
+
 	if options.ArchiveSet {
 		md.PostArchive = options.Archive
 	}

@@ -56,6 +56,7 @@ type SystemInstall struct {
 	Bundles           []string                         `yaml:"bundles,omitempty,flow"`
 	TargetBundles     []string                         `yaml:"targetBundles,omitempty,flow"`
 	UserBundles       []string                         `yaml:"userBundles,omitempty,flow"`
+	Offline           bool                             `yaml:"offline,omitempty,flow"`
 	HTTPSProxy        string                           `yaml:"httpsProxy,omitempty,flow"`
 	Telemetry         *telemetry.Telemetry             `yaml:"telemetry,omitempty,flow"`
 	Timezone          *timezone.TimeZone               `yaml:"timezone,omitempty,flow"`

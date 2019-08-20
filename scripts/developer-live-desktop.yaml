@@ -65,6 +65,7 @@ targetBundles: [
     vim,
 ]
 
+offline: true
 postArchive: false
 postReboot: false
 telemetry: false
