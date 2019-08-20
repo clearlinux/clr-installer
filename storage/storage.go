@@ -451,7 +451,7 @@ func Validate(medias []*BlockDevice, legacyBios bool, cryptPass string) error {
 				bootPartition = true
 
 				if ch.Type == BlockDeviceTypeCrypt {
-					return errors.Errorf("Encryption of /boot is not supported")
+					return errors.ValidationErrorf("Encryption of /boot is not supported")
 				}
 			}
 
@@ -464,22 +464,22 @@ func Validate(medias []*BlockDevice, legacyBios bool, cryptPass string) error {
 			}
 
 			if bd.Type != BlockDeviceTypeDisk && bd.Size == 0 && ch.Size == 0 {
-				return errors.Errorf("Both image size and partition size cannot be 0")
+				return errors.ValidationErrorf("Both image size and partition size cannot be 0")
 			}
 		}
 
 	}
 
 	if !bootPartition && !legacyBios {
-		return errors.Errorf("Could not find a suitable EFI partition")
+		return errors.ValidationErrorf("Could not find a suitable EFI partition")
 	}
 
 	if !rootPartition {
-		return errors.Errorf("Could not find a root partition")
+		return errors.ValidationErrorf("Could not find a root partition")
 	}
 
 	if encrypted && cryptPass == "" {
-		return errors.Errorf("Encrypted file system enabled, but missing passphase")
+		return errors.ValidationErrorf("Encrypted file system enabled, but missing passphase")
 	}
 
 	return nil
@@ -590,7 +590,7 @@ func HumanReadableSizeWithUnitAndPrecision(size uint64, unit string, precision i
 		return formatted, nil
 	}
 
-	return "", errors.Errorf("Could not format disk/partition size")
+	return "", errors.ValidationErrorf("Could not format disk/partition size")
 }
 
 // HumanReadableSizeWithPrecision converts the size representation in bytes to the
