@@ -129,7 +129,10 @@ func (tl *Telemetry) IsRequested() bool {
 
 // MarshalYAML marshals Telemetry into YAML format
 func (tl *Telemetry) MarshalYAML() (interface{}, error) {
-	return tl.Enabled, nil
+	if tl.userDefined {
+		return tl.Enabled, nil
+	}
+	return nil, nil
 }
 
 // UnmarshalYAML unmarshals Telemetry from YAML format

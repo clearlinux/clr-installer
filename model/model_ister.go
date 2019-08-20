@@ -286,7 +286,8 @@ func JSONtoYAMLConfig(cf string) (string, error) {
 	}
 
 	// Hardcoding the missing required fields
-	si.Telemetry = &telemetry.Telemetry{Enabled: false}              // Set Telemetry
+	si.Telemetry = &telemetry.Telemetry{Enabled: false} // Set Telemetry
+	si.Telemetry.SetUserDefined(true)
 	si.Keyboard = &keyboard.Keymap{Code: keyboard.DefaultKeyboard}   // Set Keyboard
 	si.Language = &language.Language{Code: language.DefaultLanguage} // Set Language
 
