@@ -1484,13 +1484,27 @@ func (a ByBDName) Len() int           { return len(a) }
 func (a ByBDName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByBDName) Less(i, j int) bool { return a[i].Name < a[j].Name }
 
-// ValidateAdvancedPartitions returns an array of validation error
+// ServerValidateAdvancedPartitions returns an array of validation error
+// strings for the advanced partitions based on a Server installation.
+func ServerValidateAdvancedPartitions(medias []*BlockDevice) []string {
+	return validateAdvancedPartitions(MinimumServerInstallSize, medias)
+}
+
+// DesktopValidateAdvancedPartitions returns an array of validation error
+// strings for the advanced partitions based on a Desktop installation.
+func DesktopValidateAdvancedPartitions(medias []*BlockDevice) []string {
+	return validateAdvancedPartitions(MinimumDesktopInstallSize, medias)
+}
+
+// validateAdvancedPartitions returns an array of validation error
 // strings for the advanced partitions
-func ValidateAdvancedPartitions(medias []*BlockDevice) []string {
+func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice) []string {
 	results := []string{}
 
 	bootFound := false
+	bootSize := uint64(100) * (1000 * 1000) // 100MB recommend for 4-5 kernels
 	swapFound := false
+	swapSize := uint64(32) * (1000 * 1000) // 32MB recommend smallest for memory crunch times
 	rootFound := false
 
 	for _, curr := range medias {
@@ -1499,7 +1513,7 @@ func ValidateAdvancedPartitions(medias []*BlockDevice) []string {
 			label := ch.PartitionLabel
 
 			if label != "" {
-				log.Debug("ValidateAdvancedPartitions: Found partition %s with label %s", ch.Name, label)
+				log.Debug("validateAdvancedPartitions: Found partition %s with label %s", ch.Name, label)
 			}
 
 			for _, part := range strings.Split(label, "_") {
@@ -1517,42 +1531,63 @@ func ValidateAdvancedPartitions(medias []*BlockDevice) []string {
 					if bootFound {
 						warning := utils.Locale.Get("Found multiple %s partition labels", "CLR_BOOT")
 						results = append(results, warning)
-						log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
+						log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 					} else {
 						bootFound = true
 						if ch.FsType != "vfat" {
 							warning := utils.Locale.Get("%s must be %s", "CLR_BOOT", "vfat")
 							results = append(results, warning)
-							log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
+							log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 						}
+					}
+					if ch.Size < bootSize {
+						size, _ := HumanReadableSizeWithPrecision(bootSize, 1)
+						warning := utils.Locale.Get("%s must be %s", "CLR_BOOT",
+							fmt.Sprintf(">= %s", size))
+						results = append(results, warning)
+						log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 					}
 				case "root":
 					if rootFound {
 						warning := utils.Locale.Get("Found multiple %s partition labels", "CLR_ROOT")
 						results = append(results, warning)
-						log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
+						log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 					} else {
 						rootFound = true
 						if !(ch.FsType == "ext2" || ch.FsType == "ext3" ||
 							ch.FsType == "ext4" || ch.FsType == "xfs") {
 							warning := utils.Locale.Get("%s must be %s", "CLR_ROOT", "ext*|xfs")
 							results = append(results, warning)
-							log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
+							log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 						}
+					}
+					if ch.Size < rootSize {
+						size, _ := HumanReadableSizeWithPrecision(rootSize, 1)
+						warning := utils.Locale.Get("%s must be %s", "CLR_ROOT",
+							fmt.Sprintf(">= %s", size))
+						results = append(results, warning)
+						log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 					}
 				case "swap":
 					if swapFound {
 						warning := utils.Locale.Get("Found multiple %s partition labels", "CLR_SWAP")
 						results = append(results, warning)
-						log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
+						log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 					} else {
 						swapFound = true
+					}
+					if ch.Size < swapSize {
+						size, _ := HumanReadableSizeWithPrecision(swapSize, 1)
+						warning := utils.Locale.Get("%s must be %s", "CLR_SWAP",
+							fmt.Sprintf(">= %s", size))
+						results = append(results, warning)
+						log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 					}
 				case "e":
 					if strings.HasPrefix(strings.ToLower(ch.PartitionLabel), "clr_boot") {
 						warning := utils.Locale.Get("Encryption of %s is not supported", "CLR_BOOT")
 						results = append(results, warning)
-						log.Warning("ValidateAdvancedPartitions: %s %+v", warning, ch)
+						log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 					}
 				}
 			}
@@ -1562,19 +1597,19 @@ func ValidateAdvancedPartitions(medias []*BlockDevice) []string {
 	if !bootFound {
 		warning := utils.Locale.Get("Missing %s partition label", "CLR_BOOT")
 		results = append(results, warning)
-		log.Warning("ValidateAdvancedPartitions: %s", warning)
+		log.Warning("validateAdvancedPartitions: %s", warning)
 	}
 
 	if !swapFound {
 		warning := utils.Locale.Get("Missing %s partition label", "CLR_SWAP")
 		results = append(results, warning)
-		log.Warning("ValidateAdvancedPartitions: %s", warning)
+		log.Warning("validateAdvancedPartitions: %s", warning)
 	}
 
 	if !rootFound {
 		warning := utils.Locale.Get("Missing %s partition label", "CLR_ROOT")
 		results = append(results, warning)
-		log.Warning("ValidateAdvancedPartitions: %s", warning)
+		log.Warning("validateAdvancedPartitions: %s", warning)
 	}
 
 	return results
