@@ -467,7 +467,7 @@ func Validate(medias []*BlockDevice, legacyBios bool, cryptPass string) error {
 
 	for _, bd := range medias {
 		for _, ch := range bd.Children {
-			log.Debug("storage.Validate: bd: %+v, child: %+v", bd, ch)
+			//log.Debug("storage.Validate: bd: %+v, child: %+v", bd, ch)
 			if ch.FsType == "vfat" && ch.MountPoint == "/boot" {
 				bootPartition = true
 
