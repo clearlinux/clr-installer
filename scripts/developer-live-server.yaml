@@ -36,6 +36,7 @@ targetMedia:
 
 bundles: [os-core, os-core-update, NetworkManager, clr-installer, vim]
 
+offline: true
 autoUpdate: false
 postArchive: false
 postReboot: false

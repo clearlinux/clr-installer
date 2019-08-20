@@ -32,6 +32,9 @@ const (
 	// i.e per image configuration files
 	CustomConfigDir = "/var/lib/clr-installer"
 
+	// OfflineContentDir contains offline installation content
+	OfflineContentDir = "/var/lib/clr-installer/offline-content"
+
 	// KernelListFile is the file describing the available kernel bundles
 	KernelListFile = "kernels.json"
 

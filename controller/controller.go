@@ -22,6 +22,7 @@ import (
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/hostname"
 	"github.com/clearlinux/clr-installer/isoutils"
+	"github.com/clearlinux/clr-installer/kernel"
 	"github.com/clearlinux/clr-installer/keyboard"
 	"github.com/clearlinux/clr-installer/language"
 	"github.com/clearlinux/clr-installer/log"
@@ -106,7 +107,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	}
 
 	// Using MassInstaller (non-UI) the network will not have been checked yet
-	if !NetworkPassing && !options.StubImage {
+	if !NetworkPassing && !options.StubImage && !swupd.IsOfflineContent() {
 		if err = ConfigureNetwork(model); err != nil {
 			return err
 		}
@@ -466,26 +467,27 @@ func runInstallHook(vars map[string]string, hook *model.InstallHook) error {
 // latest one and start adding new bundles
 // for the bootstrap we use the hosts's swupd and the following operations are
 // executed using the target swupd
-func contentInstall(rootDir string, version string, model *model.SystemInstall, options args.Args) (progress.Progress, error) {
+func contentInstall(rootDir string, version string, md *model.SystemInstall, options args.Args) (progress.Progress, error) {
 
 	var prg progress.Progress
 
 	sw := swupd.New(rootDir, options)
 
-	bundles := model.Bundles
+	bundles := md.Bundles
 
-	if model.Kernel.Bundle != "none" {
-		bundles = append(bundles, model.Kernel.Bundle)
+	if md.Kernel.Bundle != "none" {
+		bundles = append(bundles, md.Kernel.Bundle)
 	}
 
-	if model.AutoUpdate {
+	if md.AutoUpdate {
 		version = "latest"
 	}
 
 	msg := utils.Locale.Get("Installing base OS and configured bundles")
 	log.Info(msg)
+
 	log.Debug("Installing bundles: %s", strings.Join(bundles, ", "))
-	if err := sw.VerifyWithBundles(version, model.SwupdMirror, bundles); err != nil {
+	if err := sw.VerifyWithBundles(version, md.SwupdMirror, bundles); err != nil {
 		// If the swupd command failed to run there wont be a progress
 		// bar, so we need to create a new one that we can fail
 		prg = progress.NewLoop(msg)
@@ -493,14 +495,58 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 	}
 
 	// Create custom config in the installer image to override default bundle list
-	if model.TargetBundles != nil {
-		if err := writeCustomConfig(rootDir, model); err != nil {
+	if md.TargetBundles != nil {
+		if err := writeCustomConfig(rootDir, md); err != nil {
 			prg = progress.NewLoop(msg)
 			return prg, err
 		}
 	}
 
-	if !model.AutoUpdate {
+	if md.Offline {
+		// Install minimum set of required bundles to offline content directory.
+		log.Info("Installing offline content to the target")
+
+		offlineBundles := []string{
+			network.RequiredBundle,
+			telemetry.RequiredBundle,
+			cuser.RequiredBundle,
+			timezone.RequiredBundle,
+			keyboard.RequiredBundle,
+			language.RequiredBundle,
+			storage.RequiredBundle,
+		}
+
+		// Load default config from chroot for required bundles list
+		bundleConfig, err := conf.LookupDefaultChrootConfig(rootDir)
+		if err != nil {
+			prg = progress.NewLoop(msg)
+			return prg, err
+		}
+		loadedBundles, err := model.LoadFile(bundleConfig, options)
+		if err != nil {
+			prg = progress.NewLoop(msg)
+			return prg, err
+		}
+		offlineBundles = append(offlineBundles, loadedBundles.Bundles...)
+
+		// Load available kernel bundles from chroot
+		loadedKernels, err := kernel.LoadKernelListChroot(rootDir)
+		if err != nil {
+			prg = progress.NewLoop(msg)
+			return prg, err
+		}
+		for _, k := range loadedKernels {
+			offlineBundles = append(offlineBundles, k.Bundle)
+		}
+
+		log.Debug("Downloading bundles: %s", strings.Join(offlineBundles, ", "))
+		if err := sw.DownloadBundles(version, md.SwupdMirror, offlineBundles); err != nil {
+			prg = progress.NewLoop(msg)
+			return prg, err
+		}
+	}
+
+	if !md.AutoUpdate {
 		msg := utils.Locale.Get("Disabling automatic updates")
 		prg = progress.NewLoop(msg)
 		log.Info(msg)
@@ -525,7 +571,7 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 		"CBM_DEBUG": "1",
 	}
 
-	if model.LegacyBios {
+	if md.LegacyBios {
 		envVars["CBM_FORCE_LEGACY"] = "1"
 	}
 
