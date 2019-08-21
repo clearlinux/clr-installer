@@ -80,6 +80,7 @@ type SystemInstall struct {
 	MakeISO           bool                             `yaml:"iso,omitempty,flow"`
 	KeepImage         bool                             `yaml:"keepImage,omitempty,flow"`
 	LockFile          string                           `yaml:"-"`
+	ClearCfFile       string                           `yaml:"-"`
 	PreCheckDone      bool                             `yaml:"preCheckDone,omitempty,flow"`
 }
 
