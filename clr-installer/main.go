@@ -234,6 +234,11 @@ func main() {
 	}
 	md.ClearInstallSelected()
 
+	if options.CfPurgeSet && options.CfPurge {
+		defer func() { _ = os.Remove(cf) }()
+		md.ClearCfFile = cf
+	}
+
 	log.Info("Querying Clear Linux version")
 	if err := utils.ParseOSClearVersion(); err != nil {
 		fatal(err)

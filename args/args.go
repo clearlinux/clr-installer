@@ -45,6 +45,8 @@ type Args struct {
 	LogFile                 string
 	ConfigFile              string
 	CfDownloaded            bool
+	CfPurge                 bool
+	CfPurgeSet              bool
 	CryptPassFile           string
 	SwupdMirror             string
 	SwupdStateDir           string
@@ -135,6 +137,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.BoolVar(
 		&args.Reboot, "reboot", true, "Reboot after finishing",
+	)
+
+	flag.BoolVar(
+		&args.CfPurge, "cfPurge", false, "Remove ConfigFile after finishing",
 	)
 
 	flag.BoolVar(
@@ -296,6 +302,13 @@ func (args *Args) setCommandLineArgs() (err error) {
 	if fflag != nil {
 		if fflag.Changed {
 			args.RebootSet = true
+		}
+	}
+
+	fflag = flag.Lookup("cfPurge")
+	if fflag != nil {
+		if fflag.Changed {
+			args.CfPurgeSet = true
 		}
 	}
 
