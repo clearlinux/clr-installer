@@ -938,7 +938,16 @@ func (disk *DiskConfig) runDiskPartitionTool() {
 
 	lockFile := disk.model.LockFile
 
-	script, err := utils.RunDiskPartitionTool(tmpYaml, lockFile, diskUtilCmd, true)
+	// Need remove directories, files which might normally be handled by
+	// defer functions since utils.RunDiskPartitionTool does an exec
+	remove := []string{}
+	remove = append(remove, disk.controller.GetRootDir())
+	cf := disk.model.ClearCfFile
+	if cf != "" {
+		remove = append(remove, cf)
+	}
+
+	script, err := utils.RunDiskPartitionTool(tmpYaml, lockFile, diskUtilCmd, remove, true)
 	if err != nil {
 		log.Warning("%v", err)
 		msg = stdMsg

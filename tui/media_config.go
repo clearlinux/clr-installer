@@ -638,7 +638,16 @@ func (page *MediaConfigPage) runDiskPartitionTool(disk string) {
 
 	lockFile := page.getModel().LockFile
 
-	script, err := utils.RunDiskPartitionTool(tmpYaml, lockFile, diskUtilCmd, false)
+	// Need remove directories, files which might normally be handled by
+	// defer functions since utils.RunDiskPartitionTool does an exec
+	remove := []string{}
+	remove = append(remove, page.tui.rootDir)
+	cf := page.getModel().ClearCfFile
+	if cf != "" {
+		remove = append(remove, cf)
+	}
+
+	script, err := utils.RunDiskPartitionTool(tmpYaml, lockFile, diskUtilCmd, remove, false)
 	if err != nil {
 		log.Warning("%v", err)
 		msg = stdMsg
