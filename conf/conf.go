@@ -52,25 +52,27 @@ func isRunningFromSourceTree() (bool, string, error) {
 	return !strings.HasPrefix(src, "/usr/bin"), src, nil
 }
 
-func lookupDefaultFile(file string) (string, error) {
-	isSourceTree, sourcePath, err := isRunningFromSourceTree()
-	if err != nil {
-		return "", err
+func lookupDefaultFile(file, pathPrefix string) (string, error) {
+	if pathPrefix == "" {
+		isSourceTree, sourcePath, err := isRunningFromSourceTree()
+		if err != nil {
+			return "", err
+		}
+
+		// use the config from source code's etc dir if not installed binary
+		if isSourceTree {
+			sourceRoot := strings.Replace(sourcePath, "bin", filepath.Join(SourcePath, "etc"), 1)
+			return filepath.Join(sourceRoot, file), nil
+		}
 	}
 
-	// use the config from source code's etc dir if not installed binary
-	if isSourceTree {
-		sourceRoot := strings.Replace(sourcePath, "bin", filepath.Join(SourcePath, "etc"), 1)
-		return filepath.Join(sourceRoot, file), nil
-	}
-
-	custom := filepath.Join(CustomConfigDir, file)
+	custom := filepath.Join(pathPrefix, CustomConfigDir, file)
 
 	if ok, _ := utils.FileExists(custom); ok {
 		return custom, nil
 	}
 
-	return filepath.Join(DefaultConfigDir, file), nil
+	return filepath.Join(pathPrefix, DefaultConfigDir, file), nil
 }
 
 // LookupBundleListFile looks up the bundle list definition
@@ -78,15 +80,7 @@ func lookupDefaultFile(file string) (string, error) {
 // source code directory then we load the source default file, otherwise tried to load
 // the system installed file
 func LookupBundleListFile() (string, error) {
-	return lookupDefaultFile(BundleListFile)
-}
-
-// LookupKernelListFile looks up the kernel list definition
-// Guesses if we're running from source code or from system, if we're running from
-// source code directory then we load the source default file, otherwise load the system
-// installed file
-func LookupKernelListFile() (string, error) {
-	return lookupDefaultFile(KernelListFile)
+	return lookupDefaultFile(BundleListFile, "")
 }
 
 // LookupDefaultConfig looks up the install descriptor
@@ -94,10 +88,20 @@ func LookupKernelListFile() (string, error) {
 // source code directory then we loads the source default file, otherwise tried to load
 // the system installed file
 func LookupDefaultConfig() (string, error) {
-	return lookupDefaultFile(ConfigFile)
+	return lookupDefaultFile(ConfigFile, "")
 }
 
 // LookupChpasswdConfig looks up the chpasswd pam file used in the post install
 func LookupChpasswdConfig() (string, error) {
-	return lookupDefaultFile(ChpasswdPAMFile)
+	return lookupDefaultFile(ChpasswdPAMFile, "")
+}
+
+// LookupDefaultChrootConfig looks up config file within the specified chroot
+func LookupDefaultChrootConfig(path string) (string, error) {
+	return lookupDefaultFile(ConfigFile, path)
+}
+
+// LookupDefaultChrootKernels looks up kernel list definition within the specified chroot
+func LookupDefaultChrootKernels(path string) (string, error) {
+	return lookupDefaultFile(KernelListFile, path)
 }
