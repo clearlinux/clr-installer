@@ -402,7 +402,7 @@ func LookupISOTemplateDir() (string, error) {
 
 // RunDiskPartitionTool creates and executes a script which launches
 // the disk partitioning tool and then returns to the installer.
-func RunDiskPartitionTool(tmpYaml string, lockFile string, diskUtilCmd string, gui bool) (string, error) {
+func RunDiskPartitionTool(tmpYaml string, lockFile string, diskUtilCmd string, remove []string, gui bool) (string, error) {
 	// We need to save the current state model for the relaunch of clr-installer
 	tmpBash, err := ioutil.TempFile("", "clr-installer-diskUtil-*.sh")
 	if err != nil {
@@ -443,7 +443,13 @@ func RunDiskPartitionTool(tmpYaml string, lockFile string, diskUtilCmd string, g
 		args = append(args, "--tui")
 	}
 
+	args = append(args, "--cfPurge")
+
 	_, _ = fmt.Fprintf(&content, "/bin/rm %s %s\n", tmpBash.Name(), lockFile)
+	for _, file := range remove {
+		_, _ = fmt.Fprintf(&content, "/bin/rm -rf %s\n", file)
+	}
+
 	allArgs := strings.Join(args, " ")
 	_, err = fmt.Fprintf(&content, "exec %s\n", allArgs)
 	if err != nil {
