@@ -479,12 +479,18 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 		bundles = append(bundles, md.Kernel.Bundle)
 	}
 
-	if md.AutoUpdate {
-		version = "latest"
-	}
-
 	msg := utils.Locale.Get("Installing base OS and configured bundles")
 	log.Info(msg)
+
+	if swupd.IsOfflineContent() {
+		if err := utils.ParseOSClearVersion(); err != nil {
+			prg = progress.NewLoop(msg)
+			return prg, err
+		}
+		version = utils.ClearVersion
+	} else if md.AutoUpdate {
+		version = "latest"
+	}
 
 	log.Debug("Installing bundles: %s", strings.Join(bundles, ", "))
 	if err := sw.VerifyWithBundles(version, md.SwupdMirror, bundles); err != nil {
