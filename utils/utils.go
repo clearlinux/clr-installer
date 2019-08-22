@@ -416,10 +416,13 @@ func RunDiskPartitionTool(tmpYaml string, lockFile string, diskUtilCmd string, r
 	// installer lock file using the PID of the running script
 	_, _ = fmt.Fprintf(&content, "echo $$ > %s\n", lockFile)
 
+	_, _ = fmt.Fprintf(&content, "result=0\n")
+
 	args := append(os.Args, "--config", tmpYaml)
 	if gui {
 		_, _ = fmt.Fprintf(&content, "if [ -n \"${SUDO_USER}\" ]; then\n")
-		_, _ = fmt.Fprintf(&content, "    sudo --user=${SUDO_USER} xauth nlist | xauth nmerge -\n")
+		_, _ = fmt.Fprintf(&content, "    sudo --user=${SUDO_USER} xhost +si:localuser:root\n")
+		_, _ = fmt.Fprintf(&content, "    result=$(( ${result} + $? ))\n")
 		_, _ = fmt.Fprintf(&content, "fi\n")
 	}
 	_, _ = fmt.Fprintf(&content, "echo Switching to Disk Partitioning tool\n")
@@ -427,11 +430,13 @@ func RunDiskPartitionTool(tmpYaml string, lockFile string, diskUtilCmd string, r
 		_, _ = fmt.Fprintf(&content, "sleep 2\n")
 	}
 	_, _ = fmt.Fprintf(&content, "%s\n", diskUtilCmd)
+	_, _ = fmt.Fprintf(&content, "result=$(( ${result} + $? ))\n")
 	if !gui {
 		_, _ = fmt.Fprintf(&content, "sleep 1\n")
 	}
 	_, _ = fmt.Fprintf(&content, "echo Checking partitions with partprobe\n")
 	_, _ = fmt.Fprintf(&content, "/usr/bin/partprobe\n")
+	_, _ = fmt.Fprintf(&content, "result=$(( ${result} + $? ))\n")
 	if !gui {
 		_, _ = fmt.Fprintf(&content, "sleep 1\n")
 	}
@@ -445,10 +450,16 @@ func RunDiskPartitionTool(tmpYaml string, lockFile string, diskUtilCmd string, r
 
 	args = append(args, "--cfPurge")
 
-	_, _ = fmt.Fprintf(&content, "/bin/rm %s %s\n", tmpBash.Name(), lockFile)
+	_, _ = fmt.Fprintf(&content, "if [ ${result} -eq 0 ]; then\n")
+	_, _ = fmt.Fprintf(&content, "    /bin/rm %s\n", tmpBash.Name())
 	for _, file := range remove {
-		_, _ = fmt.Fprintf(&content, "/bin/rm -rf %s\n", file)
+		_, _ = fmt.Fprintf(&content, "    /bin/rm -rf %s\n", file)
 	}
+	_, _ = fmt.Fprintf(&content, "else\n")
+	_, _ = fmt.Fprintf(&content, "    /bin/cp -a /root/clr-installer.log /root/clr-installer.log.$$\n")
+	_, _ = fmt.Fprintf(&content, "fi\n")
+
+	_, _ = fmt.Fprintf(&content, "/bin/rm %s\n", lockFile)
 
 	allArgs := strings.Join(args, " ")
 	_, err = fmt.Fprintf(&content, "exec %s\n", allArgs)
