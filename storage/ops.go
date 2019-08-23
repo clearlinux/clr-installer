@@ -292,6 +292,8 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 	log.Debug("Partitions after sorting:")
 	for _, part := range bd.Children {
 		part.logDetails()
+		// Make sure each partition has a number set
+		part.SetPartitionNumber(part.GetPartitionNumber())
 	}
 
 	// Make the needed new partitions
