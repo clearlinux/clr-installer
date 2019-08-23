@@ -339,6 +339,10 @@ msgid "Found multiple %s partition labels"
 msgstr "Found multiple %s partition labels"
 
 #, c-format
+msgid "Found invalid %s partition label"
+msgstr "Found invalid %s partition label"
+
+#, c-format
 msgid "Encryption of %s is not supported"
 msgstr "Encryption of %s is not supported"
 
