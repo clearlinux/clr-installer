@@ -244,6 +244,24 @@ func (bd *BlockDevice) SetPartitionNumber(partition uint64) {
 	bd.partition = partition
 }
 
+// GetPartitionNumber get the partition number from either the set partition
+// number value, or based on the partition name if the number is 0
+func (bd *BlockDevice) GetPartitionNumber() uint64 {
+	if bd.partition > 0 {
+		return bd.partition
+	}
+
+	part := devNameSuffixExp.FindString(bd.Name)
+	if len(part) > 0 {
+		u, err := strconv.ParseUint(part, 10, 64)
+		if err == nil {
+			return u
+		}
+	}
+
+	return 0
+}
+
 // GetDeviceFile formats the block device's file path
 func (bd BlockDevice) GetDeviceFile() string {
 	return filepath.Join("/dev/", bd.Name)
