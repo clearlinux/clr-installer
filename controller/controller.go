@@ -107,7 +107,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	}
 
 	// Using MassInstaller (non-UI) the network will not have been checked yet
-	if !NetworkPassing && !options.StubImage && !swupd.IsOfflineContent() {
+	if !NetworkPassing && !options.StubImage && !swupd.IsOfflineContent() && len(model.UserBundles) != 0 {
 		if err = ConfigureNetwork(model); err != nil {
 			return err
 		}
