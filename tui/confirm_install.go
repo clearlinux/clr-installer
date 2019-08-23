@@ -12,9 +12,11 @@ import (
 	"github.com/VladimirMarkelov/clui"
 	term "github.com/nsf/termbox-go"
 
+	"github.com/clearlinux/clr-installer/controller"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
+	"github.com/clearlinux/clr-installer/swupd"
 )
 
 // ConfirmInstallDialog is dialog window use to stop all other
@@ -138,6 +140,12 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 	for _, media := range medias {
 		log.Debug("MediaChange: %s", media)
 	}
+
+	// Create additional bundle removal warning for offline installs
+	if !controller.NetworkPassing && len(dialog.modelSI.UserBundles) != 0 && swupd.IsOfflineContent() {
+		medias = append([]string{"Offline Install: Removing additional bundles"}, medias...)
+	}
+
 	dialog.mediaDetail.AddText(medias)
 	// Add buffer to ensure we see all media changes
 	dialog.mediaDetail.AddText([]string{"---", "=-="})
