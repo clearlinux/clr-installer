@@ -79,7 +79,55 @@ func makeFs(bd *BlockDevice, args []string) error {
 		return errors.Wrap(err)
 	}
 
+	// Updated the UUID and LABEL now that we made the fs
+	err = bd.updatePartitionInfo()
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
 	return nil
+}
+
+func (bd *BlockDevice) updatePartitionInfo() error {
+	if bd.Type == BlockDeviceTypeDisk {
+		return errors.Errorf("Trying to run updatePartitionInfo() against a disk, partition required")
+	}
+
+	var err error
+
+	blkid := bytes.NewBuffer(nil)
+	devFile := bd.GetDeviceFile()
+
+	// Read the partition blkid info
+	err = cmd.Run(blkid,
+		"blkid",
+		"--probe",
+		devFile,
+		"--output",
+		"export",
+	)
+	if err != nil {
+		log.Warning("updatePartitionInfo() had an error reading blkid %q",
+			fmt.Sprintf("%s", blkid.String()))
+		return err
+	}
+
+	for _, line := range strings.Split(blkid.String(), "\n") {
+		fields := strings.Split(line, "=")
+		if len(fields) == 2 {
+			if fields[0] == "LABEL" {
+				bd.Label = fields[1]
+				log.Debug("updatePartitionInfo: Updated %d LABEL: %s", devFile, bd.Label)
+			} else if fields[0] == "UUID" {
+				bd.UUID = fields[1]
+				log.Debug("updatePartitionInfo: Updated %d UUID: %s", devFile, bd.UUID)
+			}
+		} else {
+			log.Debug("updatePartitionInfo: Ignoring unknown line: %s", line)
+		}
+	}
+
+	return err
 }
 
 // getGUID determines the partition type guid either based on:
