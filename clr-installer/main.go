@@ -243,10 +243,6 @@ func main() {
 	if options.SwupdMirror != "" {
 		md.SwupdMirror = options.SwupdMirror
 	}
-	// If ISO not set in configuration file ensure we keep the image file
-	if !md.MakeISO {
-		md.KeepImage = true
-	}
 
 	// Command line overrides the configuration file
 	if options.MakeISOSet {
@@ -260,6 +256,10 @@ func main() {
 		if options.KeepImageSet {
 			md.KeepImage = options.KeepImage
 		}
+	}
+	// If ISO not set in configuration file ensure we keep the image file
+	if !md.MakeISO {
+		md.KeepImage = true
 	}
 
 	if !options.StubImage {
