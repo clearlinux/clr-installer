@@ -1415,7 +1415,6 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 
 		for _, ch := range installBlockDevice.Children {
 			clrFound := false
-			clrMountFound := false
 			label := ch.PartitionLabel
 
 			if label != "" {
@@ -1424,19 +1423,6 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 
 			for _, part := range strings.Split(label, "_") {
 				lowerPart := strings.ToLower(part)
-				if clrMountFound {
-					log.Debug("AdvancedPartitioning: Extra mount %q for %s", part, ch.Name)
-					ch.MountPoint = part
-					if ch.FsType == "" {
-						log.Debug("AdvancedPartitioning: No FsType set for %s, defaulting to %s", ch.Name, defaultFsType)
-						ch.FsType = defaultFsType
-						log.Debug("AdvancedPartitioning: Forcing Format partition %s enabled", ch.Name)
-						ch.FormatPartition = true
-					}
-					clrAdded = true
-					clrMountFound = false
-					continue
-				}
 
 				if !clrFound {
 					if lowerPart == "clr" {
@@ -1481,8 +1467,23 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 						ch.FormatPartition = true
 					}
 				case "mnt":
-					clrMountFound = true
-					log.Debug("FindAdvancedInstallTargets: Extra mount found %s", ch.Name)
+					mntParts := strings.Split(label, "MNT_")
+					if len(mntParts) == 2 {
+						path := filepath.Clean(mntParts[1])
+						if filepath.IsAbs(path) {
+							log.Debug("AdvancedPartitioning: Extra mount %q for %s", path, ch.Name)
+
+							ch.MountPoint = path
+							if ch.FsType == "" {
+								log.Debug("AdvancedPartitioning: No FsType set for %s, defaulting to %s", ch.Name, defaultFsType)
+								ch.FsType = defaultFsType
+								log.Debug("AdvancedPartitioning: Forcing Format partition %s enabled", ch.Name)
+								ch.FormatPartition = true
+							}
+							clrAdded = true
+						}
+					}
+					break
 				case "e":
 					if ch.MountPoint == "/boot" {
 						log.Warning("AdvancedPartitioning: /boot can no be encrypted, skipping")
@@ -1634,6 +1635,31 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice) []string
 						results = append(results, warning)
 						log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 					}
+				case "mnt":
+					failed := false
+					warning := utils.Locale.Get("Found invalid %s partition label", label)
+
+					mntParts := strings.Split(label, "MNT_")
+					if len(mntParts) != 2 {
+						failed = true
+						log.Warning("validateAdvancedPartitions: %s %+v (%s)", warning, ch, "too many parts")
+					}
+
+					if !strings.HasPrefix(mntParts[1], "/") {
+						failed = true
+						log.Warning("validateAdvancedPartitions: %s %+v (%s)", warning, ch, "must start with '/'")
+					}
+
+					path := filepath.Clean(mntParts[1])
+					if !filepath.IsAbs(path) {
+						failed = true
+						log.Warning("validateAdvancedPartitions: %s %+v (%s)", warning, ch, "must be an absolute path")
+					}
+
+					if failed {
+						results = append(results, warning)
+					}
+					break
 				case "e":
 					if strings.HasPrefix(strings.ToLower(ch.PartitionLabel), "clr_boot") {
 						warning := utils.Locale.Get("Encryption of %s is not supported", "CLR_BOOT")
