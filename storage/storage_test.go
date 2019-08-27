@@ -584,6 +584,10 @@ func TestWritePartition(t *testing.T) {
 
 		// prepare the blockdevice's partitions filesystem
 		for _, ch := range bd.Children {
+			if err = ch.updatePartitionInfo(); err != nil {
+				t.Fatalf("Could not updatePartitionInfo partition (%s): %s", ch.Name, err)
+			}
+
 			if ch.Type == BlockDeviceTypeCrypt {
 				if ch.FsType != "swap" {
 					t.Logf("Mapping %s partition to an encrypted partition", ch.Name)
