@@ -151,16 +151,16 @@ const (
 	RemoveParitionWarning = "WARNING: partition will be removed."
 
 	// AddPartitionInfo specifies the warning message for removing a media partition
-	AddPartitionInfo = "Adding new partition."
+	AddPartitionInfo = "Add new partition."
 
 	// FailedPartitionWarning specifies the warning message when we can not find partitions
 	FailedPartitionWarning = "WARNING: Failed to detected partition information."
 
-	// FormattingPartitionInfo specifies the warning message for formatting a media partition
-	FormattingPartitionInfo = "Formatting partition as %s."
+	// FormatPartitionInfo specifies the warning message for formatting a media partition
+	FormatPartitionInfo = "Format partition as %s."
 
-	// ReusingPartitionInfo specifies the warning message for reusing a media partition
-	ReusingPartitionInfo = "Reusing existing partition."
+	// UsePartitionInfo specifies the warning message for reusing a media partition
+	UsePartitionInfo = "Use existing partition."
 
 	// ConfirmInstallation specifies the installation warning title
 	ConfirmInstallation = "Confirm Installation"

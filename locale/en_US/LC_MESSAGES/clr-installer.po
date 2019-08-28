@@ -154,6 +154,9 @@ msgstr "Erase Disk"
 msgid "Advanced"
 msgstr "Advanced"
 
+msgid "Labeled"
+msgstr "Labeled"
+
 msgid "No media found for installation"
 msgstr "No media found for installation"
 
@@ -513,6 +516,9 @@ msgstr "Encryption requires a Passphrase"
 msgid "Encryption Passphrase"
 msgstr "Encryption Passphrase"
 
+msgid "Encryption passphrase required"
+msgstr "Encryption passphrase required"
+
 msgid "Passphrases do not match"
 msgstr "Passphrases do not match"
 
@@ -728,8 +734,8 @@ msgid "."
 msgstr "."
 
 #, c-format
-msgid "Formatting partition as %s."
-msgstr "Formatting partition as %s."
+msgid "Format partition as %s."
+msgstr "Format partition as %s."
 
 msgid "Selected media will be used for installation."
 msgstr "Selected media will be used for installation."
@@ -741,14 +747,14 @@ msgstr "Updating partition table for: %s"
 msgid "WARNING: partition will be removed."
 msgstr "WARNING: partition will be removed."
 
-msgid "Adding new partition."
-msgstr "Adding new partition."
+msgid "Add new partition."
+msgstr "Add new partition."
 
 msgid "WARNING: Failed to detected partition information."
 msgstr "WARNING: Failed to detected partition information."
 
-msgid "Reusing existing partition."
-msgstr "Reusing existing partition."
+msgid "Use existing partition."
+msgstr "Use existing partition."
 
 msgid "Encrypted"
 msgstr "Encrypted"
