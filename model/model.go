@@ -65,7 +65,7 @@ type SystemInstall struct {
 	SwupdMirror       string                           `yaml:"swupdMirror,omitempty,flow"`
 	PostArchive       bool                             `yaml:"postArchive,omitempty,flow"`
 	Hostname          string                           `yaml:"hostname,omitempty,flow"`
-	AutoUpdate        bool                             `yaml:"autoUpdate,omitempty,flow"`
+	AutoUpdate        bool                             `yaml:"autoUpdate,flow"`
 	TelemetryURL      string                           `yaml:"telemetryURL,omitempty,flow"`
 	TelemetryTID      string                           `yaml:"telemetryTID,omitempty,flow"`
 	TelemetryPolicy   string                           `yaml:"telemetryPolicy,omitempty,flow"`
