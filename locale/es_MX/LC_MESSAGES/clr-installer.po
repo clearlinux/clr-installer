@@ -154,6 +154,9 @@ msgstr "Borrar disco"
 msgid "Advanced"
 msgstr "Avanzado"
 
+msgid "Labeled"
+msgstr "Etiquetado"
+
 msgid "No media found for installation"
 msgstr "No se encontraron medios para instalar."
 
@@ -300,7 +303,7 @@ msgid "No Media Selected"
 msgstr "Ningún medio seleccionado"
 
 msgid "Too many media found"
-msgstr "MX: Too many media found"
+msgstr "Se han encontrado demasiados medios"
 
 msgid "Safe Installation"
 msgstr "Instalación segura"
@@ -315,40 +318,40 @@ msgid "Erase all data on selected media and install Clear Linux* OS."
 msgstr "Elimina todos los datos del medio seleccionado y permite instalar el sistema operativo Clear Linux*."
 
 msgid "Advanced Disk Partitioning"
-msgstr "MX: Advanced Disk Partitioning"
+msgstr "Partición de disco avanzada"
 
 msgid "Use partitioning tool to configure and select media via partition labels."
-msgstr "MX: Use partitioning tool to configure and select media via partition labels."
+msgstr "Utilice la herramienta de partición para configurar y seleccionar medios a través de etiquetas de partición."
 
 msgid "PARTITION MEDIA"
-msgstr "MX: PARTITION MEDIA"
+msgstr "MEDIOS DE PARTICION"
 
 msgid "Launch the external partitioning tool to label the partitions to be used for the installation."
-msgstr "MX: Launch the external partitioning tool to label the partitions to be used for the installation."
+msgstr "Inicie la herramienta de particionamiento externo para etiquetar las particiones que se utilizarán para la instalación."
 
 #, c-format
 msgid "Could not launch %s. Check log %s"
-msgstr "MX: Could not launch %s. Check log %s"
+msgstr "No se ha podido iniciar %s. Compruebe el registro %s"
 
 #, c-format
 msgid "%s must be %s"
-msgstr "MX: %s must be %s"
+msgstr "%s debe ser %s"
 
 #, c-format
 msgid "Found multiple %s partition labels"
-msgstr "MX: Found multiple %s partition labels"
+msgstr "Se encontraron varias etiquetas de partición %s"
 
 #, c-format
 msgid "Found invalid %s partition label"
-msgstr "MX: Found invalid %s partition label"
+msgstr "Se ha encontrado una etiqueta de partición %s no válida"
 
 #, c-format
 msgid "Encryption of %s is not supported"
-msgstr "MX: Encryption of %s is not supported"
+msgstr "El cifrado de %s no es compatible"
 
 #, c-format
 msgid "Missing %s partition label"
-msgstr "MX: Missing %s partition label"
+msgstr "Falta la etiqueta de partición %s"
 
 msgid "CHANGE LANGUAGE"
 msgstr "CAMBIAR IDIOMA"
@@ -487,7 +490,7 @@ msgid "Selected media will have partitions added."
 msgstr "Se añadirán particiones a los medios seleccionados."
 
 msgid "WARNING: New Partition table will be created."
-msgstr "MX:WARNING: New Partition table will be created."
+msgstr "ADVERTENCIA: se creará una nueva tabla de particiones."
 
 msgid "WARNING: Selected media will be erased."
 msgstr "ADVERTENCIA: los medios seleccionados se borrarán."
@@ -512,6 +515,9 @@ msgstr "El cifrado requiere una frase de contraseña"
 
 msgid "Encryption Passphrase"
 msgstr "Contraseña de cifrado"
+
+msgid "Encryption passphrase required"
+msgstr "Se requiere una frase de contraseña de cifrado"
 
 msgid "Passphrases do not match"
 msgstr "Las frases de contraseña no coinciden"
@@ -728,27 +734,27 @@ msgid "."
 msgstr "."
 
 #, c-format
-msgid "Formatting partition as %s."
-msgstr "MX: Formatting partition as %s."
+msgid "Format partition as %s."
+msgstr "Formatee la partición como %s."
 
 msgid "Selected media will be used for installation."
-msgstr "MX: Selected media will be used for installation."
+msgstr "Los medios seleccionados se utilizarán para la instalación."
 
 #, c-format
 msgid "Updating partition table for: %s"
-msgstr "MX: Updating partition table for: %s"
+msgstr "Actualizando tabla de partición para: %s"
 
 msgid "WARNING: partition will be removed."
-msgstr "MX: WARNING: partition will be removed."
+msgstr "ADVERTENCIA: se eliminará la partición."
 
-msgid "Adding new partition."
-msgstr "MX: Adding new partition."
+msgid "Add new partition."
+msgstr "Agregue una nueva partición."
 
 msgid "WARNING: Failed to detected partition information."
-msgstr "MX: WARNING: Failed to detected partition information."
+msgstr "ADVERTENCIA: no se ha detectado información de partición."
 
-msgid "Reusing existing partition."
-msgstr "MX: Reusing existing partition."
+msgid "Use existing partition."
+msgstr "Utilice la partición existente."
 
 msgid "Encrypted"
-msgstr "MX: Encrypted"
+msgstr "Encriptado"

@@ -154,6 +154,9 @@ msgstr "擦除磁盘"
 msgid "Advanced"
 msgstr "高级"
 
+msgid "Labeled"
+msgstr "标记"
+
 msgid "No media found for installation"
 msgstr "未找到安装媒介"
 
@@ -300,7 +303,7 @@ msgid "No Media Selected"
 msgstr "未选择任何媒介"
 
 msgid "Too many media found"
-msgstr "ZH: Too many media found"
+msgstr "发现太多媒体"
 
 msgid "Safe Installation"
 msgstr "安全安装"
@@ -315,40 +318,40 @@ msgid "Erase all data on selected media and install Clear Linux* OS."
 msgstr "擦除选定媒介上的所有数据，然后安装 Clear Linux* OS。"
 
 msgid "Advanced Disk Partitioning"
-msgstr "CN: Advanced Disk Partitioning"
+msgstr "高级磁盘分区"
 
 msgid "Use partitioning tool to configure and select media via partition labels."
-msgstr "CN: Use partitioning tool to configure and select media via partition labels."
+msgstr "使用分区工具通过分区标签配置和选择媒体。"
 
 msgid "PARTITION MEDIA"
-msgstr "CN: PARTITION MEDIA"
+msgstr "分区媒体"
 
 msgid "Launch the external partitioning tool to label the partitions to be used for the installation."
-msgstr "CN: Launch the external partitioning tool to label the partitions to be used for the installation."
+msgstr "启动外部分区工具以标记要用于安装的分区。"
 
 #, c-format
 msgid "Could not launch %s. Check log %s"
-msgstr "CN: Could not launch %s. Check log %s"
+msgstr "无法启动 %s。请检查日志 %s"
 
 #, c-format
 msgid "%s must be %s"
-msgstr "CN: %s must be %s"
+msgstr "%s 必须为 %s"
 
 #, c-format
 msgid "Found multiple %s partition labels"
-msgstr "CN: Found multiple %s partition labels"
+msgstr "找到多个 %s 分区标签"
 
 #, c-format
 msgid "Found invalid %s partition label"
-msgstr "CN: Found invalid %s partition label"
+msgstr "发现无效的 %s 分区标签"
 
 #, c-format
 msgid "Encryption of %s is not supported"
-msgstr "CN: Encryption of %s is not supported"
+msgstr "不支持 %s 加密"
 
 #, c-format
 msgid "Missing %s partition label"
-msgstr "CN: Missing %s partition label"
+msgstr "缺少 %s 分区标签"
 
 msgid "CHANGE LANGUAGE"
 msgstr "更改语言"
@@ -487,7 +490,7 @@ msgid "Selected media will have partitions added."
 msgstr "选定的媒介将添加分区。"
 
 msgid "WARNING: New Partition table will be created."
-msgstr "ZH: WARNING: New Partition table will be created."
+msgstr "警告: 将创建新的分区表。"
 
 msgid "WARNING: Selected media will be erased."
 msgstr "警告: 选定的媒介将被删除。"
@@ -512,6 +515,9 @@ msgstr "加密需要一个密码"
 
 msgid "Encryption Passphrase"
 msgstr "加密密码"
+
+msgid "Encryption passphrase required"
+msgstr "需要加密密码"
 
 msgid "Passphrases do not match"
 msgstr "密码不一致"
@@ -728,27 +734,27 @@ msgid "."
 msgstr "。"
 
 #, c-format
-msgid "Formatting partition as %s."
-msgstr "CN: Formatting partition as %s."
+msgid "Format partition as %s."
+msgstr "将分区格式化为 %s。"
 
 msgid "Selected media will be used for installation."
-msgstr "CN: Selected media will be used for installation."
+msgstr "所选媒体将用于安装。"
 
 #, c-format
 msgid "Updating partition table for: %s"
-msgstr "CN: Updating partition table for: %s"
+msgstr "更新分区表: %s"
 
 msgid "WARNING: partition will be removed."
-msgstr "CN: WARNING: partition will be removed."
+msgstr "警告: 分区将被删除。"
 
-msgid "Adding new partition."
-msgstr "CN: Adding new partition."
+msgid "Add new partition."
+msgstr "添加新分区。"
 
 msgid "WARNING: Failed to detected partition information."
-msgstr "CN: WARNING: Failed to detected partition information."
+msgstr "警告: 检测到分区信息失败。"
 
-msgid "Reusing existing partition."
-msgstr "CN: Reusing existing partition."
+msgid "Use existing partition."
+msgstr "使用现有分区。"
 
 msgid "Encrypted"
-msgstr "CN: Encrypted"
+msgstr "加密"

@@ -1785,7 +1785,7 @@ func getPlannedPartitionChanges(media *BlockDevice) []string {
 			}
 
 			part := fmt.Sprintf("%s: %s", partName,
-				utils.Locale.Get(FormattingPartitionInfo, ch.FsType))
+				utils.Locale.Get(FormatPartitionInfo, ch.FsType))
 
 			if ch.MountPoint != "" {
 				part = part + fmt.Sprintf(" [%s]", ch.MountPoint)
@@ -1803,7 +1803,7 @@ func getPlannedPartitionChanges(media *BlockDevice) []string {
 				partName = ch.GetNewPartitionName(ch.partition)
 			}
 
-			part := fmt.Sprintf("%s: %s", partName, utils.Locale.Get(ReusingPartitionInfo))
+			part := fmt.Sprintf("%s: %s", partName, utils.Locale.Get(UsePartitionInfo))
 
 			if ch.MountPoint != "" {
 				part = part + fmt.Sprintf(" [%s]", ch.MountPoint)
