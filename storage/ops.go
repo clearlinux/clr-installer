@@ -1314,8 +1314,11 @@ func sortInstallTargets(targets []InstallTarget) []InstallTarget {
 // Only disk with gpt partition are safe to use
 // There must be at least 3 free partition in the table (gpt can have 127)
 // There must be at least minSize free space on the disk
-func FindSafeInstallTargets(minSize uint64, medias []*BlockDevice) []InstallTarget {
+func FindSafeInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTarget {
 	var installTargets []InstallTarget
+
+	// Add the default boot and swap to the passed root size
+	minSize := rootSize + bootSize + swapSize
 
 	for _, curr := range medias {
 		// Either 'gpt' or no partition table type
@@ -1354,16 +1357,27 @@ func FindSafeInstallTargets(minSize uint64, medias []*BlockDevice) []InstallTarg
 }
 
 // FindAllInstallTargets creates an order list of all possible installation targets
-func FindAllInstallTargets(medias []*BlockDevice) []InstallTarget {
+// There must be at least minSize free space on the disk
+func FindAllInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTarget {
 	var installTargets []InstallTarget
+
+	// Add the default boot and swap to the passed root size
+	minSize := rootSize + bootSize + swapSize
 
 	// All Disk are possible destructive installs
 	for _, curr := range medias {
-		target := InstallTarget{Name: curr.Name, Friendly: curr.Model,
-			WholeDisk: true, Removable: curr.RemovableDevice, EraseDisk: true,
-			FreeStart: 0, FreeEnd: curr.Size}
+		if curr.Size >= minSize {
+			target := InstallTarget{Name: curr.Name, Friendly: curr.Model,
+				WholeDisk: true, Removable: curr.RemovableDevice, EraseDisk: true,
+				FreeStart: 0, FreeEnd: curr.Size}
 
-		installTargets = append(installTargets, target)
+			installTargets = append(installTargets, target)
+		} else {
+			currSizeStr, _ := HumanReadableSizeWithPrecision(curr.Size, 1)
+			minSizeStr, _ := HumanReadableSizeWithPrecision(minSize, 1)
+			log.Debug("FindAllInstallTargets: Media %s %s smaller than minSize %s", curr.Name,
+				currSizeStr, minSizeStr)
+		}
 	}
 
 	return sortInstallTargets(installTargets)
@@ -1516,17 +1530,22 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 // the amount of disk used
 func FormatInstallPortion(target InstallTarget) string {
 	portion := utils.Locale.Get("Partial")
-	if target.WholeDisk {
+	if target.WholeDisk || target.EraseDisk {
 		portion = utils.Locale.Get("Entire Disk")
 	}
-	if target.EraseDisk {
-		portion = utils.Locale.Get("Erase Disk")
-	}
 	if target.Advanced {
-		portion = utils.Locale.Get("Advanced")
+		if target.EraseDisk {
+			portion = ""
+		} else {
+			portion = utils.Locale.Get("Labeled")
+		}
 	}
 
-	return "[" + portion + "]"
+	if portion != "" {
+		portion = "[" + portion + "]"
+	}
+
+	return portion
 }
 
 // ByBDName implements sort.Interface for []*BlockDevice based on the Name field.
