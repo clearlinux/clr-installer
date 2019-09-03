@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -491,6 +492,14 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 		return prg, err
 	}
 
+	// Create custom config in the installer image to override default bundle list
+	if model.TargetBundles != nil {
+		if err := writeCustomConfig(rootDir, model); err != nil {
+			prg = progress.NewLoop(msg)
+			return prg, err
+		}
+	}
+
 	if !model.AutoUpdate {
 		msg := utils.Locale.Get("Disabling automatic updates")
 		prg = progress.NewLoop(msg)
@@ -802,4 +811,24 @@ func generateISO(rootDir string, md *model.SystemInstall, options args.Args) err
 	}
 
 	return err
+}
+
+// writeCustomConfig creates a config file in the installer image that overrides the default
+func writeCustomConfig(chrootPath string, md *model.SystemInstall) error {
+	customPath := path.Join(chrootPath, conf.CustomConfigDir)
+
+	if err := utils.MkdirAll(customPath, 0755); err != nil {
+		return err
+	}
+
+	// Create basic config based on provided values
+	customModel := &model.SystemInstall{
+		Bundles:  md.TargetBundles,
+		Keyboard: md.Keyboard,
+		Language: md.Language,
+		Timezone: md.Timezone,
+		Kernel:   md.Kernel,
+	}
+
+	return customModel.WriteFile(path.Join(customPath, conf.ConfigFile))
 }

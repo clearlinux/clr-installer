@@ -35,6 +35,7 @@ targetMedia:
     size: "0"  # Fill the test of the image
     type: part
 
+# Bundles to install to installer image
 bundles: [
     bootloader,
     c-basic,
@@ -52,6 +53,17 @@ bundles: [
     pidgin,
     vlc,
   ]
+
+# Bundles to install to target media
+targetBundles: [
+    c-basic,
+    desktop-autostart,
+    git,
+    openssh-server,
+    os-core,
+    os-core-update,
+    vim,
+]
 
 postArchive: false
 postReboot: false
