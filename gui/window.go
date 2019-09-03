@@ -19,6 +19,7 @@ import (
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/swupd"
+	"github.com/clearlinux/clr-installer/syscheck"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -48,13 +49,12 @@ type Window struct {
 
 	// Menu
 	menu struct {
-		switcher     *Switcher             // Allow switching between main menu
-		stack        *gtk.Stack            // Menu switching
-		screens      map[bool]*ContentView // Mapping to content views
-		welcomePage  pages.Page            // Pointer to the welcome page
-		preCheckPage pages.Page            // Pointer to the pre-check page
-		currentPage  pages.Page            // Pointer to the currently open page
-		installPage  pages.Page            // Pointer to the installer page
+		switcher    *Switcher             // Allow switching between main menu
+		stack       *gtk.Stack            // Menu switching
+		screens     map[bool]*ContentView // Mapping to content views
+		welcomePage pages.Page            // Pointer to the welcome page
+		currentPage pages.Page            // Pointer to the currently open page
+		installPage pages.Page            // Pointer to the installer page
 	}
 
 	// Buttons
@@ -152,11 +152,11 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 	}
 
 	// Launch the first page
-	// If pre-check has not been done at least once, start on the welcome page
-	if !window.model.PreCheckDone {
-		window.launchWelcomeView()
-	} else {
+	// If pre-check has been done at least once, start on the menu page
+	if window.model.PreCheckDone {
 		window.launchMenuView()
+	} else {
+		window.model.PreCheckDone = true
 	}
 
 	window.scanInfo.Channel = make(chan bool)
@@ -235,35 +235,16 @@ func (window *Window) createWelcomePage() (*Window, error) {
 	window.handle.ShowAll()
 	window.ActivatePage(window.menu.welcomePage)
 
-	return window, nil
-}
-
-// createPreCheckPage creates the pre-check page
-func (window *Window) createPreCheckPage() (*Window, error) {
-	window.banner.labelText.SetMarkup(GetWelcomeMessage())
-
-	window.contentLayout.Remove(window.rootStack)
-	window.contentLayout.PackStart(window.rootStack, true, true, 0)
-
-	// Our pages
-	pageCreators := []PageConstructor{
-		// required
-		pages.NewPreCheckPage,
-	}
-
-	for _, f := range pageCreators {
-		page, err := f(window, window.model)
+	// Create syscheck pop-up when system check fails
+	if syscheckErr := syscheck.RunSystemCheck(true); syscheckErr != nil {
+		_, err = glib.IdleAdd(func() {
+			displaySyscheckDialog(syscheckErr)
+		})
 		if err != nil {
-			return nil, err
-		}
-		if err = window.AddPage(page); err != nil {
+			log.ErrorError(err)
 			return nil, err
 		}
 	}
-
-	// Show the whole window now
-	window.handle.ShowAll()
-	window.ActivatePage(window.menu.preCheckPage)
 
 	return window, nil
 }
@@ -376,8 +357,6 @@ func (window *Window) AddPage(page pages.Page) error {
 	switch id {
 	case pages.PageIDWelcome:
 		window.menu.welcomePage = page
-	case pages.PageIDPreCheck:
-		window.menu.preCheckPage = page
 	case pages.PageIDInstall:
 		window.menu.installPage = page
 	default: // Add to the required or advanced (optional) screen
@@ -548,12 +527,7 @@ func (window *Window) UpdateFooter() error {
 
 // onNextClick handles the Next button click
 func (window *Window) onNextClick() {
-	if !window.model.PreCheckDone { // If pre-check has not been done at least once, launch the pre-check view first
-		window.launchPreCheckView()
-		window.model.PreCheckDone = true
-	} else {
-		window.launchMenuView()
-	}
+	window.launchMenuView()
 }
 
 // onConfirmClick handles the Confirm button click.
@@ -606,11 +580,6 @@ func (window *Window) ActivatePage(page pages.Page) {
 	case pages.PageIDWelcome:
 		window.banner.Show()
 		window.buttons.stack.SetVisibleChildName("welcome")
-	case pages.PageIDPreCheck:
-		window.banner.Show()
-		window.buttons.stack.SetVisibleChildName("welcome")
-		window.buttons.next.SetLabel(utils.Locale.Get("NEXT")) // This is done just to translate label based on localization
-		window.buttons.exit.SetLabel(utils.Locale.Get("EXIT")) // This is done just to translate label based on localization
 	case pages.PageIDInstall:
 		window.menu.switcher.Hide()
 		window.banner.Show()
@@ -724,16 +693,6 @@ func (window *Window) launchWelcomeView() {
 	window.mainLayout.Remove(window.contentLayout)
 	window.mainLayout.Remove(window.banner.GetRootWidget())
 	if _, err := window.createWelcomePage(); err != nil {
-		window.Panic(err)
-	}
-}
-
-// launchPreCheckView launches the pre-check view view
-func (window *Window) launchPreCheckView() {
-	log.Debug("Launching PreCheckView")
-	window.menu.currentPage.StoreChanges()
-
-	if _, err := window.createPreCheckPage(); err != nil {
 		window.Panic(err)
 	}
 }
@@ -1006,6 +965,58 @@ func displayErrorDialog(err error) {
 		log.Error("Error connecting to dialog", err)
 		return
 	}
+	dialog.ShowAll()
+	dialog.Run()
+}
+
+// displaySyscheckDialog creates a pop-up for system check failures
+func displaySyscheckDialog(syscheckErr error) {
+	log.Error("System check failed: %s", syscheckErr.Error())
+
+	// Create box
+	contentBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		log.Error("Error creating box", err)
+		return
+	}
+	contentBox.SetHAlign(gtk.ALIGN_FILL)
+	contentBox.SetMarginBottom(common.TopBottomMargin)
+
+	// Create label
+	text := utils.Locale.Get("System failed to pass pre-install checks.")
+	label, err := gtk.LabelNew(text)
+	if err != nil {
+		log.Error("Error creating label", err)
+		return
+	}
+	label.SetUseMarkup(true)
+	label.SetHAlign(gtk.ALIGN_START)
+	contentBox.PackStart(label, false, true, 0)
+
+	// Create dialog
+	title := utils.Locale.Get("Warning")
+	dialog, err := common.CreateDialogOneButton(contentBox, title, utils.Locale.Get("OK"), "button-confirm")
+	if err != nil {
+		log.Error("Error creating dialog", err)
+		return
+	}
+	dialog.SetDeletable(false)
+
+	// Configure button
+	confirmButton, err := dialog.GetWidgetForResponse(gtk.RESPONSE_OK)
+	if err != nil {
+		log.Error("Error getting confirm button", err)
+		return
+	}
+	_, err = confirmButton.Connect("button-press-event", func() {
+		dialog.Destroy()
+		gtk.MainQuit() // Exit Installer
+	})
+	if err != nil {
+		log.Error("Error connecting to dialog", err)
+		return
+	}
+
 	dialog.ShowAll()
 	dialog.Run()
 }

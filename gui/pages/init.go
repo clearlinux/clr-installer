@@ -83,9 +83,6 @@ const (
 	// PageIDWelcome is the language page key
 	PageIDWelcome = iota
 
-	// PageIDPreCheck is the pre-check page key
-	PageIDPreCheck = iota
-
 	// PageIDTimezone is the timezone page key
 	PageIDTimezone = iota
 
