@@ -18,6 +18,7 @@ import (
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
+	"github.com/clearlinux/clr-installer/swupd"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -845,12 +846,6 @@ func (window *Window) confirmInstall() {
 	scroll.Add(textArea)
 	contentBox.PackStart(scroll, false, true, 0)
 
-	medias := storage.GetPlannedMediaChanges(window.model.InstallSelected, window.model.TargetMedias)
-	for _, media := range medias {
-		log.Debug("MediaChange: %s", media)
-		buffer.Insert(buffer.GetEndIter(), media+"\n")
-	}
-
 	dialog, err := common.CreateDialogOkCancel(contentBox, title, utils.Locale.Get("CONFIRM"), utils.Locale.Get("CANCEL"))
 	if err != nil {
 		log.Error("Error creating dialog", err)
@@ -861,6 +856,45 @@ func (window *Window) confirmInstall() {
 	if err != nil {
 		log.Error("Error connecting to dialog", err)
 		return
+	}
+
+	// Valid network is required to install without offline content or additional bundles
+	if (!swupd.IsOfflineContent() || len(window.model.UserBundles) != 0) && !controller.NetworkPassing {
+		if err := RunNetworkTest(window.model); err != nil {
+			log.Warning("Error running network test: ", err)
+			return
+		}
+	}
+
+	if !controller.NetworkPassing {
+		if !swupd.IsOfflineContent() {
+			// Cannot install without network or offline content
+			return
+		} else if len(window.model.UserBundles) != 0 {
+			// Cannot install without network and additional bundles. Allow user to remove bundles
+			// and continue the install
+			offlineMsg := utils.Locale.Get("Offline Install: Removing additional bundles")
+			buffer.Insert(buffer.GetEndIter(), offlineMsg+"\n")
+
+			confirmButton, err := dialog.GetWidgetForResponse(gtk.RESPONSE_OK)
+			if err != nil {
+				log.Error("Error getting confirm button", err)
+				return
+			}
+			_, err = confirmButton.Connect("button-press-event", func() {
+				window.model.UserBundles = nil
+			})
+			if err != nil {
+				log.Error("Error connecting to dialog", err)
+				return
+			}
+		}
+	}
+
+	medias := storage.GetPlannedMediaChanges(window.model.InstallSelected, window.model.TargetMedias)
+	for _, media := range medias {
+		log.Debug("MediaChange: %s", media)
+		buffer.Insert(buffer.GetEndIter(), media+"\n")
 	}
 
 	dialog.ShowAll()

@@ -40,6 +40,9 @@ msgstr "遥测技术"
 msgid "Select Additional Bundles"
 msgstr "选择附加捆绑包"
 
+msgid "Offline Install: Removing additional bundles"
+msgstr "脱机安装：删除其他包"
+
 msgid "Manage User"
 msgstr "管理用户"
 
