@@ -40,6 +40,9 @@ msgstr "Telemetry"
 msgid "Select Additional Bundles"
 msgstr "Select Additional Bundles"
 
+msgid "Offline Install: Removing additional bundles"
+msgstr "Offline Install: Removing additional bundles"
+
 msgid "Manage User"
 msgstr "Manage User"
 
