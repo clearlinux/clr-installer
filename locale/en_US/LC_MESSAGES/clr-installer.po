@@ -97,6 +97,12 @@ msgstr "Running %s hooks"
 msgid "Testing connectivity"
 msgstr "Testing connectivity"
 
+msgid "Test connectivity"
+msgstr "Test connectivity"
+
+msgid "Test Network Settings"
+msgstr "Test Network Settings"
+
 #, c-format
 msgid "Writing partition table to: %s"
 msgstr "Writing partition table to: %s"

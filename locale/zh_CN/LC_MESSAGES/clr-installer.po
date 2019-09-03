@@ -97,6 +97,12 @@ msgstr "正在运行 %s 钩子"
 msgid "Testing connectivity"
 msgstr "正在测试连接性"
 
+msgid "Test connectivity"
+msgstr "测试连接"
+
+msgid "Test Network Settings"
+msgstr "测试网络设置"
+
 #, c-format
 msgid "Writing partition table to: %s"
 msgstr "正在将分区表写入：%s"
