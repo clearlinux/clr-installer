@@ -638,7 +638,7 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 
 	msg := utils.Locale.Get("Testing connectivity")
 	attempts := 3
-	prg := progress.MultiStep(attempts, msg)
+	prg := progress.NewLoop(msg)
 	ok := false
 	// 3 attempts to test connectivity
 	for i := 0; i < attempts; i++ {
@@ -658,7 +658,6 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 			ok = false
 			break
 		}
-		prg.Partial(i + 1)
 	}
 
 	if !ok {
