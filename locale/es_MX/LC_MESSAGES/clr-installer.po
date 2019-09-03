@@ -97,6 +97,12 @@ msgstr "Ejecutando enlaces de %s"
 msgid "Testing connectivity"
 msgstr "Probando la conectividad"
 
+msgid "Test connectivity"
+msgstr "Conectividad de prueba"
+
+msgid "Test Network Settings"
+msgstr "Probar la configuración de red"
+
 #, c-format
 msgid "Writing partition table to: %s"
 msgstr "Escribiendo la tabla de particiones en %s"

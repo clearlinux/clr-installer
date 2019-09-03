@@ -95,6 +95,9 @@ const (
 	// PageIDBundle is the bundle page key
 	PageIDBundle = iota
 
+	// PageIDNetwork is the network check page key
+	PageIDNetwork = iota
+
 	// PageIDTelemetry is the telemetry page key
 	PageIDTelemetry = iota
 

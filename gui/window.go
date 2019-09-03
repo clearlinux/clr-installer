@@ -302,6 +302,7 @@ func (window *Window) createMenuPages() (*Window, error) {
 		pages.NewHostnamePage,
 		pages.NewConfigKernelPage,
 		pages.NewSwupdConfigPage,
+		pages.NewNetworkPage,
 
 		// always last
 		pages.NewInstallPage,
@@ -579,7 +580,6 @@ func (window *Window) closePage() {
 
 // ActivatePage customizes common widgets and displays the page
 func (window *Window) ActivatePage(page pages.Page) {
-	window.menu.currentPage = page
 	id := page.GetID()
 
 	// Customize common widgets based on the page being loaded
@@ -616,6 +616,12 @@ func (window *Window) ActivatePage(page pages.Page) {
 		window.buttons.confirm.GrabDefault()
 		window.buttons.confirm.SetLabel(utils.Locale.Get("YES"))
 		window.buttons.cancel.SetLabel(utils.Locale.Get("NO"))
+	case pages.PageIDNetwork:
+		// Launches network check pop-up without changing page
+		if err := RunNetworkTest(window.model); err != nil {
+			log.Warning("Error running network test: ", err)
+		}
+		return
 	default:
 		window.menu.switcher.Hide()
 		window.banner.Hide()
@@ -624,6 +630,7 @@ func (window *Window) ActivatePage(page pages.Page) {
 		window.buttons.confirm.SetLabel(utils.Locale.Get("CONFIRM"))
 		window.buttons.cancel.SetLabel(utils.Locale.Get("CANCEL"))
 	}
+	window.menu.currentPage = page
 	page.ResetChanges()                                // Allow page to take control now
 	window.rootStack.SetVisibleChild(window.pages[id]) // Set the root stack to show the new page
 }
