@@ -51,7 +51,7 @@ func RunSystemCheck(quiet bool) error {
 	}
 	for _, feature := range cpuFeatures {
 		if !quiet {
-			fmt.Printf("Checking for required CPU feaure: %s", feature)
+			fmt.Printf("Checking for required CPU feature: %s", feature)
 		}
 
 		err := getCPUFeature(feature)
