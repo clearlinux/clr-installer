@@ -503,7 +503,15 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 		fmt.Sprintf("--path=%s", rootDir),
 	}
 
-	err := cmd.RunAndLog(args...)
+	envVars := map[string]string{
+		"CBM_DEBUG": "1",
+	}
+
+	if model.LegacyBios {
+		envVars["CBM_FORCE_LEGACY"] = "1"
+	}
+
+	err := cmd.RunAndLogWithEnv(envVars, args...)
 	if err != nil {
 		return prg, errors.Wrap(err)
 	}
