@@ -65,14 +65,6 @@ have_ssse3_cpu_feature () {
     check_result "$?" "$need"
 }
 
-have_aes_cpu_feature () {
-    local feature="aes"
-    local desc="Advanced Encryption Standard instruction set"
-    local need="$desc ($feature)"
-    have_cpu_feature "$feature"
-    check_result "$?" "$need"
-}
-
 have_pclmul_cpu_feature () {
     local feature="pclmulqdq"
     local desc="Carry-less Multiplication extensions"
@@ -166,7 +158,6 @@ main() {
     have_ssse3_cpu_feature
     have_sse41_cpu_feature
     have_sse42_cpu_feature
-    have_aes_cpu_feature
     have_pclmul_cpu_feature
     echo_tty_kmsg "[${SUCCESS}  OK  ${NORMAL}] All checks passed."
 

@@ -47,7 +47,6 @@ func RunSystemCheck(quiet bool) error {
 		"sse4_2",
 		"sse4_1",
 		"pclmulqdq",
-		"aes",
 		"ssse3",
 	}
 	for _, feature := range cpuFeatures {
