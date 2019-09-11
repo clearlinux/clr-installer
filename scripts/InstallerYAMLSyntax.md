@@ -121,6 +121,8 @@ Item | Description | Default
 `postArchive` | Should the system archive the log and configuration file on the target media?; true or false | true
 `legacyBios` | Is the install using the Legacy boot from BIOS?; true or false | false
 `copyNetwork` | Copy the locally configured network interfaces to target; `/etc/systemd/network` | false
+`iso` | Generate a bootable ISO image file?; true or false | false
+`keepImage` | Retain the raw image file?; true or false | true (false when iso is true)
 `telemetry` | Should telemetry be enabled by default; true or false | false
 `telemetryURL` | URL of where the telemetry records should publish | `-UNDEFINED-`
 `telemetryPolicy` | Policy string displayed to users during interactive installs | `-UNDEFINED-`
