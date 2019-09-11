@@ -109,7 +109,7 @@ https://github.com/clearlinux/clr-bundles
 Item | Description | Default
 ------------ | ------------- | ------------- 
 `keyboard:` | Name of the keyboard type. Valid value can be found using `localectl list-keymaps`; may require installing the `kbd` bundle first. | us
-`language:` | Name of the system language. Valid values can be found using `locale -a`; may require installing the `locales` bundle fist. | en_US.UTF-8
+`language:` | Name of the system language. Valid values can be found using `locale -a`; may require installing the `glibc-locale` bundle fist. | en_US.UTF-8
 `timezone:` | Name of the system timezone. Valid values can be found using `timedatectl list-timezones`; may require installing the `tzdata` bundle fist. | UTC
 `kernel` | Kernel bundle to be used | kernel-native
 `httpsProxy` | HTTPS Proxy as a string | `-UNDEFINED-`

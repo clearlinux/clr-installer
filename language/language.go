@@ -31,7 +31,7 @@ const (
 	DefaultLanguage = "en_US.UTF-8"
 
 	// RequiredBundle the bundle needed to set language other than the default
-	RequiredBundle = "locales"
+	RequiredBundle = "glibc-locale"
 )
 
 // validLanguages stores the list of localized languages
