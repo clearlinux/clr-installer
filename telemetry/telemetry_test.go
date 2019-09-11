@@ -240,6 +240,58 @@ func TestWriteTargetConfig(t *testing.T) {
 	}
 }
 
+func TestOptIn(t *testing.T) {
+	var url string
+	tid := "MyTid"
+
+	if !utils.IsClearLinux() {
+		t.Skip("Not a Clear Linux system, skipping test")
+	}
+
+	telem := &Telemetry{
+		URL: url,
+		TID: tid,
+	}
+
+	rootDir, err := ioutil.TempDir("", "root-dir")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() {
+		_ = os.RemoveAll(rootDir)
+	}()
+
+	// Smoke test
+	_ = telem.OptIn(rootDir)
+}
+
+func TestOptOut(t *testing.T) {
+	var url string
+	tid := "MyTid"
+
+	if !utils.IsClearLinux() {
+		t.Skip("Not a Clear Linux system, skipping test")
+	}
+
+	telem := &Telemetry{
+		URL: url,
+		TID: tid,
+	}
+
+	rootDir, err := ioutil.TempDir("", "root-dir")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() {
+		_ = os.RemoveAll(rootDir)
+	}()
+
+	// Smoke test
+	_ = telem.OptOut(rootDir)
+}
+
 func TestFailedToWriteTargetConfig(t *testing.T) {
 	var url string
 	tid := "MyTid"

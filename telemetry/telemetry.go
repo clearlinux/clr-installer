@@ -47,6 +47,9 @@ is collected.
 	// TelemetryAboutURL is the URL to reference for telemetry details
 	TelemetryAboutURL = `https://clearlinux.org/documentation/clear-linux/concepts/telemetry-about`
 
+	// telemetry controlling interface command
+	telemctlCmd = "telemctl"
+
 	// RequestNotice is a common text string to be displayed when enabling
 	// telemetry by default on local networks
 	RequestNotice = `NOTICE: Enabling Telemetry preferred by default on internal networks.`
@@ -345,6 +348,35 @@ func (tl *Telemetry) LogRecord(class string, severity int, payload string) error
 	}
 
 	return nil
+}
+
+// opt is a helper function
+func opt(rootDir string, optCmd string) error {
+	args := []string{
+		"chroot",
+		rootDir,
+		telemctlCmd,
+		optCmd,
+	}
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
+}
+
+// OptIn runs the command to opt-in to telemetry when users accept to
+// provide telemetry from crashes
+func (tl *Telemetry) OptIn(rootDir string) error {
+	return opt(rootDir, "opt-in")
+}
+
+// OptOut runs the command to opt-out to telemetry when users do not
+// agree to provide telemetry from crashes
+func (tl *Telemetry) OptOut(rootDir string) error {
+	return opt(rootDir, "opt-out")
 }
 
 // RunningEnvironment returns the name of the hypervisor if running in a
