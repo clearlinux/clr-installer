@@ -317,8 +317,8 @@ msgstr "破坏性安装"
 msgid "Erase all data on selected media and install Clear Linux* OS."
 msgstr "擦除选定媒介上的所有数据，然后安装 Clear Linux* OS。"
 
-msgid "Advanced Disk Partitioning"
-msgstr "高级磁盘分区"
+msgid "Advanced Installation"
+msgstr "高级安装"
 
 msgid "Use partitioning tool to configure and select media via partition labels."
 msgstr "使用分区工具通过分区标签配置和选择媒体。"

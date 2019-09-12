@@ -90,6 +90,7 @@ func (page *Telemetry) GetTitle() string {
 func (page *Telemetry) StoreChanges() {
 	page.done = true
 	page.model.EnableTelemetry(true)
+	page.model.Telemetry.SetUserDefined(page.done)
 }
 
 // ResetChanges will reset this page to match the model
@@ -101,6 +102,7 @@ func (page *Telemetry) ResetChanges() {
 		page.done = true
 	}
 	page.model.EnableTelemetry(false)
+	page.model.Telemetry.SetUserDefined(page.done)
 }
 
 // GetConfiguredValue returns our current config

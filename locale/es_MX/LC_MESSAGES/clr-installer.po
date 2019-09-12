@@ -317,8 +317,8 @@ msgstr "Instalación destructiva"
 msgid "Erase all data on selected media and install Clear Linux* OS."
 msgstr "Elimina todos los datos del medio seleccionado y permite instalar el sistema operativo Clear Linux*."
 
-msgid "Advanced Disk Partitioning"
-msgstr "Partición de disco avanzada"
+msgid "Advanced Installation"
+msgstr "Instalación avanzada"
 
 msgid "Use partitioning tool to configure and select media via partition labels."
 msgstr "Utilice la herramienta de partición para configurar y seleccionar medios a través de etiquetas de partición."
