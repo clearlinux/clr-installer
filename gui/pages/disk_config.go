@@ -7,6 +7,7 @@ package pages
 import (
 	"fmt"
 	"os"
+	"strings"
 	"syscall"
 	"time"
 
@@ -27,36 +28,80 @@ const (
 
 // DiskConfig is a simple page to help with DiskConfig settings
 type DiskConfig struct {
-	devs               []*storage.BlockDevice
-	safeTargets        []storage.InstallTarget
-	destructiveTargets []storage.InstallTarget
-	activeDisk         *storage.BlockDevice
-	activeSerial       string
-	controller         Controller
-	model              *model.SystemInstall
-	box                *gtk.Box
-	scroll             *gtk.ScrolledWindow
-	scrollBox          *gtk.Box
-	mediaGrid          *gtk.Grid
-	optionsGrid        *gtk.Grid
-	advancedGrid       *gtk.Grid
-	safeButton         *gtk.RadioButton
-	destructiveButton  *gtk.RadioButton
-	advancedButton     *gtk.RadioButton
-	chooserCombo       *gtk.ComboBox
-	errorMessage       *gtk.Label
-	advancedMessage    *gtk.Label
-	rescanButton       *gtk.Button
-	rescanDialog       *gtk.Dialog
-	partitionButton    *gtk.Button
-	encryptCheck       *gtk.CheckButton
-	passphraseDialog   *gtk.Dialog
-	passphrase         *gtk.Entry
-	passphraseConfirm  *gtk.Entry
-	passphraseChanged  bool
-	passphraseWarning  *gtk.Label
-	passphraseOK       *gtk.Button
-	passphraseCancel   *gtk.Button
+	devs                  []*storage.BlockDevice
+	safeTargets           []storage.InstallTarget
+	destructiveTargets    []storage.InstallTarget
+	activeDisk            *storage.BlockDevice
+	activeSerial          string
+	controller            Controller
+	model                 *model.SystemInstall
+	box                   *gtk.Box
+	scroll                *gtk.ScrolledWindow
+	scrollBox             *gtk.Box
+	mediaGrid             *gtk.Grid
+	optionsGrid           *gtk.Grid
+	advancedGrid          *gtk.Grid
+	safeButton            *gtk.RadioButton
+	destructiveButton     *gtk.RadioButton
+	advancedButton        *gtk.RadioButton
+	chooserCombo          *gtk.ComboBox
+	isSafeSelected        bool
+	isDestructiveSelected bool
+	isAdvancedSelected    bool
+	errorMessage          *gtk.Label
+	advancedMessage       *gtk.Label
+	rescanButton          *gtk.Button
+	rescanDialog          *gtk.Dialog
+	partitionButton       *gtk.Button
+	encryptCheck          *gtk.CheckButton
+	passphraseDialog      *gtk.Dialog
+	passphrase            *gtk.Entry
+	passphraseConfirm     *gtk.Entry
+	passphraseChanged     bool
+	passphraseWarning     *gtk.Label
+	passphraseOK          *gtk.Button
+	passphraseCancel      *gtk.Button
+
+	saveButton   *gtk.RadioButton
+	saveSelected map[string]storage.InstallTarget
+	saveMedias   []*storage.BlockDevice
+}
+
+func (disk *DiskConfig) advancedButtonToggled() {
+	// REfactor the TUI code to also return when not active
+	if !disk.advancedButton.GetActive() {
+		return
+	}
+
+	disk.isSafeSelected = false
+	disk.isDestructiveSelected = false
+	disk.partitionButton.SetSensitive(true)
+
+	if !disk.isAdvancedSelected {
+		disk.isAdvancedSelected = true
+
+		if err := disk.buildMediaLists(); err != nil {
+			log.Warning("Problem with buildMediaLists")
+		}
+	}
+
+	disk.encryptCheck.SetSensitive(storage.AdvancedPartitionsRequireEncryption(disk.model.TargetMedias))
+
+	results := storage.DesktopValidateAdvancedPartitions(disk.model.TargetMedias)
+	if len(results) > 0 {
+		disk.model.ClearInstallSelected()
+		disk.model.TargetMedias = nil
+		// display the result warnings -- with warning color
+		warning := strings.Join(results, ", ")
+		log.Warning("Advanced Partition: " + warning)
+		warning = fmt.Sprintf("<big><b><span foreground=\"#FDB814\">" + warning + "</span></b></big>")
+		disk.advancedMessage.SetMarkup(warning)
+		disk.controller.SetButtonState(ButtonConfirm, false)
+	} else {
+		// display the configured value
+		disk.advancedMessage.SetMarkup("<big>" + disk.GetConfiguredValue() + "</big>")
+		disk.controller.SetButtonState(ButtonConfirm, true)
+	}
 }
 
 // NewDiskConfigPage returns a new DiskConfigPage
@@ -113,9 +158,22 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	}
 	safeBox.PackStart(disk.safeButton, false, false, 0)
 	if _, err := disk.safeButton.Connect("toggled", func() {
-		// Enable/Disable the Combo Choose Box based on the radio button
-		if err := disk.populateComboBoxes(); err != nil {
-			log.Warning("Problem populating possible disk selections")
+		// REfactor the TUI code to also return when not active
+		if !disk.safeButton.GetActive() {
+			return
+		}
+
+		disk.isDestructiveSelected = false
+		disk.isAdvancedSelected = false
+		disk.partitionButton.SetSensitive(false)
+
+		if !disk.isSafeSelected {
+			disk.isSafeSelected = true
+
+			// Enable/Disable the Combo Choose Box based on the radio button
+			if err := disk.populateComboBoxes(); err != nil {
+				log.Warning("Problem populating possible disk selections")
+			}
 		}
 	}); err != nil {
 		return nil, err
@@ -150,9 +208,22 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	}
 	destructiveBox.PackStart(disk.destructiveButton, false, false, 0)
 	if _, err := disk.destructiveButton.Connect("toggled", func() {
-		// Enable/Disable the Combo Choose Box based on the radio button
-		if err := disk.populateComboBoxes(); err != nil {
-			log.Warning("Problem populating possible disk selections")
+		// REfactor the TUI code to also return when not active
+		if !disk.destructiveButton.GetActive() {
+			return
+		}
+
+		disk.isSafeSelected = false
+		disk.isAdvancedSelected = false
+		disk.partitionButton.SetSensitive(false)
+
+		if !disk.isDestructiveSelected {
+			disk.isDestructiveSelected = true
+
+			// Enable/Disable the Combo Choose Box based on the radio button
+			if err := disk.populateComboBoxes(); err != nil {
+				log.Warning("Problem populating possible disk selections")
+			}
 		}
 	}); err != nil {
 		return nil, err
@@ -289,7 +360,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	advancedBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	advancedBox.SetMarginStart(common.StartEndMargin)
 	disk.advancedButton, err = gtk.RadioButtonNewWithLabelFromWidget(disk.destructiveButton,
-		utils.Locale.Get("Advanced Disk Partitioning"))
+		utils.Locale.Get("Advanced Installation"))
 	if err != nil {
 		return nil, err
 	}
@@ -300,12 +371,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		sc.AddClass("label-radio")
 	}
 	advancedBox.PackStart(disk.advancedButton, false, false, 0)
-	if _, err := disk.advancedButton.Connect("toggled", func() {
-		// Enable/Disable the Combo Choose Box based on the radio button
-		if err := disk.populateComboBoxes(); err != nil {
-			log.Warning("Problem populating possible disk selections")
-		}
-	}); err != nil {
+	if _, err := disk.advancedButton.Connect("toggled", disk.advancedButtonToggled); err != nil {
 		return nil, err
 	}
 
@@ -570,13 +636,7 @@ func (disk *DiskConfig) createPassphraseDialog() {
 
 	disk.passphrase.SetVisibility(false)
 	disk.passphraseConfirm.SetVisibility(false)
-	/*
-		if disk.model.CryptPass != "" {
-			disk.passphraseChanged = false
-			setTextInEntry(disk.passphrase, "********")
-			setTextInEntry(disk.passphraseConfirm, "********")
-		}
-	*/
+
 	if _, err := disk.passphrase.Connect("changed", disk.onPassphraseChange); err != nil {
 		log.Warning("Error connecting to entry")
 		return
@@ -664,6 +724,7 @@ func (disk *DiskConfig) validatePassphrase() {
 func (disk *DiskConfig) dialogResponse(msgDialog *gtk.Dialog, responseType gtk.ResponseType) {
 	if responseType == gtk.RESPONSE_OK {
 		disk.model.CryptPass = getTextFromEntry(disk.passphrase)
+		disk.refreshPage()
 	} else {
 		disk.encryptCheck.SetActive(false)
 	}
@@ -681,6 +742,9 @@ func (disk *DiskConfig) onEncryptClick(button *gtk.CheckButton) {
 func (disk *DiskConfig) populateComboBoxes() error {
 	// Clear any previous warning
 	disk.errorMessage.SetMarkup("")
+	disk.advancedMessage.SetMarkup("")
+	disk.chooserCombo.SetSensitive(false)
+	disk.encryptCheck.SetSensitive(true)
 	disk.controller.SetButtonState(ButtonConfirm, true)
 
 	safeStore, err := newListStoreMedia()
@@ -695,36 +759,32 @@ func (disk *DiskConfig) populateComboBoxes() error {
 		return err
 	}
 
+	emptyStore, err := newListStoreMedia()
+	if err != nil {
+		log.Warning("ListStoreNew emptyStore failed")
+		return err
+	}
+
 	if len(disk.devs) < 1 {
 		warning := utils.Locale.Get("No media found for installation")
 		log.Warning(warning)
 		warning = fmt.Sprintf("<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
 		disk.errorMessage.SetMarkup(warning)
-		emptyStore, err := newListStoreMedia()
-		if err != nil {
-			log.Warning("ListStoreNew emptyStore failed")
-			return err
-		}
 		disk.chooserCombo.SetModel(emptyStore)
 		disk.controller.SetButtonState(ButtonConfirm, false)
 
 		return nil
 	}
 
-	disk.safeTargets = storage.FindSafeInstallTargets(storage.MinimumDesktopInstallSize, disk.devs)
-	disk.destructiveTargets = storage.FindAllInstallTargets(disk.devs)
+	if disk.isAdvancedSelected {
+		disk.chooserCombo.SetModel(emptyStore)
 
-	/*
-		// Hook for searching CLR_*?
-		disk.model.TargetMedias = nil
-		for _, curr := range storage.FindAdvancedInstallTargets(disk.devs) {
-			disk.model.AddTargetMedia(curr)
-			log.Debug("AddTargetMedia %+v", curr)
-		}
-	*/
+		return nil
+	}
 
-	if disk.safeButton.GetActive() {
+	if disk.isSafeSelected {
 		if len(disk.safeTargets) > 0 {
+			disk.chooserCombo.SetSensitive(true)
 			for _, target := range disk.safeTargets {
 				log.Debug("Adding safe install target %s", target.Name)
 				err := addListStoreMediaRow(safeStore, target)
@@ -743,7 +803,9 @@ func (disk *DiskConfig) populateComboBoxes() error {
 			disk.errorMessage.SetMarkup(warning)
 			disk.controller.SetButtonState(ButtonConfirm, false)
 		}
-	} else if disk.destructiveButton.GetActive() {
+	} else if disk.isDestructiveSelected {
+		disk.chooserCombo.SetSensitive(true)
+
 		for _, target := range disk.destructiveTargets {
 			log.Debug("Adding destructive install target %s", target.Name)
 			err := addListStoreMediaRow(destructiveStore, target)
@@ -759,6 +821,51 @@ func (disk *DiskConfig) populateComboBoxes() error {
 	return nil
 }
 
+// buildMediaLists is used to create the valid chooser lists for Safe and
+// Destructive Media choices. Also scans for Advanced Media configurations.
+func (disk *DiskConfig) buildMediaLists() error {
+	// Clear any previous warning
+	disk.errorMessage.SetMarkup("")
+	disk.advancedMessage.SetMarkup("")
+
+	var err error
+
+	disk.devs, err = storage.ListAvailableBlockDevices(disk.model.TargetMedias)
+	if err != nil {
+		log.Error("Failed to find storage media for install during save: %s", err)
+	}
+
+	disk.safeTargets = storage.FindSafeInstallTargets(storage.MinimumDesktopInstallSize, disk.devs)
+	disk.destructiveTargets = storage.FindAllInstallTargets(storage.MinimumDesktopInstallSize, disk.devs)
+
+	for _, curr := range storage.FindAdvancedInstallTargets(disk.devs) {
+		disk.model.AddTargetMedia(curr)
+		log.Debug("AddTargetMedia %+v", curr)
+		disk.model.InstallSelected[curr.Name] = storage.InstallTarget{Name: curr.Name,
+			Friendly: curr.Model, Removable: curr.RemovableDevice}
+		disk.isAdvancedSelected = true
+	}
+
+	if disk.isAdvancedSelected {
+		disk.advancedButton.SetActive(true)
+	} else {
+		if len(disk.safeTargets) > 0 {
+			disk.safeButton.SetActive(true)
+			disk.isSafeSelected = true
+		} else {
+			disk.destructiveButton.SetActive(true)
+			disk.isDestructiveSelected = true
+		}
+	}
+
+	// Enable/Disable the Combo Choose Box based on the radio button
+	if err := disk.populateComboBoxes(); err != nil {
+		log.Warning("Problem populating possible disk selections")
+	}
+
+	return nil
+}
+
 // IsRequired will return true as we always need a DiskConfig
 func (disk *DiskConfig) IsRequired() bool {
 	return true
@@ -769,6 +876,13 @@ func (disk *DiskConfig) IsDone() bool {
 	if disk.model.TargetMedias == nil || len(disk.model.TargetMedias) == 0 {
 		return false
 	}
+
+	if disk.isAdvancedSelected {
+		if storage.AdvancedPartitionsRequireEncryption(disk.model.TargetMedias) && disk.model.CryptPass == "" {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -819,6 +933,11 @@ func (disk *DiskConfig) StoreChanges() {
 		log.Warning("Failed to find and save the selected installation media")
 	}
 
+	if disk.advancedButton.GetActive() {
+		log.Debug("Advanced Install Confirmed")
+		return
+	}
+
 	bds, err := storage.ListAvailableBlockDevices(disk.model.TargetMedias)
 	if err != nil {
 		log.Error("Failed to find storage media for install during save: %s", err)
@@ -863,6 +982,32 @@ func (disk *DiskConfig) ResetChanges() {
 		disk.controller.SetScanDone(true)
 	}
 	disk.devs = disk.controller.GetScanMedia()
+
+	if disk.saveMedias == nil {
+		// Save the current state
+		disk.saveSelected = map[string]storage.InstallTarget{}
+		for k, v := range disk.model.InstallSelected {
+			disk.saveSelected[k] = v
+		}
+		disk.saveMedias = append([]*storage.BlockDevice{}, disk.model.TargetMedias...)
+
+	} else {
+		// Restore the state
+		if disk.saveButton != nil && !disk.saveButton.GetActive() {
+			disk.model.InstallSelected = map[string]storage.InstallTarget{}
+			for k, v := range disk.saveSelected {
+				disk.model.InstallSelected[k] = v
+			}
+			disk.model.TargetMedias = append([]*storage.BlockDevice{}, disk.saveMedias...)
+
+			log.Debug("media choice toggle, but we canceled")
+			disk.saveButton.SetActive(true)
+			disk.box.ShowAll()
+		}
+
+		disk.saveMedias = nil
+	}
+
 	disk.refreshPage()
 }
 
@@ -870,19 +1015,32 @@ func (disk *DiskConfig) ResetChanges() {
 func (disk *DiskConfig) refreshPage() {
 	log.Debug("Refreshing page...")
 	disk.activeDisk = nil
-	disk.chooserCombo.SetSensitive(false)
 
 	if err := disk.populateComboBoxes(); err != nil {
 		log.Warning("Problem populating possible disk selections")
 	}
 
+	advEncryption := storage.AdvancedPartitionsRequireEncryption(disk.model.TargetMedias)
+
 	// Choose the most appropriate button
-	if len(disk.safeTargets) > 0 {
+	if disk.isSafeSelected {
 		disk.safeButton.SetActive(true)
-		disk.chooserCombo.SetSensitive(true)
-	} else if len(disk.destructiveTargets) > 0 {
+		disk.saveButton = disk.safeButton
+	} else if disk.isDestructiveSelected {
 		disk.destructiveButton.SetActive(true)
-		disk.chooserCombo.SetSensitive(true)
+		disk.saveButton = disk.destructiveButton
+	} else if disk.isAdvancedSelected {
+		disk.advancedButton.SetActive(true)
+		disk.saveButton = disk.advancedButton
+		if !advEncryption {
+			disk.encryptCheck.SetActive(false)
+			disk.encryptCheck.SetSensitive(false)
+		} else {
+			if disk.model.CryptPass == "" {
+				disk.encryptCheck.SetActive(true)
+			}
+		}
+		disk.advancedButtonToggled()
 	} else {
 		//disk.rescanButton.SetActive(true)
 		//TODO: Make this button have focus/default
@@ -899,7 +1057,27 @@ func (disk *DiskConfig) refreshPage() {
 
 // GetConfiguredValue returns our current config
 func (disk *DiskConfig) GetConfiguredValue() string {
+	if len(disk.safeTargets) == 0 && len(disk.destructiveTargets) == 0 {
+		if err := disk.buildMediaLists(); err != nil {
+			log.Warning("Problem with buildMediaLists")
+		}
+	}
+
 	tm := disk.model.TargetMedias
+
+	if disk.isAdvancedSelected {
+		results := storage.DesktopValidateAdvancedPartitions(tm)
+		if len(results) > 0 {
+			disk.model.ClearInstallSelected()
+			disk.model.TargetMedias = nil
+			return utils.Locale.Get("Warning: %s", strings.Join(results, ", "))
+		}
+		if storage.AdvancedPartitionsRequireEncryption(tm) && disk.model.CryptPass == "" {
+			return utils.Locale.Get("Warning: %s", utils.Locale.Get("Encryption passphrase required"))
+		}
+		return utils.Locale.Get("Advanced") + ": " + strings.Join(storage.GetAdvancedPartitions(tm), ", ")
+	}
+
 	if len(tm) == 0 {
 		return utils.Locale.Get("No Media Selected")
 	} else if len(tm) > 1 {
