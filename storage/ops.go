@@ -1498,13 +1498,15 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 						}
 					}
 					break
-				case "e":
-					if ch.MountPoint == "/boot" {
-						log.Warning("AdvancedPartitioning: /boot can no be encrypted, skipping")
-					} else {
-						ch.Type = BlockDeviceTypeCrypt
-						log.Debug("AdvancedPartitioning: Encrypt partition %s", ch.Name)
-					}
+					/*
+						case "e":
+							if ch.MountPoint == "/boot" {
+								log.Warning("AdvancedPartitioning: /boot can no be encrypted, skipping")
+							} else {
+								ch.Type = BlockDeviceTypeCrypt
+								log.Debug("AdvancedPartitioning: Encrypt partition %s", ch.Name)
+							}
+					*/
 				case "f":
 					ch.FormatPartition = true
 					log.Debug("AdvancedPartitioning: Format partition %s enabled", ch.Name)
@@ -1679,12 +1681,14 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice) []string
 						results = append(results, warning)
 					}
 					break
-				case "e":
-					if strings.HasPrefix(strings.ToLower(ch.PartitionLabel), "clr_boot") {
-						warning := utils.Locale.Get("Encryption of %s is not supported", "CLR_BOOT")
-						results = append(results, warning)
-						log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
-					}
+					/*
+						case "e":
+							if strings.HasPrefix(strings.ToLower(ch.PartitionLabel), "clr_boot") {
+								warning := utils.Locale.Get("Encryption of %s is not supported", "CLR_BOOT")
+								results = append(results, warning)
+								log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
+							}
+					*/
 				}
 			}
 		}
@@ -1734,8 +1738,10 @@ func AdvancedPartitionsRequireEncryption(medias []*BlockDevice) bool {
 				switch lowerPart {
 				case "boot":
 					break
-				case "e":
-					encryptionFound = true
+					/*
+						case "e":
+							encryptionFound = true
+					*/
 				}
 			}
 		}

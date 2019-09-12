@@ -360,6 +360,7 @@ func (page *MediaConfigPage) advancedRadioOnChange(active bool) {
 	page.isDestructiveSelected = false
 
 	page.encryptCheck.SetEnabled(storage.AdvancedPartitionsRequireEncryption(page.getModel().TargetMedias))
+	page.encryptCheck.SetState(0) // Force off for Advance as not support yet
 
 	page.advancedCfgBtn.SetEnabled(true)
 

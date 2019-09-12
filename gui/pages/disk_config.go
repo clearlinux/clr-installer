@@ -86,6 +86,7 @@ func (disk *DiskConfig) advancedButtonToggled() {
 	}
 
 	disk.encryptCheck.SetSensitive(storage.AdvancedPartitionsRequireEncryption(disk.model.TargetMedias))
+	disk.encryptCheck.SetActive(false) // Force off for Advance as not support yet
 
 	results := storage.DesktopValidateAdvancedPartitions(disk.model.TargetMedias)
 	if len(results) > 0 {
