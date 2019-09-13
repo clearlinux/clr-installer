@@ -43,6 +43,9 @@ msgstr "Seleccionar paquetes adicionales"
 msgid "Offline Install: Removing additional bundles"
 msgstr "Instalación sin conexión: Eliminación de paquetes adicionales"
 
+msgid "Copying cached content to target media"
+msgstr "Copia de contenido almacenado en caché en medios de destino"
+
 msgid "Manage User"
 msgstr "Administrar usuarios"
 

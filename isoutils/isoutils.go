@@ -5,6 +5,7 @@
 package isoutils
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -109,6 +110,46 @@ func mkRootfs() error {
 		return err
 	}
 	prg.Success()
+	return err
+}
+
+// GetIsoLoopDevice returns the name of the ISO loop device
+func GetIsoLoopDevice() string {
+	w := bytes.NewBuffer(nil)
+	args := []string{
+		"losetup",
+		"-j",
+		"/mnt/media/images/rootfs.img",
+		"-O",
+		"NAME",
+		"-n",
+	}
+	err := cmd.Run(w, args...)
+	if err != nil {
+		return ""
+	}
+	if strings.Compare(w.String(), "") == 0 {
+		return ""
+	}
+
+	return strings.TrimSuffix(w.String(), "\n")
+}
+
+// ExtractSquashfs extracts the src directory from a squashfs to the dest directory
+func ExtractSquashfs(src, dest, loopDev string) error {
+	args := []string{
+		"unsquashfs",
+		"-d",
+		dest,
+		"-f",
+		loopDev,
+		"-e",
+		src,
+	}
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return err
+	}
 	return err
 }
 

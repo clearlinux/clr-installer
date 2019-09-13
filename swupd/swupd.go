@@ -262,6 +262,11 @@ func (s *SoftwareUpdater) setExtraFlags(args []string) []string {
 	return args
 }
 
+// GetStateDir returns the state directory
+func (s *SoftwareUpdater) GetStateDir() string {
+	return s.stateDir
+}
+
 // Verify runs "swupd verify" operation
 func (s *SoftwareUpdater) Verify(version string, mirror string, verifyOnly bool) error {
 	args := []string{
