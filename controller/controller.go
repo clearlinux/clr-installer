@@ -479,18 +479,30 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 		bundles = append(bundles, md.Kernel.Bundle)
 	}
 
-	msg := utils.Locale.Get("Installing base OS and configured bundles")
-	log.Info(msg)
-
 	if swupd.IsOfflineContent() {
+		msg := utils.Locale.Get("Copying cached content to target media")
+		prg = progress.NewLoop(msg)
+		log.Info(msg)
+
 		if err := utils.ParseOSClearVersion(); err != nil {
-			prg = progress.NewLoop(msg)
 			return prg, err
 		}
 		version = utils.ClearVersion
+
+		// Copying offline content here is a performance optimization and is not a hard
+		// failure because Swupd may be able to successfully copy offline content or
+		// install over the network.
+		if err := copyOfflineToStatedir(rootDir, sw.GetStateDir()); err != nil {
+			log.Warning("Failed to copy offline content: %s", err)
+		}
+
+		prg.Success()
 	} else if md.AutoUpdate {
 		version = "latest"
 	}
+
+	msg := utils.Locale.Get("Installing base OS and configured bundles")
+	log.Info(msg)
 
 	log.Debug("Installing bundles: %s", strings.Join(bundles, ", "))
 	if err := sw.VerifyWithBundles(version, md.SwupdMirror, bundles); err != nil {
@@ -599,6 +611,46 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 	}
 
 	return nil, nil
+}
+
+func copyOfflineToStatedir(rootDir, stateDir string) error {
+	if err := utils.MkdirAll(filepath.Dir(stateDir), 0755); err != nil {
+		return err
+	}
+
+	log.Debug("Overwriting stateDir with offline content")
+	if err := os.RemoveAll(stateDir); err != nil {
+		return err
+	}
+
+	if isoLoopDev := isoutils.GetIsoLoopDevice(); strings.Compare(isoLoopDev, "") != 0 {
+		// Extract offline contents for ISO installer
+		log.Debug("Extracting offline content in squashfs to target media")
+
+		if err := isoutils.ExtractSquashfs(conf.OfflineContentDir, rootDir, isoLoopDev); err != nil {
+			return err
+		}
+		if err := os.Rename(path.Join(rootDir, conf.OfflineContentDir), stateDir); err != nil {
+			return err
+		}
+	} else {
+		// Copy offline contents for img installer
+		log.Debug("Copying offline content to target media")
+
+		// The performance of utils.CopyAllFiles is much slower than cp when
+		// copying a large number of files.
+		args := []string{
+			"cp",
+			"-ar",
+			conf.OfflineContentDir,
+			stateDir,
+		}
+		err := cmd.RunAndLog(args...)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ConfigureNetwork applies the model/configured network interfaces

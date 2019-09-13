@@ -43,6 +43,9 @@ msgstr "选择附加捆绑包"
 msgid "Offline Install: Removing additional bundles"
 msgstr "脱机安装：删除其他包"
 
+msgid "Copying cached content to target media"
+msgstr "将缓存的内容复制到目标媒体"
+
 msgid "Manage User"
 msgstr "管理用户"
 
