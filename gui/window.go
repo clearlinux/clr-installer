@@ -44,6 +44,11 @@ type Window struct {
 	contentLayout *gtk.Box    // Content Layout
 	rootStack     *gtk.Stack  // Root-level stack
 
+	scroller  *gtk.ScrolledWindow
+	useScroll bool // need to embed content layout to scrolled window
+
+	contentContainer *gtk.Container // main container for content
+
 	model   *model.SystemInstall // model
 	options args.Args            // installer args
 	rootDir string               // root directory
@@ -136,6 +141,7 @@ func FitToMonitorSize(win *Window, w float32, h float32) error {
 		relW := int(w * float32(monW))
 		relH := int(h * float32(monH))
 		win.handle.SetDefaultSize(relW, relH)
+		win.useScroll = true
 	}
 
 	return nil
@@ -165,6 +171,7 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 	window.handle.SetPosition(gtk.WIN_POS_CENTER)
 	window.handle.SetDefaultSize(WindowWidth, WindowHeight)
 	window.handle.SetResizable(false)
+	window.useScroll = false
 
 	err = FitToMonitorSize(window, 0.9, 0.8)
 	if err != nil {
@@ -226,7 +233,21 @@ func (window *Window) createWelcomePage() (*Window, error) {
 	if err != nil {
 		return nil, err
 	}
-	window.mainLayout.PackStart(window.contentLayout, true, true, 0)
+
+	// default container
+	window.contentContainer = &window.contentLayout.Container
+
+	// useScroll is set, pack default container to a scrolledwindow
+	if window.useScroll {
+		window.scroller, err = gtk.ScrolledWindowNew(nil, nil)
+		if err != nil {
+			return nil, err
+		}
+		window.contentContainer = &window.scroller.Bin.Container
+		window.scroller.Add(window.contentLayout)
+	}
+
+	window.mainLayout.PackStart(window.contentContainer, true, true, 0)
 
 	// Set up the root stack and add to content layout
 	window.rootStack, err = gtk.StackNew()
@@ -514,9 +535,7 @@ func (window *Window) UpdateFooter() error {
 		return err
 	}
 
-	width, _ := window.handle.GetSize() // get current size
-	marginEnd := width * 35 / 100
-	window.buttons.back.SetMarginEnd(marginEnd) // TODO: MarginStart would be ideal but does not work
+	window.buttons.back.SetMarginStart(common.StartEndMargin)
 
 	// Confirm button
 	if window.buttons.confirm, err = createNavButton(utils.Locale.Get("CONFIRM"), "button-confirm"); err != nil {
@@ -548,7 +567,7 @@ func (window *Window) UpdateFooter() error {
 	}
 	window.buttons.boxPrimary.PackEnd(window.buttons.install, false, false, 4)
 	window.buttons.boxPrimary.PackEnd(window.buttons.quit, false, false, 4)
-	window.buttons.boxPrimary.PackEnd(window.buttons.back, false, false, 4)
+	window.buttons.boxPrimary.PackStart(window.buttons.back, false, false, 4)
 
 	// Create box for secondary buttons
 	if window.buttons.boxSecondary, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0); err != nil {
@@ -730,7 +749,8 @@ func (window *Window) SetButtonVisible(button pages.Button, visible bool) {
 
 // launchWelcomeView launches the welcome view
 func (window *Window) launchWelcomeView() {
-	window.mainLayout.Remove(window.contentLayout)
+	window.mainLayout.Remove(window.contentContainer)
+
 	window.mainLayout.Remove(window.banner.GetRootWidget())
 	if _, err := window.createWelcomePage(); err != nil {
 		window.Panic(err)
