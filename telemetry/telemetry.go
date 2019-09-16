@@ -63,6 +63,12 @@ is collected.
 	// Detect hypervisor if running in VM
 	envCmd = "/usr/bin/systemd-detect-virt"
 
+	// recordGen command
+	recordGenCmd = "telem-record-gen"
+
+	// recordGenFullPath command
+	recordGenCmdPath = "/usr/bin/" + recordGenCmd
+
 	// Configuration template
 	configTemplate = `[settings]
 server=%s
@@ -290,8 +296,26 @@ func (tl *Telemetry) CopyTelemetryRecords(rootDir string) error {
 	return nil
 }
 
+// Installed returns true if telemetry tooling is present, false otherwise
+func (tl *Telemetry) Installed() bool {
+	if _, err := os.Stat(recordGenCmdPath); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // LogRecord generates and saves a Telemetry record
 func (tl *Telemetry) LogRecord(class string, severity int, payload string) error {
+
+	// Skip record generation if telemetry tooling is not present, and do not
+	// return an error since telemetry bundle is not a requirement.
+	if tl.Installed() == false {
+		log.Warning("Telemetry is not present in the installer, skip record generation")
+		return nil
+	}
 
 	w := bytes.NewBuffer(nil)
 	if severity < 1 {
@@ -311,7 +335,7 @@ func (tl *Telemetry) LogRecord(class string, severity int, payload string) error
 	}
 
 	args := []string{
-		"telem-record-gen",
+		recordGenCmd,
 		"--severity",
 		fmt.Sprintf("%d", severity),
 		"--class",
