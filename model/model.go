@@ -484,6 +484,11 @@ func (si *SystemInstall) IsTelemetryEnabled() bool {
 	return si.Telemetry.Enabled
 }
 
+// IsTelemetryInstalled return true if telemetry tooling is present, false otherwise
+func (si *SystemInstall) IsTelemetryInstalled() bool {
+	return si.Telemetry.Installed()
+}
+
 // WriteFile writes a yaml formatted representation of si into the provided file path
 func (si *SystemInstall) WriteFile(path string) error {
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)

@@ -751,18 +751,22 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 	}
 
 	if md.IsTelemetryEnabled() {
-		log.Info("Copying telemetry records to target system.")
-		if err := md.Telemetry.CopyTelemetryRecords(rootDir); err != nil {
-			log.Warning("Failed to copy image Telemetry data")
-			errMsgs = append(errMsgs, "Failed to copy image Telemetry data")
-		}
-		log.Info("Running telemctl opt-in")
-		if err := md.Telemetry.OptIn(rootDir); err != nil {
-			log.Warning("Failed to opt-in to telemetry")
-			errMsgs = append(errMsgs, "Failed to opt-in to telemetry")
-		}
-		if len(errMsgs) > 0 {
-			return errors.Errorf("%s", strings.Join(errMsgs, ";"))
+		if md.IsTelemetryInstalled() {
+			log.Info("Copying telemetry records to target system.")
+			if err := md.Telemetry.CopyTelemetryRecords(rootDir); err != nil {
+				log.Warning("Failed to copy image Telemetry data")
+				errMsgs = append(errMsgs, "Failed to copy image Telemetry data")
+			}
+			log.Info("Running telemctl opt-in")
+			if err := md.Telemetry.OptIn(rootDir); err != nil {
+				log.Warning("Failed to opt-in to telemetry")
+				errMsgs = append(errMsgs, "Failed to opt-in to telemetry")
+			}
+			if len(errMsgs) > 0 {
+				return errors.Errorf("%s", strings.Join(errMsgs, ";"))
+			}
+		} else {
+			log.Info("Telemetry is not present in the installer, skipping copying records")
 		}
 	} else {
 		log.Info("Telemetry disabled, skipping record collection.")
