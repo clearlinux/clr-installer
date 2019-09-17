@@ -784,18 +784,22 @@ func (disk *DiskConfig) populateComboBoxes() error {
 	}
 
 	if disk.isSafeSelected {
+		selected := 0
 		if len(disk.safeTargets) > 0 {
 			disk.chooserCombo.SetSensitive(true)
-			for _, target := range disk.safeTargets {
+			for n, target := range disk.safeTargets {
 				log.Debug("Adding safe install target %s", target.Name)
 				err := addListStoreMediaRow(safeStore, target)
 				if err != nil {
 					log.Warning("SetValue safeStore")
 					return err
 				}
+				if target.Name == disk.model.InstallSelected[target.Name].Name {
+					selected = n
+				}
 			}
 			disk.chooserCombo.SetModel(safeStore)
-			disk.chooserCombo.SetActive(0)
+			disk.chooserCombo.SetActive(selected)
 		} else {
 			disk.chooserCombo.SetModel(safeStore)
 			warning := utils.Locale.Get("No safe media found for installation")
@@ -808,16 +812,20 @@ func (disk *DiskConfig) populateComboBoxes() error {
 		disk.chooserCombo.SetSensitive(true)
 
 		if len(disk.destructiveTargets) > 0 {
-			for _, target := range disk.destructiveTargets {
+			selected := 0
+			for n, target := range disk.destructiveTargets {
 				log.Debug("Adding destructive install target %s", target.Name)
 				err := addListStoreMediaRow(destructiveStore, target)
 				if err != nil {
 					log.Warning("SetValue destructiveStore")
 					return err
 				}
+				if target.Name == disk.model.InstallSelected[target.Name].Name {
+					selected = n
+				}
 			}
 			disk.chooserCombo.SetModel(destructiveStore)
-			disk.chooserCombo.SetActive(0)
+			disk.chooserCombo.SetActive(selected)
 		} else {
 			disk.chooserCombo.SetModel(destructiveStore)
 			warning := utils.Locale.Get("No media found for installation")
