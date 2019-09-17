@@ -100,6 +100,7 @@ func NewInstallPage(controller Controller, model *model.SystemInstall) (Page, er
 	page.pbar.SetMarginStart(24)
 	page.pbar.SetMarginEnd(24)
 	page.pbar.SetMarginBottom(12)
+	page.pbar.SetPulseStep(0.3)
 	page.pbar.SetMarginTop(12)
 
 	// Throw it on the bottom of the page
@@ -292,16 +293,7 @@ func (page *InstallPage) Partial(total int, step int) {
 
 // Step will step the progressbar in indeterminate mode
 func (page *InstallPage) Step() {
-	// Pulse twice for visual feedback
 	_, err := glib.IdleAdd(func() {
-		page.pbar.Pulse()
-	})
-	if err != nil {
-		log.ErrorError(err) // TODO: Handle error in a better way
-		return
-	}
-
-	_, err = glib.IdleAdd(func() {
 		page.pbar.Pulse()
 	})
 	if err != nil {
