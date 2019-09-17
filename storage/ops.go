@@ -1334,7 +1334,7 @@ func FindSafeInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTar
 			continue
 		}
 
-		if curr.Children == nil || len(curr.Children) == 0 {
+		if (curr.Children == nil || len(curr.Children) == 0) && curr.Size >= minSize {
 			// No partition type and no children we write the whole disk
 			installTargets = append(installTargets,
 				InstallTarget{Name: curr.Name, Friendly: curr.Model,
