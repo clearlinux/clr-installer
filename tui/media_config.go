@@ -311,7 +311,7 @@ func (page *MediaConfigPage) safeRadioOnChange(active bool) {
 		page.buildChooserList()
 	}
 
-	if len(page.safeTargets) < 1 {
+	if len(page.safeTargets) < 1 || len(page.safeTargets) == 0 {
 		warning := "No media or space available for installation"
 		log.Warning(warning)
 		warning = fmt.Sprintf("Warning: %s", warning)
@@ -339,7 +339,7 @@ func (page *MediaConfigPage) destructiveRadioOnChange(active bool) {
 		page.buildChooserList()
 	}
 
-	if len(page.devs) < 1 {
+	if len(page.devs) < 1 || len(page.destructiveTargets) == 0 {
 		warning := "No media found for installation"
 		log.Warning(warning)
 		warning = fmt.Sprintf("Warning: %s", warning)
