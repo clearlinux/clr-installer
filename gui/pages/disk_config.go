@@ -807,16 +807,25 @@ func (disk *DiskConfig) populateComboBoxes() error {
 	} else if disk.isDestructiveSelected {
 		disk.chooserCombo.SetSensitive(true)
 
-		for _, target := range disk.destructiveTargets {
-			log.Debug("Adding destructive install target %s", target.Name)
-			err := addListStoreMediaRow(destructiveStore, target)
-			if err != nil {
-				log.Warning("SetValue destructiveStore")
-				return err
+		if len(disk.destructiveTargets) > 0 {
+			for _, target := range disk.destructiveTargets {
+				log.Debug("Adding destructive install target %s", target.Name)
+				err := addListStoreMediaRow(destructiveStore, target)
+				if err != nil {
+					log.Warning("SetValue destructiveStore")
+					return err
+				}
 			}
+			disk.chooserCombo.SetModel(destructiveStore)
+			disk.chooserCombo.SetActive(0)
+		} else {
+			disk.chooserCombo.SetModel(destructiveStore)
+			warning := utils.Locale.Get("No media found for installation")
+			log.Warning(warning)
+			warning = fmt.Sprintf("<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
+			disk.errorMessage.SetMarkup(warning)
+			disk.controller.SetButtonState(ButtonConfirm, false)
 		}
-		disk.chooserCombo.SetModel(destructiveStore)
-		disk.chooserCombo.SetActive(0)
 	}
 
 	return nil
