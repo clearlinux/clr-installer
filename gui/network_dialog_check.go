@@ -123,8 +123,10 @@ func RunNetworkTest(md *model.SystemInstall) error {
 }
 
 // Desc will push a description box into the view for later marking
-func (netDialog *networkTestDialog) Desc(desc string) {
+func (netDialog *networkTestDialog) Desc(printPrefix, desc string) {
 	_, err := glib.IdleAdd(func() {
+		// Ignore printPrefix which is primarily used to separate
+		// mass installer installation steps.
 		netDialog.label.SetText(desc)
 		netDialog.label.ShowAll()
 	})
