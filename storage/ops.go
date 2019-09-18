@@ -464,7 +464,7 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 		prg.Success()
 
 		msg := utils.Locale.Get("Adjusting filesystem configurations")
-		prg = progress.MultiStep(len(guids), msg)
+		prg = progress.MultiStep(len(guids), "", msg)
 		log.Info(msg)
 		cnt := 1
 		for idx, guid := range guids {

@@ -116,7 +116,7 @@ type Message struct {
 }
 
 // Process parses the output received from swup and process it according to its type
-func (m Message) Process(line string) {
+func (m Message) Process(printPrefix, line string) {
 
 	var description string
 	const total = 100
@@ -166,15 +166,15 @@ func (m Message) Process(line string) {
 
 		// create a new instance of the progress bar with the correct description
 		if prgDesc != m.StepDescription {
-			log.Debug("Setting progress for task %s", m.StepDescription)
-			prg = progress.MultiStep(total, description)
+			log.Debug("%s: Setting progress for task %s", printPrefix, m.StepDescription)
+			prg = progress.MultiStep(total, printPrefix, description)
 			prgDesc = m.StepDescription
 		}
 
 		// report current % of completion
 		prg.Partial(m.StepCompletion)
 		if m.StepCompletion == total {
-			log.Debug("Task %s completed", m.StepDescription)
+			log.Debug("%s: Task %s completed", printPrefix, m.StepDescription)
 			prg.Success()
 			prgDesc = ""
 		}
@@ -347,7 +347,7 @@ func (s *SoftwareUpdater) Verify(version string, mirror string, verifyOnly bool)
 }
 
 // VerifyWithBundles runs "swupd verify" operation with all bundles
-func (s *SoftwareUpdater) VerifyWithBundles(version string, mirror string, bundles []string) error {
+func (s *SoftwareUpdater) VerifyWithBundles(version, mirror, printPrefix string, bundles []string) error {
 	// the "swupd verify" command is being deprecated, use "swupd os-install" instead
 	args := []string{
 		"swupd",
@@ -392,7 +392,7 @@ func (s *SoftwareUpdater) VerifyWithBundles(version string, mirror string, bundl
 	}
 
 	m := Message{}
-	err := cmd.RunAndProcessOutput(m, args...)
+	err := cmd.RunAndProcessOutput(printPrefix, m, args...)
 	if err != nil {
 		err = fmt.Errorf("The swupd command \"%s\" failed with %s", strings.Join(args, " "), err)
 		return errors.Wrap(err)
@@ -417,7 +417,7 @@ func (s *SoftwareUpdater) VerifyWithBundles(version string, mirror string, bundl
 }
 
 // DownloadBundles downloads the bundle list to the OfflineContentDir within the installer image
-func (s SoftwareUpdater) DownloadBundles(version, mirror string, bundles []string) error {
+func (s SoftwareUpdater) DownloadBundles(version, mirror, printPrefix string, bundles []string) error {
 	var err error
 
 	s.downloadOnly = true
@@ -436,7 +436,7 @@ func (s SoftwareUpdater) DownloadBundles(version, mirror string, bundles []strin
 	}
 	defer func() { _ = os.RemoveAll(s.rootDir) }()
 
-	return s.VerifyWithBundles(version, mirror, bundles)
+	return s.VerifyWithBundles(version, mirror, printPrefix, bundles)
 }
 
 // DisableUpdate executes the "systemctl" to disable auto update operation
