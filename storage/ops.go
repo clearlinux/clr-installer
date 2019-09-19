@@ -1275,10 +1275,10 @@ type InstallTarget struct {
 
 const (
 	// MinimumServerInstallSize is the smallest installation size in bytes for a Server
-	MinimumServerInstallSize = 4294967296
+	MinimumServerInstallSize = uint64(4) * (1000 * 1000 * 1000) // 4GiB
 
 	// MinimumDesktopInstallSize is the smallest installation size in bytes for a Desktop
-	MinimumDesktopInstallSize = 21474836480
+	MinimumDesktopInstallSize = uint64(20) * (1000 * 1000 * 1000) // 20GiB
 )
 
 func sortInstallTargets(targets []InstallTarget) []InstallTarget {
