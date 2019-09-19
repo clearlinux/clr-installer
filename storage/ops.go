@@ -1648,6 +1648,11 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice) []string
 						log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 					} else {
 						swapFound = true
+						if ch.FsType != "swap" {
+							warning := utils.Locale.Get("%s must be %s", "CLR_SWAP", "linux-swap")
+							results = append(results, warning)
+							log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
+						}
 					}
 					if ch.Size < swapSize {
 						size, _ := HumanReadableSizeWithPrecision(swapSize, 1)
