@@ -68,7 +68,6 @@ type DiskConfig struct {
 }
 
 func (disk *DiskConfig) advancedButtonToggled() {
-	// REfactor the TUI code to also return when not active
 	if !disk.advancedButton.GetActive() {
 		return
 	}
