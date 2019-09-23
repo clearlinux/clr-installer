@@ -100,6 +100,7 @@ func NewInstallPage(controller Controller, model *model.SystemInstall) (Page, er
 	page.pbar.SetMarginStart(24)
 	page.pbar.SetMarginEnd(24)
 	page.pbar.SetMarginBottom(12)
+	page.pbar.SetPulseStep(0.3)
 	page.pbar.SetMarginTop(12)
 
 	// Throw it on the bottom of the page
@@ -219,7 +220,7 @@ func (page *InstallPage) ResetChanges() {
 // Following methods are for the progress.Client API
 
 // Desc will push a description box into the view for later marking
-func (page *InstallPage) Desc(desc string) {
+func (page *InstallPage) Desc(printPrefix, desc string) {
 	_, err := glib.IdleAdd(func() {
 		fmt.Println(desc)
 
@@ -231,7 +232,8 @@ func (page *InstallPage) Desc(desc string) {
 			page.widgets[page.selection-1].Completed()
 		}
 
-		// Create new install widget
+		// Create new install widget and ignore printPrefix which is
+		// primarily used to separate mass installer installation steps.
 		widg, err := NewInstallWidget(desc)
 		if err != nil {
 			panic(err)
@@ -292,16 +294,7 @@ func (page *InstallPage) Partial(total int, step int) {
 
 // Step will step the progressbar in indeterminate mode
 func (page *InstallPage) Step() {
-	// Pulse twice for visual feedback
 	_, err := glib.IdleAdd(func() {
-		page.pbar.Pulse()
-	})
-	if err != nil {
-		log.ErrorError(err) // TODO: Handle error in a better way
-		return
-	}
-
-	_, err = glib.IdleAdd(func() {
 		page.pbar.Pulse()
 	})
 	if err != nil {

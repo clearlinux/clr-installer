@@ -8,14 +8,18 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 
 	"github.com/clearlinux/clr-installer/args"
+	"github.com/clearlinux/clr-installer/controller"
 	"github.com/clearlinux/clr-installer/gui/common"
 	"github.com/clearlinux/clr-installer/gui/pages"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
+	"github.com/clearlinux/clr-installer/swupd"
+	"github.com/clearlinux/clr-installer/syscheck"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -45,13 +49,12 @@ type Window struct {
 
 	// Menu
 	menu struct {
-		switcher     *Switcher             // Allow switching between main menu
-		stack        *gtk.Stack            // Menu switching
-		screens      map[bool]*ContentView // Mapping to content views
-		welcomePage  pages.Page            // Pointer to the welcome page
-		preCheckPage pages.Page            // Pointer to the pre-check page
-		currentPage  pages.Page            // Pointer to the currently open page
-		installPage  pages.Page            // Pointer to the installer page
+		switcher    *Switcher             // Allow switching between main menu
+		stack       *gtk.Stack            // Menu switching
+		screens     map[bool]*ContentView // Mapping to content views
+		welcomePage pages.Page            // Pointer to the welcome page
+		currentPage pages.Page            // Pointer to the currently open page
+		installPage pages.Page            // Pointer to the installer page
 	}
 
 	// Buttons
@@ -74,6 +77,8 @@ type Window struct {
 		confirm *gtk.Button // Confirm changes
 		cancel  *gtk.Button // Cancel changes
 	}
+
+	warningLabel *gtk.Label // Warning label in footer
 
 	didInit  bool                // Whether initialized the view animation
 	pages    map[int]gtk.IWidget // Mapping to each root page
@@ -147,11 +152,11 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 	}
 
 	// Launch the first page
-	// If pre-check has not been done at least once, start on the welcome page
-	if !window.model.PreCheckDone {
-		window.launchWelcomeView()
-	} else {
+	// If pre-check has been done at least once, start on the menu page
+	if window.model.PreCheckDone {
 		window.launchMenuView()
+	} else {
+		window.model.PreCheckDone = true
 	}
 
 	window.scanInfo.Channel = make(chan bool)
@@ -230,35 +235,16 @@ func (window *Window) createWelcomePage() (*Window, error) {
 	window.handle.ShowAll()
 	window.ActivatePage(window.menu.welcomePage)
 
-	return window, nil
-}
-
-// createPreCheckPage creates the pre-check page
-func (window *Window) createPreCheckPage() (*Window, error) {
-	window.banner.labelText.SetMarkup(GetWelcomeMessage())
-
-	window.contentLayout.Remove(window.rootStack)
-	window.contentLayout.PackStart(window.rootStack, true, true, 0)
-
-	// Our pages
-	pageCreators := []PageConstructor{
-		// required
-		pages.NewPreCheckPage,
-	}
-
-	for _, f := range pageCreators {
-		page, err := f(window, window.model)
+	// Create syscheck pop-up when system check fails
+	if syscheckErr := syscheck.RunSystemCheck(true); syscheckErr != nil {
+		_, err = glib.IdleAdd(func() {
+			displaySyscheckDialog(syscheckErr)
+		})
 		if err != nil {
-			return nil, err
-		}
-		if err = window.AddPage(page); err != nil {
+			log.ErrorError(err)
 			return nil, err
 		}
 	}
-
-	// Show the whole window now
-	window.handle.ShowAll()
-	window.ActivatePage(window.menu.preCheckPage)
 
 	return window, nil
 }
@@ -302,6 +288,7 @@ func (window *Window) createMenuPages() (*Window, error) {
 		pages.NewHostnamePage,
 		pages.NewConfigKernelPage,
 		pages.NewSwupdConfigPage,
+		pages.NewNetworkPage,
 
 		// always last
 		pages.NewInstallPage,
@@ -370,8 +357,6 @@ func (window *Window) AddPage(page pages.Page) error {
 	switch id {
 	case pages.PageIDWelcome:
 		window.menu.welcomePage = page
-	case pages.PageIDPreCheck:
-		window.menu.preCheckPage = page
 	case pages.PageIDInstall:
 		window.menu.installPage = page
 	default: // Add to the required or advanced (optional) screen
@@ -509,6 +494,14 @@ func (window *Window) UpdateFooter() error {
 		return err
 	}
 
+	// Warning label
+	warningTxt := utils.Locale.Get("Network check failed.")
+	if window.warningLabel, err = common.SetLabel(warningTxt, "label-warning", 0.0); err != nil {
+		return err
+	}
+	window.warningLabel.SetYAlign(0.25)
+	window.warningLabel.Hide()
+
 	// Create box for primary buttons
 	if window.buttons.boxPrimary, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0); err != nil {
 		return err
@@ -523,6 +516,7 @@ func (window *Window) UpdateFooter() error {
 	}
 	window.buttons.boxSecondary.PackEnd(window.buttons.confirm, false, false, 4)
 	window.buttons.boxSecondary.PackEnd(window.buttons.cancel, false, false, 4)
+	window.buttons.boxSecondary.PackStart(window.warningLabel, false, false, 15)
 
 	// Add the boxes
 	window.buttons.stack.AddNamed(window.buttons.boxPrimary, "primary")
@@ -533,12 +527,7 @@ func (window *Window) UpdateFooter() error {
 
 // onNextClick handles the Next button click
 func (window *Window) onNextClick() {
-	if !window.model.PreCheckDone { // If pre-check has not been done at least once, launch the pre-check view first
-		window.launchPreCheckView()
-		window.model.PreCheckDone = true
-	} else {
-		window.launchMenuView()
-	}
+	window.launchMenuView()
 }
 
 // onConfirmClick handles the Confirm button click.
@@ -579,19 +568,18 @@ func (window *Window) closePage() {
 
 // ActivatePage customizes common widgets and displays the page
 func (window *Window) ActivatePage(page pages.Page) {
-	window.menu.currentPage = page
 	id := page.GetID()
+
+	// Hide the warning label on page transitions
+	if window.warningLabel != nil {
+		window.warningLabel.Hide()
+	}
 
 	// Customize common widgets based on the page being loaded
 	switch id {
 	case pages.PageIDWelcome:
 		window.banner.Show()
 		window.buttons.stack.SetVisibleChildName("welcome")
-	case pages.PageIDPreCheck:
-		window.banner.Show()
-		window.buttons.stack.SetVisibleChildName("welcome")
-		window.buttons.next.SetLabel(utils.Locale.Get("NEXT")) // This is done just to translate label based on localization
-		window.buttons.exit.SetLabel(utils.Locale.Get("EXIT")) // This is done just to translate label based on localization
 	case pages.PageIDInstall:
 		window.menu.switcher.Hide()
 		window.banner.Show()
@@ -616,6 +604,37 @@ func (window *Window) ActivatePage(page pages.Page) {
 		window.buttons.confirm.GrabDefault()
 		window.buttons.confirm.SetLabel(utils.Locale.Get("YES"))
 		window.buttons.cancel.SetLabel(utils.Locale.Get("NO"))
+	case pages.PageIDNetwork:
+		// Launches network check pop-up without changing page
+		if err := RunNetworkTest(window.model); err != nil {
+			log.Warning("Error running network test: ", err)
+		}
+		return
+	case pages.PageIDBundle:
+		window.menu.switcher.Hide()
+		window.banner.Hide()
+		window.buttons.stack.SetVisibleChildName("secondary")
+		window.buttons.confirm.SetSensitive(false)
+		window.buttons.confirm.SetLabel(utils.Locale.Get("CONFIRM"))
+		window.buttons.cancel.SetLabel(utils.Locale.Get("CANCEL"))
+
+		if !controller.NetworkPassing {
+			// Launches network check pop-up on bundle page
+			_, err := glib.IdleAdd(func() {
+				if err := RunNetworkTest(window.model); err != nil {
+					log.Warning("Error running network test: ", err)
+				}
+				page.ResetChanges()
+
+				// Show no network warning
+				if !controller.NetworkPassing {
+					window.warningLabel.Show()
+				}
+			})
+			if err != nil {
+				log.ErrorError(err)
+			}
+		}
 	default:
 		window.menu.switcher.Hide()
 		window.banner.Hide()
@@ -624,6 +643,7 @@ func (window *Window) ActivatePage(page pages.Page) {
 		window.buttons.confirm.SetLabel(utils.Locale.Get("CONFIRM"))
 		window.buttons.cancel.SetLabel(utils.Locale.Get("CANCEL"))
 	}
+	window.menu.currentPage = page
 	page.ResetChanges()                                // Allow page to take control now
 	window.rootStack.SetVisibleChild(window.pages[id]) // Set the root stack to show the new page
 }
@@ -673,16 +693,6 @@ func (window *Window) launchWelcomeView() {
 	window.mainLayout.Remove(window.contentLayout)
 	window.mainLayout.Remove(window.banner.GetRootWidget())
 	if _, err := window.createWelcomePage(); err != nil {
-		window.Panic(err)
-	}
-}
-
-// launchPreCheckView launches the pre-check view view
-func (window *Window) launchPreCheckView() {
-	log.Debug("Launching PreCheckView")
-	window.menu.currentPage.StoreChanges()
-
-	if _, err := window.createPreCheckPage(); err != nil {
 		window.Panic(err)
 	}
 }
@@ -795,12 +805,6 @@ func (window *Window) confirmInstall() {
 	scroll.Add(textArea)
 	contentBox.PackStart(scroll, false, true, 0)
 
-	medias := storage.GetPlannedMediaChanges(window.model.InstallSelected, window.model.TargetMedias)
-	for _, media := range medias {
-		log.Debug("MediaChange: %s", media)
-		buffer.Insert(buffer.GetEndIter(), media+"\n")
-	}
-
 	dialog, err := common.CreateDialogOkCancel(contentBox, title, utils.Locale.Get("CONFIRM"), utils.Locale.Get("CANCEL"))
 	if err != nil {
 		log.Error("Error creating dialog", err)
@@ -811,6 +815,45 @@ func (window *Window) confirmInstall() {
 	if err != nil {
 		log.Error("Error connecting to dialog", err)
 		return
+	}
+
+	// Valid network is required to install without offline content or additional bundles
+	if (!swupd.IsOfflineContent() || len(window.model.UserBundles) != 0) && !controller.NetworkPassing {
+		if err := RunNetworkTest(window.model); err != nil {
+			log.Warning("Error running network test: ", err)
+			return
+		}
+	}
+
+	if !controller.NetworkPassing {
+		if !swupd.IsOfflineContent() {
+			// Cannot install without network or offline content
+			return
+		} else if len(window.model.UserBundles) != 0 {
+			// Cannot install without network and additional bundles. Allow user to remove bundles
+			// and continue the install
+			offlineMsg := utils.Locale.Get("Offline Install: Removing additional bundles")
+			buffer.Insert(buffer.GetEndIter(), offlineMsg+"\n")
+
+			confirmButton, err := dialog.GetWidgetForResponse(gtk.RESPONSE_OK)
+			if err != nil {
+				log.Error("Error getting confirm button", err)
+				return
+			}
+			_, err = confirmButton.Connect("button-press-event", func() {
+				window.model.UserBundles = nil
+			})
+			if err != nil {
+				log.Error("Error connecting to dialog", err)
+				return
+			}
+		}
+	}
+
+	medias := storage.GetPlannedMediaChanges(window.model.InstallSelected, window.model.TargetMedias)
+	for _, media := range medias {
+		log.Debug("MediaChange: %s", media)
+		buffer.Insert(buffer.GetEndIter(), media+"\n")
 	}
 
 	dialog.ShowAll()
@@ -922,6 +965,58 @@ func displayErrorDialog(err error) {
 		log.Error("Error connecting to dialog", err)
 		return
 	}
+	dialog.ShowAll()
+	dialog.Run()
+}
+
+// displaySyscheckDialog creates a pop-up for system check failures
+func displaySyscheckDialog(syscheckErr error) {
+	log.Error("System check failed: %s", syscheckErr.Error())
+
+	// Create box
+	contentBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		log.Error("Error creating box", err)
+		return
+	}
+	contentBox.SetHAlign(gtk.ALIGN_FILL)
+	contentBox.SetMarginBottom(common.TopBottomMargin)
+
+	// Create label
+	text := utils.Locale.Get("System failed to pass pre-install checks.")
+	label, err := gtk.LabelNew(text)
+	if err != nil {
+		log.Error("Error creating label", err)
+		return
+	}
+	label.SetUseMarkup(true)
+	label.SetHAlign(gtk.ALIGN_START)
+	contentBox.PackStart(label, false, true, 0)
+
+	// Create dialog
+	title := utils.Locale.Get("Warning")
+	dialog, err := common.CreateDialogOneButton(contentBox, title, utils.Locale.Get("OK"), "button-confirm")
+	if err != nil {
+		log.Error("Error creating dialog", err)
+		return
+	}
+	dialog.SetDeletable(false)
+
+	// Configure button
+	confirmButton, err := dialog.GetWidgetForResponse(gtk.RESPONSE_OK)
+	if err != nil {
+		log.Error("Error getting confirm button", err)
+		return
+	}
+	_, err = confirmButton.Connect("button-press-event", func() {
+		dialog.Destroy()
+		gtk.MainQuit() // Exit Installer
+	})
+	if err != nil {
+		log.Error("Error connecting to dialog", err)
+		return
+	}
+
 	dialog.ShowAll()
 	dialog.Run()
 }

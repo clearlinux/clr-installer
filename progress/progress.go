@@ -13,7 +13,7 @@ import (
 // the install progress
 type Client interface {
 	// Desc is called when a new progress unit is started
-	Desc(desc string)
+	Desc(printPrefix, desc string)
 
 	// Partial is called on behalf of a MultiStep progress task - it's called for each
 	// partial step completion
@@ -63,14 +63,14 @@ func Set(pi Client) {
 }
 
 // MultiStep creates a new MultiStep implementation
-func MultiStep(total int, format string, a ...interface{}) Progress {
+func MultiStep(total int, printPrefix, format string, a ...interface{}) Progress {
 	if impl == nil {
 		panic("No progress implementation was configured. Use progress.Set() before using progress.")
 	}
 
 	desc := fmt.Sprintf(format, a...)
 	prg := &BaseProgress{total: total}
-	impl.Desc(desc)
+	impl.Desc(printPrefix, desc)
 	return prg
 }
 
@@ -96,7 +96,7 @@ func NewLoop(format string, a ...interface{}) Progress {
 	prg := &Loop{}
 	prg.done = make(chan bool)
 
-	impl.Desc(desc)
+	impl.Desc("", desc)
 	go runStepLoop(prg, impl.LoopWaitDuration())
 
 	return prg

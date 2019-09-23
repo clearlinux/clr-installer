@@ -19,7 +19,7 @@ import (
 // Output interface allows implementors to process the output from a
 // command according to their specific case
 type Output interface {
-	Process(line string)
+	Process(printPrefix, line string)
 }
 
 type runLogger struct{}
@@ -121,7 +121,7 @@ func Run(writer io.Writer, args ...string) error {
 // RunAndProcessOutput executes a command and process the output from
 // Stdout and Stderr according to the implementor
 // args are the actual command and its arguments
-func RunAndProcessOutput(output Output, args ...string) error {
+func RunAndProcessOutput(printPrefix string, output Output, args ...string) error {
 
 	var exe string
 	var cmdArgs []string
@@ -156,7 +156,7 @@ func RunAndProcessOutput(output Output, args ...string) error {
 	for scannerOut.Scan() {
 
 		// specific processing implementation
-		output.Process(scannerOut.Text())
+		output.Process(printPrefix, scannerOut.Text())
 
 	}
 

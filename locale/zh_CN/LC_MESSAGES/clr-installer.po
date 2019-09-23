@@ -40,6 +40,12 @@ msgstr "遥测技术"
 msgid "Select Additional Bundles"
 msgstr "选择附加捆绑包"
 
+msgid "Offline Install: Removing additional bundles"
+msgstr "脱机安装：删除其他包"
+
+msgid "Copying cached content to target media"
+msgstr "将缓存的内容复制到目标媒体"
+
 msgid "Manage User"
 msgstr "管理用户"
 
@@ -96,6 +102,12 @@ msgstr "正在运行 %s 钩子"
 
 msgid "Testing connectivity"
 msgstr "正在测试连接性"
+
+msgid "Test connectivity"
+msgstr "测试连接"
+
+msgid "Test Network Settings"
+msgstr "测试网络设置"
 
 #, c-format
 msgid "Writing partition table to: %s"

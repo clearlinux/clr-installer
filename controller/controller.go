@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -21,6 +22,7 @@ import (
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/hostname"
 	"github.com/clearlinux/clr-installer/isoutils"
+	"github.com/clearlinux/clr-installer/kernel"
 	"github.com/clearlinux/clr-installer/keyboard"
 	"github.com/clearlinux/clr-installer/language"
 	"github.com/clearlinux/clr-installer/log"
@@ -105,7 +107,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	}
 
 	// Using MassInstaller (non-UI) the network will not have been checked yet
-	if !NetworkPassing && !options.StubImage {
+	if !NetworkPassing && !options.StubImage && !swupd.IsOfflineContent() && len(model.UserBundles) != 0 {
 		if err = ConfigureNetwork(model); err != nil {
 			return err
 		}
@@ -427,7 +429,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 func applyHooks(name string, vars map[string]string, hooks []*model.InstallHook) error {
 	locName := utils.Locale.Get(name)
 	msg := utils.Locale.Get("Running %s hooks", locName)
-	prg := progress.MultiStep(len(hooks), msg)
+	prg := progress.MultiStep(len(hooks), "", msg)
 	log.Info(msg)
 
 	for idx, curr := range hooks {
@@ -465,33 +467,104 @@ func runInstallHook(vars map[string]string, hook *model.InstallHook) error {
 // latest one and start adding new bundles
 // for the bootstrap we use the hosts's swupd and the following operations are
 // executed using the target swupd
-func contentInstall(rootDir string, version string, model *model.SystemInstall, options args.Args) (progress.Progress, error) {
+func contentInstall(rootDir string, version string, md *model.SystemInstall, options args.Args) (progress.Progress, error) {
 
 	var prg progress.Progress
 
 	sw := swupd.New(rootDir, options)
 
-	bundles := model.Bundles
+	bundles := md.Bundles
 
-	if model.Kernel.Bundle != "none" {
-		bundles = append(bundles, model.Kernel.Bundle)
+	if md.Kernel.Bundle != "none" {
+		bundles = append(bundles, md.Kernel.Bundle)
 	}
 
-	if model.AutoUpdate {
+	if swupd.IsOfflineContent() {
+		msg := utils.Locale.Get("Copying cached content to target media")
+		prg = progress.NewLoop(msg)
+		log.Info(msg)
+
+		if err := utils.ParseOSClearVersion(); err != nil {
+			return prg, err
+		}
+		version = utils.ClearVersion
+
+		// Copying offline content here is a performance optimization and is not a hard
+		// failure because Swupd may be able to successfully copy offline content or
+		// install over the network.
+		if err := copyOfflineToStatedir(rootDir, sw.GetStateDir()); err != nil {
+			log.Warning("Failed to copy offline content: %s", err)
+		}
+
+		prg.Success()
+	} else if md.AutoUpdate {
 		version = "latest"
 	}
 
 	msg := utils.Locale.Get("Installing base OS and configured bundles")
 	log.Info(msg)
+
 	log.Debug("Installing bundles: %s", strings.Join(bundles, ", "))
-	if err := sw.VerifyWithBundles(version, model.SwupdMirror, bundles); err != nil {
+	if err := sw.VerifyWithBundles(version, md.SwupdMirror, "Target OS: ", bundles); err != nil {
 		// If the swupd command failed to run there wont be a progress
 		// bar, so we need to create a new one that we can fail
 		prg = progress.NewLoop(msg)
 		return prg, err
 	}
 
-	if !model.AutoUpdate {
+	// Create custom config in the installer image to override default bundle list
+	if md.TargetBundles != nil {
+		if err := writeCustomConfig(rootDir, md); err != nil {
+			prg = progress.NewLoop(msg)
+			return prg, err
+		}
+	}
+
+	if md.Offline {
+		// Install minimum set of required bundles to offline content directory.
+		log.Info("Installing offline content to the target")
+
+		offlineBundles := []string{
+			network.RequiredBundle,
+			telemetry.RequiredBundle,
+			cuser.RequiredBundle,
+			timezone.RequiredBundle,
+			keyboard.RequiredBundle,
+			language.RequiredBundle,
+			storage.RequiredBundle,
+		}
+
+		// Load default config from chroot for required bundles list
+		bundleConfig, err := conf.LookupDefaultChrootConfig(rootDir)
+		if err != nil {
+			prg = progress.NewLoop(msg)
+			return prg, err
+		}
+		loadedBundles, err := model.LoadFile(bundleConfig, options)
+		if err != nil {
+			prg = progress.NewLoop(msg)
+			return prg, err
+		}
+		offlineBundles = append(offlineBundles, loadedBundles.Bundles...)
+
+		// Load available kernel bundles from chroot
+		loadedKernels, err := kernel.LoadKernelListChroot(rootDir)
+		if err != nil {
+			prg = progress.NewLoop(msg)
+			return prg, err
+		}
+		for _, k := range loadedKernels {
+			offlineBundles = append(offlineBundles, k.Bundle)
+		}
+
+		log.Debug("Downloading bundles: %s", strings.Join(offlineBundles, ", "))
+		if err := sw.DownloadBundles(version, md.SwupdMirror, "Offline Content: ", offlineBundles); err != nil {
+			prg = progress.NewLoop(msg)
+			return prg, err
+		}
+	}
+
+	if !md.AutoUpdate {
 		msg := utils.Locale.Get("Disabling automatic updates")
 		prg = progress.NewLoop(msg)
 		log.Info(msg)
@@ -516,7 +589,7 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 		"CBM_DEBUG": "1",
 	}
 
-	if model.LegacyBios {
+	if md.LegacyBios {
 		envVars["CBM_FORCE_LEGACY"] = "1"
 	}
 
@@ -538,6 +611,46 @@ func contentInstall(rootDir string, version string, model *model.SystemInstall, 
 	}
 
 	return nil, nil
+}
+
+func copyOfflineToStatedir(rootDir, stateDir string) error {
+	if err := utils.MkdirAll(filepath.Dir(stateDir), 0755); err != nil {
+		return err
+	}
+
+	log.Debug("Overwriting stateDir with offline content")
+	if err := os.RemoveAll(stateDir); err != nil {
+		return err
+	}
+
+	if isoLoopDev := isoutils.GetIsoLoopDevice(); strings.Compare(isoLoopDev, "") != 0 {
+		// Extract offline contents for ISO installer
+		log.Debug("Extracting offline content in squashfs to target media")
+
+		if err := isoutils.ExtractSquashfs(conf.OfflineContentDir, rootDir, isoLoopDev); err != nil {
+			return err
+		}
+		if err := os.Rename(path.Join(rootDir, conf.OfflineContentDir), stateDir); err != nil {
+			return err
+		}
+	} else {
+		// Copy offline contents for img installer
+		log.Debug("Copying offline content to target media")
+
+		// The performance of utils.CopyAllFiles is much slower than cp when
+		// copying a large number of files.
+		args := []string{
+			"cp",
+			"-ar",
+			conf.OfflineContentDir,
+			stateDir,
+		}
+		err := cmd.RunAndLog(args...)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ConfigureNetwork applies the model/configured network interfaces
@@ -577,7 +690,7 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 
 	msg := utils.Locale.Get("Testing connectivity")
 	attempts := 3
-	prg := progress.MultiStep(attempts, msg)
+	prg := progress.NewLoop(msg)
 	ok := false
 	// 3 attempts to test connectivity
 	for i := 0; i < attempts; i++ {
@@ -597,7 +710,6 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 			ok = false
 			break
 		}
-		prg.Partial(i + 1)
 	}
 
 	if !ok {
@@ -802,4 +914,24 @@ func generateISO(rootDir string, md *model.SystemInstall, options args.Args) err
 	}
 
 	return err
+}
+
+// writeCustomConfig creates a config file in the installer image that overrides the default
+func writeCustomConfig(chrootPath string, md *model.SystemInstall) error {
+	customPath := path.Join(chrootPath, conf.CustomConfigDir)
+
+	if err := utils.MkdirAll(customPath, 0755); err != nil {
+		return err
+	}
+
+	// Create basic config based on provided values
+	customModel := &model.SystemInstall{
+		Bundles:  md.TargetBundles,
+		Keyboard: md.Keyboard,
+		Language: md.Language,
+		Timezone: md.Timezone,
+		Kernel:   md.Kernel,
+	}
+
+	return customModel.WriteFile(path.Join(customPath, conf.ConfigFile))
 }

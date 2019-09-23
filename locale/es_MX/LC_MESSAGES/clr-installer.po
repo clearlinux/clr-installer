@@ -40,6 +40,12 @@ msgstr "Telemetría"
 msgid "Select Additional Bundles"
 msgstr "Seleccionar paquetes adicionales"
 
+msgid "Offline Install: Removing additional bundles"
+msgstr "Instalación sin conexión: Eliminación de paquetes adicionales"
+
+msgid "Copying cached content to target media"
+msgstr "Copia de contenido almacenado en caché en medios de destino"
+
 msgid "Manage User"
 msgstr "Administrar usuarios"
 
@@ -96,6 +102,12 @@ msgstr "Ejecutando enlaces de %s"
 
 msgid "Testing connectivity"
 msgstr "Probando la conectividad"
+
+msgid "Test connectivity"
+msgstr "Conectividad de prueba"
+
+msgid "Test Network Settings"
+msgstr "Probar la configuración de red"
 
 #, c-format
 msgid "Writing partition table to: %s"

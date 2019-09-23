@@ -12,6 +12,7 @@ import (
 	"github.com/clearlinux/clr-installer/controller"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/network"
+	"github.com/clearlinux/clr-installer/swupd"
 )
 
 // MenuPage is the Page implementation for the main menu page
@@ -140,6 +141,26 @@ func scrollTabToActive(activated clui.Control, group *TabGroup) {
 	}
 }
 
+func (page *MenuPage) launchConfirmInstallDialogBox() {
+	if page.installBtn.Enabled() {
+		if dialog, err := CreateConfirmInstallDialogBox(page.tui.model); err == nil {
+			dialog.OnClose(func() {
+				if dialog.Confirmed {
+					// Remove user bundles when continuing install with an offline warning
+					if !controller.NetworkPassing && len(dialog.modelSI.UserBundles) != 0 && swupd.IsOfflineContent() {
+						page.tui.model.UserBundles = nil
+					}
+					page.GotoPage(TuiPageInstall)
+					go func() {
+						_ = network.DownloadInstallerMessage("Pre-Installation",
+							network.PreInstallConf)
+					}()
+				}
+			})
+		}
+	}
+}
+
 func newMenuPage(tui *Tui) (Page, error) {
 	var err error
 
@@ -167,36 +188,28 @@ func newMenuPage(tui *Tui) (Page, error) {
 
 	page.installBtn = CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Install", Fixed)
 	page.installBtn.OnClick(func(ev clui.Event) {
-		if !controller.NetworkPassing {
-			// Network needs to be validated before the install
+		// Network needs to be validated before the install when offline content isn't supported
+		// or additional bundles were added
+		if (!swupd.IsOfflineContent() || len(page.tui.model.UserBundles) != 0) && !controller.NetworkPassing {
 			if dialog, err := CreateNetworkTestDialogBox(page.tui.model); err == nil {
+				dialog.OnClose(func() {
+					page.launchConfirmInstallDialogBox()
+				})
 				if dialog.RunNetworkTest() {
 					// Automatically close if it worked
 					clui.RefreshScreen()
 					time.Sleep(time.Second)
 					dialog.Close()
-				} else {
+				} else if !swupd.IsOfflineContent() {
+					// Cannot install without network or offline content
 					page.installBtn.SetEnabled(false)
 				}
 			}
+		} else {
+			page.launchConfirmInstallDialogBox()
 		}
 
-		if page.installBtn.Enabled() {
-			if dialog, err := CreateConfirmInstallDialogBox(page.tui.model); err == nil {
-				dialog.OnClose(func() {
-					if dialog.Confirmed {
-						page.GotoPage(TuiPageInstall)
-						go func() {
-							_ = network.DownloadInstallerMessage("Pre-Installation",
-								network.PreInstallConf)
-						}()
-					}
-				})
-			}
-		}
 	})
-
-	page.installBtn.SetEnabled(false)
 
 	return page, nil
 }

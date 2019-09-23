@@ -40,6 +40,12 @@ msgstr "Telemetry"
 msgid "Select Additional Bundles"
 msgstr "Select Additional Bundles"
 
+msgid "Offline Install: Removing additional bundles"
+msgstr "Offline Install: Removing additional bundles"
+
+msgid "Copying cached content to target media"
+msgstr "Copying cached content to target media"
+
 msgid "Manage User"
 msgstr "Manage User"
 
@@ -96,6 +102,12 @@ msgstr "Running %s hooks"
 
 msgid "Testing connectivity"
 msgstr "Testing connectivity"
+
+msgid "Test connectivity"
+msgstr "Test connectivity"
+
+msgid "Test Network Settings"
+msgstr "Test Network Settings"
 
 #, c-format
 msgid "Writing partition table to: %s"
