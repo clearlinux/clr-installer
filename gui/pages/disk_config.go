@@ -942,6 +942,7 @@ func (disk *DiskConfig) StoreChanges() {
 		disk.model.InstallSelected[selected.Name] = selected
 		log.Debug("Safe Install Target %v", selected)
 		disk.model.TargetMedias = nil
+		disk.saveButton = disk.safeButton
 	} else if disk.destructiveButton.GetActive() {
 		disk.model.ClearInstallSelected()
 		log.Debug("Destructive Install chooserCombo selected %v", disk.chooserCombo.GetActive())
@@ -949,11 +950,13 @@ func (disk *DiskConfig) StoreChanges() {
 		disk.model.InstallSelected[selected.Name] = selected
 		log.Debug("Destructive Install Target %v", selected)
 		disk.model.TargetMedias = nil
+		disk.saveButton = disk.destructiveButton
 	} else {
 		log.Warning("Failed to find and save the selected installation media")
 	}
 
 	if disk.advancedButton.GetActive() {
+		disk.saveButton = disk.advancedButton
 		log.Debug("Advanced Install Confirmed")
 		return
 	}
@@ -1011,6 +1014,25 @@ func (disk *DiskConfig) ResetChanges() {
 		}
 		disk.saveMedias = append([]*storage.BlockDevice{}, disk.model.TargetMedias...)
 
+		// Set default installation type
+		if disk.saveButton == nil {
+			if len(storage.FindAdvancedInstallTargets(disk.devs)) != 0 {
+				disk.isAdvancedSelected = true
+			}
+
+			if disk.isAdvancedSelected {
+				disk.advancedButton.SetActive(true)
+				disk.saveButton = disk.advancedButton
+			} else if len(disk.safeTargets) > 0 {
+				disk.safeButton.SetActive(true)
+				disk.isSafeSelected = true
+				disk.saveButton = disk.safeButton
+			} else {
+				disk.destructiveButton.SetActive(true)
+				disk.isDestructiveSelected = true
+				disk.saveButton = disk.destructiveButton
+			}
+		}
 	} else {
 		// Restore the state
 		if disk.saveButton != nil && !disk.saveButton.GetActive() {
@@ -1045,13 +1067,10 @@ func (disk *DiskConfig) refreshPage() {
 	// Choose the most appropriate button
 	if disk.isSafeSelected {
 		disk.safeButton.SetActive(true)
-		disk.saveButton = disk.safeButton
 	} else if disk.isDestructiveSelected {
 		disk.destructiveButton.SetActive(true)
-		disk.saveButton = disk.destructiveButton
 	} else if disk.isAdvancedSelected {
 		disk.advancedButton.SetActive(true)
-		disk.saveButton = disk.advancedButton
 		if !advEncryption {
 			disk.encryptCheck.SetActive(false)
 			disk.encryptCheck.SetSensitive(false)
