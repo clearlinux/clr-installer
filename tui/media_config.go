@@ -458,7 +458,7 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 	page.advancedRadio.OnChange(page.advancedRadioOnChange)
 
 	// Description of Advanced
-	clui.CreateLabel(radioButtonFrame, 1, 1, "Use partitioning tool to select media via partition labels.", Fixed)
+	clui.CreateLabel(radioButtonFrame, 1, 1, "Use partitioning tool to select media via partition names.", Fixed)
 
 	listFrame := clui.CreateFrame(contentFrame, 60, 4, BorderNone, Fixed)
 	listFrame.SetPack(clui.Vertical)

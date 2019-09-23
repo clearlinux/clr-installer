@@ -370,13 +370,16 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	} else {
 		sc.AddClass("label-radio")
 	}
+	reqs := []string{"CLR_BOOT:vfat", "CLR_SWAP:linux-swap", "CLR_ROOT:ext*|xfs"}
+	disk.advancedButton.SetTooltipText(utils.Locale.Get("Minimum requirements: %s", strings.Join(reqs, ", ")))
 	advancedBox.PackStart(disk.advancedButton, false, false, 0)
 	if _, err := disk.advancedButton.Connect("toggled", disk.advancedButtonToggled); err != nil {
 		return nil, err
 	}
 
-	advancedDescription := utils.Locale.Get("Use partitioning tool to configure and select media via partition labels.")
+	advancedDescription := utils.Locale.Get("Use partitioning tool to configure and select media via partition names.")
 	advancedLabel, err := gtk.LabelNew(advancedDescription)
+
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +397,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	if err != nil {
 		return nil, err
 	}
-	disk.partitionButton.SetTooltipText(utils.Locale.Get("Launch the external partitioning tool to label the partitions to be used for the installation."))
+	disk.partitionButton.SetTooltipText(utils.Locale.Get("Launch the external partitioning tool to name the partitions to be used for the installation."))
 
 	if _, err = disk.partitionButton.Connect("clicked", disk.runDiskPartitionTool); err != nil {
 		return nil, err

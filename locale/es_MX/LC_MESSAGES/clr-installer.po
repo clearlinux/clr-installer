@@ -166,9 +166,6 @@ msgstr "Borrar disco"
 msgid "Advanced"
 msgstr "Avanzado"
 
-msgid "Labeled"
-msgstr "Etiquetado"
-
 msgid "No media found for installation"
 msgstr "No se encontraron medios para instalar."
 
@@ -332,14 +329,18 @@ msgstr "Elimina todos los datos del medio seleccionado y permite instalar el sis
 msgid "Advanced Installation"
 msgstr "Instalación avanzada"
 
-msgid "Use partitioning tool to configure and select media via partition labels."
-msgstr "Utilice la herramienta de partición para configurar y seleccionar medios a través de etiquetas de partición."
+msgid "Use partitioning tool to configure and select media via partition names."
+msgstr "Utilice la herramienta de partición para configurar y seleccionar medios a través de nombres de partición."
+
+#, c-format
+msgid "Minimum requirements: %s"
+msgstr "Requisitos mínimos: %s"
 
 msgid "PARTITION MEDIA"
 msgstr "MEDIOS DE PARTICION"
 
-msgid "Launch the external partitioning tool to label the partitions to be used for the installation."
-msgstr "Inicie la herramienta de particionamiento externo para etiquetar las particiones que se utilizarán para la instalación."
+msgid "Launch the external partitioning tool to name the partitions to be used for the installation."
+msgstr "Inicie la herramienta de particionamiento externo para asignar un nombre a las particiones que se utilizarán para la instalación."
 
 #, c-format
 msgid "Could not launch %s. Check log %s"
@@ -350,20 +351,20 @@ msgid "%s must be %s"
 msgstr "%s debe ser %s"
 
 #, c-format
-msgid "Found multiple %s partition labels"
-msgstr "Se encontraron varias etiquetas de partición %s"
+msgid "Found multiple %s partition names"
+msgstr "Encontrados varios nombres de partición %s"
 
 #, c-format
-msgid "Found invalid %s partition label"
-msgstr "Se ha encontrado una etiqueta de partición %s no válida"
+msgid "Found invalid %s partition name"
+msgstr "Encontrado nombre de partición %s no válido"
 
 #, c-format
 msgid "Encryption of %s is not supported"
 msgstr "El cifrado de %s no es compatible"
 
 #, c-format
-msgid "Missing %s partition label"
-msgstr "Falta la etiqueta de partición %s"
+msgid "Missing %s partition name"
+msgstr "Falta el nombre de partición %s"
 
 msgid "CHANGE LANGUAGE"
 msgstr "CAMBIAR IDIOMA"

@@ -1432,7 +1432,7 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 			label := ch.PartitionLabel
 
 			if label != "" {
-				log.Debug("FindAdvancedInstallTargets: Found partition %s with label %s", ch.Name, label)
+				log.Debug("FindAdvancedInstallTargets: Found partition %s with name %s", ch.Name, label)
 			}
 
 			for _, part := range strings.Split(label, "_") {
@@ -1440,7 +1440,7 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 
 				if !clrFound {
 					if lowerPart == "clr" {
-						log.Debug("FindAdvancedInstallTargets: Partition label contains clr %s", ch.Name)
+						log.Debug("FindAdvancedInstallTargets: Partition name contains clr %s", ch.Name)
 						clrFound = true
 					}
 					continue
@@ -1539,7 +1539,7 @@ func FormatInstallPortion(target InstallTarget) string {
 		if target.EraseDisk {
 			portion = ""
 		} else {
-			portion = utils.Locale.Get("Labeled")
+			portion = utils.Locale.Get("Advanced")
 		}
 	}
 
@@ -1586,7 +1586,7 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice) []string
 			label := ch.PartitionLabel
 
 			if label != "" {
-				log.Debug("validateAdvancedPartitions: Found partition %s with label %s", ch.Name, label)
+				log.Debug("validateAdvancedPartitions: Found partition %s with name %s", ch.Name, label)
 			}
 
 			for _, part := range strings.Split(label, "_") {
@@ -1602,7 +1602,7 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice) []string
 				switch lowerPart {
 				case "boot":
 					if bootFound {
-						warning := utils.Locale.Get("Found multiple %s partition labels", "CLR_BOOT")
+						warning := utils.Locale.Get("Found multiple %s partition names", "CLR_BOOT")
 						results = append(results, warning)
 						log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 					} else {
@@ -1622,7 +1622,7 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice) []string
 					}
 				case "root":
 					if rootFound {
-						warning := utils.Locale.Get("Found multiple %s partition labels", "CLR_ROOT")
+						warning := utils.Locale.Get("Found multiple %s partition names", "CLR_ROOT")
 						results = append(results, warning)
 						log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 					} else {
@@ -1643,7 +1643,7 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice) []string
 					}
 				case "swap":
 					if swapFound {
-						warning := utils.Locale.Get("Found multiple %s partition labels", "CLR_SWAP")
+						warning := utils.Locale.Get("Found multiple %s partition names", "CLR_SWAP")
 						results = append(results, warning)
 						log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 					} else {
@@ -1663,7 +1663,7 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice) []string
 					}
 				case "mnt":
 					failed := false
-					warning := utils.Locale.Get("Found invalid %s partition label", label)
+					warning := utils.Locale.Get("Found invalid %s partition name", label)
 
 					mntParts := strings.Split(label, "MNT_")
 					if len(mntParts) != 2 {
@@ -1700,19 +1700,19 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice) []string
 	}
 
 	if !bootFound {
-		warning := utils.Locale.Get("Missing %s partition label", "CLR_BOOT")
+		warning := utils.Locale.Get("Missing %s partition name", "CLR_BOOT")
 		results = append(results, warning)
 		log.Warning("validateAdvancedPartitions: %s", warning)
 	}
 
 	if !swapFound {
-		warning := utils.Locale.Get("Missing %s partition label", "CLR_SWAP")
+		warning := utils.Locale.Get("Missing %s partition name", "CLR_SWAP")
 		results = append(results, warning)
 		log.Warning("validateAdvancedPartitions: %s", warning)
 	}
 
 	if !rootFound {
-		warning := utils.Locale.Get("Missing %s partition label", "CLR_ROOT")
+		warning := utils.Locale.Get("Missing %s partition name", "CLR_ROOT")
 		results = append(results, warning)
 		log.Warning("validateAdvancedPartitions: %s", warning)
 	}
