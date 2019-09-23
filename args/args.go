@@ -42,8 +42,6 @@ type Args struct {
 	Version                 bool
 	Reboot                  bool
 	RebootSet               bool
-	Offline                 bool
-	OfflineSet              bool
 	LogFile                 string
 	ConfigFile              string
 	CfDownloaded            bool
@@ -139,10 +137,6 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.BoolVar(
 		&args.Reboot, "reboot", true, "Reboot after finishing",
-	)
-
-	flag.BoolVar(
-		&args.Offline, "offline", false, "Install update content for minimal offline installation",
 	)
 
 	flag.BoolVar(
@@ -308,13 +302,6 @@ func (args *Args) setCommandLineArgs() (err error) {
 	if fflag != nil {
 		if fflag.Changed {
 			args.RebootSet = true
-		}
-	}
-
-	fflag = flag.Lookup("offline")
-	if fflag != nil {
-		if fflag.Changed {
-			args.OfflineSet = true
 		}
 	}
 

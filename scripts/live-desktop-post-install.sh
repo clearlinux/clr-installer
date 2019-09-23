@@ -26,6 +26,7 @@ echo "clr-live" > ${CHROOTPATH}/etc/hostname
 GDM_DIR=$CHROOTPATH/etc/gdm/
 THEMES_DIR=$CHROOTPATH/usr/share/clr-installer/themes
 DESKTOP_DIR=$CHROOTPATH/usr/share/applications/
+VAR_DIR=$CHROOTPATH/var/lib/clr-installer
 
 # Add the user account for auto-login
 echo "Creating user account clrlinux"
@@ -42,6 +43,26 @@ AutomaticLoginEnable=True
 AutomaticLogin=clrlinux
 CUSTOM_CONF
 chmod 644 $GDM_DIR/custom.conf
+
+mkdir -p $VAR_DIR/
+cat > $VAR_DIR/clr-installer.yaml <<DESKTOP_YAML_DEFAULT
+---
+bundles: [
+    c-basic,
+    desktop-autostart,
+    git,
+    openssh-server,
+    os-core,
+    os-core-update,
+    vim,
+  ]
+
+keyboard: us
+language: en_US.UTF-8
+timezone: UTC
+kernel: kernel-native
+DESKTOP_YAML_DEFAULT
+chmod 644 $VAR_DIR/clr-installer.yaml
 
 FAVORITE_APPS="['clr-installer-gui.desktop', 'org.gnome.Software.desktop', \
 	'org.gnome.Terminal.desktop', 'org.gnome.Nautilus.desktop', \

@@ -414,9 +414,6 @@ func TestKernelAndCommandlineAllArgs(t *testing.T) {
 	if testArgs.Reboot != true {
 		t.Errorf("Command Line 'reboot' is not defaulted to 'true'")
 	}
-	if testArgs.Offline != false {
-		t.Errorf("Command Line 'offline' is not defaulted to 'false'")
-	}
 	if testArgs.ConfigFile != confName {
 		t.Errorf("Command Line 'config' is %q, NOT overridden to %q", testArgs.ConfigFile, confName)
 	}

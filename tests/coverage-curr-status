@@ -1,5 +1,5 @@
 go test -cover github.com/clearlinux/clr-installer/...
-ok  	github.com/clearlinux/clr-installer/args	0.527s	coverage: 90.9% of statements
+ok  	github.com/clearlinux/clr-installer/args	0.527s	coverage: 91.4% of statements
 ?   	github.com/clearlinux/clr-installer/clr-installer	[no test files]
 ?   	github.com/clearlinux/clr-installer/cmd	[no test files]
 ?   	github.com/clearlinux/clr-installer/conf	[no test files]

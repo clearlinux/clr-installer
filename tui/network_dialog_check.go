@@ -72,9 +72,7 @@ func (dialog *NetworkTestDialog) Step() {
 }
 
 // Desc is part of the progress.Client implementation and sets the progress bar label
-func (dialog *NetworkTestDialog) Desc(printPrefix, desc string) {
-	// Igore the printPrefix which is primarily used to separate mass installer
-	// installation steps.
+func (dialog *NetworkTestDialog) Desc(desc string) {
 	dialog.resultLabel.SetTitle(desc)
 	clui.RefreshScreen()
 }

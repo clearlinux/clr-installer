@@ -66,11 +66,8 @@ func (page *InstallPage) Step() {
 }
 
 // Desc is part of the progress.Client implementation and sets the progress bar label
-func (page *InstallPage) Desc(printPrefix, desc string) {
+func (page *InstallPage) Desc(desc string) {
 	page.prgBar.SetValue(0)
-
-	// Igore the printPrefix which is primarily used to separate mass installer
-	// installation steps.
 	page.prgLabel.SetTitle(desc)
 	clui.RefreshScreen()
 }

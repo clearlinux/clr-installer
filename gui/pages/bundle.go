@@ -13,7 +13,6 @@ import (
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 
-	"github.com/clearlinux/clr-installer/controller"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/swupd"
 	"github.com/clearlinux/clr-installer/utils"
@@ -216,9 +215,8 @@ func (bundle *Bundle) ResetChanges() {
 	// Match selection to what's in the model
 	for n, b := range bundle.bundles {
 		bundle.selections[n].SetActive(bundle.model.ContainsUserBundle(b.Name))
-		bundle.selections[n].SetSensitive(controller.NetworkPassing)
 	}
-	bundle.controller.SetButtonState(ButtonConfirm, controller.NetworkPassing)
+	bundle.controller.SetButtonState(ButtonConfirm, true)
 }
 
 // GetConfiguredValue returns our current config

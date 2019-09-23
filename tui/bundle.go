@@ -7,17 +7,14 @@ package tui
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/VladimirMarkelov/clui"
-	"github.com/clearlinux/clr-installer/controller"
 	"github.com/clearlinux/clr-installer/swupd"
 )
 
 // BundlePage is the Page implementation for the proxy configuration page
 type BundlePage struct {
 	BasePage
-	offlineLabel *clui.Label
 }
 
 // BundleCheck maps a map name and description with the actual checkbox
@@ -43,20 +40,7 @@ func (bp *BundlePage) GetConfiguredValue() string {
 
 // Activate marks the checkbox selections based on the data model
 func (bp *BundlePage) Activate() {
-	bp.GetWindow().SetVisible(true)
 	model := bp.getModel()
-
-	// Network connection is required to add additional bundles
-	if !controller.NetworkPassing {
-		if dialog, err := CreateNetworkTestDialogBox(bp.tui.model); err == nil {
-			if dialog.RunNetworkTest() {
-				// Automatically close if it worked
-				clui.RefreshScreen()
-				time.Sleep(time.Second)
-				dialog.Close()
-			}
-		}
-	}
 
 	for _, curr := range bundles {
 		state := 0
@@ -65,18 +49,8 @@ func (bp *BundlePage) Activate() {
 			state = 1
 		}
 
-		curr.check.SetEnabled(controller.NetworkPassing)
 		curr.check.SetState(state)
 	}
-
-	if controller.NetworkPassing {
-		bp.offlineLabel.SetTitle("")
-	} else {
-		bp.offlineLabel.SetTitle("Network check failed.")
-	}
-
-	bp.confirmBtn.SetEnabled(controller.NetworkPassing)
-	bp.offlineLabel.SetEnabled(!controller.NetworkPassing)
 }
 
 func newBundlePage(tui *Tui) (Page, error) {
@@ -116,8 +90,8 @@ func newBundlePage(tui *Tui) (Page, error) {
 		page.GotoPage(TuiPageMenu)
 	})
 
-	page.confirmBtn = CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Confirm", Fixed)
-	page.confirmBtn.OnClick(func(ev clui.Event) {
+	confirmBtn := CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Confirm", Fixed)
+	confirmBtn.OnClick(func(ev clui.Event) {
 		anySelected := false
 		for _, curr := range bundles {
 			if curr.check.State() == 1 {
@@ -131,11 +105,6 @@ func newBundlePage(tui *Tui) (Page, error) {
 		page.SetDone(anySelected)
 		page.GotoPage(TuiPageMenu)
 	})
-
-	page.offlineLabel = clui.CreateLabel(page.cFrame, 1, 2, "", 1)
-	page.offlineLabel.SetBackColor(errorLabelBg)
-	page.offlineLabel.SetTextColor(errorLabelFg)
-	page.offlineLabel.SetAlign(clui.AlignRight)
 
 	return page, nil
 }

@@ -5,7 +5,6 @@
 package isoutils
 
 import (
-	"bytes"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -113,46 +112,6 @@ func mkRootfs() error {
 	return err
 }
 
-// GetIsoLoopDevice returns the name of the ISO loop device
-func GetIsoLoopDevice() string {
-	w := bytes.NewBuffer(nil)
-	args := []string{
-		"losetup",
-		"-j",
-		"/mnt/media/images/rootfs.img",
-		"-O",
-		"NAME",
-		"-n",
-	}
-	err := cmd.Run(w, args...)
-	if err != nil {
-		return ""
-	}
-	if strings.Compare(w.String(), "") == 0 {
-		return ""
-	}
-
-	return strings.TrimSuffix(w.String(), "\n")
-}
-
-// ExtractSquashfs extracts the src directory from a squashfs to the dest directory
-func ExtractSquashfs(src, dest, loopDev string) error {
-	args := []string{
-		"unsquashfs",
-		"-d",
-		dest,
-		"-f",
-		loopDev,
-		"-e",
-		src,
-	}
-	err := cmd.RunAndLog(args...)
-	if err != nil {
-		return err
-	}
-	return err
-}
-
 func mkInitrd(version string, model *model.SystemInstall, options args.Args) error {
 	msg := "Installing the base system for initrd"
 	var prg progress.Progress
@@ -165,7 +124,7 @@ func mkInitrd(version string, model *model.SystemInstall, options args.Args) err
 	sw := swupd.New(tmpPaths[clrInitrd], options)
 
 	/* Install os-core and os-core-plus (we only need kmod-bin) as initrd */
-	if err := sw.VerifyWithBundles(version, model.SwupdMirror, "ISO Initrd: ", []string{"os-core-plus"}); err != nil {
+	if err := sw.VerifyWithBundles(version, model.SwupdMirror, []string{"os-core-plus"}); err != nil {
 		prg = progress.NewLoop(msg)
 		prg.Failure()
 		return err

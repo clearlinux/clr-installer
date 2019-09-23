@@ -88,12 +88,10 @@ var (
 type SoftwareUpdater struct {
 	rootDir            string
 	stateDir           string
-	stateDirCache      string
 	certPath           string
 	format             string
 	contentURL         string
 	versionURL         string
-	downloadOnly       bool
 	skipDiskSpaceCheck bool
 }
 
@@ -116,7 +114,7 @@ type Message struct {
 }
 
 // Process parses the output received from swup and process it according to its type
-func (m Message) Process(printPrefix, line string) {
+func (m Message) Process(line string) {
 
 	var description string
 	const total = 100
@@ -166,15 +164,15 @@ func (m Message) Process(printPrefix, line string) {
 
 		// create a new instance of the progress bar with the correct description
 		if prgDesc != m.StepDescription {
-			log.Debug("%s: Setting progress for task %s", printPrefix, m.StepDescription)
-			prg = progress.MultiStep(total, printPrefix, description)
+			log.Debug("Setting progress for task %s", m.StepDescription)
+			prg = progress.MultiStep(total, description)
 			prgDesc = m.StepDescription
 		}
 
 		// report current % of completion
 		prg.Partial(m.StepCompletion)
 		if m.StepCompletion == total {
-			log.Debug("%s: Task %s completed", printPrefix, m.StepDescription)
+			log.Debug("Task %s completed", m.StepDescription)
 			prg.Success()
 			prgDesc = ""
 		}
@@ -192,44 +190,21 @@ func IsCoreBundle(bundle string) bool {
 	return false
 }
 
-// IsOfflineContent checks that the offline content dir is valid for swupd to consume
-func IsOfflineContent() bool {
-	info, err := os.Stat(conf.OfflineContentDir)
-	if err != nil {
-		return false
-	}
-
-	// Check required permissions for offline content directory
-	if !info.IsDir() || info.Mode().Perm() != os.FileMode(0700) {
-		return false
-	}
-
-	return true
-}
-
 // New creates a new instance of SoftwareUpdater with the rootDir properly adjusted
 func New(rootDir string, options args.Args) *SoftwareUpdater {
 	stateDir := options.SwupdStateDir
+
 	if stateDir == "" {
 		stateDir = filepath.Join(rootDir, "/var/lib/swupd")
 	}
 
-	stateDirCache := ""
-	if IsOfflineContent() {
-		stateDirCache = conf.OfflineContentDir
-	}
-
-	downloadOnly := false
-
 	return &SoftwareUpdater{
 		rootDir,
 		stateDir,
-		stateDirCache,
 		options.SwupdCertPath,
 		options.SwupdFormat,
 		options.SwupdContentURL,
 		options.SwupdVersionURL,
-		downloadOnly,
 		options.SwupdSkipDiskSpaceCheck,
 	}
 }
@@ -239,16 +214,8 @@ func (s *SoftwareUpdater) setExtraFlags(args []string) []string {
 		args = append(args, fmt.Sprintf("--certpath=%s", s.certPath))
 	}
 
-	if s.downloadOnly != false {
-		args = append(args, fmt.Sprintf("--download"))
-	}
-
 	if s.format != "" {
 		args = append(args, fmt.Sprintf("--format=%s", s.format))
-	}
-
-	if s.stateDirCache != "" {
-		args = append(args, fmt.Sprintf("--statedir-cache=%s", s.stateDirCache))
 	}
 
 	if s.contentURL != "" {
@@ -260,11 +227,6 @@ func (s *SoftwareUpdater) setExtraFlags(args []string) []string {
 	}
 
 	return args
-}
-
-// GetStateDir returns the state directory
-func (s *SoftwareUpdater) GetStateDir() string {
-	return s.stateDir
 }
 
 // Verify runs "swupd verify" operation
@@ -347,7 +309,7 @@ func (s *SoftwareUpdater) Verify(version string, mirror string, verifyOnly bool)
 }
 
 // VerifyWithBundles runs "swupd verify" operation with all bundles
-func (s *SoftwareUpdater) VerifyWithBundles(version, mirror, printPrefix string, bundles []string) error {
+func (s *SoftwareUpdater) VerifyWithBundles(version string, mirror string, bundles []string) error {
 	// the "swupd verify" command is being deprecated, use "swupd os-install" instead
 	args := []string{
 		"swupd",
@@ -392,7 +354,7 @@ func (s *SoftwareUpdater) VerifyWithBundles(version, mirror, printPrefix string,
 	}
 
 	m := Message{}
-	err := cmd.RunAndProcessOutput(printPrefix, m, args...)
+	err := cmd.RunAndProcessOutput(m, args...)
 	if err != nil {
 		err = fmt.Errorf("The swupd command \"%s\" failed with %s", strings.Join(args, " "), err)
 		return errors.Wrap(err)
@@ -414,29 +376,6 @@ func (s *SoftwareUpdater) VerifyWithBundles(version, mirror, printPrefix string,
 	}
 
 	return nil
-}
-
-// DownloadBundles downloads the bundle list to the OfflineContentDir within the installer image
-func (s SoftwareUpdater) DownloadBundles(version, mirror, printPrefix string, bundles []string) error {
-	var err error
-
-	s.downloadOnly = true
-
-	// The statedir-cache is set to the statedir that was used to install bundles to the
-	// installer image which reduces the number of bundle downloads. The statedir specifies the
-	// location to download offline content which is set ot the offline content directory within
-	// the installer image.
-	s.stateDirCache = s.stateDir
-	s.stateDir = filepath.Join(s.rootDir, conf.OfflineContentDir)
-
-	// Set swupd's --path argument to an empty directory so that all listed bundles will be
-	// downloaded (Swupd skips over previously installed bundles)
-	if s.rootDir, err = ioutil.TempDir("", "installerTmp-"); err != nil {
-		return err
-	}
-	defer func() { _ = os.RemoveAll(s.rootDir) }()
-
-	return s.VerifyWithBundles(version, mirror, printPrefix, bundles)
 }
 
 // DisableUpdate executes the "systemctl" to disable auto update operation

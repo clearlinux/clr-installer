@@ -26,7 +26,6 @@ targetMedia:
     type: part
 
 bundles: [os-core, os-core-update, clr-installer]
-offline: true
 autoUpdate: false
 postArchive: false
 postReboot: false

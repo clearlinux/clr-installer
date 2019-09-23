@@ -29,12 +29,7 @@ type Arguments struct {
 
 // LoadKernelList loads the kernel definitions
 func LoadKernelList() ([]*Kernel, error) {
-	return LoadKernelListChroot("")
-}
-
-// LoadKernelListChroot loads the kernel definitions within the specified chroot
-func LoadKernelListChroot(pathPrefix string) ([]*Kernel, error) {
-	path, err := conf.LookupDefaultChrootKernels(pathPrefix)
+	path, err := conf.LookupKernelListFile()
 	if err != nil {
 		return nil, err
 	}

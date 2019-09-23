@@ -83,6 +83,9 @@ const (
 	// PageIDWelcome is the language page key
 	PageIDWelcome = iota
 
+	// PageIDPreCheck is the pre-check page key
+	PageIDPreCheck = iota
+
 	// PageIDTimezone is the timezone page key
 	PageIDTimezone = iota
 
@@ -91,9 +94,6 @@ const (
 
 	// PageIDBundle is the bundle page key
 	PageIDBundle = iota
-
-	// PageIDNetwork is the network check page key
-	PageIDNetwork = iota
 
 	// PageIDTelemetry is the telemetry page key
 	PageIDTelemetry = iota
