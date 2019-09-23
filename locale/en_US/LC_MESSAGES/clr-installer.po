@@ -166,9 +166,6 @@ msgstr "Erase Disk"
 msgid "Advanced"
 msgstr "Advanced"
 
-msgid "Labeled"
-msgstr "Labeled"
-
 msgid "No media found for installation"
 msgstr "No media found for installation"
 
@@ -332,14 +329,18 @@ msgstr "Erase all data on selected media and install Clear Linux* OS."
 msgid "Advanced Installation"
 msgstr "Advanced Installation"
 
-msgid "Use partitioning tool to configure and select media via partition labels."
-msgstr "Use partitioning tool to configure and select media via partition labels."
+msgid "Use partitioning tool to configure and select media via partition names."
+msgstr "Use partitioning tool to configure and select media via partition names."
+
+#, c-format
+msgid "Minimum requirements: %s"
+msgstr "Minimum requirements: %s"
 
 msgid "PARTITION MEDIA"
 msgstr "PARTITION MEDIA"
 
-msgid "Launch the external partitioning tool to label the partitions to be used for the installation."
-msgstr "Launch the external partitioning tool to label the partitions to be used for the installation."
+msgid "Launch the external partitioning tool to name the partitions to be used for the installation."
+msgstr "Launch the external partitioning tool to name the partitions to be used for the installation."
 
 #, c-format
 msgid "Could not launch %s. Check log %s"
@@ -350,20 +351,20 @@ msgid "%s must be %s"
 msgstr "%s must be %s"
 
 #, c-format
-msgid "Found multiple %s partition labels"
-msgstr "Found multiple %s partition labels"
+msgid "Found multiple %s partition names"
+msgstr "Found multiple %s partition names"
 
 #, c-format
-msgid "Found invalid %s partition label"
-msgstr "Found invalid %s partition label"
+msgid "Found invalid %s partition name"
+msgstr "Found invalid %s partition name"
 
 #, c-format
 msgid "Encryption of %s is not supported"
 msgstr "Encryption of %s is not supported"
 
 #, c-format
-msgid "Missing %s partition label"
-msgstr "Missing %s partition label"
+msgid "Missing %s partition name"
+msgstr "Missing %s partition name"
 
 msgid "CHANGE LANGUAGE"
 msgstr "CHANGE LANGUAGE"

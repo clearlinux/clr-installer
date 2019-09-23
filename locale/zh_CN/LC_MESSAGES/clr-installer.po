@@ -166,9 +166,6 @@ msgstr "擦除磁盘"
 msgid "Advanced"
 msgstr "高级"
 
-msgid "Labeled"
-msgstr "标记"
-
 msgid "No media found for installation"
 msgstr "未找到安装媒介"
 
@@ -332,14 +329,18 @@ msgstr "擦除选定媒介上的所有数据，然后安装 Clear Linux* OS。"
 msgid "Advanced Installation"
 msgstr "高级安装"
 
-msgid "Use partitioning tool to configure and select media via partition labels."
-msgstr "使用分区工具通过分区标签配置和选择媒体。"
+msgid "Use partitioning tool to configure and select media via partition names."
+msgstr "使用分区工具通过分区名称配置和选择媒体。"
+
+#, c-format
+msgid "Minimum requirements: %s"
+msgstr "最低要求：%s"
 
 msgid "PARTITION MEDIA"
 msgstr "分区媒体"
 
-msgid "Launch the external partitioning tool to label the partitions to be used for the installation."
-msgstr "启动外部分区工具以标记要用于安装的分区。"
+msgid "Launch the external partitioning tool to name the partitions to be used for the installation."
+msgstr "启动外部分区工具以命名要用于安装的分区。"
 
 #, c-format
 msgid "Could not launch %s. Check log %s"
@@ -350,20 +351,20 @@ msgid "%s must be %s"
 msgstr "%s 必须为 %s"
 
 #, c-format
-msgid "Found multiple %s partition labels"
-msgstr "找到多个 %s 分区标签"
+msgid "Found multiple %s partition names"
+msgstr "找到多个 %s 分区名称"
 
 #, c-format
-msgid "Found invalid %s partition label"
-msgstr "发现无效的 %s 分区标签"
+msgid "Found invalid %s partition name"
+msgstr "找到无效的 %s 分区名称"
 
 #, c-format
 msgid "Encryption of %s is not supported"
 msgstr "不支持 %s 加密"
 
 #, c-format
-msgid "Missing %s partition label"
-msgstr "缺少 %s 分区标签"
+msgid "Missing %s partition name"
+msgstr "缺少 %s 分区名称"
 
 msgid "CHANGE LANGUAGE"
 msgstr "更改语言"
