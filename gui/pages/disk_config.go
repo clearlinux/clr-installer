@@ -934,6 +934,7 @@ func (disk *DiskConfig) GetTitle() string {
 // StoreChanges will store this pages changes into the model
 func (disk *DiskConfig) StoreChanges() {
 	var installBlockDevice *storage.BlockDevice
+	disk.saveMedias = nil
 
 	if disk.safeButton.GetActive() {
 		disk.model.ClearInstallSelected()
