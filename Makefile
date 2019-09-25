@@ -12,6 +12,15 @@ cov_dir = $(top_srcdir)/.coverage
 
 nproc = $(shell nproc)
 orig_go_path = $(shell go env GOPATH)
+
+# The -Wno-deprecated-declarations option is required to suppress deprecation
+# warnings in the gotk3 package. https://github.com/gotk3/gotk3/issues/420
+ifneq ($(CGO_CFLAGS),)
+export CGO_CFLAGS += -Wno-deprecated-declarations
+else
+export CGO_CFLAGS = $(shell go env CGO_CFLAGS) -Wno-deprecated-declarations
+endif
+
 export GOPATH=$(pkg_dir)
 export GO_PACKAGE_PREFIX := github.com/clearlinux/clr-installer
 export TESTS_DIR := $(top_srcdir)/tests/
