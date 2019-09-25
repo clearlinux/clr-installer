@@ -193,11 +193,15 @@ bundle-check:
 
 PHONY += coverage
 coverage: build
+	@# Test for coverage and race conditions
 	@rm -rf ${cov_dir}; \
 	mkdir -p ${cov_dir}; \
 	for pkg in $$(go list $$GO_PACKAGE_PREFIX/...); do \
 		file="${cov_dir}/$$(echo $$pkg | tr / -).cover"; \
-		go test -covermode="count" -coverprofile="$$file" "$$pkg"; \
+		go test -race -covermode="atomic" -coverprofile="$$file" "$$pkg"; \
+		if [ "$$?" -ne 0 ]; then \
+			exit 1; \
+		fi \
 	done; \
 	echo "mode: count" > ${cov_dir}/cover.out; \
 	grep -h -v "^mode:" ${cov_dir}/*.cover >>"${cov_dir}/cover.out"; \
@@ -246,7 +250,6 @@ PHONY += lint-core
 lint-core: build install-linters gopath
 	@rm -rf ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor
 	@cp -af vendor/* ${LOCAL_GOPATH}/src/
-	@go build -race github.com/clearlinux/clr-installer/...
 	@echo "Running linters"
 
 PHONY += lint-travis-checkers
