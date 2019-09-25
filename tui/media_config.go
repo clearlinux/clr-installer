@@ -507,9 +507,6 @@ func newMediaConfigPage(tui *Tui) (Page, error) {
 				dialog.OnClose(func() {
 					if !dialog.Confirmed {
 						page.encryptCheck.SetState(0)
-					} else {
-						// Redraw the screen to update the advanced message
-						page.advancedRadioOnChange(true)
 					}
 				})
 			}
