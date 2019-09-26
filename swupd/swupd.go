@@ -539,6 +539,9 @@ func setMirror(swupdArgs []string, t string) (string, error) {
 // SetHostMirror executes the "swupd mirror" to set the Host's mirror
 func SetHostMirror(url string, allowInsecureHTTP bool) (string, error) {
 	if urlErr := network.CheckURL(url); urlErr != nil {
+		if strings.Contains(urlErr.Error(), "60") {
+			return "", fmt.Errorf(utils.Locale.Get("SSL certificate problem"))
+		}
 		return "", fmt.Errorf(utils.Locale.Get("Server not responding"))
 	}
 
