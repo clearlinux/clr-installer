@@ -42,11 +42,6 @@ var (
 	lock          lockfile.Lockfile
 )
 
-func fatal(err error) {
-	log.ErrorError(err)
-	panic(err)
-}
-
 func validateTelemetry(options args.Args, md *model.SystemInstall) error {
 	if options.TelemetryPolicy != "" {
 		md.TelemetryPolicy = options.TelemetryPolicy
@@ -101,8 +96,32 @@ func main() {
 	var options args.Args
 
 	if err := options.ParseArgs(); err != nil {
-		fatal(err)
+		os.Exit(1)
 	}
+
+	// Configure logger
+	f, err := log.SetOutputFilename(options.LogFile)
+	if err != nil {
+		os.Exit(1)
+	}
+	log.SetLogLevel(options.LogLevel)
+
+	// Begin installer execution
+	if err := execute(options); err != nil {
+		// Print and log errors with stack traces. To include stack traces, the
+		// errors must be created with errors.Errorf or wrapped with errors.Wrap
+		fmt.Println(err.Error())
+		log.Error("%s", err)
+		_ = f.Close()
+
+		os.Exit(1)
+	}
+	_ = f.Close()
+}
+
+// execute is called by main to begin execution of the installer
+func execute(options args.Args) error {
+	var err error
 
 	if options.DemoMode {
 		model.Version = model.DemoVersion
@@ -110,48 +129,38 @@ func main() {
 	// Make the Version of the program visible to telemetry
 	telemetry.ProgVersion = model.Version
 
-	f, err := log.SetOutputFilename(options.LogFile)
-	if err != nil {
-		fatal(err)
-	}
-	defer func() {
-		_ = f.Close()
-	}()
-
-	log.SetLogLevel(options.LogLevel)
-
 	log.Info(path.Base(os.Args[0]) + ": " + model.Version +
 		", built on " + model.BuildDate)
 
 	if options.SwupdContentURL != "" && swupd.IsValidMirror(options.SwupdContentURL) == false {
-		fatal(errors.Errorf("swupd-contenturl %s must use HTTPS or FILE protocol", options.SwupdContentURL))
+		return errors.Errorf("swupd-contenturl %s must use HTTPS or FILE protocol", options.SwupdContentURL)
 	}
 
 	if options.PamSalt != "" {
 		hashed, errHash := encrypt.Crypt(options.PamSalt)
 		if errHash != nil {
-			panic(errHash)
+			return errHash
 		}
 
 		fmt.Println(hashed)
-		return
+		return nil
 	}
 
 	if options.Version {
 		fmt.Println(path.Base(os.Args[0]) + ": " + model.Version)
-		return
+		return nil
 	}
 
 	if options.ConvertConfigFile != "" {
 		if filepath.Ext(options.ConvertConfigFile) == ".json" {
-			_, err = model.JSONtoYAMLConfig(options.ConvertConfigFile)
+			_, err := model.JSONtoYAMLConfig(options.ConvertConfigFile)
 			if err != nil {
-				fatal(err)
+				return err
 			}
 		} else {
-			fatal(errors.Errorf("Config file '%s' must end in '.json'", options.ConvertConfigFile))
+			return errors.Errorf("Config file '%s' must end in '.json'", options.ConvertConfigFile)
 		}
-		return
+		return nil
 	}
 
 	// First verify we are running as 'root' user which is required
@@ -159,7 +168,7 @@ func main() {
 	if errString := utils.VerifyRootUser(); errString != "" {
 		fmt.Println(errString)
 		log.Error("Not running as root: %v", errString)
-		return
+		return nil
 	}
 
 	// Check for exclusive option
@@ -167,7 +176,7 @@ func main() {
 		exclusive := "Options --tui and --gui are mutually exclusive."
 		fmt.Println(exclusive)
 		log.Error("Command Line Error: %s", exclusive)
-		return
+		return nil
 	}
 
 	if (options.ForceTUI || options.ForceGUI) &&
@@ -175,20 +184,20 @@ func main() {
 		exclusive := "Option --iso not compatible with --tui or --gui."
 		fmt.Println(exclusive)
 		log.Error("Command Line Error: %s", exclusive)
-		return
+		return nil
 	}
 
 	lockFile = strings.TrimSuffix(options.LogFile, ".log") + ".lock"
 	lock, err = lockfile.New(lockFile)
 	if err != nil {
 		fmt.Printf("Cannot initialize lock. reason: %v\n", err)
-		fatal(err)
+		return err
 	}
 
 	err = lock.TryLock()
 	if err != nil {
 		fmt.Printf("Cannot lock %q, reason: %v\n", lock, err)
-		fatal(err)
+		return err
 	}
 
 	defer func() { _ = lock.Unlock() }()
@@ -205,7 +214,7 @@ func main() {
 
 	rootDir, err := ioutil.TempDir("", "install-")
 	if err != nil {
-		fatal(err)
+		return err
 	}
 	defer func() { _ = os.RemoveAll(rootDir) }()
 
@@ -214,7 +223,7 @@ func main() {
 
 	if options.ConfigFile == "" {
 		if cf, err = conf.LookupDefaultConfig(); err != nil {
-			fatal(err)
+			return err
 		}
 	}
 	if options.CfDownloaded {
@@ -224,13 +233,13 @@ func main() {
 	if filepath.Ext(cf) == ".json" {
 		cf, err = model.JSONtoYAMLConfig(cf)
 		if err != nil {
-			fatal(err)
+			return err
 		}
 	}
 
 	log.Debug("Loading config file: %s", cf)
 	if md, err = model.LoadFile(cf, options); err != nil {
-		fatal(err)
+		return err
 	}
 	md.ClearInstallSelected()
 
@@ -241,7 +250,7 @@ func main() {
 
 	log.Info("Querying Clear Linux version")
 	if err := utils.ParseOSClearVersion(); err != nil {
-		fatal(err)
+		return err
 	}
 
 	if options.CryptPassFile != "" {
@@ -298,27 +307,26 @@ func main() {
 			var url string
 			url, err = swupd.SetHostMirror(md.SwupdMirror)
 			if err != nil {
-				fatal(err)
-			} else {
-				log.Info("Using Swupd Mirror value: %q", url)
+				return err
 			}
+			log.Info("Using Swupd Mirror value: %q", url)
 		}
 
 		if err = validateTelemetry(options, md); err != nil {
-			fatal(err)
+			return err
 		}
 	}
 
 	if md.Keyboard != nil && !keyboard.IsValidKeyboard(md.Keyboard) {
-		fatal(fmt.Errorf("Invalid Keyboard '%s'", md.Keyboard.Code))
+		return fmt.Errorf("Invalid Keyboard '%s'", md.Keyboard.Code)
 	}
 
 	if md.Timezone != nil && !timezone.IsValidTimezone(md.Timezone) {
-		fatal(fmt.Errorf("Invalid Time Zone '%s'", md.Timezone.Code))
+		return fmt.Errorf("Invalid Time Zone '%s'", md.Timezone.Code)
 	}
 
 	if md.Language != nil && !language.IsValidLanguage(md.Language) {
-		fatal(fmt.Errorf("Invalid Language '%s'", md.Language.Code))
+		return fmt.Errorf("Invalid Language '%s'", md.Language.Code)
 	}
 
 	// Set locale
@@ -326,12 +334,7 @@ func main() {
 
 	// Run system check and exit
 	if options.SystemCheck {
-		err = syscheck.RunSystemCheck(false)
-		if err != nil {
-			fatal(err)
-		} else {
-			return
-		}
+		return syscheck.RunSystemCheck(false)
 	}
 
 	installReboot := false
@@ -380,7 +383,7 @@ func main() {
 	case <-done:
 		break
 	case err = <-errChan:
-		fatal(err)
+		return err
 	}
 
 	// Stop the signal handlers
@@ -392,8 +395,9 @@ func main() {
 			if errLog := md.Telemetry.LogRecord("reboot", 1, err.Error()); errLog != nil {
 				log.Error("Failed to log Telemetry fail record: reboot")
 			}
-			fatal(err)
+			return err
 		}
 		log.RequestCrashInfo()
 	}
+	return nil
 }
