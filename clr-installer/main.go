@@ -129,7 +129,7 @@ func main() {
 
 	if options.PamSalt != "" {
 		hashed, errHash := encrypt.Crypt(options.PamSalt)
-		if err != nil {
+		if errHash != nil {
 			panic(errHash)
 		}
 
