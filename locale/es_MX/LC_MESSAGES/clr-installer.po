@@ -737,6 +737,9 @@ msgstr "Conjunto de espejos personalizado."
 msgid "Server not responding"
 msgstr "Servidor que no responde"
 
+msgid "SSL certificate problem"
+msgstr "Problema de certificado SSL"
+
 msgid "Server does not report any version"
 msgstr "El servidor no informa de ninguna versión"
 

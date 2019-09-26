@@ -737,6 +737,9 @@ msgstr "自定义镜像集。"
 msgid "Server not responding"
 msgstr "服务器未响应"
 
+msgid "SSL certificate problem"
+msgstr "SSL 证书问题"
+
 msgid "Server does not report any version"
 msgstr "服务器不报告任何版本"
 

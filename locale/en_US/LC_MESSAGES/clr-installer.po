@@ -737,6 +737,9 @@ msgstr "Custom mirror set."
 msgid "Server not responding"
 msgstr "Server not responding"
 
+msgid "SSL certificate problem"
+msgstr "SSL certificate problem"
+
 msgid "Server does not report any version"
 msgstr "Server does not report any version"
 
