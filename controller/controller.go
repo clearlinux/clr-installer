@@ -932,11 +932,12 @@ func writeCustomConfig(chrootPath string, md *model.SystemInstall) error {
 
 	// Create basic config based on provided values
 	customModel := &model.SystemInstall{
-		Bundles:  md.TargetBundles,
-		Keyboard: md.Keyboard,
-		Language: md.Language,
-		Timezone: md.Timezone,
-		Kernel:   md.Kernel,
+		Bundles:    md.TargetBundles,
+		Keyboard:   md.Keyboard,
+		Language:   md.Language,
+		Timezone:   md.Timezone,
+		Kernel:     md.Kernel,
+		AutoUpdate: true, // We should always default to enabled
 	}
 
 	return customModel.WriteFile(path.Join(customPath, conf.ConfigFile))
