@@ -393,6 +393,12 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		}
 	}
 
+	swupd.CopyConfigurations(rootDir)
+
+	if model.AllowInsecureHTTP {
+		swupd.CreateConfig(rootDir)
+	}
+
 	if model.Telemetry.URL != "" {
 		if err = model.Telemetry.CreateTelemetryConf(rootDir); err != nil {
 			return err
@@ -471,7 +477,7 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 
 	var prg progress.Progress
 
-	sw := swupd.New(rootDir, options)
+	sw := swupd.New(rootDir, options, md.AllowInsecureHTTP)
 
 	bundles := md.Bundles
 

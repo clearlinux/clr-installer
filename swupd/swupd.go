@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -36,6 +36,9 @@ const (
 	// MirrorDesc2 specifies line 2 of swupd mirror desc
 	MirrorDesc2 = "HTTPS sites must use a publicly signed CA."
 
+	// MirrorAllowInsecure specifies allow test regarding enable insecure installs
+	MirrorAllowInsecure = "Allow installation over insecure connections (http://)"
+
 	// AutoUpdateTitle specifies title of auto updates
 	AutoUpdateTitle = "Automatic OS Updates"
 
@@ -71,6 +74,8 @@ const (
 
 	// IncorrectMirror specifies incorrect mirror error message
 	IncorrectMirror = "Mirror not set correctly"
+
+	swupdConfigOverrideDir = "/etc/swupd"
 )
 
 var (
@@ -95,6 +100,7 @@ type SoftwareUpdater struct {
 	versionURL         string
 	downloadOnly       bool
 	skipDiskSpaceCheck bool
+	allowInsecureHTTP  bool
 }
 
 // Bundle maps a map name and description with the actual checkbox
@@ -208,7 +214,7 @@ func IsOfflineContent() bool {
 }
 
 // New creates a new instance of SoftwareUpdater with the rootDir properly adjusted
-func New(rootDir string, options args.Args) *SoftwareUpdater {
+func New(rootDir string, options args.Args, allowInsecureHTTP bool) *SoftwareUpdater {
 	stateDir := options.SwupdStateDir
 	if stateDir == "" {
 		stateDir = filepath.Join(rootDir, "/var/lib/swupd")
@@ -231,10 +237,15 @@ func New(rootDir string, options args.Args) *SoftwareUpdater {
 		options.SwupdVersionURL,
 		downloadOnly,
 		options.SwupdSkipDiskSpaceCheck,
+		allowInsecureHTTP,
 	}
 }
 
 func (s *SoftwareUpdater) setExtraFlags(args []string) []string {
+	if s.allowInsecureHTTP {
+		args = append(args, "--allow-insecure-http")
+	}
+
 	if s.certPath != "" {
 		args = append(args, fmt.Sprintf("--certpath=%s", s.certPath))
 	}
@@ -302,6 +313,10 @@ func (s *SoftwareUpdater) Verify(version string, mirror string, verifyOnly bool)
 			fmt.Sprintf("--path=%s", s.rootDir),
 			"--set",
 			mirror,
+		}
+
+		if s.allowInsecureHTTP {
+			args = append(args, "--allow-insecure-http")
 		}
 
 		err = cmd.RunAndLog(args...)
@@ -405,6 +420,10 @@ func (s *SoftwareUpdater) VerifyWithBundles(version, mirror, printPrefix string,
 			fmt.Sprintf("--path=%s", s.rootDir),
 			"--set",
 			mirror,
+		}
+
+		if s.allowInsecureHTTP {
+			args = append(args, "--allow-insecure-http")
 		}
 
 		err = cmd.RunAndLog(args...)
@@ -518,8 +537,7 @@ func setMirror(swupdArgs []string, t string) (string, error) {
 }
 
 // SetHostMirror executes the "swupd mirror" to set the Host's mirror
-func SetHostMirror(url string) (string, error) {
-
+func SetHostMirror(url string, allowInsecureHTTP bool) (string, error) {
 	if urlErr := network.CheckURL(url); urlErr != nil {
 		return "", fmt.Errorf(utils.Locale.Get("Server not responding"))
 	}
@@ -531,9 +549,13 @@ func SetHostMirror(url string) (string, error) {
 		url,
 	}
 
+	if allowInsecureHTTP {
+		args = append(args, "--allow-insecure-http")
+	}
+
 	url, err := setMirror(args, "Host")
 	if err == nil {
-		if err = checkHostSwupd(); err != nil {
+		if err = checkHostSwupd(allowInsecureHTTP); err != nil {
 			url = ""
 			_, _ = UnSetHostMirror()
 		}
@@ -552,6 +574,10 @@ func (s *SoftwareUpdater) SetTargetMirror(url string) (string, error) {
 		fmt.Sprintf("--path=%s", s.rootDir),
 		"--set",
 		url,
+	}
+
+	if s.allowInsecureHTTP {
+		args = append(args, "--allow-insecure-http")
 	}
 
 	return setMirror(args, "Target")
@@ -588,19 +614,28 @@ func UnSetHostMirror() (string, error) {
 }
 
 // IsValidMirror checks for valid URIs that use the HTTPS or FILE protocol
-func IsValidMirror(mirror string) bool {
+func IsValidMirror(mirror string, allowInsecureHTTP bool) bool {
 	_, err := url.ParseRequestURI(mirror)
 	if err != nil {
 		return false
 	}
 
 	httpsPrefix := strings.HasPrefix(strings.ToLower(mirror), "https:")
-	filePrefix := strings.HasPrefix(strings.ToLower(mirror), "file:")
-	if httpsPrefix != true && filePrefix != true {
-		return false
+	if httpsPrefix {
+		return true
 	}
 
-	return true
+	filePrefix := strings.HasPrefix(strings.ToLower(mirror), "file:")
+	if filePrefix {
+		return true
+	}
+
+	httpPrefix := strings.HasPrefix(strings.ToLower(mirror), "http:")
+	if httpPrefix && allowInsecureHTTP {
+		return true
+	}
+
+	return false
 }
 
 // checkSwupd executes the "swupd check-update" to verify connectivity
@@ -625,13 +660,17 @@ func checkSwupd(swupdArgs []string, t string) error {
 }
 
 // checkHostSwupd executes the "swupd check-update" to verify the Host's mirror
-func checkHostSwupd() error {
+func checkHostSwupd(allowInsecureHTTP bool) error {
 	args := []string{
 		"timeout",
 		"--kill-after=5",
 		"5",
 		"swupd",
 		"check-update",
+	}
+
+	if allowInsecureHTTP {
+		args = append(args, "--allow-insecure-http")
 	}
 
 	return checkSwupd(args, "Host")
@@ -692,4 +731,47 @@ func (s *SoftwareUpdater) CleanUpState() error {
 	}
 
 	return nil
+}
+
+// CreateConfig create swupd config file in the targets /etc directory
+// to allow http for URLs
+func CreateConfig(rootDir string) {
+	configFile := filepath.Join(rootDir, swupdConfigOverrideDir, "config")
+
+	log.Debug("Creating/Appending to swupd override file %q on install to target", configFile)
+
+	swupdFh, err := os.OpenFile(configFile,
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Warning("Error opening swupd config %q: %v", configFile, err)
+	}
+	defer func() { _ = swupdFh.Close() }()
+
+	allowText := "\n" + "[GLOBAL]\n" +
+		"# Allow updates over insecure connections\n" +
+		"allow_insecure_http=true\n"
+
+	if _, err := swupdFh.WriteString(allowText); err != nil {
+		log.Warning("Error writing to swupd config %q: %v", configFile, err)
+	}
+}
+
+// CopyConfigurations transfer the swupd override files to the target installation media
+func CopyConfigurations(rootDir string) {
+	log.Debug("Checking swupd override files in %q to install to target", swupdConfigOverrideDir)
+	if _, err := os.Stat(swupdConfigOverrideDir); err != nil {
+		if os.IsNotExist(err) {
+			log.Debug("No swupd override files in %q to install to target",
+				swupdConfigOverrideDir)
+			return
+		}
+		return
+	}
+
+	if err := utils.CopyAllFiles(swupdConfigOverrideDir, rootDir); err != nil {
+		log.Warning("Failed to copy swupd override configuration data to %s", swupdConfigOverrideDir)
+	} else {
+		log.Info("Copied swupd override configuration data to %s",
+			filepath.Join(rootDir, swupdConfigOverrideDir))
+	}
 }

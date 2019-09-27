@@ -5,6 +5,8 @@
 package tui
 
 import (
+	"strings"
+
 	"github.com/VladimirMarkelov/clui"
 
 	"github.com/clearlinux/clr-installer/swupd"
@@ -15,6 +17,7 @@ type SwupdMirrorPage struct {
 	BasePage
 	swupdMirrorEdit    *clui.EditField
 	swupdMirrorWarning *clui.Label
+	insecureCheck      *clui.CheckBox
 	confirmBtn         *SimpleButton
 	cancelBtn          *SimpleButton
 	userDefined        bool
@@ -59,6 +62,18 @@ func (page *SwupdMirrorPage) setConfirmButton() {
 	}
 }
 
+func (page *SwupdMirrorPage) validateMirror() {
+	warning := ""
+	userURL := page.swupdMirrorEdit.Title()
+
+	if userURL != "" && swupd.IsValidMirror(userURL, page.getModel().AllowInsecureHTTP) == false {
+		warning = swupd.InvalidURL
+	}
+
+	page.swupdMirrorWarning.SetTitle(warning)
+	page.setConfirmButton()
+}
+
 func newSwupdMirrorPage(tui *Tui) (Page, error) {
 	page := &SwupdMirrorPage{}
 	page.setupMenu(tui, TuiPageSwupdMirror, "Swupd Mirror", NoButtons, TuiPageMenu)
@@ -67,13 +82,13 @@ func newSwupdMirrorPage(tui *Tui) (Page, error) {
 	frm := clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
 	frm.SetPack(clui.Horizontal)
 
-	lblFrm := clui.CreateFrame(frm, 20, AutoSize, BorderNone, Fixed)
+	lblFrm := clui.CreateFrame(frm, 10, AutoSize, BorderNone, Fixed)
 	lblFrm.SetPack(clui.Vertical)
-	lblFrm.SetPaddings(1, 0)
+	lblFrm.SetPaddings(2, 0)
 	title := swupd.MirrorTitle + ":"
 	newFieldLabel(lblFrm, title)
 
-	fldFrm := clui.CreateFrame(frm, 30, AutoSize, BorderNone, Fixed)
+	fldFrm := clui.CreateFrame(frm, 60, AutoSize, BorderNone, Fixed)
 	fldFrm.SetPack(clui.Vertical)
 
 	iframe := clui.CreateFrame(fldFrm, 5, 2, BorderNone, Fixed)
@@ -81,35 +96,43 @@ func newSwupdMirrorPage(tui *Tui) (Page, error) {
 
 	page.swupdMirrorEdit = clui.CreateEditField(iframe, 1, "", Fixed)
 	page.swupdMirrorEdit.OnChange(func(ev clui.Event) {
-		warning := ""
-		userURL := page.swupdMirrorEdit.Title()
-
-		if userURL != "" && swupd.IsValidMirror(userURL) == false {
-			warning = swupd.InvalidURL
-		}
-
-		page.swupdMirrorWarning.SetTitle(warning)
-		page.setConfirmButton()
+		page.validateMirror()
 	})
 
 	page.swupdMirrorWarning = clui.CreateLabel(iframe, 1, 1, "", Fixed)
 	page.swupdMirrorWarning.SetMultiline(true)
 	page.swupdMirrorWarning.SetBackColor(errorLabelBg)
 	page.swupdMirrorWarning.SetTextColor(errorLabelFg)
-	lbl := clui.CreateLabel(iframe, 2, 11, swupd.MirrorDesc2, Fixed)
+
+	lbl := clui.CreateLabel(fldFrm, 2, AutoSize, swupd.MirrorDesc2, AutoSize)
 	lbl.SetMultiline(true)
 
-	btnFrm := clui.CreateFrame(fldFrm, 50, 1, BorderNone, Fixed)
-	btnFrm.SetPack(clui.Horizontal)
-	btnFrm.SetGaps(1, 1)
-	btnFrm.SetPaddings(2, 0)
+	checkFrame := clui.CreateFrame(page.content, AutoSize, AutoSize, BorderNone, Fixed)
+	checkFrame.SetPack(clui.Vertical)
+	checkFrame.SetPaddings(2, 1)
 
-	page.cancelBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Cancel", Fixed)
+	// Insecure Checkbox
+	page.insecureCheck = clui.CreateCheckBox(checkFrame, AutoSize, swupd.MirrorAllowInsecure, AutoSize)
+	if page.getModel().AllowInsecureHTTP {
+		page.insecureCheck.SetState(1)
+	}
+
+	page.insecureCheck.OnChange(func(state int) {
+		if state == 0 {
+			page.getModel().AllowInsecureHTTP = false
+		} else {
+			page.getModel().AllowInsecureHTTP = true
+		}
+
+		page.validateMirror()
+	})
+
+	page.cancelBtn = CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Cancel", Fixed)
 	page.cancelBtn.OnClick(func(ev clui.Event) {
 		page.GotoPage(TuiPageMenu)
 	})
 
-	page.confirmBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Confirm", Fixed)
+	page.confirmBtn = CreateSimpleButton(page.cFrame, AutoSize, AutoSize, "Confirm", Fixed)
 	page.confirmBtn.OnClick(func(ev clui.Event) {
 		page.confirmBtn.SetEnabled(false)
 		mirror := page.swupdMirrorEdit.Title()
@@ -122,15 +145,15 @@ func newSwupdMirrorPage(tui *Tui) (Page, error) {
 			page.GotoPage(TuiPageMenu)
 			page.userDefined = false
 		} else {
-			url, err := swupd.SetHostMirror(mirror)
+			url, err := swupd.SetHostMirror(mirror, page.getModel().AllowInsecureHTTP)
 			if err != nil {
 				page.swupdMirrorWarning.SetTitle(err.Error())
 			} else {
-				if url != mirror {
+				if url != strings.TrimRight(mirror, "/ ") {
 					page.swupdMirrorWarning.SetTitle(swupd.IncorrectMirror + ": " + url)
 				} else {
 					page.userDefined = true
-					page.getModel().SwupdMirror = mirror
+					page.getModel().SwupdMirror = url
 					page.SetDone(true)
 					page.GotoPage(TuiPageMenu)
 				}

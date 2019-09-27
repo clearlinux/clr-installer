@@ -771,3 +771,6 @@ msgstr "使用现有分区。"
 
 msgid "Encrypted"
 msgstr "加密"
+
+msgid "Allow installation over insecure connections (http://)"
+msgstr "允许在不安全的连接（http://）上安装"
