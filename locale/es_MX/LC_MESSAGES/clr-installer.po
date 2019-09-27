@@ -771,3 +771,6 @@ msgstr "Utilice la partición existente."
 
 msgid "Encrypted"
 msgstr "Encriptado"
+
+msgid "Allow installation over insecure connections (http://)"
+msgstr "Permitir la instalación a través de conexiones inseguras (http://)"

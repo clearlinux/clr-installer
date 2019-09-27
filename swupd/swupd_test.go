@@ -37,7 +37,7 @@ func TestBadSetHostMirror(t *testing.T) {
 	}
 
 	mirror := "http://www.google.com"
-	if _, err := SetHostMirror(mirror); err == nil {
+	if _, err := SetHostMirror(mirror, false); err == nil {
 		t.Fatalf("Setting Bad Host Mirror failed: %s", err)
 	}
 }
@@ -52,7 +52,7 @@ func TestGoodSetHostMirror(t *testing.T) {
 
 	mirror := "https://download.clearlinux.org/update/"
 	//mirror := "http://linux-ftp.jf.intel.com/pub/mirrors/clearlinux/update/"
-	if _, err := SetHostMirror(mirror); err != nil {
+	if _, err := SetHostMirror(mirror, false); err != nil {
 		t.Fatalf("Setting Good Host Mirror failed: %s", err)
 	}
 
@@ -96,13 +96,13 @@ func TestNewWithState(t *testing.T) {
 		SwupdStateDir: "/tmp/swupd-state",
 	}
 
-	sw := New("/tmp/test", options)
+	sw := New("/tmp/test", options, false)
 
 	if sw.stateDir != "/tmp/swupd-state" {
 		t.Fatalf("stateDir should be set to /tmp/swupd-state")
 	}
 
-	sw = New("/tmp/test", args.Args{})
+	sw = New("/tmp/test", args.Args{}, false)
 	if sw.stateDir != "/tmp/test/var/lib/swupd" {
 		t.Fatalf("stateDir should not be set to: %s", sw.stateDir)
 	}

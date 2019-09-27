@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -131,10 +131,6 @@ func execute(options args.Args) error {
 
 	log.Info(path.Base(os.Args[0]) + ": " + model.Version +
 		", built on " + model.BuildDate)
-
-	if options.SwupdContentURL != "" && swupd.IsValidMirror(options.SwupdContentURL) == false {
-		return errors.Errorf("swupd-contenturl %s must use HTTPS or FILE protocol", options.SwupdContentURL)
-	}
 
 	if options.PamSalt != "" {
 		hashed, errHash := encrypt.Crypt(options.PamSalt)
@@ -279,6 +275,14 @@ func execute(options args.Args) error {
 		md.SwupdMirror = options.SwupdMirror
 	}
 
+	if options.AllowInsecureHTTPSet {
+		md.AllowInsecureHTTP = options.AllowInsecureHTTP
+	}
+
+	if options.SwupdContentURL != "" && swupd.IsValidMirror(options.SwupdContentURL, md.AllowInsecureHTTP) == false {
+		return errors.Errorf("swupd-contenturl %s must use HTTPS or FILE protocol", options.SwupdContentURL)
+	}
+
 	// Command line overrides the configuration file
 	if options.MakeISOSet {
 		md.MakeISO = options.MakeISO
@@ -305,7 +309,7 @@ func execute(options args.Args) error {
 		// Now validate the mirror from the config or command line
 		if md.SwupdMirror != "" {
 			var url string
-			url, err = swupd.SetHostMirror(md.SwupdMirror)
+			url, err = swupd.SetHostMirror(md.SwupdMirror, md.AllowInsecureHTTP)
 			if err != nil {
 				return err
 			}

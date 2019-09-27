@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -49,6 +49,8 @@ type Args struct {
 	CfDownloaded            bool
 	CfPurge                 bool
 	CfPurgeSet              bool
+	AllowInsecureHTTP       bool
+	AllowInsecureHTTPSet    bool
 	CryptPassFile           string
 	SwupdMirror             string
 	SwupdStateDir           string
@@ -244,6 +246,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 	)
 
 	flag.BoolVar(
+		&args.AllowInsecureHTTP, "allow-insecure-http", false, "Allow installation over insecure connections",
+	)
+
+	flag.BoolVar(
 		&args.Archive, "archive", true, "Archive data to target after finishing",
 	)
 
@@ -322,6 +328,13 @@ func (args *Args) setCommandLineArgs() (err error) {
 	if fflag != nil {
 		if fflag.Changed {
 			args.CfPurgeSet = true
+		}
+	}
+
+	fflag = flag.Lookup("allow-insecure-http")
+	if fflag != nil {
+		if fflag.Changed {
+			args.AllowInsecureHTTPSet = true
 		}
 	}
 

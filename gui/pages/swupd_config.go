@@ -5,6 +5,8 @@
 package pages
 
 import (
+	"strings"
+
 	"github.com/gotk3/gotk3/gtk"
 
 	"github.com/clearlinux/clr-installer/gui/common"
@@ -23,6 +25,7 @@ type SwupdConfigPage struct {
 	mirrorDesc           *gtk.Label
 	mirrorEntry          *gtk.Entry
 	mirrorWarning        *gtk.Label
+	insecureCheck        *gtk.CheckButton
 	autoUpdateTitle      *gtk.Label
 	autoUpdateDesc       *gtk.Label
 	autoUpdateButton     *gtk.CheckButton
@@ -90,6 +93,33 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 		return nil, err
 	}
 
+	page.insecureCheck, err = gtk.CheckButtonNew()
+	if err != nil {
+		return nil, err
+	}
+	page.insecureCheck.SetLabel("  " + utils.Locale.Get(swupd.MirrorAllowInsecure))
+	page.insecureCheck.SetMarginStart(14)         // Custom margin to align properly
+	page.insecureCheck.SetHAlign(gtk.ALIGN_START) // Ensures that clickable area is only within the label
+	page.box.PackStart(page.insecureCheck, false, false, 10)
+	if _, err := page.insecureCheck.Connect("clicked", func(button *gtk.CheckButton) {
+		if button.GetActive() {
+			page.model.AllowInsecureHTTP = true
+		} else {
+			page.model.AllowInsecureHTTP = false
+		}
+
+		page.validateMirror()
+	}); err != nil {
+		return nil, err
+	}
+
+	separator, err := gtk.SeparatorNew(gtk.ORIENTATION_HORIZONTAL)
+	if err != nil {
+		return nil, err
+	}
+	separator.ShowAll()
+	page.box.Add(separator)
+
 	// Auto Updates
 	page.autoUpdateTitle, err = setLabel(utils.Locale.Get(swupd.AutoUpdateTitle), "label-entry", 0.0)
 	if err != nil {
@@ -98,7 +128,7 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 	page.autoUpdateTitle.SetMarginStart(common.StartEndMargin)
 	page.autoUpdateTitle.SetMarginTop(common.TopBottomMargin)
 	page.autoUpdateTitle.SetHAlign(gtk.ALIGN_START)
-	page.box.PackStart(page.autoUpdateTitle, false, false, 0)
+	page.box.PackStart(page.autoUpdateTitle, false, false, 10)
 
 	desc = utils.Locale.Get(swupd.AutoUpdateDesc1)
 	desc += "\n"
@@ -153,7 +183,7 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 func (page *SwupdConfigPage) onMirrorChange(entry *gtk.Entry) {
 	mirror := getTextFromEntry(entry)
 	page.mirrorWarning.SetText("")
-	if mirror != "" && swupd.IsValidMirror(mirror) == false {
+	if mirror != "" && swupd.IsValidMirror(mirror, page.model.AllowInsecureHTTP) == false {
 		page.mirrorWarning.SetText(utils.Locale.Get(swupd.InvalidURL))
 	}
 
@@ -170,14 +200,14 @@ func (page *SwupdConfigPage) validateMirror() {
 			page.model.SwupdMirror = mirror // success
 		}
 	} else {
-		url, err := swupd.SetHostMirror(mirror)
+		url, err := swupd.SetHostMirror(mirror, page.model.AllowInsecureHTTP)
 		if err != nil {
-			page.mirrorWarning.SetText(err.Error()) // failure
+			page.mirrorWarning.SetText(err.Error())
 		} else {
-			if url != mirror { // At this point, url and mirror are expected to be the same
+			if url != strings.TrimRight(mirror, "/ ") { // swupd will drop all trailing /s
 				page.mirrorWarning.SetText(utils.Locale.Get(swupd.IncorrectMirror)) // failure
 			} else {
-				page.model.SwupdMirror = mirror // success
+				page.model.SwupdMirror = url // success
 			}
 		}
 	}

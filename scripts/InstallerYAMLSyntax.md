@@ -120,6 +120,7 @@ Item | Description | Default
 `kernel` | Kernel bundle to be used | kernel-native
 `httpsProxy` | HTTPS Proxy as a string | `-UNDEFINED-`
 `swupdMirror` | URL of the swupd stream to use. Useful for installing from a local mirror or from a locally published mix. | `-UNDEFINED-`
+`allowInsecureHttp` | Allow installation over insecure connections | false
 `hostname` | Name of the host system | `-UNIQUE RANDOM-`
 `version` | Version of Clear Linux OS to install | `-VERSION_ON_BUILD_SYSTEM-`
 `autoUpdate` | Should the system automatically update to the latest release of Clear Linux OS as part of the installation?; true or false | true
