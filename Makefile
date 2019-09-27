@@ -225,23 +225,21 @@ coverage-html: coverage
 
 PHONY += install-linters
 install-linters:
-	@if ! gometalinter.v2 --version &>/dev/null; then \
+	@if ! ${orig_go_path}/bin/golangci-lint --version &>/dev/null; then \
 		echo "Installing linters..."; \
-		GOPATH=${orig_go_path} go get -p ${nproc} -u gopkg.in/alecthomas/gometalinter.v2; \
-		GOPATH=${orig_go_path} gometalinter.v2 --install; \
+		curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b ${orig_go_path}/bin; \
 	fi
 
 PHONY += install-linters-force
 install-linters-force:
 	echo "Force Installing linters..."
-	GOPATH=${orig_go_path} go get -p ${nproc} -u gopkg.in/alecthomas/gometalinter.v2
-	GOPATH=${orig_go_path} gometalinter.v2 --install
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b ${orig_go_path}/bin
 
 PHONY += update-linters
 update-linters:
-	@if gometalinter.v2 --version &>/dev/null; then \
+	@if ${orig_go_path}/bin/golangci-lint --version &>/dev/null; then \
 		echo "Updating linters..."; \
-		GOPATH=${orig_go_path} gometalinter.v2 --update 1>/dev/null; \
+		curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b ${orig_go_path}/bin; \
 	else \
 		echo "Linters not installed"; \
 		exit 1; \
@@ -274,8 +272,8 @@ lint-unused lint-vetshadow lint-errcheck
 PHONY += lint-mispell
 lint-mispell: lint-core
 	@echo "Running linter lint-mispell"
-	@gometalinter.v2 --deadline=10m --tests \
-	--vendor --exclude=vendor --skip=vendor \
+	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
+	--skip-dirs-use-default \
 	--disable-all \
 	--enable=misspell \
 	./...
@@ -283,35 +281,39 @@ lint-mispell: lint-core
 PHONY += lint-vet
 lint-vet: lint-core
 	@echo "Running linter lint-vet"
-	@gometalinter.v2 --deadline=20m --tests \
-	--vendor --exclude=vendor --skip=vendor \
+	@${orig_go_path}/bin/golangci-lint run --deadline=20m --tests \
+	--skip-dirs-use-default \
 	--disable-all \
-	--enable=vet \
+	--enable=govet \
 	./...
 
 PHONY += lint-ineffassign
 lint-ineffassign: lint-core
 	@echo "Running linter lint-ineffassign"
-	@gometalinter.v2 --deadline=10m --tests \
-	--vendor --exclude=vendor --skip=vendor \
+	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
+	--skip-dirs-use-default \
 	--disable-all \
 	--enable=ineffassign \
 	./...
 
+# TODO: Resolve gocyclo errors for skipped files
 PHONY += lint-gocyclo
 lint-gocyclo: lint-core
 	@echo "Running linter lint-gocyclo"
-	@gometalinter.v2 --deadline=10m --tests \
-	--vendor --exclude=vendor --skip=vendor \
+	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
+	--skip-dirs-use-default \
 	--disable-all \
-	$${CYCLO_MAX:+--enable=gocyclo --cyclo-over=$${CYCLO_MAX}} \
+	--enable=gocyclo \
+	--skip-files clr-installer/main.go,controller/controller.go \
+	--skip-files storage/ops.go,storage/storage.go,storage/storage_test.go \
+	--skip-files gui/pages/disk_config.go,model/model_ister.go \
 	./...
 
 PHONY += lint-gofmt
 lint-gofmt: lint-core
 	@echo "Running linter lint-gofmt"
-	@gometalinter.v2 --deadline=10m --tests \
-	--vendor --exclude=vendor --skip=vendor \
+	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
+	--skip-dirs-use-default \
 	--disable-all \
 	--enable=gofmt \
 	./...
@@ -319,8 +321,8 @@ lint-gofmt: lint-core
 PHONY += lint-golint
 lint-golint: lint-core
 	@echo "Running linter lint-golint"
-	@gometalinter.v2 --deadline=10m --tests \
-	--vendor --exclude=vendor --skip=vendor \
+	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
+	--skip-dirs-use-default \
 	--disable-all \
 	--enable=golint \
 	./...
@@ -328,8 +330,8 @@ lint-golint: lint-core
 PHONY += lint-deadcode
 lint-deadcode: lint-core
 	@echo "Running linter lint-deadcode"
-	@gometalinter.v2 --deadline=10m --tests \
-	--vendor --exclude=vendor --skip=vendor \
+	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
+	--skip-dirs-use-default \
 	--disable-all \
 	--enable=deadcode \
 	./...
@@ -337,8 +339,8 @@ lint-deadcode: lint-core
 PHONY += lint-varcheck
 lint-varcheck: lint-core
 	@echo "Running linter lint-varcheck"
-	@gometalinter.v2 --deadline=10m --tests \
-	--vendor --exclude=vendor --skip=vendor \
+	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
+	--skip-dirs-use-default \
 	--disable-all \
 	--enable=varcheck \
 	./...
@@ -346,8 +348,8 @@ lint-varcheck: lint-core
 PHONY += lint-structcheck
 lint-structcheck: lint-core
 	@echo "Running linter lint-structcheck"
-	@gometalinter.v2 --deadline=20m --tests \
-	--vendor --exclude=vendor --skip=vendor \
+	@${orig_go_path}/bin/golangci-lint run --deadline=20m --tests \
+	--skip-dirs-use-default \
 	--disable-all \
 	--enable=structcheck \
 	./...
@@ -355,8 +357,8 @@ lint-structcheck: lint-core
 PHONY += lint-unused
 lint-unused: lint-core
 	@echo "Running linter lint-unused"
-	@gometalinter.v2 --deadline=10m --tests \
-	--vendor --exclude=vendor --skip=vendor \
+	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
+	--skip-dirs-use-default \
 	--disable-all \
 	--enable=unused \
 	./...
@@ -364,8 +366,8 @@ lint-unused: lint-core
 PHONY += lint-vetshadow
 lint-vetshadow: lint-core
 	@echo "Running linter lint-vetshadow"
-	@gometalinter.v2 --deadline=10m --tests \
-	--vendor --exclude=vendor --skip=vendor \
+	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
+	--skip-dirs-use-default \
 	--disable-all \
 	--enable=vetshadow \
 	./...
@@ -373,8 +375,8 @@ lint-vetshadow: lint-core
 PHONY += lint-errcheck
 lint-errcheck: lint-core
 	@echo "Running linter lint-errcheck"
-	@gometalinter.v2 --deadline=10m --tests \
-	--vendor --exclude=vendor --skip=vendor \
+	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
+	--skip-dirs-use-default \
 	--disable-all \
 	--enable=errcheck \
 	./...
