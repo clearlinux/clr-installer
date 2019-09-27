@@ -1553,9 +1553,28 @@ func FormatInstallPortion(target InstallTarget) string {
 // ByBDName implements sort.Interface for []*BlockDevice based on the Name field.
 type ByBDName []*BlockDevice
 
-func (a ByBDName) Len() int           { return len(a) }
-func (a ByBDName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByBDName) Less(i, j int) bool { return a[i].Name < a[j].Name }
+func (a ByBDName) Len() int      { return len(a) }
+func (a ByBDName) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+
+func (a ByBDName) Less(i, j int) bool {
+	iPartNum := devNameSuffixExp.FindString(a[i].Name)
+	jPartNum := devNameSuffixExp.FindString(a[j].Name)
+
+	// When both partitions end with a number and the partition names
+	// without partion numbers match, use the partion numbers to
+	// compare the partitions
+	if iPartNum != "" && jPartNum != "" {
+		iPartName := devNameSuffixExp.Split(a[i].Name, 2)[0]
+		jPartName := devNameSuffixExp.Split(a[j].Name, 2)[0]
+
+		if iPartName == jPartName {
+			iNum, _ := strconv.Atoi(iPartNum)
+			jNum, _ := strconv.Atoi(jPartNum)
+			return iNum < jNum
+		}
+	}
+	return a[i].Name < a[j].Name
+}
 
 // ServerValidateAdvancedPartitions returns an array of validation error
 // strings for the advanced partitions based on a Server installation.
