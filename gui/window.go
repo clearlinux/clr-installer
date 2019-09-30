@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 
@@ -106,6 +107,40 @@ func (window *Window) CreateHeaderBar() error {
 	return nil
 }
 
+// FitToMonitorSize sets a proper size for the installer if it does
+// not fit to the monitor size
+func FitToMonitorSize(win *Window, w float32, h float32) error {
+
+	screen, err := gdk.ScreenGetDefault()
+	if err != nil {
+		return err
+	}
+
+	dpy, err := screen.GetDisplay()
+	if err != nil {
+		return err
+	}
+
+	mon, err := dpy.GetPrimaryMonitor()
+	if err != nil {
+		return err
+	}
+
+	rect := mon.GetGeometry()
+
+	monW := rect.GetWidth()
+	monH := rect.GetHeight()
+
+	// fit to monitor
+	if WindowWidth > monW || WindowHeight > monH {
+		relW := int(w * float32(monW))
+		relH := int(h * float32(monH))
+		win.handle.SetDefaultSize(relW, relH)
+	}
+
+	return nil
+}
+
 // NewWindow creates a new instance of the welcome page
 func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*Window, error) {
 	var err error
@@ -130,6 +165,11 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 	window.handle.SetPosition(gtk.WIN_POS_CENTER)
 	window.handle.SetDefaultSize(WindowWidth, WindowHeight)
 	window.handle.SetResizable(false)
+
+	err = FitToMonitorSize(window, 0.9, 0.8)
+	if err != nil {
+		log.Warning("Could not query monitor size %s", err.Error())
+	}
 
 	// Create invisible header bar
 	if err = window.CreateHeaderBar(); err != nil {
