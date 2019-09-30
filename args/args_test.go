@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -384,7 +384,8 @@ func TestKernelAndCommandlineAllArgs(t *testing.T) {
 
 	const confName = "command.conf"
 	t.Logf("%v", os.Args)
-	os.Args = append(os.Args, "--config="+confName, "--demo", "--telemetry", "--reboot")
+	os.Args = append(os.Args, "--config="+confName, "--demo", "--telemetry", "--reboot",
+		"--iso", "--keep-image", "--allow-insecure-http", "--offline")
 	fmt.Println(os.Args)
 
 	// Check for configuration file missing
@@ -414,8 +415,17 @@ func TestKernelAndCommandlineAllArgs(t *testing.T) {
 	if testArgs.Reboot != true {
 		t.Errorf("Command Line 'reboot' is not defaulted to 'true'")
 	}
-	if testArgs.Offline != false {
-		t.Errorf("Command Line 'offline' is not defaulted to 'false'")
+	if testArgs.Offline != true {
+		t.Errorf("Command Line 'offline' is not defaulted to 'true'")
+	}
+	if testArgs.MakeISO != true {
+		t.Errorf("Command Line 'iso' is not defaulted to 'true'")
+	}
+	if testArgs.AllowInsecureHTTP != true {
+		t.Errorf("Command Line 'allow-insecure-http' is not defaulted to 'true'")
+	}
+	if testArgs.KeepImage != true {
+		t.Errorf("Command Line 'keep-image' is not defaulted to 'true'")
 	}
 	if testArgs.ConfigFile != confName {
 		t.Errorf("Command Line 'config' is %q, NOT overridden to %q", testArgs.ConfigFile, confName)
