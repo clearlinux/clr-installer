@@ -28,6 +28,7 @@ import (
 	"github.com/clearlinux/clr-installer/language"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/network"
 	"github.com/clearlinux/clr-installer/swupd"
 	"github.com/clearlinux/clr-installer/syscheck"
 	"github.com/clearlinux/clr-installer/telemetry"
@@ -279,7 +280,7 @@ func execute(options args.Args) error {
 		md.AllowInsecureHTTP = options.AllowInsecureHTTP
 	}
 
-	if options.SwupdContentURL != "" && swupd.IsValidMirror(options.SwupdContentURL, md.AllowInsecureHTTP) == false {
+	if options.SwupdContentURL != "" && network.IsValidURI(options.SwupdContentURL, md.AllowInsecureHTTP) == false {
 		return errors.Errorf("swupd-contenturl %s must use HTTPS or FILE protocol", options.SwupdContentURL)
 	}
 

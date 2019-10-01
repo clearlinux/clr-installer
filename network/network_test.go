@@ -43,6 +43,24 @@ func TestBadURL(t *testing.T) {
 	}
 }
 
+func TestValidURI(t *testing.T) {
+	if !IsValidURI("https://www.google.com", false) {
+		t.Fatalf("HTTPS URL failed incorrectly")
+	}
+	if !IsValidURI("file:///foo", false) {
+		t.Fatalf("FILE URL failed incorrectly")
+	}
+	if IsValidURI("http://www.google.com", false) {
+		t.Fatalf("HTTP URL with allowInsecureHTTP set to false passed incorrectly")
+	}
+	if !IsValidURI("http://www.google.com", true) {
+		t.Fatalf("HTTP URL with allowInsecureHTTP set to true failed incorrectly")
+	}
+	if IsValidURI("ftp://www.google.com", false) {
+		t.Fatalf("FTP URL passed incorrectly")
+	}
+}
+
 func TestIpAddress(t *testing.T) {
 	tests := []struct {
 		addr     string

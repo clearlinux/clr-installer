@@ -9,6 +9,7 @@ import (
 
 	"github.com/VladimirMarkelov/clui"
 
+	"github.com/clearlinux/clr-installer/network"
 	"github.com/clearlinux/clr-installer/swupd"
 )
 
@@ -66,7 +67,7 @@ func (page *SwupdMirrorPage) validateMirror() {
 	warning := ""
 	userURL := page.swupdMirrorEdit.Title()
 
-	if userURL != "" && swupd.IsValidMirror(userURL, page.getModel().AllowInsecureHTTP) == false {
+	if userURL != "" && network.IsValidURI(userURL, page.getModel().AllowInsecureHTTP) == false {
 		warning = swupd.InvalidURL
 	}
 
