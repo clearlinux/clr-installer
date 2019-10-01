@@ -122,7 +122,7 @@ Item | Description | Default
 `swupdMirror` | URL of the swupd stream to use. Useful for installing from a local mirror or from a locally published mix. | `-UNDEFINED-`
 `allowInsecureHttp` | Allow installation over insecure connections | false
 `hostname` | Name of the host system | `-UNIQUE RANDOM-`
-`version` | Version of Clear Linux OS to install | `-VERSION_ON_BUILD_SYSTEM-`
+`version` | Version of Clear Linux OS to install | `-LATEST_VERSION-`
 `autoUpdate` | Should the system automatically update to the latest release of Clear Linux OS as part of the installation?; true or false | true
 `offline` | Install update content for minimal offline installation | false
 `postReboot` | Should the system reboot after the installation completes?; true or false | true

@@ -94,7 +94,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	}
 
 	if model.Version == 0 {
-		version = utils.ClearVersion
+		version = "latest"
 	} else {
 		version = fmt.Sprintf("%d", model.Version)
 	}
