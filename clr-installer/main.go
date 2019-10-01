@@ -222,7 +222,16 @@ func execute(options args.Args) error {
 		if cf, err = conf.LookupDefaultConfig(); err != nil {
 			return err
 		}
+	} else if network.IsValidURI(options.ConfigFile, options.AllowInsecureHTTP) {
+		if cf, err = network.FetchRemoteConfigFile(options.ConfigFile); err != nil {
+			fmt.Printf("Cannot acesss configuration file %q: %s\n", options.ConfigFile, err)
+			return err
+		}
+		options.CfDownloaded = true
+	} else {
+		return errors.Errorf("No valid configuration file")
 	}
+
 	if options.CfDownloaded {
 		defer func() { _ = os.Remove(cf) }()
 	}
