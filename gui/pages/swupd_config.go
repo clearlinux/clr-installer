@@ -12,6 +12,7 @@ import (
 	"github.com/clearlinux/clr-installer/gui/common"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
+	"github.com/clearlinux/clr-installer/network"
 	"github.com/clearlinux/clr-installer/swupd"
 	"github.com/clearlinux/clr-installer/utils"
 )
@@ -183,7 +184,7 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 func (page *SwupdConfigPage) onMirrorChange(entry *gtk.Entry) {
 	mirror := getTextFromEntry(entry)
 	page.mirrorWarning.SetText("")
-	if mirror != "" && swupd.IsValidMirror(mirror, page.model.AllowInsecureHTTP) == false {
+	if mirror != "" && network.IsValidURI(mirror, page.model.AllowInsecureHTTP) == false {
 		page.mirrorWarning.SetText(utils.Locale.Get(swupd.InvalidURL))
 	}
 

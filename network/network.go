@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -155,6 +156,31 @@ func IsValidDomainName(domain string) string {
 	}
 
 	return ""
+}
+
+// IsValidURI checks for valid URIs that use the HTTPS or FILE protocol
+func IsValidURI(uri string, allowInsecureHTTP bool) bool {
+	_, err := url.ParseRequestURI(uri)
+	if err != nil {
+		return false
+	}
+
+	httpsPrefix := strings.HasPrefix(strings.ToLower(uri), "https:")
+	if httpsPrefix {
+		return true
+	}
+
+	filePrefix := strings.HasPrefix(strings.ToLower(uri), "file:")
+	if filePrefix {
+		return true
+	}
+
+	httpPrefix := strings.HasPrefix(strings.ToLower(uri), "http:")
+	if httpPrefix && allowInsecureHTTP {
+		return true
+	}
+
+	return false
 }
 
 // IsUserDefined returns true if the configuration was interactively

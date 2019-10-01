@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -614,31 +613,6 @@ func UnSetHostMirror() (string, error) {
 	}
 
 	return unSetMirror(args, "Host")
-}
-
-// IsValidMirror checks for valid URIs that use the HTTPS or FILE protocol
-func IsValidMirror(mirror string, allowInsecureHTTP bool) bool {
-	_, err := url.ParseRequestURI(mirror)
-	if err != nil {
-		return false
-	}
-
-	httpsPrefix := strings.HasPrefix(strings.ToLower(mirror), "https:")
-	if httpsPrefix {
-		return true
-	}
-
-	filePrefix := strings.HasPrefix(strings.ToLower(mirror), "file:")
-	if filePrefix {
-		return true
-	}
-
-	httpPrefix := strings.HasPrefix(strings.ToLower(mirror), "http:")
-	if httpPrefix && allowInsecureHTTP {
-		return true
-	}
-
-	return false
 }
 
 // checkSwupd executes the "swupd check-update" to verify connectivity
