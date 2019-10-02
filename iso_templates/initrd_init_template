@@ -130,7 +130,7 @@ find_and_mount_installer() {
     done
 
     if [ $retries -ge 5 ]; then
-        shell_trap "[${FAILURE} FAIL ${NORMAL}] Failed to find installer media, retries exhausted, failed to boot Clear Linux*."
+        shell_trap "[${FAILURE} FAIL ${NORMAL}] Failed to find installer media with partition label CLR_ISO, retries exhausted, failed to boot Clear Linux*."
     fi
 }
 
