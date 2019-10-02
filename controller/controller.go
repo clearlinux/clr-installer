@@ -493,6 +493,7 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 		if err := utils.ParseOSClearVersion(); err != nil {
 			return prg, err
 		}
+		log.Info("Overriding version from %s to %s to enable offline install", version, utils.ClearVersion)
 		version = utils.ClearVersion
 
 		// Copying offline content here is a performance optimization and is not a hard
