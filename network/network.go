@@ -176,8 +176,13 @@ func IsValidURI(uri string, allowInsecureHTTP bool) bool {
 	}
 
 	httpPrefix := strings.HasPrefix(strings.ToLower(uri), "http:")
-	if httpPrefix && allowInsecureHTTP {
-		return true
+	if httpPrefix {
+		if allowInsecureHTTP {
+			return true
+		}
+		msg := "HTTP is disabled, pass --allow-insecure-http to enable HTTP"
+		fmt.Println(msg)
+		log.Info(msg)
 	}
 
 	return false
