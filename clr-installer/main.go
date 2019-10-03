@@ -228,8 +228,8 @@ func execute(options args.Args) error {
 			return err
 		}
 		options.CfDownloaded = true
-	} else {
-		return errors.Errorf("No valid configuration file")
+	} else if ok, err := utils.FileExists(options.ConfigFile); !ok || err != nil {
+		return errors.Errorf("Cannot acesss configuration file %q", options.ConfigFile)
 	}
 
 	if options.CfDownloaded {
