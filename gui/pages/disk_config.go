@@ -90,7 +90,13 @@ func (disk *DiskConfig) advancedButtonToggled() {
 	results := storage.DesktopValidateAdvancedPartitions(disk.model.TargetMedias)
 	if len(results) > 0 {
 		disk.model.ClearInstallSelected()
-		disk.model.TargetMedias = nil
+
+		// When the advanced button is toggled by GetConfiguredValue(), the TargetMedias
+		// value must not be overwritten by this callback function. In this case, the
+		// advanced button will not be in focus.
+		if disk.advancedButton.IsFocus() {
+			disk.model.TargetMedias = nil
+		}
 		// display the result warnings -- with warning color
 		warning := strings.Join(results, ", ")
 		log.Warning("Advanced Partition: " + warning)
@@ -1072,6 +1078,12 @@ func (disk *DiskConfig) refreshPage() {
 		disk.destructiveButton.SetActive(true)
 	} else if disk.isAdvancedSelected {
 		disk.advancedButton.SetActive(true)
+
+		// The advanced disk media must be scanned to set TargetMedias
+		// which will be validated during the advancedButtonToggled()
+		if err := disk.buildMediaLists(); err != nil {
+			log.Warning("Problem with buildMediaLists")
+		}
 		if !advEncryption {
 			disk.encryptCheck.SetActive(false)
 			disk.encryptCheck.SetSensitive(false)
