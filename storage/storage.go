@@ -680,6 +680,13 @@ func listBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
 		log.Warning("PartProbe has non-zero exit status: %s", err)
 	}
 
+	// Modified devices must be synchronized with udev before calling lsblk
+	args = []string{"udevadm", "settle", "--timeout", "10"}
+	err = cmd.RunAndLog(args...)
+	if err != nil {
+		log.Warning("udevadm has non-zero exit status: %s", err)
+	}
+
 	// Exclude memory(1), floppy(2), and SCSI CDROM(11) devices
 	err = cmd.Run(w, lsblkBinary, "--exclude", "1,2,11", "-J", "-b", "-O")
 	if err != nil {
