@@ -405,6 +405,9 @@ msgstr "Setting Language locale to %s"
 msgid "Installing base OS and configured bundles"
 msgstr "Installing base OS and configured bundles"
 
+msgid "Running post-update scripts"
+msgstr "Running post-update scripts"
+
 msgid "Disabling automatic updates"
 msgstr "Disabling automatic updates"
 
@@ -586,11 +589,20 @@ msgstr "Resolving files that need to be installed"
 msgid "Downloading required packs"
 msgstr "Downloading required packs"
 
-msgid "Verifying files integrity"
-msgstr "Verifying files integrity"
+msgid "Extracting required packs"
+msgstr "Extracting required packs"
+
+msgid "Verifying installed files"
+msgstr "Verifying installed files"
+
+msgid "Verifying staged files"
+msgstr "Verifying staged files"
 
 msgid "Downloading missing files"
 msgstr "Downloading missing files"
+
+msgid "Extracting missing files"
+msgstr "Extracting missing files"
 
 msgid "YES"
 msgstr "YES"

@@ -168,12 +168,20 @@ func (m Message) Process(printPrefix, line string) {
 			description = utils.Locale.Get("Resolving files that need to be installed")
 		case "download_packs":
 			description = utils.Locale.Get("Downloading required packs")
+		case "extract_packs":
+			description = utils.Locale.Get("Extracting required packs")
 		case "check_files_hash":
-			description = utils.Locale.Get("Verifying files integrity")
+			description = utils.Locale.Get("Verifying installed files")
+		case "validate_fullfiles":
+			description = utils.Locale.Get("Verifying staged files")
 		case "download_fullfiles":
 			description = utils.Locale.Get("Downloading missing files")
+		case "extract_fullfiles":
+			description = utils.Locale.Get("Extracting missing files")
 		case "add_missing_files":
 			description = utils.Locale.Get("Installing base OS and configured bundles")
+		case "run_postupdate_scripts":
+			description = utils.Locale.Get("Running post-update scripts")
 		}
 
 		// The printPrefix string is used to separate target, offline content,
