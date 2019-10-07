@@ -405,6 +405,9 @@ msgstr "Configurando la localidad de idioma a %s"
 msgid "Installing base OS and configured bundles"
 msgstr "Instalando el sistema operativo base y los paquetes configurados"
 
+msgid "Running post-update scripts"
+msgstr "Ejecución de scripts posteriores a la actualización"
+
 msgid "Disabling automatic updates"
 msgstr "Desactivando las actualizaciones automáticas"
 
@@ -586,11 +589,20 @@ msgstr "Resolviendo los archivos que necesitan ser instalados"
 msgid "Downloading required packs"
 msgstr "Descargando los paquestes requeridos"
 
-msgid "Verifying files integrity"
-msgstr "Verificando la integridad de archivos"
+msgid "Extracting required packs"
+msgstr "Extraer los paquetes requeridos"
+
+msgid "Verifying installed files"
+msgstr "Verificación de archivos instalados"
+
+msgid "Verifying staged files"
+msgstr "Verificación de archivos por etapas"
 
 msgid "Downloading missing files"
 msgstr "Descargando los archivos faltantes"
+
+msgid "Extracting missing files"
+msgstr "Extraer los archivos que faltan"
 
 msgid "YES"
 msgstr "SÍ"

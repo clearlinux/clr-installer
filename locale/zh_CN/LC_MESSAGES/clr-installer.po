@@ -405,6 +405,9 @@ msgstr "将语言区域设置为 %s"
 msgid "Installing base OS and configured bundles"
 msgstr "安装基本操作系统和已配置的捆绑包"
 
+msgid "Running post-update scripts"
+msgstr "运行更新后脚本"
+
 msgid "Disabling automatic updates"
 msgstr "禁用自动更新"
 
@@ -586,11 +589,20 @@ msgstr "解析需要安装的文件"
 msgid "Downloading required packs"
 msgstr "下载所需的包"
 
-msgid "Verifying files integrity"
-msgstr "验证文件完整性"
+msgid "Extracting required packs"
+msgstr "提取所需包"
+
+msgid "Verifying installed files"
+msgstr "验证已安装的文件"
+
+msgid "Verifying staged files"
+msgstr "验证暂存文件"
 
 msgid "Downloading missing files"
 msgstr "下载丢失的文件"
+
+msgid "Extracting missing files"
+msgstr "提取丢失的文件"
 
 msgid "YES"
 msgstr "是"
