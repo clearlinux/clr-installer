@@ -58,6 +58,7 @@ func init() {
 type UserManagerPage struct {
 	BasePage
 	scrollingFrame *clui.Frame // content scrolling frame
+	warningLabel   *clui.Label // content warning label
 
 	columnFormat string
 
@@ -69,6 +70,16 @@ type UserManagerPage struct {
 	activeRow   *clui.Frame
 	activeUser  *SimpleButton
 	activeLogin string
+}
+
+// GetDone Returns true when there is an admin user
+func (page *UserManagerPage) GetDone() bool {
+	for _, user := range page.getModel().Users {
+		if user.Admin {
+			return true
+		}
+	}
+	return false
 }
 
 // GetConfiguredValue Returns the string representation of currently value set
@@ -152,7 +163,14 @@ func (page *UserManagerPage) Activate() {
 		page.scrollToRow(page.activeRow)
 	}
 
-	if len(page.users) > 0 || page.usersChanged {
+	adminSet := false
+	for _, user := range page.users {
+		if user.Admin {
+			adminSet = true
+		}
+	}
+
+	if adminSet {
 		page.confirmBtn.SetEnabled(true)
 	} else {
 		page.confirmBtn.SetEnabled(false)
@@ -182,12 +200,23 @@ func (page *UserManagerPage) redrawRows() {
 		curr.Destroy()
 	}
 	page.rowFrames = []*clui.Frame{}
+	adminSet := false
 
 	if len(page.users) > 0 {
 		for _, user := range page.users {
+			if user.Admin {
+				adminSet = true
+			}
 			if err := page.addUserRow(user); err != nil {
 				page.Panic(err)
 			}
+		}
+
+		// Display a warning when no admin user is set
+		if !adminSet {
+			page.warningLabel.SetTitle("Admin user is required")
+		} else {
+			page.warningLabel.SetTitle("")
 		}
 	} else {
 		rowFrame := clui.CreateFrame(page.scrollingFrame, 1, AutoSize, clui.BorderNone, clui.Fixed)
@@ -204,7 +233,10 @@ func (page *UserManagerPage) redrawRows() {
 // to be created on the target system
 func newUserManagerPage(tui *Tui) (Page, error) {
 	page := &UserManagerPage{
-		BasePage: BasePage{},
+		BasePage: BasePage{
+			// Tag this Page as required to be complete for the Install to proceed
+			required: true,
+		},
 	}
 	page.setupMenu(tui, TuiPageUserManager, userManagerTitle, CancelButton|ConfirmButton, TuiPageMenu)
 
@@ -214,9 +246,17 @@ func newUserManagerPage(tui *Tui) (Page, error) {
 	sHeight := cHeight + 1     // Add back the blank line from content to menu buttons
 
 	// Top label for the page
-	lbl := clui.CreateLabel(page.content, 2, 2, userManagerTitle, clui.Fixed)
-	lbl.SetPaddings(0, 2)
-	_, lHeight := lbl.Size()
+	topFrame := clui.CreateFrame(page.content, sWidth, 2, clui.BorderNone, clui.Fixed)
+	topFrame.SetPack(clui.Horizontal)
+
+	clui.CreateLabel(topFrame, sWidth/2, AutoSize, userManagerTitle, clui.Fixed)
+
+	page.warningLabel = clui.CreateLabel(topFrame, sWidth/2, AutoSize, "", clui.Fixed)
+	page.warningLabel.SetAlign(AlignRight)
+	page.warningLabel.SetBackColor(errorLabelBg)
+	page.warningLabel.SetTextColor(errorLabelFg)
+
+	_, lHeight := topFrame.Size()
 	sHeight -= lHeight // Remove the label from total height
 
 	remainingColumns := sWidth - 2
