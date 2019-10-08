@@ -477,7 +477,7 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 
 	var prg progress.Progress
 
-	sw := swupd.New(rootDir, options, md.AllowInsecureHTTP)
+	sw := swupd.New(rootDir, options, md)
 
 	bundles := md.Bundles
 
@@ -512,7 +512,7 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 	log.Info(msg)
 
 	log.Debug("Installing bundles: %s", strings.Join(bundles, ", "))
-	if err := sw.VerifyWithBundles(version, md.SwupdMirror, "Target OS: ", bundles); err != nil {
+	if err := sw.OSInstall(version, "Target OS: ", bundles); err != nil {
 		// If the swupd command failed to run there wont be a progress
 		// bar, so we need to create a new one that we can fail
 		prg = progress.NewLoop(msg)
@@ -565,7 +565,7 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 		}
 
 		log.Debug("Downloading bundles: %s", strings.Join(offlineBundles, ", "))
-		if err := sw.DownloadBundles(version, md.SwupdMirror, "Offline Content: ", offlineBundles); err != nil {
+		if err := sw.DownloadBundles(version, "Offline Content: ", offlineBundles); err != nil {
 			prg = progress.NewLoop(msg)
 			return prg, err
 		}

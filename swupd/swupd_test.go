@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/clearlinux/clr-installer/args"
+	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/progress"
 	"github.com/clearlinux/clr-installer/utils"
 )
@@ -96,13 +97,15 @@ func TestNewWithState(t *testing.T) {
 		SwupdStateDir: "/tmp/swupd-state",
 	}
 
-	sw := New("/tmp/test", options, false)
+	si := &model.SystemInstall{}
+
+	sw := New("/tmp/test", options, si)
 
 	if sw.stateDir != "/tmp/swupd-state" {
 		t.Fatalf("stateDir should be set to /tmp/swupd-state")
 	}
 
-	sw = New("/tmp/test", args.Args{}, false)
+	sw = New("/tmp/test", args.Args{}, si)
 	if sw.stateDir != "/tmp/test/var/lib/swupd" {
 		t.Fatalf("stateDir should not be set to: %s", sw.stateDir)
 	}

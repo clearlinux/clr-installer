@@ -162,10 +162,10 @@ func mkInitrd(version string, model *model.SystemInstall, options args.Args) err
 	var err error
 	options.SwupdStateDir = tmpPaths[clrInitrd] + "/var/lib/swupd/"
 	options.SwupdFormat = "staging"
-	sw := swupd.New(tmpPaths[clrInitrd], options, model.AllowInsecureHTTP)
+	sw := swupd.New(tmpPaths[clrInitrd], options, model)
 
 	/* Install os-core and os-core-plus (we only need kmod-bin) as initrd */
-	if err := sw.VerifyWithBundles(version, model.SwupdMirror, "ISO Initrd: ", []string{"os-core-plus"}); err != nil {
+	if err := sw.OSInstall(version, "ISO Initrd: ", []string{"os-core-plus"}); err != nil {
 		prg = progress.NewLoop(msg)
 		prg.Failure()
 		return err
