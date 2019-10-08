@@ -232,7 +232,7 @@ func New(rootDir string, options args.Args, model *model.SystemInstall) *Softwar
 		stateDir,
 		stateDirCache,
 		options.SwupdCertPath,
-		options.SwupdFormat,
+		model.SwupdFormat,
 		options.SwupdContentURL,
 		options.SwupdVersionURL,
 		model.SwupdMirror,

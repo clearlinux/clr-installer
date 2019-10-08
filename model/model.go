@@ -74,6 +74,7 @@ type SystemInstall struct {
 	TelemetryPolicy   string                           `yaml:"telemetryPolicy,omitempty,flow"`
 	PreInstall        []*InstallHook                   `yaml:"pre-install,omitempty,flow"`
 	PostInstall       []*InstallHook                   `yaml:"post-install,omitempty,flow"`
+	SwupdFormat       string                           `yaml:"swupdFormat,omitempty,flow"`
 	Version           uint                             `yaml:"version,omitempty,flow"`
 	StorageAlias      []*StorageAlias                  `yaml:"block-devices,omitempty,flow"`
 	LegacyBios        bool                             `yaml:"legacyBios,omitempty,flow"`
