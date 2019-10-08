@@ -260,9 +260,10 @@ lint-core: build install-linters gopath
 	@echo "Running linters"
 
 PHONY += lint-travis-checkers
-lint-travis-checkers: lint-mispell lint-ineffassign lint-gocyclo lint-gofmt \
-lint-golint lint-deadcode lint-varcheck \
-lint-unused lint-vetshadow lint-errcheck
+lint-travis-checkers: lint-checkers
+# lint-travis-checkers: lint-mispell lint-ineffassign lint-gocyclo lint-gofmt \
+# lint-golint lint-deadcode lint-varcheck \
+# lint-unused lint-vetshadow lint-errcheck
 
 PHONY += lint-checkers
 lint-checkers: lint-mispell lint-vet lint-ineffassign lint-gocyclo lint-gofmt \
