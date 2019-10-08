@@ -286,6 +286,9 @@ func execute(options args.Args) error {
 	if options.SwupdMirror != "" {
 		md.SwupdMirror = options.SwupdMirror
 	}
+	if options.SwupdFormat != "" {
+		md.SwupdFormat = options.SwupdFormat
+	}
 
 	if options.AllowInsecureHTTPSet {
 		md.AllowInsecureHTTP = options.AllowInsecureHTTP
