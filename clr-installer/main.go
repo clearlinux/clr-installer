@@ -226,12 +226,12 @@ func execute(options args.Args) error {
 		}
 	} else if network.IsValidURI(options.ConfigFile, options.AllowInsecureHTTP) {
 		if cf, err = network.FetchRemoteConfigFile(options.ConfigFile); err != nil {
-			fmt.Printf("Cannot acesss configuration file %q: %s\n", options.ConfigFile, err)
+			fmt.Printf("Cannot access configuration file %q: %s\n", options.ConfigFile, err)
 			return err
 		}
 		options.CfDownloaded = true
 	} else if ok, err := utils.FileExists(options.ConfigFile); !ok || err != nil {
-		return errors.Errorf("Cannot acesss configuration file %q", options.ConfigFile)
+		return errors.Errorf("Cannot access configuration file %q", options.ConfigFile)
 	}
 
 	if options.CfDownloaded {
