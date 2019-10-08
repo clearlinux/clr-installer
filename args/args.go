@@ -59,6 +59,7 @@ type Args struct {
 	SwupdFormat             string
 	SwupdContentURL         string
 	SwupdVersionURL         string
+	SwupdURL                string
 	SwupdSkipDiskSpaceCheck bool
 	Telemetry               bool
 	TelemetrySet            bool
@@ -201,6 +202,11 @@ func (args *Args) setCommandLineArgs() (err error) {
 	flag.StringVar(
 		&args.SwupdVersionURL, "swupd-versionurl", args.SwupdVersionURL,
 		"Swupd --versionurl argument",
+	)
+
+	flag.StringVar(
+		&args.SwupdURL, "swupd-url", args.SwupdURL,
+		"Swupd --url argument; use the same for content and version",
 	)
 
 	flag.BoolVar(
@@ -361,6 +367,24 @@ func (args *Args) setCommandLineArgs() (err error) {
 	if (args.TelemetryURL != "" && args.TelemetryTID == "") ||
 		(args.TelemetryURL == "" && args.TelemetryTID != "") {
 		return errors.New("Telemetry requires both --telemetry-url and --telemetry-tid")
+	}
+
+	if args.SwupdURL != "" {
+		if args.SwupdMirror != "" {
+			return errors.New("--swupd-url and --swupd-mirror are mutually exclusive")
+		}
+
+		if args.SwupdContentURL == "" {
+			args.SwupdContentURL = args.SwupdURL
+		} else {
+			fmt.Printf("Warning: --swupd-contenturl overrides --swupd-url\n")
+		}
+
+		if args.SwupdVersionURL == "" {
+			args.SwupdVersionURL = args.SwupdURL
+		} else {
+			fmt.Printf("Warning: --swupd-versionurl overrides --swupd-url\n")
+		}
 	}
 
 	return nil

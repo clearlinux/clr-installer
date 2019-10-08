@@ -97,12 +97,14 @@ func main() {
 	var options args.Args
 
 	if err := options.ParseArgs(); err != nil {
+		fmt.Println("Parse Args Error: " + err.Error())
 		os.Exit(1)
 	}
 
 	// Configure logger
 	f, err := log.SetOutputFilename(options.LogFile)
 	if err != nil {
+		fmt.Println("Set Log Error: " + err.Error())
 		os.Exit(1)
 	}
 	log.SetLogLevel(options.LogLevel)

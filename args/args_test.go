@@ -385,7 +385,8 @@ func TestKernelAndCommandlineAllArgs(t *testing.T) {
 	const confName = "command.conf"
 	t.Logf("%v", os.Args)
 	os.Args = append(os.Args, "--config="+confName, "--demo", "--telemetry", "--reboot",
-		"--iso", "--keep-image", "--allow-insecure-http", "--offline")
+		"--iso", "--keep-image", "--allow-insecure-http", "--offline",
+		"--swupd-url", "https://cdn.download.clearlinux.org/update/")
 	fmt.Println(os.Args)
 
 	// Check for configuration file missing
@@ -441,5 +442,8 @@ func TestKernelAndCommandlineAllArgs(t *testing.T) {
 	}
 	if testArgs.LogFile == "" {
 		t.Errorf("Command Line 'log-file' is NOT set to value")
+	}
+	if testArgs.SwupdURL == "" {
+		t.Errorf("Command Line 'swupd-url' is NOT set to value")
 	}
 }
