@@ -97,6 +97,7 @@ type SoftwareUpdater struct {
 	format             string
 	contentURL         string
 	versionURL         string
+	mirrorURL          string
 	downloadOnly       bool
 	skipDiskSpaceCheck bool
 	allowInsecureHTTP  bool
@@ -213,7 +214,7 @@ func IsOfflineContent() bool {
 }
 
 // New creates a new instance of SoftwareUpdater with the rootDir properly adjusted
-func New(rootDir string, options args.Args, allowInsecureHTTP bool) *SoftwareUpdater {
+func New(rootDir string, options args.Args, model *model.SystemInstall) *SoftwareUpdater {
 	stateDir := options.SwupdStateDir
 	if stateDir == "" {
 		stateDir = filepath.Join(rootDir, "/var/lib/swupd")
@@ -234,9 +235,10 @@ func New(rootDir string, options args.Args, allowInsecureHTTP bool) *SoftwareUpd
 		options.SwupdFormat,
 		options.SwupdContentURL,
 		options.SwupdVersionURL,
+		model.SwupdMirror,
 		downloadOnly,
 		options.SwupdSkipDiskSpaceCheck,
-		allowInsecureHTTP,
+		model.AllowInsecureHTTP,
 	}
 }
 
@@ -360,9 +362,8 @@ func (s *SoftwareUpdater) Verify(version string, mirror string, verifyOnly bool)
 	return nil
 }
 
-// VerifyWithBundles runs "swupd verify" operation with all bundles
-func (s *SoftwareUpdater) VerifyWithBundles(version, mirror, printPrefix string, bundles []string) error {
-	// the "swupd verify" command is being deprecated, use "swupd os-install" instead
+// OSInstall runs "swupd os-install" operation with a bundle list
+func (s *SoftwareUpdater) OSInstall(version, printPrefix string, bundles []string) error {
 	args := []string{
 		"swupd",
 		"os-install",
@@ -370,8 +371,8 @@ func (s *SoftwareUpdater) VerifyWithBundles(version, mirror, printPrefix string,
 
 	args = s.setExtraFlags(args)
 
-	if mirror != "" {
-		args = append(args, fmt.Sprintf("--url=%s", mirror))
+	if s.mirrorURL != "" {
+		args = append(args, fmt.Sprintf("--url=%s", s.mirrorURL))
 	}
 	args = append(args,
 		[]string{
@@ -412,13 +413,13 @@ func (s *SoftwareUpdater) VerifyWithBundles(version, mirror, printPrefix string,
 		return errors.Wrap(err)
 	}
 
-	if mirror != "" {
+	if s.mirrorURL != "" {
 		args = []string{
 			"swupd",
 			"mirror",
 			fmt.Sprintf("--path=%s", s.rootDir),
 			"--set",
-			mirror,
+			s.mirrorURL,
 		}
 
 		if s.allowInsecureHTTP {
@@ -435,7 +436,7 @@ func (s *SoftwareUpdater) VerifyWithBundles(version, mirror, printPrefix string,
 }
 
 // DownloadBundles downloads the bundle list to the OfflineContentDir within the installer image
-func (s SoftwareUpdater) DownloadBundles(version, mirror, printPrefix string, bundles []string) error {
+func (s SoftwareUpdater) DownloadBundles(version, printPrefix string, bundles []string) error {
 	var err error
 
 	s.downloadOnly = true
@@ -454,7 +455,7 @@ func (s SoftwareUpdater) DownloadBundles(version, mirror, printPrefix string, bu
 	}
 	defer func() { _ = os.RemoveAll(s.rootDir) }()
 
-	return s.VerifyWithBundles(version, mirror, printPrefix, bundles)
+	return s.OSInstall(version, printPrefix, bundles)
 }
 
 // DisableUpdate executes the "systemctl" to disable auto update operation
