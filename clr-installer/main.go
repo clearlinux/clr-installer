@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -288,6 +289,18 @@ func execute(options args.Args) error {
 	}
 	if options.SwupdFormat != "" {
 		md.SwupdFormat = options.SwupdFormat
+	}
+	if options.SwupdVersion != "" {
+		if strings.EqualFold(options.SwupdVersion, "latest") {
+			md.Version = 0
+		} else {
+			version, err := strconv.ParseUint(options.SwupdVersion, 10, 32)
+			if err == nil {
+				md.Version = uint(version)
+			} else {
+				log.Warning("Failed to parse swupd-version : %s; not-used!", options.SwupdVersion)
+			}
+		}
 	}
 
 	if options.AllowInsecureHTTPSet {

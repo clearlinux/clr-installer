@@ -57,6 +57,7 @@ type Args struct {
 	SwupdCertPath           string
 	SwupdStateClean         bool
 	SwupdFormat             string
+	SwupdVersion            string
 	SwupdContentURL         string
 	SwupdVersionURL         string
 	SwupdURL                string
@@ -192,6 +193,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.StringVar(
 		&args.SwupdFormat, "swupd-format", args.SwupdFormat, "Swupd --format argument",
+	)
+
+	flag.StringVar(
+		&args.SwupdVersion, "swupd-version", args.SwupdVersion, "Swupd --version argument",
 	)
 
 	flag.StringVar(
