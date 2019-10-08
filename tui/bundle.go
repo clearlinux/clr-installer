@@ -81,7 +81,7 @@ func (bp *BundlePage) Activate() {
 
 func newBundlePage(tui *Tui) (Page, error) {
 	page := &BundlePage{}
-	page.setupMenu(tui, TuiPageBundle, "Select additional bundles", NoButtons, TuiPageMenu)
+	page.setupMenu(tui, TuiPageBundle, "Select Additional Bundles", NoButtons, TuiPageMenu)
 
 	bdls, err := swupd.LoadBundleList(page.getModel())
 	if err != nil {
@@ -92,7 +92,7 @@ func newBundlePage(tui *Tui) (Page, error) {
 		bundles = append(bundles, &BundleCheck{curr, nil})
 	}
 
-	clui.CreateLabel(page.content, 2, 2, "Select additional bundles", Fixed)
+	clui.CreateLabel(page.content, 2, 2, "Select Additional Bundles", Fixed)
 
 	frm := clui.CreateFrame(page.content, AutoSize, 14, BorderNone, Fixed)
 	frm.SetPack(clui.Vertical)
