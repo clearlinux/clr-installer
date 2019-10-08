@@ -389,7 +389,7 @@ func (page *UseraddPage) clearForm() {
 	page.pwConfirmEdit.SetTitle("")
 	page.passwordEdit.SetPasswordMode(true)
 	page.pwConfirmEdit.SetPasswordMode(true)
-	page.adminCheck.SetState(0)
+	page.adminCheck.SetState(1)
 	page.deleteBtn.SetEnabled(false)
 	page.confirmBtn.SetEnabled(false)
 	clui.ActivateControl(page.tui.currPage.GetWindow(), page.usernameEdit)
