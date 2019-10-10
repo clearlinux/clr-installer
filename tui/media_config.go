@@ -64,6 +64,7 @@ type MediaConfigPage struct {
 func (page *MediaConfigPage) GetConfiguredValue() string {
 	model := page.getModel()
 	tm := model.TargetMedias
+	page.done = page.getModel().TargetMedias != nil
 
 	if page.isAdvancedSelected {
 		results := storage.ServerValidateAdvancedPartitions(tm)
@@ -200,6 +201,8 @@ func (page *MediaConfigPage) SetDone(done bool) bool {
 			}
 		}
 	}
+
+	page.done = page.getModel().TargetMedias != nil
 
 	// TODO start using new API page.GotoPage() when finished merging
 	// disk pages
