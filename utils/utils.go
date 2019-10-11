@@ -246,13 +246,9 @@ func ExpandVariables(vars map[string]string, str string) string {
 	for k, v := range vars {
 		// tries to replace both ${var} and $var forms
 		for _, rep := range []string{fmt.Sprintf("$%s", k), fmt.Sprintf("${%s}", k)} {
-			if strings.Contains(str, rep) {
-				return strings.Replace(str, rep, v, -1)
-			}
+			str = strings.ReplaceAll(str, rep, v)
 		}
 	}
-
-	// if no variables are expanded return the original string
 	return str
 }
 
