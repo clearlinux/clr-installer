@@ -239,7 +239,7 @@ func IsStdoutTTY() bool {
 	return err == 0
 }
 
-// ExpandVariables iterates over vars map and replace all the ocorrences of ${var} or
+// ExpandVariables iterates over vars map and replace all the occurrences of ${var} or
 // $var in the str string
 func ExpandVariables(vars map[string]string, str string) string {
 	// iterate over available variables
