@@ -25,4 +25,4 @@ ok  	github.com/clearlinux/clr-installer/telemetry	0.317s	coverage: 35.6% of sta
 ?   	github.com/clearlinux/clr-installer/timezone	[no test files]
 ?   	github.com/clearlinux/clr-installer/tui	[no test files]
 ?   	github.com/clearlinux/clr-installer/user	[no test files]
-?   	github.com/clearlinux/clr-installer/utils	[no test files]
+ok  	github.com/clearlinux/clr-installer/utils	1.010s	coverage: 10.0% of statements

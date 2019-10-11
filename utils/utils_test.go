@@ -12,7 +12,7 @@ func init() {
 	SetLocale("en_US.UTF-8")
 }
 
-func TestExamndVariables(t *testing.T) {
+func TestExpandVariables(t *testing.T) {
 	vars := make(map[string]string)
 
 	vars["chrootDir"] = "/tmp/mydir"
