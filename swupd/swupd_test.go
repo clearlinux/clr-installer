@@ -169,7 +169,7 @@ func TestProcess(t *testing.T) {
 	}
 
 	// "progress" messages should be processed correctly
-	jsonMsg = "{ \"type\" : \"progress\", \"currentStep\" : 5, \"totalSteps\" : 8, \"stepCompletion\" : 80, \"stepDescription\" : \"download_packs\" },"
+	jsonMsg = "{ \"type\" : \"progress\", \"currentStep\" : 5, \"stepCompletion\" : 80, \"stepDescription\" : \"download_packs\" },"
 	msg.Process("", jsonMsg)
 	if mp.description != "Downloading required packs" {
 		t.Fatal("Message processed incorrectly. Expected: 'Downloading required packs', Actual:", mp.description)
@@ -180,7 +180,7 @@ func TestProcess(t *testing.T) {
 	if mp.output != "" {
 		t.Fatal("Message processed incorrectly. Expected: '', Actual:", mp.output)
 	}
-	jsonMsg = "{ \"type\" : \"progress\", \"currentStep\" : 8, \"totalSteps\" : 8, \"stepCompletion\" : 100, \"stepDescription\" : \"add_missing_files\" },"
+	jsonMsg = "{ \"type\" : \"progress\", \"currentStep\" : 8, \"stepCompletion\" : 100, \"stepDescription\" : \"add_missing_files\" },"
 	msg.Process("", jsonMsg)
 	if mp.description != "Installing base OS and configured bundles" {
 		t.Fatal("Message processed incorrectly. Expected: 'Installing base OS and configured bundles', Actual:", mp.description)
