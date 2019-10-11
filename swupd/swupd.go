@@ -116,7 +116,6 @@ type Message struct {
 	Section         string `json:"section"`
 	Status          int    `json:"status"`
 	CurrentStep     int    `json:"currentStep"`
-	TotalSteps      int    `json:"totalSteps"`
 	StepCompletion  int    `json:"stepCompletion"`
 	StepDescription string `json:"stepDescription"`
 }
