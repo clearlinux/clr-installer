@@ -435,7 +435,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 func applyHooks(name string, vars map[string]string, hooks []*model.InstallHook) error {
 	locName := utils.Locale.Get(name)
 	msg := utils.Locale.Get("Running %s hooks", locName)
-	prg := progress.MultiStep(len(hooks), "", msg)
+	prg := progress.MultiStep(len(hooks), msg)
 	log.Info(msg)
 
 	for idx, curr := range hooks {
@@ -512,7 +512,7 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 	log.Info(msg)
 
 	log.Debug("Installing bundles: %s", strings.Join(bundles, ", "))
-	if err := sw.OSInstall(version, "Target OS: ", bundles); err != nil {
+	if err := sw.OSInstall(version, swupd.TargetPrefix, bundles); err != nil {
 		// If the swupd command failed to run there wont be a progress
 		// bar, so we need to create a new one that we can fail
 		prg = progress.NewLoop(msg)
@@ -565,7 +565,7 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 		}
 
 		log.Debug("Downloading bundles: %s", strings.Join(offlineBundles, ", "))
-		if err := sw.DownloadBundles(version, "Offline Content: ", offlineBundles); err != nil {
+		if err := sw.DownloadBundles(version, offlineBundles); err != nil {
 			prg = progress.NewLoop(msg)
 			return prg, err
 		}
