@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"strings"
 	"time"
 
 	"github.com/clearlinux/clr-installer/controller"
@@ -8,6 +9,7 @@ import (
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/progress"
+	"github.com/clearlinux/clr-installer/swupd"
 	"github.com/clearlinux/clr-installer/utils"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -123,10 +125,12 @@ func RunNetworkTest(md *model.SystemInstall) error {
 }
 
 // Desc will push a description box into the view for later marking
-func (netDialog *networkTestDialog) Desc(printPrefix, desc string) {
+func (netDialog *networkTestDialog) Desc(desc string) {
 	_, err := glib.IdleAdd(func() {
-		// Ignore printPrefix which is primarily used to separate
-		// mass installer installation steps.
+		// The target prefix is used by the massinstaller to separate target,
+		// offline, and ISO content installs. It is unnecessary for the GUI.
+		desc = strings.TrimPrefix(desc, swupd.TargetPrefix)
+
 		netDialog.label.SetText(desc)
 		netDialog.label.ShowAll()
 	})

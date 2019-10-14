@@ -75,6 +75,12 @@ const (
 	IncorrectMirror = "Mirror not set correctly"
 
 	swupdConfigOverrideDir = "/etc/swupd"
+
+	TargetPrefix = "Target OS: "
+
+	OfflinePrefix = "Offline Content: "
+
+	IsoPrefix = "ISO Initrd: "
 )
 
 var (
@@ -170,10 +176,14 @@ func (m Message) Process(printPrefix, line string) {
 			description = utils.Locale.Get("Installing base OS and configured bundles")
 		}
 
+		// The printPrefix string is used to separate target, offline content,
+		// and ISO installations.
+		description = printPrefix + description
+
 		// create a new instance of the progress bar with the correct description
 		if prgDesc != m.StepDescription {
 			log.Debug("%s: Setting progress for task %s", printPrefix, m.StepDescription)
-			prg = progress.MultiStep(total, printPrefix, description)
+			prg = progress.MultiStep(total, description)
 			prgDesc = m.StepDescription
 		}
 
@@ -185,7 +195,6 @@ func (m Message) Process(printPrefix, line string) {
 			prgDesc = ""
 		}
 	}
-
 }
 
 // IsCoreBundle checks if bundle is in the list of core bundles
@@ -353,7 +362,7 @@ func (s *SoftwareUpdater) OSInstall(version, printPrefix string, bundles []strin
 }
 
 // DownloadBundles downloads the bundle list to the OfflineContentDir within the installer image
-func (s SoftwareUpdater) DownloadBundles(version, printPrefix string, bundles []string) error {
+func (s SoftwareUpdater) DownloadBundles(version string, bundles []string) error {
 	var err error
 
 	s.downloadOnly = true
@@ -372,7 +381,7 @@ func (s SoftwareUpdater) DownloadBundles(version, printPrefix string, bundles []
 	}
 	defer func() { _ = os.RemoveAll(s.rootDir) }()
 
-	return s.OSInstall(version, printPrefix, bundles)
+	return s.OSInstall(version, OfflinePrefix, bundles)
 }
 
 // DisableUpdate executes the "systemctl" to disable auto update operation

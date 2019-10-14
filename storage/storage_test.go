@@ -38,9 +38,7 @@ func (mi *FakeInstall) LoopWaitDuration() time.Duration {
 
 // Desc is part of the implementation for ProgresIface and is used to adjust the progress bar
 // label content
-func (mi *FakeInstall) Desc(printPrefix, desc string) {
-	// Igore the printPrefix which is primarily used to separate mass installer
-	// installation steps.
+func (mi *FakeInstall) Desc(desc string) {
 	mi.prgDesc = desc
 }
 

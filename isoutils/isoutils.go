@@ -165,7 +165,7 @@ func mkInitrd(version string, model *model.SystemInstall, options args.Args) err
 	sw := swupd.New(tmpPaths[clrInitrd], options, model)
 
 	/* Install os-core and os-core-plus (we only need kmod-bin) as initrd */
-	if err := sw.OSInstall(version, "ISO Initrd: ", []string{"os-core-plus"}); err != nil {
+	if err := sw.OSInstall(version, swupd.IsoPrefix, []string{"os-core-plus"}); err != nil {
 		prg = progress.NewLoop(msg)
 		prg.Failure()
 		return err

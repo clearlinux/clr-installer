@@ -6,6 +6,7 @@ package tui
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/VladimirMarkelov/clui"
@@ -15,6 +16,7 @@ import (
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/progress"
+	"github.com/clearlinux/clr-installer/swupd"
 )
 
 // NetworkTestDialog is dialog window use to stop all other
@@ -72,9 +74,11 @@ func (dialog *NetworkTestDialog) Step() {
 }
 
 // Desc is part of the progress.Client implementation and sets the progress bar label
-func (dialog *NetworkTestDialog) Desc(printPrefix, desc string) {
-	// Igore the printPrefix which is primarily used to separate mass installer
-	// installation steps.
+func (dialog *NetworkTestDialog) Desc(desc string) {
+	// The target prefix is used by the massinstaller to separate target, offline, and ISO
+	// content installs. It is unnecessary for the TUI.
+	desc = strings.TrimPrefix(desc, swupd.TargetPrefix)
+
 	dialog.resultLabel.SetTitle(desc)
 	clui.RefreshScreen()
 }

@@ -6,6 +6,7 @@ package pages
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gotk3/gotk3/glib"
@@ -17,6 +18,7 @@ import (
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/network"
 	"github.com/clearlinux/clr-installer/progress"
+	"github.com/clearlinux/clr-installer/swupd"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -220,8 +222,12 @@ func (page *InstallPage) ResetChanges() {
 // Following methods are for the progress.Client API
 
 // Desc will push a description box into the view for later marking
-func (page *InstallPage) Desc(printPrefix, desc string) {
+func (page *InstallPage) Desc(desc string) {
 	_, err := glib.IdleAdd(func() {
+		// The target prefix is used by the massinstaller to separate target,
+		// offline, and ISO content installs. It is unnecessary for the GUI.
+		desc = strings.TrimPrefix(desc, swupd.TargetPrefix)
+
 		fmt.Println(desc)
 
 		// Increment selection

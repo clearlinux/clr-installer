@@ -5,6 +5,7 @@
 package tui
 
 import (
+	"strings"
 	"time"
 
 	"github.com/VladimirMarkelov/clui"
@@ -13,6 +14,7 @@ import (
 	"github.com/clearlinux/clr-installer/controller"
 	"github.com/clearlinux/clr-installer/network"
 	"github.com/clearlinux/clr-installer/progress"
+	"github.com/clearlinux/clr-installer/swupd"
 )
 
 // InstallPage is the Page implementation for installation progress page, it also implements
@@ -66,11 +68,13 @@ func (page *InstallPage) Step() {
 }
 
 // Desc is part of the progress.Client implementation and sets the progress bar label
-func (page *InstallPage) Desc(printPrefix, desc string) {
+func (page *InstallPage) Desc(desc string) {
 	page.prgBar.SetValue(0)
 
-	// Igore the printPrefix which is primarily used to separate mass installer
-	// installation steps.
+	// The target prefix is used by the massinstaller to separate target, offline, and ISO
+	// content installs. It is unnecessary for the TUI.
+	desc = strings.TrimPrefix(desc, swupd.TargetPrefix)
+
 	page.prgLabel.SetTitle(desc)
 	clui.RefreshScreen()
 }

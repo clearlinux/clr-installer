@@ -71,8 +71,8 @@ func (mi *MassInstall) LoopWaitDuration() time.Duration {
 
 // Desc is part of the implementation for ProgresIface and is used to adjust the progress bar
 // label content
-func (mi *MassInstall) Desc(printPrefix, desc string) {
-	mi.prgDesc = strings.Join([]string{printPrefix, desc}, "")
+func (mi *MassInstall) Desc(desc string) {
+	mi.prgDesc = desc
 }
 
 // Partial is part of the progress.Client implementation and sets the progress bar based

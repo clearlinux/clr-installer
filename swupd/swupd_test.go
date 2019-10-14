@@ -5,7 +5,6 @@
 package swupd
 
 import (
-	"strings"
 	"testing"
 	"time"
 
@@ -118,8 +117,8 @@ type MockProgress struct {
 	step        int
 }
 
-func (p *MockProgress) Desc(printPrefix, desc string) {
-	p.description = strings.Join([]string{printPrefix, desc}, "")
+func (p *MockProgress) Desc(desc string) {
+	p.description = desc
 }
 
 func (p *MockProgress) Success() {
