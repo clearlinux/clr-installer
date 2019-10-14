@@ -35,8 +35,6 @@ before_script:
     - docker exec -it clear-test bash -c "swupd info"
       # Debug information
     - docker exec -it clear-test bash -c "set;printenv"
-      # Force restart telemetry
-    - docker exec -it clear-test bash -c "telemctl restart"
       # Debug information to verify restart
     - docker exec -it clear-test bash -c "journalctl|cat"
 
