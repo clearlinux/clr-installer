@@ -118,7 +118,7 @@ func (args *Args) setKernelArgs() (err error) {
 		var ffile string
 
 		if ffile, err = network.FetchRemoteConfigFile(url); err != nil {
-			return err
+			return fmt.Errorf("Failed to download %q: %s", url, err)
 		}
 
 		args.ConfigFile = ffile
