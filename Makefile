@@ -58,7 +58,7 @@ endif
 ifeq ($(IS_GIT_REPO),1)
 # Use the git tag and SHA
 # Standard build case from Git repo
-VERSION=$(shell git describe --tags --always --dirty  --match '[0-9]*.[0-9]*.[0-9]*' --exclude '[0-9]*.[0-9]*.[0-9]*.*[0-9]')
+VERSION=$(shell git describe --tags --always --dirty --match '[0-9]*.[0-9]*.[0-9]*' --exclude '[0-9]*.[0-9]*.[0-9]*.*[0-9]')
 else
 # If VERSION is defined in the environment, use it; otherwise...
 ifeq ($(VERSION),)
@@ -94,16 +94,16 @@ endif
 install: install-tui install-gui
 
 install-common:
-	@install -D -m 644  $(top_srcdir)/themes/clr-installer.theme $(THEME_DIR)/clr-installer.theme
+	@install -D -m 644 $(top_srcdir)/themes/clr-installer.theme $(THEME_DIR)/clr-installer.theme
 	@mkdir -p -m 755 $(LOCALE_DIR)/
-	@cp -rp --no-preserve=ownership  $(top_srcdir)/locale/* $(LOCALE_DIR)/
-	@install -D -m 644  $(top_srcdir)/iso_templates/initrd_init_template $(ISO_TEMPLATE_DIR)/initrd_init_template
-	@install -D -m 644  $(top_srcdir)/iso_templates/isolinux.cfg.template $(ISO_TEMPLATE_DIR)/isolinux.cfg.template
-	@install -D -m 644  $(top_srcdir)/mixer/release-image-config.yaml $(MIXER_TEMPLATE_DIR)/release-image-config.yaml
-	@install -D -m 644  $(top_srcdir)/etc/clr-installer.yaml $(CONFIG_DIR)/clr-installer.yaml
-	@install -D -m 644  $(top_srcdir)/etc/bundles.json $(CONFIG_DIR)/bundles.json
-	@install -D -m 644  $(top_srcdir)/etc/kernels.json $(CONFIG_DIR)/kernels.json
-	@install -D -m 644  $(top_srcdir)/etc/chpasswd $(CONFIG_DIR)/chpasswd
+	@cp -rp --no-preserve=ownership $(top_srcdir)/locale/* $(LOCALE_DIR)/
+	@install -D -m 644 $(top_srcdir)/iso_templates/initrd_init_template $(ISO_TEMPLATE_DIR)/initrd_init_template
+	@install -D -m 644 $(top_srcdir)/iso_templates/isolinux.cfg.template $(ISO_TEMPLATE_DIR)/isolinux.cfg.template
+	@install -D -m 644 $(top_srcdir)/mixer/release-image-config.yaml $(MIXER_TEMPLATE_DIR)/release-image-config.yaml
+	@install -D -m 644 $(top_srcdir)/etc/clr-installer.yaml $(CONFIG_DIR)/clr-installer.yaml
+	@install -D -m 644 $(top_srcdir)/etc/bundles.json $(CONFIG_DIR)/bundles.json
+	@install -D -m 644 $(top_srcdir)/etc/kernels.json $(CONFIG_DIR)/kernels.json
+	@install -D -m 644 $(top_srcdir)/etc/chpasswd $(CONFIG_DIR)/chpasswd
 	@install -D -m 644 $(top_srcdir)/etc/systemd/clr-installer-provision.service $(SYSTEMD_DIR)/clr-installer-provision.service
 
 install-tui: build-tui install-common
