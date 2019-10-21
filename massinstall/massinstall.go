@@ -6,7 +6,6 @@ package massinstall
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/clearlinux/clr-installer/args"
@@ -17,6 +16,11 @@ import (
 	"github.com/clearlinux/clr-installer/progress"
 	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/utils"
+)
+
+const (
+	// rebootDelay is the number of second before automatic reboot
+	rebootDelay = 5
 )
 
 // MassInstall is the frontend implementation for the "mass installer" it also
@@ -116,36 +120,6 @@ func (mi *MassInstall) MustRun(args *args.Args) bool {
 	return args.ConfigFile != "" && (!args.ForceTUI && !args.ForceGUI)
 }
 
-func shouldReboot() (bool, bool, error) {
-	var answer string
-	va := map[string]bool{
-		"y":   true,
-		"yes": true,
-		"n":   false,
-		"no":  false,
-	}
-
-	fmt.Printf("reboot?[Y|n]: ")
-	_, err := fmt.Scanf("%s", &answer)
-	if err != nil {
-		return false, false, err
-	}
-
-	reboot := false
-	valid := false
-	answer = strings.ToLower(answer)
-
-	for k, v := range va {
-		if k == answer {
-			valid = true
-			reboot = v
-			break
-		}
-	}
-
-	return valid, reboot, nil
-}
-
 // Run is part of the Frontend implementation and is the actual entry point for the
 // "mass installer" frontend
 func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args.Args) (bool, error) {
@@ -173,27 +147,17 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 		return false, instError
 	}
 
-	var reboot bool
-
 	if instError != nil {
 		return false, instError
 	} else if md.PostReboot {
-		for {
-			var valid bool
-			var err error
-
-			if valid, reboot, err = shouldReboot(); err != nil {
-				panic(err)
-			}
-
-			if !valid {
-				fmt.Printf("Invalid answer...\n")
-				continue
-			}
-
-			break
+		fmt.Printf("\nSystem will restart -- Control-C to abort!\n\n")
+		fmt.Printf("Rebooting in ...")
+		for i := rebootDelay; i > 0; i-- {
+			fmt.Printf("%d...", i)
+			time.Sleep(time.Second * 1)
 		}
+		fmt.Printf("0\n\n")
 	}
 
-	return reboot, nil
+	return md.PostReboot, nil
 }
