@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/log"
@@ -115,10 +116,53 @@ func (args *Args) setKernelArgs() (err error) {
 	}
 
 	if url != "" {
-		var ffile string
+		networkGood := false
+		downFailCount := 1
 
-		if ffile, err = network.FetchRemoteConfigFile(url); err != nil {
-			return fmt.Errorf("Failed to download %q: %s", url, err)
+		var ffile string
+		msg := fmt.Sprintf("Downloading configuration file %q", url)
+
+		var downloadSleep time.Duration = 0
+		for { // Keep retrying to download configuration file
+			time.Sleep(downloadSleep * time.Second)
+			fmt.Println(msg)
+
+			if ffile, err = network.FetchRemoteConfigFile(url); err != nil {
+				downFailCount++
+				msg = fmt.Sprintf("Downloading configuration file %q [%d]", url, downFailCount)
+				// Try restarting the networking every 10th fail
+				if downFailCount%10 == 0 {
+					networkGood = false
+				}
+
+				failMsg := fmt.Sprintf("Failed to download: %s", err)
+				fmt.Println(failMsg)
+				downloadSleep = 5
+
+				var retrySleep time.Duration = 5
+				for { // Keep retrying to initialize the network
+					if networkGood {
+						break
+					}
+
+					time.Sleep(retrySleep * time.Second)
+
+					fmt.Println("Checking network....")
+
+					// Restart networking if we failed
+					// The likely gain is restarting pacdiscovery to fix autoproxy
+					if err := network.Restart(); err != nil {
+						log.Warning("Network restart failed")
+						fmt.Println("Warning: Network restart failed!")
+						retrySleep = 10
+					} else {
+						networkGood = true
+						break
+					}
+				}
+			} else {
+				break
+			}
 		}
 
 		args.ConfigFile = ffile
