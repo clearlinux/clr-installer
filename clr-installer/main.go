@@ -426,6 +426,7 @@ func execute(options args.Args) error {
 	signal.Reset()
 
 	if options.Reboot && installReboot {
+		_ = lock.Unlock()
 		if err := cmd.RunAndLog("reboot"); err != nil {
 			if errLog := md.Telemetry.LogRecord("reboot", 1, err.Error()); errLog != nil {
 				log.Error("Failed to log Telemetry fail record: reboot")
