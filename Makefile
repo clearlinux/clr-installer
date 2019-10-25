@@ -9,7 +9,7 @@ build_dir = $(top_srcdir)/build
 build_bin_dir = $(build_dir)/bin
 pkg_dir = $(top_srcdir)
 cov_dir = $(top_srcdir)/.coverage
-
+runuid := $(shell id -u)
 nproc = $(shell nproc)
 orig_go_path = $(shell go env GOPATH)
 
@@ -24,6 +24,10 @@ endif
 export GOPATH=$(pkg_dir)
 export GO_PACKAGE_PREFIX := github.com/clearlinux/clr-installer
 export TESTS_DIR := $(top_srcdir)/tests/
+export BASEBUILD_DIR := $(shell mktemp --dir --dry-run)
+export BASEIMGNAME := baseline
+export BASEIMG := $(TESTS_DIR)/$(BASEIMGNAME)
+export BASEIMGLOG := $(BASEBUILD_DIR)/$(BASEIMGNAME).log
 export TRAVIS_CONF = $(top_srcdir)/.travis.yml
 export UPDATE_COVERAGE = 1
 
@@ -191,6 +195,30 @@ check: gopath bundle-check
 		diff -Nr /tmp/beforels /tmp/afterls; \
 		/bin/false ; \
 	fi; \
+
+check-image: gopath build-tui
+	@if [ "${runuid}" != "0" ] ; then \
+		echo "check-image needs to be run as root; please use 'sudo'"; \
+		/bin/false; \
+	fi
+	@mkdir -p ${BASEBUILD_DIR}
+	cd ${BASEBUILD_DIR} ; ${LOCAL_GOPATH}/bin/clr-installer-tui --config ${BASEIMG}.yaml --log-file ${BASEIMGLOG}
+	@if [ ! -f "$(BASEBUILD_DIR)/${BASEIMGNAME}.iso" ] ; then \
+		echo "Test Failed: Missing ${BASEIMGNAME}.iso"; \
+		/bin/false; \
+	fi
+	@if [ ! -f "$(BASEBUILD_DIR)/${BASEIMGNAME}.img" ] ; then \
+		echo "Test Failed: Missing ${BASEIMGNAME}.img"; \
+		/bin/false; \
+	fi
+	@cd ${top_srcdir}
+	@if [ -z "${NO_CLEANUP}" ] ; then \
+		/bin/rm -rf ${BASEBUILD_DIR}; \
+	else \
+		echo "${BASEIMGNAME} results remain in ${BASEBUILD_DIR}"; \
+		/bin/ls ${BASEBUILD_DIR}; \
+	fi
+	@echo "consider running 'sudo make clean' to remove the files built as root"
 
 check-clean: gopath
 	go clean -testcache
