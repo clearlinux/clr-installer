@@ -1,0 +1,52 @@
+#clear-linux-config
+
+# c-basic-offset: 2; tab-width: 2; indent-tabs-mode: nil
+# vi: set shiftwidth=2 tabstop=2 expandtab:
+# :indentSize=2:tabSize=2:noTabs=true:
+
+# File:         release-image-config.yaml
+# Use Case:     Mixer default image template
+
+block-devices: [{name: release, file: release.img}]
+targetMedia:
+- name: ${release}
+  type: disk
+  children:
+  - name: ${release}1
+    fstype: vfat
+    mountpoint: /boot
+    size: "32M"
+    type: part
+  - name: ${release}2
+    fstype: swap
+    size: "16M"
+    type: part
+  - name: ${release}3
+    fstype: ext4
+    mountpoint: /
+    size: "10G"
+    type: part
+
+keyboard: us
+language: en_US.UTF-8
+
+bundles: [os-core, os-core-update]
+kernel: kernel-native
+
+telemetry: false
+autoUpdate: false
+iso: true
+keepImage: true
+
+#
+# Editor modelines  -  https://www.wireshark.org/tools/modelines.html
+#
+# Local variables:
+# c-basic-offset: 2
+# tab-width: 2
+# indent-tabs-mode: nil
+# End:
+#
+# vi: set shiftwidth=2 tabstop=2 expandtab:
+# :indentSize=2:tabSize=2:noTabs=true:
+#
