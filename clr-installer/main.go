@@ -349,20 +349,34 @@ func execute(options args.Args) error {
 		}
 	}
 
+	// The kbd bundle is an also-add and may be removed
 	if md.Keyboard != nil && !keyboard.IsValidKeyboard(md.Keyboard) {
-		return fmt.Errorf("Invalid Keyboard '%s'", md.Keyboard.Code)
+		msg := fmt.Sprintf("Warning: Host failed to validate keyboard: %s, using %s",
+			md.Keyboard.Code,
+			keyboard.DefaultKeyboard)
+
+		fmt.Println(msg)
+		log.Warning(msg)
+		md.Keyboard.Code = keyboard.DefaultKeyboard
 	}
 
 	if md.Timezone != nil && !timezone.IsValidTimezone(md.Timezone) {
 		return fmt.Errorf("Invalid Time Zone '%s'", md.Timezone.Code)
 	}
 
+	// The glibc-locale bundle is an also-add and may be removed
 	if md.Language != nil && !language.IsValidLanguage(md.Language) {
-		return fmt.Errorf("Invalid Language '%s'", md.Language.Code)
-	}
+		msg := fmt.Sprintf("Warning: Host failed to validate language: %s, using %s",
+			md.Language.Code,
+			language.DefaultLanguage)
 
-	// Set locale
-	utils.SetLocale(md.Language.Code)
+		fmt.Println(msg)
+		log.Warning(msg)
+		md.Language.Code = language.DefaultLanguage
+	} else {
+		// Set locale
+		utils.SetLocale(md.Language.Code)
+	}
 
 	// Run system check and exit
 	if options.SystemCheck {
