@@ -52,6 +52,8 @@ type Args struct {
 	AllowInsecureHTTP       bool
 	AllowInsecureHTTPSet    bool
 	CryptPassFile           string
+	SwupdSkipOptional       bool
+	SwupdSkipOptionalSet    bool
 	SwupdMirror             string
 	SwupdStateDir           string
 	SwupdCertPath           string
@@ -261,6 +263,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 	)
 
 	flag.BoolVar(
+		&args.SwupdSkipOptional, "swupd-skip-optional", false, "Swupd --skip-optional; don't install optionally included bundles",
+	)
+
+	flag.BoolVar(
 		&args.Archive, "archive", true, "Archive data to target after finishing",
 	)
 
@@ -346,6 +352,13 @@ func (args *Args) setCommandLineArgs() (err error) {
 	if fflag != nil {
 		if fflag.Changed {
 			args.AllowInsecureHTTPSet = true
+		}
+	}
+
+	fflag = flag.Lookup("swupd-skip-optional")
+	if fflag != nil {
+		if fflag.Changed {
+			args.SwupdSkipOptionalSet = true
 		}
 	}
 

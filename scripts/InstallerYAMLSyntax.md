@@ -124,6 +124,7 @@ Item | Description | Default
 `version` | Version of Clear Linux OS to install | `-LATEST_VERSION-`
 `swupdFormat` | swupd format to use for the installation. | `-FORMART_ON_BUILD_SYSTEM-`
 `swupdMirror` | URL of the swupd stream to use. Useful for installing from a local mirror or from a locally published mix. | `-UNDEFINED-`
+`swupdSkipOptional` | Don't install optionally included bundles; true or false | false
 `autoUpdate` | Should the system automatically update to the latest release of Clear Linux OS as part of the installation?; true or false | true
 `offline` | Install update content for minimal offline installation | false
 `postReboot` | Should the system reboot after the installation completes?; true or false | true

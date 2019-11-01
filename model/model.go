@@ -66,6 +66,7 @@ type SystemInstall struct {
 	PostReboot        bool                             `yaml:"postReboot,omitempty,flow"`
 	SwupdMirror       string                           `yaml:"swupdMirror,omitempty,flow"`
 	AllowInsecureHTTP bool                             `yaml:"AllowInsecureHTTP,omitempty,flow"`
+	SwupdSkipOptional bool                             `yaml:"swupdSkipOptional,omitempty,flow"`
 	PostArchive       bool                             `yaml:"postArchive,omitempty,flow"`
 	Hostname          string                           `yaml:"hostname,omitempty,flow"`
 	AutoUpdate        bool                             `yaml:"autoUpdate,flow"`

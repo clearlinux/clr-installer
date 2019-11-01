@@ -290,6 +290,9 @@ func execute(options args.Args) error {
 	if options.SwupdFormat != "" {
 		md.SwupdFormat = options.SwupdFormat
 	}
+	if options.SwupdSkipOptionalSet {
+		md.SwupdSkipOptional = options.SwupdSkipOptional
+	}
 	if options.SwupdVersion != "" {
 		if strings.EqualFold(options.SwupdVersion, "latest") {
 			md.Version = 0
