@@ -320,7 +320,39 @@ func (args *Args) setCommandLineArgs() (err error) {
 		_ = os.Remove(saveConfigFile)
 	}
 
-	fflag = flag.Lookup("telemetry")
+	// Determine whether boolean command line arguments were set or not
+	args.setBoolFlagCheck()
+
+	if (args.TelemetryURL != "" && args.TelemetryTID == "") ||
+		(args.TelemetryURL == "" && args.TelemetryTID != "") {
+		return errors.New("Telemetry requires both --telemetry-url and --telemetry-tid")
+	}
+
+	if args.SwupdURL != "" {
+		if args.SwupdMirror != "" {
+			return errors.New("--swupd-url and --swupd-mirror are mutually exclusive")
+		}
+
+		if args.SwupdContentURL == "" {
+			args.SwupdContentURL = args.SwupdURL
+		} else {
+			fmt.Printf("Warning: --swupd-contenturl overrides --swupd-url\n")
+		}
+
+		if args.SwupdVersionURL == "" {
+			args.SwupdVersionURL = args.SwupdURL
+		} else {
+			fmt.Printf("Warning: --swupd-versionurl overrides --swupd-url\n")
+		}
+	}
+
+	return nil
+}
+
+// setBoolFlagCheck determines whether or not boolean arguments were set on
+// the command line
+func (args *Args) setBoolFlagCheck() {
+	fflag := flag.Lookup("telemetry")
 	if fflag != nil {
 		if fflag.Changed {
 			args.TelemetrySet = true
@@ -381,31 +413,6 @@ func (args *Args) setCommandLineArgs() (err error) {
 			args.KeepImageSet = true
 		}
 	}
-
-	if (args.TelemetryURL != "" && args.TelemetryTID == "") ||
-		(args.TelemetryURL == "" && args.TelemetryTID != "") {
-		return errors.New("Telemetry requires both --telemetry-url and --telemetry-tid")
-	}
-
-	if args.SwupdURL != "" {
-		if args.SwupdMirror != "" {
-			return errors.New("--swupd-url and --swupd-mirror are mutually exclusive")
-		}
-
-		if args.SwupdContentURL == "" {
-			args.SwupdContentURL = args.SwupdURL
-		} else {
-			fmt.Printf("Warning: --swupd-contenturl overrides --swupd-url\n")
-		}
-
-		if args.SwupdVersionURL == "" {
-			args.SwupdVersionURL = args.SwupdURL
-		} else {
-			fmt.Printf("Warning: --swupd-versionurl overrides --swupd-url\n")
-		}
-	}
-
-	return nil
 }
 
 // ParseArgs will both parse the command line arguments to the program
