@@ -434,6 +434,9 @@ func TestKernelAndCommandlineAllArgs(t *testing.T) {
 	if testArgs.SwupdMirror != "" {
 		t.Errorf("Command Line 'mirror' is not defaulted to ''")
 	}
+	if testArgs.SwupdSkipOptional != false {
+		t.Errorf("Command Line '--swupd-skip-optional' is not defaulted to 'false'")
+	}
 	if testArgs.SwupdVersion != "" {
 		t.Errorf("Command Line 'swupd-version' is not defaulted to ''")
 	}

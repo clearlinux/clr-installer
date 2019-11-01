@@ -107,6 +107,7 @@ type SoftwareUpdater struct {
 	downloadOnly       bool
 	skipDiskSpaceCheck bool
 	allowInsecureHTTP  bool
+	skipOptional       bool
 }
 
 // Bundle maps a map name and description with the actual checkbox
@@ -265,6 +266,7 @@ func New(rootDir string, options args.Args, model *model.SystemInstall) *Softwar
 		downloadOnly,
 		options.SwupdSkipDiskSpaceCheck,
 		model.AllowInsecureHTTP,
+		model.SwupdSkipOptional,
 	}
 }
 
@@ -283,6 +285,10 @@ func (s *SoftwareUpdater) setExtraFlags(args []string) []string {
 
 	if s.format != "" {
 		args = append(args, fmt.Sprintf("--format=%s", s.format))
+	}
+
+	if s.skipOptional {
+		args = append(args, "--skip-optional")
 	}
 
 	if s.stateDirCache != "" {
