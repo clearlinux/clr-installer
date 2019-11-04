@@ -589,6 +589,7 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 	args := []string{
 		fmt.Sprintf("%s/usr/bin/clr-boot-manager", rootDir),
 		"update",
+		"--image",
 		fmt.Sprintf("--path=%s", rootDir),
 	}
 
