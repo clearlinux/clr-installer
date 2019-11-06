@@ -104,6 +104,7 @@ install-common:
 	@install -D -m 644  $(top_srcdir)/etc/bundles.json $(CONFIG_DIR)/bundles.json
 	@install -D -m 644  $(top_srcdir)/etc/kernels.json $(CONFIG_DIR)/kernels.json
 	@install -D -m 644  $(top_srcdir)/etc/chpasswd $(CONFIG_DIR)/chpasswd
+	@install -D -m 644 $(top_srcdir)/etc/systemd/clr-installer-provision.service $(SYSTEMD_DIR)/clr-installer-provision.service
 
 install-tui: build-tui install-common
 	@install -D -m 755 $(top_srcdir)/.gopath/bin/clr-installer-tui $(DESTDIR)/usr/bin/clr-installer
@@ -130,6 +131,7 @@ uninstall:
 	@rm -f $(DESKTOP_DIR)/clr-installer-gui.desktop
 	@rm -f $(CONFIG_DIR)/chpasswd
 	@rm -f $(DESTDIR)/var/lib/clr-installer/clr-installer.yaml
+	@rm -f $(SYSTEMD_DIR)/clr-installer-provision.service
 
 build-pkgs: build
 	@for pkg in `find -path ./vendor -prune -o -path ./.gopath -prune -o -name "*.go" \

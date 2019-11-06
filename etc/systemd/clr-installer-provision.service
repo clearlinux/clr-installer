@@ -1,0 +1,29 @@
+# Copyright 2019 Intel Corporation
+#
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# The kernel command line needs to provide:
+# 1. URL to the clr-installer YAML configuration file
+#    i.e. clri.descriptor=http://server.com/path/file.yaml
+# 2. Provide the default console device for the hardware
+#    i.e. console=tty1
+#
+# Note: To disable via kernel command line add to the boot command:
+#    systemd.mask=clr-installer-provision.service
+#
+[Unit]
+Description=Clear Linux OS Installer
+After=systemd-user-sessions.service plymouth-quit.service getty@tty1.service
+Conflicts=getty@tty1.service getty@tty0.service serial-getty@ttyS0.service
+
+[Service]
+Type=oneshot
+ExecStartPre=-/bin/bash -l -c '/usr/bin/sleep 10 && /usr/bin/cat /etc/issue'
+ExecStart=/bin/bash -l -c 'until /usr/bin/clr-installer ; do echo "clr-installer failed...retying"; sleep 5 ; done ; /usr/bin/reboot'
+StandardInput=tty
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/console
+
+[Install]
+WantedBy=multi-user.target
