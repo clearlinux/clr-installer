@@ -479,6 +479,21 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 
 	sw := swupd.New(rootDir, options, md)
 
+	// Currently, ISO image generation supports only a single kernel.
+	// Hence, skip ISO generation if multiple kernel bundles are present.
+	// TODO: Remove this logic when ISO generation supports multiple kernels.
+	if md.MakeISO {
+		for _, curr := range md.Bundles {
+			if strings.HasPrefix(curr, "kernel-") {
+				msg := "ISO image generation supports only a single kernel. Setting ISO generation to false.\n"
+				log.Warning(msg)
+				fmt.Printf("Warning: %s", msg)
+				md.MakeISO = false
+				break
+			}
+		}
+	}
+
 	bundles := md.Bundles
 
 	if md.Kernel.Bundle != "none" {
