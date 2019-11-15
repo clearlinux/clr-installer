@@ -77,6 +77,7 @@ func TestLoadFile(t *testing.T) {
 		{"installer-config.json", true},
 		{"installer-config-vm.json", true},
 		{"ister.json", true},
+		{"kernels.json", true},
 		{"valid-ister-full-virtual.json", true},
 		{"valid-ister-full-physical.json", true},
 		{"invalid-ister-basic-descriptor.json", false},
