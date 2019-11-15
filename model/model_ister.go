@@ -214,16 +214,9 @@ func JSONtoYAMLConfig(cf string) (string, error) {
 		si.Version = 0
 	}
 
-	// Remove the first occurrence of a kernel bundle and set it as the Kernel
-	for _, curr := range ic.Bundles {
-		if strings.HasPrefix(curr, "kernel-") {
-			if si.Kernel == nil {
-				si.Kernel = &kernel.Kernel{Bundle: curr}
-				continue
-			}
-		}
-		si.Bundles = append(si.Bundles, curr) // Set Bundles
-	}
+	// Process the bundle information
+	// clr-installer treats the kernel differently unlike ister
+	si.OverrideBundles(ic.Bundles)
 
 	// Set Users
 	for _, curr := range ic.Users {

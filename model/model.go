@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -238,6 +239,38 @@ func (si *SystemInstall) AddUserBundle(bundle string) {
 	}
 
 	si.UserBundles = append([]string{bundle}, si.UserBundles...)
+}
+
+// OverrideBundles replaces the current bundles with the override list
+// Sets the kernel to one of the kernel bundles, the rest remain in the list
+func (si *SystemInstall) OverrideBundles(overrideBundles []string) {
+	var kernelBundles []string
+	si.Bundles = []string{} // Clear any existing bundles
+
+	for _, bundle := range overrideBundles {
+		if strings.HasPrefix(bundle, "kernel-") {
+			kernelBundles = append(kernelBundles, bundle)
+			continue
+		}
+		si.Bundles = append(si.Bundles, bundle) // Set Bundles
+	}
+
+	// Sort the kernels as we want one that had the CDROM loadable
+	// kernel modules by default: native or LTS
+	sort.Sort(sort.Reverse(sort.StringSlice(kernelBundles)))
+
+	var foundKernel bool
+	for _, bundle := range kernelBundles {
+		// Only use the first kernel bundle
+		if !foundKernel {
+			foundKernel = true
+			si.Kernel = &kernel.Kernel{Bundle: bundle}
+		} else {
+			si.Bundles = append(si.Bundles, bundle) // Add extra kernel bundles
+			fmt.Printf("WARNING: Extra kernel bundle '%s' detected; '%s' already in use.\n",
+				bundle, si.Kernel.Bundle)
+		}
+	}
 }
 
 // RemoveAllUsers remove from the data model all previously added user
