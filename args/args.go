@@ -78,6 +78,7 @@ type Args struct {
 	Archive                 bool
 	ArchiveSet              bool
 	DemoMode                bool
+	Bundles                 []string
 	BlockDevices            []string
 	StubImage               bool
 	ConvertConfigFile       string
@@ -209,6 +210,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.BoolVar(
 		&args.ForceGUI, "gui", false, "Use GUI frontend",
+	)
+
+	flag.StringSliceVarP(
+		&args.Bundles, "bundles", "B", args.Bundles, "Comma-separated list of bundles to install",
 	)
 
 	flag.StringSliceVarP(
@@ -376,7 +381,7 @@ func (args *Args) setCommandLineArgs() (err error) {
 	}
 
 	// Determine whether boolean command line arguments were set or not
-	args.setBoolFlagCheck()
+	args.setBoolFlagCheck(flag)
 
 	if (args.TelemetryURL != "" && args.TelemetryTID == "") ||
 		(args.TelemetryURL == "" && args.TelemetryTID != "") {
@@ -406,63 +411,63 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 // setBoolFlagCheck determines whether or not boolean arguments were set on
 // the command line
-func (args *Args) setBoolFlagCheck() {
-	fflag := spflag.Lookup("telemetry")
+func (args *Args) setBoolFlagCheck(flag *spflag.FlagSet) {
+	fflag := flag.Lookup("telemetry")
 	if fflag != nil {
 		if fflag.Changed {
 			args.TelemetrySet = true
 		}
 	}
 
-	fflag = spflag.Lookup("reboot")
+	fflag = flag.Lookup("reboot")
 	if fflag != nil {
 		if fflag.Changed {
 			args.RebootSet = true
 		}
 	}
 
-	fflag = spflag.Lookup("offline")
+	fflag = flag.Lookup("offline")
 	if fflag != nil {
 		if fflag.Changed {
 			args.OfflineSet = true
 		}
 	}
 
-	fflag = spflag.Lookup("cfPurge")
+	fflag = flag.Lookup("cfPurge")
 	if fflag != nil {
 		if fflag.Changed {
 			args.CfPurgeSet = true
 		}
 	}
 
-	fflag = spflag.Lookup("allow-insecure-http")
+	fflag = flag.Lookup("allow-insecure-http")
 	if fflag != nil {
 		if fflag.Changed {
 			args.AllowInsecureHTTPSet = true
 		}
 	}
 
-	fflag = spflag.Lookup("swupd-skip-optional")
+	fflag = flag.Lookup("swupd-skip-optional")
 	if fflag != nil {
 		if fflag.Changed {
 			args.SwupdSkipOptionalSet = true
 		}
 	}
 
-	fflag = spflag.Lookup("archive")
+	fflag = flag.Lookup("archive")
 	if fflag != nil {
 		if fflag.Changed {
 			args.ArchiveSet = true
 		}
 	}
 
-	fflag = spflag.Lookup("iso")
+	fflag = flag.Lookup("iso")
 	if fflag != nil {
 		if fflag.Changed {
 			args.MakeISOSet = true
 		}
 	}
-	fflag = spflag.Lookup("keep-image")
+	fflag = flag.Lookup("keep-image")
 	if fflag != nil {
 		if fflag.Changed {
 			args.KeepImageSet = true
