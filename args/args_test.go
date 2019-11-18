@@ -376,6 +376,144 @@ func TestKernelCmdConfEmpty(t *testing.T) {
 	}
 }
 
+func TestConvertArg(t *testing.T) {
+	var testArgs Args
+
+	currArgs := make([]string, len(os.Args))
+	copy(currArgs, os.Args)
+
+	os.Args = []string{currArgs[0], currArgs[1], currArgs[2], "--json-yaml", "fubar.json"}
+	t.Logf("Current os.Args: %v", os.Args)
+
+	err := testArgs.setCommandLineArgs()
+
+	os.Args = currArgs
+	if err != nil {
+		t.Fatal("Failed to parse arguments")
+	}
+	t.Logf("testArgs.ConvertConfigFile: %s", testArgs.ConvertConfigFile)
+	if testArgs.ConvertConfigFile != "fubar.json" {
+		t.Fatal("Failed to parse config file for --json-yaml")
+	}
+}
+
+func TestTemplateArg(t *testing.T) {
+	var testArgs Args
+
+	currArgs := make([]string, len(os.Args))
+	copy(currArgs, os.Args)
+
+	_ = os.Setenv(logFileEnvironVar, "/tmp/fubar.log")
+
+	os.Args = []string{currArgs[0], currArgs[1], currArgs[2], "--template", "fubar.yaml"}
+	t.Logf("Current os.Args: %v", os.Args)
+
+	err := testArgs.setCommandLineArgs()
+
+	os.Args = currArgs
+	if err != nil {
+		t.Fatal("Failed to parse arguments")
+	}
+	t.Logf("testArgs.TemplateConfigFile: %s", testArgs.TemplateConfigFile)
+	if testArgs.TemplateConfigFile != "fubar.yaml" {
+		t.Fatal("Failed to parse config file for --template")
+	}
+}
+
+func TestSwupdUrlMirrorFailArg(t *testing.T) {
+	var testArgs Args
+
+	currArgs := make([]string, len(os.Args))
+	copy(currArgs, os.Args)
+
+	os.Args = []string{currArgs[0], currArgs[1], currArgs[2],
+		"--swupd-url", "https://cdn.download.clearlinux.org/update/",
+		"--swupd-mirror", "https://cdn.download.clearlinux.org/update/",
+	}
+	t.Logf("Current os.Args: %v", os.Args)
+
+	err := testArgs.setCommandLineArgs()
+	os.Args = currArgs
+	if err == nil {
+		t.Fatal("Should have failed to parse arguments")
+	}
+}
+func TestSwupdUrlContentArg(t *testing.T) {
+	var testArgs Args
+
+	currArgs := make([]string, len(os.Args))
+	copy(currArgs, os.Args)
+
+	os.Args = []string{currArgs[0], currArgs[1], currArgs[2],
+		"--swupd-url", "https://cdn.download.clearlinux.org/update/",
+		"--swupd-contenturl", "https://cdn.download.clearlinux.org/update/",
+	}
+	t.Logf("Current os.Args: %v", os.Args)
+
+	err := testArgs.setCommandLineArgs()
+	os.Args = currArgs
+	if err != nil {
+		t.Fatalf("Failed to parse arguments: %v", err)
+	}
+}
+func TestSwupdUrlVersionArg(t *testing.T) {
+	var testArgs Args
+
+	currArgs := make([]string, len(os.Args))
+	copy(currArgs, os.Args)
+
+	os.Args = []string{currArgs[0], currArgs[1], currArgs[2],
+		"--swupd-url", "https://cdn.download.clearlinux.org/update/",
+		"--swupd-versionurl", "https://cdn.download.clearlinux.org/update/",
+	}
+	t.Logf("Current os.Args: %v", os.Args)
+
+	err := testArgs.setCommandLineArgs()
+	os.Args = currArgs
+	if err != nil {
+		t.Fatalf("Failed to parse arguments: %v", err)
+	}
+}
+
+func TestCheckAllBooleans(t *testing.T) {
+	var testArgs Args
+
+	currArgs := make([]string, len(os.Args))
+	copy(currArgs, os.Args)
+
+	os.Args = []string{currArgs[0], currArgs[1], currArgs[2],
+		"--demo", "--telemetry", "--reboot",
+		"--iso", "--keep-image", "--allow-insecure-http", "--offline",
+		"--cfPurge", "--swupd-skip-optional", "--archive",
+	}
+	t.Logf("Current os.Args: %v", os.Args)
+
+	err := testArgs.setCommandLineArgs()
+	os.Args = currArgs
+	if err != nil {
+		t.Fatalf("Failed to parse arguments: %v", err)
+	}
+}
+func TestCheckAllBooleansFalse(t *testing.T) {
+	var testArgs Args
+
+	currArgs := make([]string, len(os.Args))
+	copy(currArgs, os.Args)
+
+	os.Args = []string{currArgs[0], currArgs[1], currArgs[2],
+		"--demo=0", "--telemetry=0", "--reboot=0",
+		"--iso=0", "--keep-image=0", "--allow-insecure-http=0", "--offline=0",
+		"--cfPurge=0", "--swupd-skip-optional=0", "--archive=0",
+	}
+	t.Logf("Current os.Args: %v", os.Args)
+
+	err := testArgs.setCommandLineArgs()
+	os.Args = currArgs
+	if err != nil {
+		t.Fatalf("Failed to parse arguments: %v", err)
+	}
+}
+
 func TestKernelAndCommandlineAllArgs(t *testing.T) {
 
 	var testArgs Args

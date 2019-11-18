@@ -16,6 +16,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/user"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -24,7 +25,7 @@ import (
 	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/network"
-	flag "github.com/spf13/pflag"
+	spflag "github.com/spf13/pflag"
 )
 
 const (
@@ -80,6 +81,7 @@ type Args struct {
 	BlockDevices            []string
 	StubImage               bool
 	ConvertConfigFile       string
+	TemplateConfigFile      string
 	MakeISO                 bool
 	MakeISOSet              bool
 	KeepImage               bool
@@ -183,6 +185,8 @@ func (args *Args) readKernelCmd() (string, error) {
 }
 
 func (args *Args) setCommandLineArgs() (err error) {
+	flag := spflag.NewFlagSet(path.Base(os.Args[0]), spflag.ExitOnError)
+
 	flag.BoolVarP(
 		&args.Version, "version", "v", false, "Version of the Installer",
 	)
@@ -277,6 +281,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 		&args.ConvertConfigFile, "json-yaml", "j", args.ConvertConfigFile, "Converts ister JSON config to clr-installer YAML config",
 	)
 
+	flag.StringVarP(
+		&args.TemplateConfigFile, "template", "T", args.TemplateConfigFile, "Generates a template clr-installer YAML config file",
+	)
+
 	flag.StringVar(
 		&args.TelemetryURL, "telemetry-url", args.TelemetryURL, "Telemetry server URL",
 	)
@@ -355,10 +363,13 @@ func (args *Args) setCommandLineArgs() (err error) {
 		&args.CopyNetwork, "copy-network", true, "Copy the network interface configuration files to target",
 	)
 
-	flag.ErrHelp = errors.New("Clear Linux Installer program")
+	spflag.ErrHelp = errors.New("Clear Linux Installer program")
 
 	saveConfigFile := args.ConfigFile
-	flag.Parse()
+	if err := flag.Parse(os.Args); err != nil {
+		return fmt.Errorf("Failed to parse command line: %v", err)
+	}
+
 	// If we have a downloaded file, but it is overridden by command line, remove the tempfile
 	if args.CfDownloaded && args.ConfigFile != saveConfigFile {
 		_ = os.Remove(saveConfigFile)
@@ -396,62 +407,62 @@ func (args *Args) setCommandLineArgs() (err error) {
 // setBoolFlagCheck determines whether or not boolean arguments were set on
 // the command line
 func (args *Args) setBoolFlagCheck() {
-	fflag := flag.Lookup("telemetry")
+	fflag := spflag.Lookup("telemetry")
 	if fflag != nil {
 		if fflag.Changed {
 			args.TelemetrySet = true
 		}
 	}
 
-	fflag = flag.Lookup("reboot")
+	fflag = spflag.Lookup("reboot")
 	if fflag != nil {
 		if fflag.Changed {
 			args.RebootSet = true
 		}
 	}
 
-	fflag = flag.Lookup("offline")
+	fflag = spflag.Lookup("offline")
 	if fflag != nil {
 		if fflag.Changed {
 			args.OfflineSet = true
 		}
 	}
 
-	fflag = flag.Lookup("cfPurge")
+	fflag = spflag.Lookup("cfPurge")
 	if fflag != nil {
 		if fflag.Changed {
 			args.CfPurgeSet = true
 		}
 	}
 
-	fflag = flag.Lookup("allow-insecure-http")
+	fflag = spflag.Lookup("allow-insecure-http")
 	if fflag != nil {
 		if fflag.Changed {
 			args.AllowInsecureHTTPSet = true
 		}
 	}
 
-	fflag = flag.Lookup("swupd-skip-optional")
+	fflag = spflag.Lookup("swupd-skip-optional")
 	if fflag != nil {
 		if fflag.Changed {
 			args.SwupdSkipOptionalSet = true
 		}
 	}
 
-	fflag = flag.Lookup("archive")
+	fflag = spflag.Lookup("archive")
 	if fflag != nil {
 		if fflag.Changed {
 			args.ArchiveSet = true
 		}
 	}
 
-	fflag = flag.Lookup("iso")
+	fflag = spflag.Lookup("iso")
 	if fflag != nil {
 		if fflag.Changed {
 			args.MakeISOSet = true
 		}
 	}
-	fflag = flag.Lookup("keep-image")
+	fflag = spflag.Lookup("keep-image")
 	if fflag != nil {
 		if fflag.Changed {
 			args.KeepImageSet = true
