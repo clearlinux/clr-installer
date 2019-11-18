@@ -397,6 +397,27 @@ func TestConvertArg(t *testing.T) {
 	}
 }
 
+func TestBundleArg(t *testing.T) {
+	var testArgs Args
+
+	currArgs := make([]string, len(os.Args))
+	copy(currArgs, os.Args)
+
+	os.Args = []string{currArgs[0], currArgs[1], currArgs[2], "--bundles", "os-core,os-core-update"}
+	t.Logf("Current os.Args: %v", os.Args)
+
+	err := testArgs.setCommandLineArgs()
+
+	os.Args = currArgs
+	if err != nil {
+		t.Fatal("Failed to parse arguments")
+	}
+	t.Logf("testArgs.Bundles: %v", testArgs.Bundles)
+	if len(testArgs.Bundles) != 2 {
+		t.Fatal("Failed to parse bundles")
+	}
+}
+
 func TestTemplateArg(t *testing.T) {
 	var testArgs Args
 

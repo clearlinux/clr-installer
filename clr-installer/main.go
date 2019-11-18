@@ -273,6 +273,11 @@ func execute(options args.Args) error {
 		md.KeepImage = true
 	}
 
+	if len(options.Bundles) > 0 {
+		md.OverrideBundles(options.Bundles)
+		log.Info("Overriding bundle list from command line: %s", strings.Join(md.Bundles, ", "))
+	}
+
 	if options.TemplateConfigFile != "" {
 		if filepath.Ext(options.TemplateConfigFile) == ".yaml" {
 			md.StorageAlias = append(md.StorageAlias, &model.StorageAlias{Name: "release", File: "release.img"})
