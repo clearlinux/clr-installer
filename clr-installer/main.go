@@ -30,6 +30,7 @@ import (
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/network"
+	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/swupd"
 	"github.com/clearlinux/clr-installer/syscheck"
 	"github.com/clearlinux/clr-installer/telemetry"
@@ -151,6 +152,10 @@ func execute(options args.Args) error {
 		return nil
 	}
 
+	if options.ConvertConfigFile != "" && options.TemplateConfigFile != "" {
+		return errors.Errorf("Options --json-yaml and --template are mutually exclusive.")
+	}
+
 	if options.ConvertConfigFile != "" {
 		if filepath.Ext(options.ConvertConfigFile) == ".json" {
 			_, err := model.JSONtoYAMLConfig(options.ConvertConfigFile)
@@ -159,6 +164,126 @@ func execute(options args.Args) error {
 			}
 		} else {
 			return errors.Errorf("Config file '%s' must end in '.json'", options.ConvertConfigFile)
+		}
+		return nil
+	}
+
+	var md *model.SystemInstall
+	cf := options.ConfigFile
+
+	if options.ConfigFile == "" {
+		if cf, err = conf.LookupDefaultConfig(); err != nil {
+			return err
+		}
+	} else if network.IsValidURI(options.ConfigFile, options.AllowInsecureHTTP) {
+		if cf, err = network.FetchRemoteConfigFile(options.ConfigFile); err != nil {
+			fmt.Printf("Cannot access configuration file %q: %s\n", options.ConfigFile, err)
+			return err
+		}
+		options.CfDownloaded = true
+	} else if ok, err := utils.FileExists(options.ConfigFile); !ok || err != nil {
+		return errors.Errorf("Cannot access configuration file %q", options.ConfigFile)
+	}
+
+	if options.CfDownloaded {
+		defer func() { _ = os.Remove(cf) }()
+	}
+
+	if filepath.Ext(cf) == ".json" {
+		cf, err = model.JSONtoYAMLConfig(cf)
+		if err != nil {
+			return err
+		}
+	}
+
+	log.Debug("Loading config file: %s", cf)
+	if md, err = model.LoadFile(cf, options); err != nil {
+		return err
+	}
+	md.ClearInstallSelected()
+
+	if options.CfPurgeSet && options.CfPurge {
+		defer func() { _ = os.Remove(cf) }()
+		md.ClearCfFile = cf
+	}
+
+	if options.CryptPassFile != "" {
+		content, cryptErr := ioutil.ReadFile(options.CryptPassFile)
+		if cryptErr != nil {
+			log.Warning("Could not read --crypt-file: %v", cryptErr)
+		} else {
+			md.CryptPass = strings.TrimSpace(string(content))
+		}
+	}
+
+	if options.RebootSet {
+		md.PostReboot = options.Reboot
+	}
+
+	if options.OfflineSet {
+		md.Offline = options.Offline
+	}
+
+	if options.ArchiveSet {
+		md.PostArchive = options.Archive
+	}
+
+	// Command line overrides the configuration file
+	if options.SwupdMirror != "" {
+		md.SwupdMirror = options.SwupdMirror
+	}
+	if options.SwupdFormat != "" {
+		md.SwupdFormat = options.SwupdFormat
+	}
+	if options.SwupdSkipOptionalSet {
+		md.SwupdSkipOptional = options.SwupdSkipOptional
+	}
+	if options.SwupdVersion != "" {
+		if strings.EqualFold(options.SwupdVersion, "latest") {
+			md.Version = 0
+		} else {
+			version, err := strconv.ParseUint(options.SwupdVersion, 10, 32)
+			if err == nil {
+				md.Version = uint(version)
+			} else {
+				log.Warning("Failed to parse swupd-version : %s; not-used!", options.SwupdVersion)
+			}
+		}
+	}
+
+	if options.AllowInsecureHTTPSet {
+		md.AllowInsecureHTTP = options.AllowInsecureHTTP
+	}
+
+	// Command line overrides the configuration file
+	if options.MakeISOSet {
+		md.MakeISO = options.MakeISO
+		if options.KeepImageSet {
+			md.KeepImage = options.KeepImage
+		} else {
+			md.KeepImage = false
+		}
+	} else {
+		if options.KeepImageSet {
+			md.KeepImage = options.KeepImage
+		}
+	}
+	// If ISO not set in configuration file ensure we keep the image file
+	if !md.MakeISO {
+		md.KeepImage = true
+	}
+
+	if options.TemplateConfigFile != "" {
+		if filepath.Ext(options.TemplateConfigFile) == ".yaml" {
+			md.StorageAlias = append(md.StorageAlias, &model.StorageAlias{Name: "release", File: "release.img"})
+			bd := &storage.BlockDevice{Size: storage.MinimumServerInstallSize, MappedName: "${release}", Name: "${release}"}
+			storage.NewStandardPartitions(bd)
+			md.AddTargetMedia(bd)
+			if err := md.WriteFile(options.TemplateConfigFile); err != nil {
+				return errors.Errorf("Failed to write YAML file (%v) %q", err, options.TemplateConfigFile)
+			}
+		} else {
+			return errors.Errorf("Template file '%s' must end in '.yaml'", options.TemplateConfigFile)
 		}
 		return nil
 	}
@@ -218,118 +343,13 @@ func execute(options args.Args) error {
 	}
 	defer func() { _ = os.RemoveAll(rootDir) }()
 
-	var md *model.SystemInstall
-	cf := options.ConfigFile
-
-	if options.ConfigFile == "" {
-		if cf, err = conf.LookupDefaultConfig(); err != nil {
-			return err
-		}
-	} else if network.IsValidURI(options.ConfigFile, options.AllowInsecureHTTP) {
-		if cf, err = network.FetchRemoteConfigFile(options.ConfigFile); err != nil {
-			fmt.Printf("Cannot access configuration file %q: %s\n", options.ConfigFile, err)
-			return err
-		}
-		options.CfDownloaded = true
-	} else if ok, err := utils.FileExists(options.ConfigFile); !ok || err != nil {
-		return errors.Errorf("Cannot access configuration file %q", options.ConfigFile)
-	}
-
-	if options.CfDownloaded {
-		defer func() { _ = os.Remove(cf) }()
-	}
-
-	if filepath.Ext(cf) == ".json" {
-		cf, err = model.JSONtoYAMLConfig(cf)
-		if err != nil {
-			return err
-		}
-	}
-
-	log.Debug("Loading config file: %s", cf)
-	if md, err = model.LoadFile(cf, options); err != nil {
-		return err
-	}
-	md.ClearInstallSelected()
-
-	if options.CfPurgeSet && options.CfPurge {
-		defer func() { _ = os.Remove(cf) }()
-		md.ClearCfFile = cf
-	}
-
 	log.Info("Querying Clear Linux version")
 	if err := utils.ParseOSClearVersion(); err != nil {
 		return err
 	}
 
-	if options.CryptPassFile != "" {
-		content, cryptErr := ioutil.ReadFile(options.CryptPassFile)
-		if cryptErr != nil {
-			log.Warning("Could not read --crypt-file: %v", cryptErr)
-		} else {
-			md.CryptPass = strings.TrimSpace(string(content))
-		}
-	}
-
-	if options.RebootSet {
-		md.PostReboot = options.Reboot
-	}
-
-	if options.OfflineSet {
-		md.Offline = options.Offline
-	}
-
-	if options.ArchiveSet {
-		md.PostArchive = options.Archive
-	}
-
-	// Command line overrides the configuration file
-	if options.SwupdMirror != "" {
-		md.SwupdMirror = options.SwupdMirror
-	}
-	if options.SwupdFormat != "" {
-		md.SwupdFormat = options.SwupdFormat
-	}
-	if options.SwupdSkipOptionalSet {
-		md.SwupdSkipOptional = options.SwupdSkipOptional
-	}
-	if options.SwupdVersion != "" {
-		if strings.EqualFold(options.SwupdVersion, "latest") {
-			md.Version = 0
-		} else {
-			version, err := strconv.ParseUint(options.SwupdVersion, 10, 32)
-			if err == nil {
-				md.Version = uint(version)
-			} else {
-				log.Warning("Failed to parse swupd-version : %s; not-used!", options.SwupdVersion)
-			}
-		}
-	}
-
-	if options.AllowInsecureHTTPSet {
-		md.AllowInsecureHTTP = options.AllowInsecureHTTP
-	}
-
 	if options.SwupdContentURL != "" && network.IsValidURI(options.SwupdContentURL, md.AllowInsecureHTTP) == false {
 		return errors.Errorf("swupd-contenturl %s must use HTTPS or FILE protocol", options.SwupdContentURL)
-	}
-
-	// Command line overrides the configuration file
-	if options.MakeISOSet {
-		md.MakeISO = options.MakeISO
-		if options.KeepImageSet {
-			md.KeepImage = options.KeepImage
-		} else {
-			md.KeepImage = false
-		}
-	} else {
-		if options.KeepImageSet {
-			md.KeepImage = options.KeepImage
-		}
-	}
-	// If ISO not set in configuration file ensure we keep the image file
-	if !md.MakeISO {
-		md.KeepImage = true
 	}
 
 	// Store the name of the LockFile which is needed during
