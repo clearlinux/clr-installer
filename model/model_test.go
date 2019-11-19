@@ -94,9 +94,12 @@ func TestLoadFile(t *testing.T) {
 
 	for _, curr := range tests {
 		path := filepath.Join(testsDir, curr.file)
-		var err error
 		if filepath.Ext(curr.file) == ".json" {
-			path, err = JSONtoYAMLConfig(path)
+			md, err := JSONtoYAMLConfig(path)
+			if err == nil {
+				path, err = md.WriteYAMLConfig(path)
+			}
+
 			if curr.valid && err != nil {
 				t.Fatalf("%s is a valid test and shouldn't return an error: %v", curr.file, err)
 			}
@@ -570,7 +573,11 @@ func TestBackupFile(t *testing.T) {
 		mt.Hour(), mt.Minute(), mt.Second())
 	bf := strings.TrimSuffix(cf, filepath.Ext(cf)) + suffix + ".yaml"
 
-	path, err = JSONtoYAMLConfig(path)
+	md, err := JSONtoYAMLConfig(path)
+	if err == nil {
+		path, err = md.WriteYAMLConfig(path)
+	}
+
 	if err != nil {
 		t.Fatalf("%s is a valid test and shouldn't return an error: %v", path, err)
 	}

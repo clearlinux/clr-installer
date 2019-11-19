@@ -152,22 +152,6 @@ func execute(options args.Args) error {
 		return nil
 	}
 
-	if options.ConvertConfigFile != "" && options.TemplateConfigFile != "" {
-		return errors.Errorf("Options --json-yaml and --template are mutually exclusive.")
-	}
-
-	if options.ConvertConfigFile != "" {
-		if filepath.Ext(options.ConvertConfigFile) == ".json" {
-			_, err := model.JSONtoYAMLConfig(options.ConvertConfigFile)
-			if err != nil {
-				return err
-			}
-		} else {
-			return errors.Errorf("Config file '%s' must end in '.json'", options.ConvertConfigFile)
-		}
-		return nil
-	}
-
 	var md *model.SystemInstall
 	cf := options.ConfigFile
 
@@ -190,7 +174,11 @@ func execute(options args.Args) error {
 	}
 
 	if filepath.Ext(cf) == ".json" {
-		cf, err = model.JSONtoYAMLConfig(cf)
+		_, err = model.JSONtoYAMLConfig(cf)
+		if err != nil {
+			return err
+		}
+		cf, err = md.WriteYAMLConfig(cf)
 		if err != nil {
 			return err
 		}
@@ -201,6 +189,22 @@ func execute(options args.Args) error {
 		return err
 	}
 	md.ClearInstallSelected()
+
+	if options.ConvertConfigFile != "" && options.TemplateConfigFile != "" {
+		return errors.Errorf("Options --json-yaml and --template are mutually exclusive.")
+	}
+
+	if options.ConvertConfigFile != "" {
+		var err error
+		if filepath.Ext(options.ConvertConfigFile) == ".json" {
+			md, err = model.JSONtoYAMLConfig(options.ConvertConfigFile)
+			if err != nil {
+				return err
+			}
+		} else {
+			return errors.Errorf("Config file '%s' must end in '.json'", options.ConvertConfigFile)
+		}
+	}
 
 	if options.CfPurgeSet && options.CfPurge {
 		defer func() { _ = os.Remove(cf) }()
@@ -276,6 +280,15 @@ func execute(options args.Args) error {
 	if len(options.Bundles) > 0 {
 		md.OverrideBundles(options.Bundles)
 		log.Info("Overriding bundle list from command line: %s", strings.Join(md.Bundles, ", "))
+	}
+
+	if options.ConvertConfigFile != "" {
+		_, err := md.WriteYAMLConfig(options.ConvertConfigFile)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 
 	if options.TemplateConfigFile != "" {

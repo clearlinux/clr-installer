@@ -85,12 +85,14 @@ type Network struct {
 	DNS     string `json:"dns"`
 }
 
-// JSONtoYAMLConfig converts the "ister"JSON config to the corresponding YAML config fields
-// and writes it out to a YAML config file.
-func JSONtoYAMLConfig(cf string) (string, error) {
+// JSONtoYAMLConfig converts the "ister" JSON config to the corresponding
+// YAML config fields and return the model
+func JSONtoYAMLConfig(cf string) (*SystemInstall, error) {
+	var si SystemInstall
+
 	fp, err := os.Open(cf)
 	if err != nil {
-		return cf, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
 	log.Debug("Successfully opened config file: %s", cf)
 	defer func() {
@@ -99,16 +101,14 @@ func JSONtoYAMLConfig(cf string) (string, error) {
 
 	b, err := ioutil.ReadAll(fp)
 	if err != nil {
-		return cf, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
 
 	ic := IsterConfig{}
 	err = json.Unmarshal(b, &ic)
 	if err != nil {
-		return cf, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
-
-	si := SystemInstall{}
 
 	var disks = make(map[string](map[uint64]storage.BlockDevice)) // Key: Disk name, Value: Map of Partitions
 
@@ -131,7 +131,7 @@ func JSONtoYAMLConfig(cf string) (string, error) {
 				sa.Name = strings.TrimSuffix(curr.Disk, filepath.Ext(curr.Disk)) // remove any extensions from alias name
 				sa.File = "/dev/" + curr.Disk
 			default:
-				return cf, errors.Errorf("invalid DestinationType in config file %s", cf)
+				return nil, errors.Errorf("invalid DestinationType in config file %s", cf)
 			}
 			si.StorageAlias = append(si.StorageAlias, &sa)
 			si.AddTargetMedia(&bd)
@@ -139,17 +139,17 @@ func JSONtoYAMLConfig(cf string) (string, error) {
 			var partitions = make(map[uint64]storage.BlockDevice)
 			partitions[curr.Partition], err = setStorageValues(curr.Disk, curr.Partition, curr.Size)
 			if err != nil {
-				return cf, errors.Wrap(err)
+				return nil, errors.Wrap(err)
 			}
 			disks[curr.Disk] = partitions
 		} else {
 			_, ok := partitions[curr.Partition]
 			if ok {
-				return cf, fmt.Errorf("partition %d already defined for disk %s in config file %s", curr.Partition, curr.Disk, cf)
+				return nil, fmt.Errorf("partition %d already defined for disk %s in config file %s", curr.Partition, curr.Disk, cf)
 			}
 			partitions[curr.Partition], err = setStorageValues(curr.Disk, curr.Partition, curr.Size)
 			if err != nil {
-				return cf, errors.Wrap(err)
+				return nil, errors.Wrap(err)
 			}
 			disks[curr.Disk] = partitions
 		}
@@ -159,12 +159,12 @@ func JSONtoYAMLConfig(cf string) (string, error) {
 	for _, curr := range ic.FilesystemTypes {
 		partitions, ok := disks[curr.Disk]
 		if !ok {
-			return cf, errors.Errorf("disk %s not defined in config file %s", curr.Disk, cf)
+			return nil, errors.Errorf("disk %s not defined in config file %s", curr.Disk, cf)
 		}
 
 		part, ok := partitions[curr.Partition]
 		if !ok {
-			return cf, errors.Errorf("partition %d not defined for disk %s in config file %s", curr.Partition, curr.Disk, cf)
+			return nil, errors.Errorf("partition %d not defined for disk %s in config file %s", curr.Partition, curr.Disk, cf)
 		}
 		part.FsType = curr.Type
 		part.Options = curr.Options
@@ -177,12 +177,12 @@ func JSONtoYAMLConfig(cf string) (string, error) {
 	for _, curr := range ic.PartitionMountPoints {
 		partitions, ok := disks[curr.Disk]
 		if !ok {
-			return cf, errors.Errorf("disk %s not defined in config file %s", curr.Disk, cf)
+			return nil, errors.Errorf("disk %s not defined in config file %s", curr.Disk, cf)
 		}
 
 		part, ok := partitions[curr.Partition]
 		if !ok {
-			return cf, errors.Errorf("partition %d not defined for partitions %s in config file %s", curr.Partition, curr.Disk, cf)
+			return nil, errors.Errorf("partition %d not defined for partitions %s in config file %s", curr.Partition, curr.Disk, cf)
 		}
 		part.MountPoint = curr.Mount
 
@@ -271,11 +271,13 @@ func JSONtoYAMLConfig(cf string) (string, error) {
 	si.HTTPSProxy = ic.HTTPSProxy // Set HTTPSProxy
 	if si.HTTPSProxy == "" {
 		si.HTTPSProxy = ic.HTTPProxy
-		fmt.Println("WARNING: Mapping HTTPProxy in json to HTTPSProxy in yaml")
-		log.Warning("Mapping HTTPProxy in json to HTTPSProxy in yaml")
+		msg := fmt.Sprint("Mapping HTTPProxy in json to HTTPSProxy in yaml")
+		fmt.Println("WARNING: " + msg)
+		log.Warning(msg)
 	} else {
-		fmt.Println("WARNING: Skipping HTTPProxy mapping")
-		log.Warning("Skipping HTTPProxy mapping")
+		msg := fmt.Sprint("Skipping HTTPProxy mapping")
+		fmt.Println("WARNING: " + msg)
+		log.Warning(msg)
 	}
 
 	// Hardcoding the missing required fields
@@ -285,11 +287,22 @@ func JSONtoYAMLConfig(cf string) (string, error) {
 	si.Language = &language.Language{Code: language.DefaultLanguage} // Set Language
 
 	if ic.VersionURL != "" {
-		fmt.Println("WARNING: Skipping VersionURL mapping as it not supported in clr-installer config")
-		log.Warning("Skipping VersionURL mapping as it not supported in clr-installer config")
+		msg := fmt.Sprint("Skipping VersionURL mapping as it not supported in clr-installer config")
+		fmt.Println("WARNING: " + msg)
+		log.Warning(msg)
 	}
 
-	cf = strings.TrimSuffix(cf, filepath.Ext(cf)) + ".yaml"
+	return &si, nil
+}
+
+// WriteYAMLConfig writes out the current model to a configuration file
+// If the config file ends in JSON, it renames it to YAML
+// If the file exists, it first makes a backup
+func (si *SystemInstall) WriteYAMLConfig(cf string) (string, error) {
+	if filepath.Ext(cf) == ".json" {
+		cf = strings.TrimSuffix(cf, filepath.Ext(cf)) + ".yaml"
+	}
+
 	info, err := os.Stat(cf)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -307,16 +320,20 @@ func JSONtoYAMLConfig(cf string) (string, error) {
 		if err != nil {
 			return cf, errors.Wrap(err)
 		}
-		fmt.Printf("WARNING: Config file %s already exists. Making a backup: %s\n", cf, bf)
-		log.Warning("Config file %s already exists. Taking a backup: %s\n", cf, bf)
+		msg := fmt.Sprintf("Config file %s already exists. Making a backup: %s", cf, bf)
+		fmt.Println("WARNING: " + msg)
+		log.Warning(msg)
 	}
 
 	err = si.WriteFile(cf)
 	if err != nil {
 		return cf, errors.Wrap(err)
 	}
-	fmt.Println("Converted config file from JSON to YAML: " + cf)
-	log.Info("Converted config file from JSON to YAML: " + cf)
+
+	msg := fmt.Sprint("Converted config file from JSON to YAML: " + cf)
+	fmt.Println(msg)
+	log.Info(msg)
+
 	return cf, nil
 }
 
