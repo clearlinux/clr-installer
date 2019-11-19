@@ -4,7 +4,7 @@ echo "Creating custom issue file for $1"
 echo "Welcome to the Clear Linux* OS live image!
 
  * Documentation:     https://clearlinux.org/documentation
- * Community Support: https://clearlinux.org/community
+ * Community Support: https://community.clearlinux.org
 
 To configure the network run:
   nmtui
