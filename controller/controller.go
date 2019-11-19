@@ -177,10 +177,15 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		for _, file := range detachMe {
 			storage.DetachLoopDevice(file)
 		}
-		for _, file := range removeMe {
-			log.Debug("Removing raw image file: %s", file)
-			if err = os.Remove(file); err != nil {
-				log.Warning("Failed to remove image file: %s", file)
+		// The request to keep image may have changed during execution
+		// such as dynamically decided to not make an ISO or failing to
+		// make an ISO
+		if !model.KeepImage {
+			for _, file := range removeMe {
+				log.Debug("Removing raw image file: %s", file)
+				if err = os.Remove(file); err != nil {
+					log.Warning("Failed to remove image file: %s", file)
+				}
 			}
 		}
 	}()
@@ -489,6 +494,7 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 				log.Warning(msg)
 				fmt.Printf("Warning: %s", msg)
 				md.MakeISO = false
+				md.KeepImage = true
 				break
 			}
 		}
@@ -927,12 +933,14 @@ func generateISO(rootDir string, md *model.SystemInstall, options args.Args) err
 	if !md.LegacyBios {
 		for _, alias := range md.StorageAlias {
 			if err = isoutils.MakeIso(rootDir, strings.TrimSuffix(alias.File, filepath.Ext(alias.File)), md, options); err != nil {
+				md.KeepImage = true
 				return err
 			}
 		}
 	} else {
 		err = fmt.Errorf("cannot create ISO images for configurations with LegacyBios enabled")
 		log.ErrorError(err)
+		md.KeepImage = true
 		return err
 	}
 
