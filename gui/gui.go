@@ -12,6 +12,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 
 	"github.com/clearlinux/clr-installer/args"
+	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/utils"
 )
@@ -42,6 +43,9 @@ func New() *Gui {
 // frontend wants/must run.
 func (gui *Gui) MustRun(args *args.Args) bool {
 	if args.ForceTUI {
+		msg := "Incompatible flag '--tui' for the graphical installer"
+		fmt.Println(msg)
+		log.Error(msg)
 		return false
 	}
 
@@ -59,6 +63,11 @@ func (gui *Gui) MustRun(args *args.Args) bool {
 
 // Run is part of the Frontend interface implementation and is the gui frontend main entry point
 func (gui *Gui) Run(md *model.SystemInstall, rootDir string, options args.Args) (bool, error) {
+	if err := md.InteractiveOptionsValid(); err != nil {
+		fmt.Println(err)
+		log.Error(err.Error())
+		return false, nil
+	}
 
 	// When using the Interactive Installer we always want to copy network
 	// configurations to the target system

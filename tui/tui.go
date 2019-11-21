@@ -5,6 +5,8 @@
 package tui
 
 import (
+	"fmt"
+
 	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/log"
@@ -52,6 +54,9 @@ func New() *Tui {
 // frontend wants/must run.
 func (tui *Tui) MustRun(args *args.Args) bool {
 	if args.ForceGUI {
+		msg := "Incompatible flag '--gui' for the text-based installer"
+		fmt.Println(msg)
+		log.Error(msg)
 		return false
 	}
 	return true
@@ -59,6 +64,12 @@ func (tui *Tui) MustRun(args *args.Args) bool {
 
 // Run is part of the Frontend interface implementation and is the tui frontend main entry point
 func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) (bool, error) {
+	if err := md.InteractiveOptionsValid(); err != nil {
+		fmt.Println(err)
+		log.Error(err.Error())
+		return false, nil
+	}
+
 	// First disable console messages
 	err := cmd.RunAndLog("dmesg", "--console-off")
 	if err != nil {
