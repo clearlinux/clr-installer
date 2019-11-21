@@ -602,3 +602,19 @@ func (si *SystemInstall) WriteScrubModelTargetMedias() (string, error) {
 
 	return tmpYaml.Name(), nil
 }
+
+// InteractiveOptionsValid ensures that options which are not appropriate
+// for interactive runs are screened
+func (si *SystemInstall) InteractiveOptionsValid() error {
+	if si.Offline {
+		return fmt.Errorf("Incompatible flag '--offline' for the interactive installer")
+	}
+	if si.MakeISO {
+		return fmt.Errorf("Incompatible flag '--iso' for the interactive installer")
+	}
+	if si.KeepImage {
+		return fmt.Errorf("Incompatible flag '--keep-image' for the interactive installer")
+	}
+
+	return nil
+}
