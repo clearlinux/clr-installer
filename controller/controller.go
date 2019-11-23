@@ -117,6 +117,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	detachMe := []string{}
 	removeMe := []string{}
 	aliasMap := map[string]string{}
+	usingPhysicalMedia := true
 
 	// prepare image file, case the user has declared image alias then create
 	// the image, setup the loop device, prepare the variable expansion
@@ -135,6 +136,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 				}
 
 				expandMe = append(expandMe, tm)
+				usingPhysicalMedia = false
 			}
 		}
 
@@ -201,6 +203,21 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	}
 
 	mountPoints := []*storage.BlockDevice{}
+
+	if usingPhysicalMedia {
+		if model.MakeISO {
+			msg := "Flag --iso not valid for physical media; disabling"
+			fmt.Println(msg)
+			log.Warning(msg)
+			model.MakeISO = false
+		}
+		if model.KeepImage {
+			msg := "Flag --keep-image not valid for physical media; disabling"
+			fmt.Println(msg)
+			log.Warning(msg)
+			model.KeepImage = false
+		}
+	}
 
 	// prepare all the target block devices
 	for _, curr := range model.TargetMedias {
