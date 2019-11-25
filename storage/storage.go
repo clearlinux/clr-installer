@@ -105,6 +105,24 @@ const (
 	// BlockDeviceTypeLVM2Volume identifies a BlockDevice as a lvm2 volume
 	BlockDeviceTypeLVM2Volume
 
+	// BlockDeviceTypeRAID0 identifies a BlockDevice as a RAID0
+	BlockDeviceTypeRAID0
+
+	// BlockDeviceTypeRAID1 identifies a BlockDevice as a RAID1
+	BlockDeviceTypeRAID1
+
+	// BlockDeviceTypeRAID4 identifies a BlockDevice as a RAID4
+	BlockDeviceTypeRAID4
+
+	// BlockDeviceTypeRAID5 identifies a BlockDevice as a RAID5
+	BlockDeviceTypeRAID5
+
+	// BlockDeviceTypeRAID6 identifies a BlockDevice as a RAID6
+	BlockDeviceTypeRAID6
+
+	// BlockDeviceTypeRAID10 identifies a BlockDevice as a RAID10
+	BlockDeviceTypeRAID10
+
 	// BlockDeviceTypeCrypt identifies a BlockDevice as an encrypted partition (created with cryptsetup)
 	BlockDeviceTypeCrypt
 
@@ -193,6 +211,12 @@ var (
 		BlockDeviceTypeRom:        "rom",
 		BlockDeviceTypeLVM2Group:  "LVM2_member",
 		BlockDeviceTypeLVM2Volume: "lvm",
+		BlockDeviceTypeRAID0:      "raid0",
+		BlockDeviceTypeRAID1:      "raid1",
+		BlockDeviceTypeRAID4:      "raid4",
+		BlockDeviceTypeRAID5:      "raid5",
+		BlockDeviceTypeRAID6:      "raid6",
+		BlockDeviceTypeRAID10:     "raid10",
 		BlockDeviceTypeUnknown:    "",
 	}
 	aliasPrefixTable = map[string]string{
