@@ -500,6 +500,36 @@ func TestNullRemovable(t *testing.T) {
 	}
 }
 
+func TestRAID(t *testing.T) {
+	lsblkOutput := `{
+   "blockdevices": [
+      {"name":"sdb", "kname":"sdb", "path":"/dev/sdb", "maj:min":"8:16", "fsavail":null, "fssize":null, "fstype":null, "fsused":null, "fsuse%":null, "mountpoint":null, "label":null, "pttype":"gpt", "parttype":null, "partlabel":null, "ra":1024, "ro":false, "rm":false, "hotplug":false, "size":1000204886016, "state":"running", "owner":"root", "group":"disk", "mode":"brw-rw----", "alignment":0, "min-io":4096, "opt-io":0, "phy-sec":4096, "log-sec":512, "rota":false, "sched":"bfq", "rq-size":1024, "type":"disk", "disc-aln":0, "disc-gran":4096, "disc-max":2147450880, "disc-zero":false, "wsame":0, "wwn":"0x500a0751e1eda080", "rand":true, "pkname":null, "hctl":"7:0:0:0", "tran":"sata", "subsystems":"block:scsi:pci", "rev":"023 ", "vendor":"ATA     ", "zoned":"none",
+         "children": [
+            {"name":"sdb1", "kname":"sdb1", "path":"/dev/sdb1", "maj:min":"8:17", "fsavail":null, "fssize":null, "fstype":"linux_raid_member", "fsused":null, "fsuse%":null, "mountpoint":null, "label":"localhost-live:home", "pttype":"gpt", "parttype":"a19d880f-05fc-4d3b-a006-743f0f84911e", "partlabel":null, "partflags":null, "ra":1024, "ro":false, "rm":false, "hotplug":false, "size":1000203091968, "state":null, "owner":"root", "group":"disk", "mode":"brw-rw----", "alignment":0, "min-io":4096, "opt-io":0, "phy-sec":4096, "log-sec":512, "rota":false, "sched":"bfq", "rq-size":1024, "type":"part", "disc-aln":0, "disc-gran":4096, "disc-max":2147450880, "disc-zero":false, "wsame":0, "wwn":"0x500a0751e1eda080", "rand":true, "pkname":"sdb", "hctl":null, "tran":null, "subsystems":"block:scsi:pci", "rev":null, "vendor":null, "zoned":"none",
+               "children": [
+                  {"name":"md127", "kname":"md127", "path":"/dev/md127", "maj:min":"9:127", "fsavail":"4790297608192", "fssize":"4998202130432", "fstype":"xfs", "fsused":"207904522240", "fsuse%":"4%", "mountpoint":"/home", "label":"home", "pttype":null, "parttype":null, "partlabel":null, "partflags":null, "ra":5120, "ro":false, "rm":false, "hotplug":false, "size":5000339128320, "state":null, "owner":"root", "group":"disk", "mode":"brw-rw----", "alignment":0, "min-io":524288, "opt-io":2621440, "phy-sec":4096, "log-sec":512, "rota":false, "sched":null, "rq-size":128, "type":"raid5", "disc-aln":0, "disc-gran":4194304, "disc-max":2147450880, "disc-zero":false, "wsame":0, "wwn":null, "rand":false, "pkname":"sdb1", "hctl":null, "tran":null, "subsystems":"block", "rev":null, "vendor":null, "zoned":"none"}
+               ]
+            }
+         ]
+      },
+      {"name":"sdc", "kname":"sdc", "path":"/dev/sdc", "maj:min":"8:32", "fsavail":null, "fssize":null, "fstype":null, "fsused":null, "fsuse%":null, "mountpoint":null, "label":null, "pttype":"gpt", "parttype":null, "partlabel":null, "partflags":null, "ra":1024, "ro":false, "rm":false, "hotplug":false, "size":1000204886016, "state":"running", "owner":"root", "group":"disk", "mode":"brw-rw----", "alignment":0, "min-io":4096, "opt-io":0, "phy-sec":4096, "log-sec":512, "rota":false, "sched":"bfq", "rq-size":1024, "type":"disk", "disc-aln":0, "disc-gran":4096, "disc-max":2147450880, "disc-zero":false, "wsame":0, "wwn":"0x500a0751e1f0f6eb", "rand":true, "pkname":null, "hctl":"8:0:0:0", "tran":"sata", "subsystems":"block:scsi:pci", "rev":"023 ", "vendor":"ATA     ", "zoned":"none",
+         "children": [
+            {"name":"sdc1", "kname":"sdc1", "path":"/dev/sdc1", "maj:min":"8:33", "fsavail":null, "fssize":null, "fstype":"linux_raid_member", "fsused":null, "fsuse%":null, "mountpoint":null, "label":"localhost-live:home", "pttype":"gpt", "parttype":"a19d880f-05fc-4d3b-a006-743f0f84911e", "partlabel":null, "partflags":null, "ra":1024, "ro":false, "rm":false, "hotplug":false, "size":1000203091968, "state":null, "owner":"root", "group":"disk", "mode":"brw-rw----", "alignment":0, "min-io":4096, "opt-io":0, "phy-sec":4096, "log-sec":512, "rota":false, "sched":"bfq", "rq-size":1024, "type":"part", "disc-aln":0, "disc-gran":4096, "disc-max":2147450880, "disc-zero":false, "wsame":0, "wwn":"0x500a0751e1f0f6eb", "rand":true, "pkname":"sdc", "hctl":null, "tran":null, "subsystems":"block:scsi:pci", "rev":null, "vendor":null, "zoned":"none",
+               "children": [
+                  {"name":"md127", "kname":"md127", "path":"/dev/md127", "maj:min":"9:127", "fsavail":"4790297608192", "fssize":"4998202130432", "fstype":"xfs", "fsused":"207904522240", "fsuse%":"4%", "mountpoint":"/home", "label":"home", "pttype":null, "parttype":null, "partlabel":null, "partflags":null, "ra":5120, "ro":false, "rm":false, "hotplug":false, "size":5000339128320, "state":null, "owner":"root", "group":"disk", "mode":"brw-rw----", "alignment":0, "min-io":524288, "opt-io":2621440, "phy-sec":4096, "log-sec":512, "rota":false, "sched":null, "rq-size":128, "type":"raid5", "disc-aln":0, "disc-gran":4194304, "disc-max":2147450880, "disc-zero":false, "wsame":0, "wwn":null, "rand":false, "pkname":"sdc1", "hctl":null, "tran":null, "subsystems":"block", "rev":null, "vendor":null, "zoned":"none"}
+               ]
+            }
+         ]
+      }
+   ]
+}`
+
+	_, err := parseBlockDevicesDescriptor([]byte(lsblkOutput))
+	if err != nil {
+		t.Fatalf("Could not parser block device descriptor: %s", err)
+	}
+}
+
 func TestWritePartition(t *testing.T) {
 	tmpFile, err := ioutil.TempFile("", "test-image-")
 	if err != nil {
