@@ -612,9 +612,6 @@ func (si *SystemInstall) InteractiveOptionsValid() error {
 	if si.MakeISO {
 		return fmt.Errorf("Incompatible flag '--iso' for the interactive installer")
 	}
-	if si.KeepImage {
-		return fmt.Errorf("Incompatible flag '--keep-image' for the interactive installer")
-	}
 
 	return nil
 }

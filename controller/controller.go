@@ -211,12 +211,6 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 			log.Warning(msg)
 			model.MakeISO = false
 		}
-		if model.KeepImage {
-			msg := "Flag --keep-image not valid for physical media; disabling"
-			fmt.Println(msg)
-			log.Warning(msg)
-			model.KeepImage = false
-		}
 	}
 
 	// prepare all the target block devices

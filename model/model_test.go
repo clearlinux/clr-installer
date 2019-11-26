@@ -636,24 +636,12 @@ func TestInterActiveIsoFail(t *testing.T) {
 		t.Fatalf("Interactive should fail with ISO set to true")
 	}
 }
-func TestInterActiveKeepFail(t *testing.T) {
-	si := &SystemInstall{}
-	si.ClearInstallSelected()
-
-	si.KeepImage = true
-
-	if err := si.InteractiveOptionsValid(); err == nil {
-		t.Fatalf("Interactive should fail with KeepImage set to true")
-	}
-}
-
 func TestInterActivePass(t *testing.T) {
 	si := &SystemInstall{}
 	si.ClearInstallSelected()
 
 	si.Offline = false
 	si.MakeISO = false
-	si.KeepImage = false
 
 	if err := si.InteractiveOptionsValid(); err != nil {
 		t.Fatalf("Interactive should pass: %v", err)
