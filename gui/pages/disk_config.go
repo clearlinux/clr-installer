@@ -553,6 +553,10 @@ func (disk *DiskConfig) onRescanClick() {
 		}
 		disk.refreshPage()
 		disk.rescanDialog.Close() // Unlike Destroy(), Close() closes the dialog window and seems to not crash
+
+		if err := disk.buildMediaLists(); err != nil {
+			log.Warning("Problem with buildMediaLists")
+		}
 	}()
 }
 
