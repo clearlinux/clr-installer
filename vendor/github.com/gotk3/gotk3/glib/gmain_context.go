@@ -1,6 +1,5 @@
 package glib
 
-// #cgo pkg-config: glib-2.0 gobject-2.0 gio-2.0
 // #include <gio/gio.h>
 // #include <glib.h>
 // #include <glib-object.h>
@@ -29,4 +28,18 @@ func MainContextDefault() *MainContext {
 // MainDepth is a wrapper around g_main_depth().
 func MainDepth() int {
 	return int(C.g_main_depth())
+}
+
+// FindSourceById is a wrapper around g_main_context_find_source_by_id()
+func (v *MainContext) FindSourceById(hdlSrc SourceHandle) *Source {
+	c := C.g_main_context_find_source_by_id(v.native(), C.guint(hdlSrc))
+	if c == nil {
+		return nil
+	}
+	return (*Source)(c)
+}
+
+// SourceRemove is a wrapper around g_main_context_pending()
+func (v *MainContext) Pending(src SourceHandle) bool {
+	return gobool(C.g_main_context_pending(v.native()))
 }

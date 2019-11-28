@@ -19,7 +19,6 @@
 
 package gdk
 
-// #cgo pkg-config: gdk-3.0
 // #include <gdk/gdk.h>
 // #include "gdk_since_3_22.go.h"
 import "C"
@@ -46,6 +45,33 @@ func (v *Display) GetPrimaryMonitor() (*Monitor, error) {
 		return nil, nilPtrErr
 	}
 
+	return &Monitor{glib.Take(unsafe.Pointer(c))}, nil
+}
+
+// GetMonitor is a wrapper around gdk_display_get_monitor().
+func (v *Display) GetMonitor(num int) (*Monitor, error) {
+	c := C.gdk_display_get_monitor(v.native(), C.int(num))
+	if c == nil {
+		return nil, nilPtrErr
+	}
+	return &Monitor{glib.Take(unsafe.Pointer(c))}, nil
+}
+
+// GetMonitorAtWindow is a wrapper around gdk_display_get_monitor_at_window().
+func (v *Display) GetMonitorAtWindow(w *Window) (*Monitor, error) {
+	c := C.gdk_display_get_monitor_at_window(v.native(), w.native())
+	if c == nil {
+		return nil, nilPtrErr
+	}
+	return &Monitor{glib.Take(unsafe.Pointer(c))}, nil
+}
+
+// GetMonitorAtPoint is a wrapper around gdk_display_get_monitor_at_point().
+func (v *Display) GetMonitorAtPoint(x int, y int) (*Monitor, error) {
+	c := C.gdk_display_get_monitor_at_point(v.native(), C.int(x), C.int(y))
+	if c == nil {
+		return nil, nilPtrErr
+	}
 	return &Monitor{glib.Take(unsafe.Pointer(c))}, nil
 }
 
@@ -93,4 +119,14 @@ func (v *Monitor) GetGeometry() *Rectangle {
 	C.gdk_monitor_get_geometry(v.native(), &rect)
 
 	return WrapRectangle(uintptr(unsafe.Pointer(&rect)))
+}
+
+// GetUseES is a wrapper around gdk_gl_context_get_use_es().
+func (v *GLContext) GetUseES() bool {
+	return gobool(C.gdk_gl_context_get_use_es(v.native()))
+}
+
+// SetUseES is a wrapper around gdk_gl_context_set_use_es().
+func (v *GLContext) SetUseES(es int) {
+	C.gdk_gl_context_set_use_es(v.native(), (C.int)(es))
 }

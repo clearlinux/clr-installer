@@ -15,28 +15,28 @@
   revision = "6c0105aabd460ae06c87afeb5a47c869f6a7557e"
 
 [[projects]]
-  digest = "1:2d29417d08199c60f690212f7e6a654d41579c9a8410344967f22bc417cdc5a9"
+  digest = "1:02a8f1f68c1d538a649440ce15ca9927c4b75a072b868529b932770cf11aa3e2"
   name = "github.com/VladimirMarkelov/clui"
   packages = ["."]
   pruneopts = "UT"
-  revision = "1f6ccfb9aa536b7d3b0a9db25bf37707f407523b"
-  version = "v1.0"
+  revision = "4848282327334c65d970afd0739db8cedbd19541"
+  version = "v1.2.0"
 
 [[projects]]
-  digest = "1:1ca95505ec8a6d69762d2b5d9ab7e66ae619365b2e26031e220b675ff6fb010b"
+  digest = "1:323ef1c999160d12fafa4074b5a5706511baf1cd91a935ae62494791c94abaf4"
   name = "github.com/atotto/clipboard"
   packages = ["."]
   pruneopts = "UT"
-  revision = "aa9549103943c05f3e8951009cdb6a0bec2c8949"
-  version = "v0.1.1"
+  revision = "579379fa8ff8a6d3fa979cec107f8f6d7f8fde90"
+  version = "v0.1.2"
 
 [[projects]]
-  digest = "1:5e9a94190e20a9ff23267adcc08727fca2d3a0d7bf849120fa79fcd2353db721"
+  digest = "1:84c51760e27ff758724218a0b234a8264aa0992f49af4da50bedd682e196f996"
   name = "github.com/coreos/go-systemd"
   packages = ["dbus"]
   pruneopts = "UT"
-  revision = "95778dfbb74eb7e4dbaf43bf7d71809650ef8076"
-  version = "v19"
+  revision = "d3cd4ed1dbcf5835feba465b180436db54f20228"
+  version = "v21"
 
 [[projects]]
   branch = "master"
@@ -47,15 +47,16 @@
   revision = "390a4f403a8e94ca0acdcf609eb18eeae9d6d1ac"
 
 [[projects]]
-  digest = "1:b3d20bcdedab2050e6bc58e52f4fdc46f710b4c74e1a1ecee262ebec1aee7b6e"
+  digest = "1:75ea251921accab70d09dfd854f8d287224b65ab8d5da23447f0aeb2c0ee906b"
   name = "github.com/godbus/dbus"
   packages = ["."]
   pruneopts = "UT"
-  revision = "2ff6f7ffd60f0f2410b3105864bdd12c7894f844"
-  version = "v5.0.1"
+  revision = "37bf87eef99d69c4f1d3528bd66e3a87dc201472"
+  version = "v5.0.3"
 
 [[projects]]
-  digest = "1:029f2edf9b624ed24f9dc20ef3fd518ba060b7207da48e0bee4a84a9f0e2b389"
+  branch = "master"
+  digest = "1:da14763e8f3f2d9c831ee46e47cc4723dcc5312f55433b901ea7400f2c21d7f5"
   name = "github.com/gotk3/gotk3"
   packages = [
     "cairo",
@@ -65,16 +66,15 @@
     "pango",
   ]
   pruneopts = "UT"
-  revision = "8deb6b3f8d38fbdc31ec733fdbd24bf491a5979b"
-  version = "GOTK3_0_3_0"
+  revision = "60cba67d4ea42a3b841c37b37d94244ecdbc9770"
 
 [[projects]]
-  digest = "1:f9a5e090336881be43cfc1cf468330c1bdd60abdc9dd194e0b1ab69f4b94dd7c"
+  digest = "1:7e9014f41c8285f91b8f6170a30f633532c8d095b4ead42024e1f460c0ac497d"
   name = "github.com/huandu/xstrings"
   packages = ["."]
   pruneopts = "UT"
-  revision = "f02667b379e2fb5916c3cda2cf31e0eb885d79f8"
-  version = "v1.2.0"
+  revision = "874a673206bf7a5c86d29876dfeaccca0922ab62"
+  version = "v1.2.1"
 
 [[projects]]
   digest = "1:c1969ca636a3249ca89cc658fb22280f69bb6f191787b0a2437690daddb25e7d"
@@ -88,12 +88,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:0356f3312c9bd1cbeda81505b7fd437501d8e778ab66998ef69f00d7f9b3a0d7"
+  digest = "1:8b9352f5af622f234923139000732eb2fb32574949fa84d60a21c70e5dd7d3e6"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
   pruneopts = "UT"
-  revision = "3ee7d812e62a0804a7d0a324e0249ca2db3476d3"
-  version = "v0.0.4"
+  revision = "f93a0d58d5fd95e53f82782d07bb0c79d23e1290"
+  version = "v0.0.6"
 
 [[projects]]
   branch = "master"
@@ -105,61 +105,63 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:01d9e47830ef6077fb6f91033b0e83f324ad5966d11ed3daa4a5822ace876dab"
+  digest = "1:3748273fbc527cb86628e8060e1a98df3d082f1d750a63056522e01ea87ff4a0"
   name = "github.com/nsf/termbox-go"
   packages = ["."]
   pruneopts = "UT"
-  revision = "60ab7e3d12ed91bc1b2486559c4b3a6b62297577"
+  revision = "93860e16131719fa9722e7c448dbf8c0e3210a0d"
 
 [[projects]]
-  digest = "1:c1b1102241e7f645bc8e0c22ae352e8f0dc6484b6cb4d132fa9f24174e0119e2"
+  digest = "1:524b71991fc7d9246cc7dc2d9e0886ccb97648091c63e30eef619e6862c955dd"
   name = "github.com/spf13/pflag"
   packages = ["."]
   pruneopts = "UT"
-  revision = "298182f68c66c05229eb03ac171abe6e309ee79a"
-  version = "v1.0.3"
+  revision = "2e9d26c8c37aae03e3f9d4e90b7116f5accb7cab"
+  version = "v1.0.5"
 
 [[projects]]
   branch = "master"
-  digest = "1:38f553aff0273ad6f367cb0a0f8b6eecbaef8dc6cb8b50e57b6a81c1d5b1e332"
+  digest = "1:bbe51412d9915d64ffaa96b51d409e070665efc5194fcf145c4a27d4133107a4"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
+  revision = "ac88ee75c92c889b97e05591e9a39b6480c538b3"
 
 [[projects]]
   branch = "master"
-  digest = "1:3d5e79e10549fd9119cbefd614b6d351ef5bd0be2f2b103a4199788e784cbc68"
+  digest = "1:055d921edfad0ae56ef0d21a124a002cf3a669b4c42e85b810abf0225226e2a3"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "b4a75ba826a64a70990f11a225237acd6ef35c9f"
+  revision = "63cb32ae39b28d6bb8e7e215c1fc39dd80dcdb02"
 
 [[projects]]
-  digest = "1:770ae53f0090c9b9ddea5f62c746e61c2adcfb0e877f321e1d07263feffe7a24"
+  digest = "1:37a084d96d03d81a060791378bc44f98f9ad0d48c20ddbc3e154afeeb1ef60f6"
   name = "golang.org/x/text"
   packages = [
     "internal/format",
     "internal/gen",
+    "internal/language",
+    "internal/language/compact",
     "internal/tag",
     "language",
     "language/display",
     "unicode/cldr",
   ]
   pruneopts = "UT"
-  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
-  version = "v0.3.0"
+  revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
+  version = "v0.3.2"
 
 [[projects]]
-  digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
+  digest = "1:b75b3deb2bce8bc079e16bb2aecfe01eb80098f5650f9e93e5643ca8b7b73737"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
-  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
-  version = "v2.2.2"
+  revision = "1f64d6156d11335c3f22d9330b0ad14fc1e789ce"
+  version = "v2.2.7"
 
 [solve-meta]
   analyzer-name = "dep"
