@@ -7,7 +7,7 @@ Command Line User Interface (Console UI inspired by TurboVision) with built-in t
 
 
 ## Current version
-The current version is 1.0.0. Please see details in [changelog](./changelog).
+The current version is 1.2.0. Please see details in [changelog](./changelog).
 
 ## Applications that uses the library
 * Terminal FB2 reader(termfb2): https://github.com/VladimirMarkelov/termfb2
@@ -41,6 +41,7 @@ The current version is 1.0.0. Please see details in [changelog](./changelog).
 * GridView (Table to show structured data - only virtual and readonly mode with scroll support)
 * [FilePicker](/docs/fselect.md)
 * LoginDialog - a simple authorization dialog with two fields: Username and Password
+* TextDisplay - a "virtual" text view control: it does not store any data, every time it needs to draw its line it requests the line from external source by line ID
 
 ## Screenshots
 The main demo (theme changing and radio group control)
@@ -54,3 +55,7 @@ The screencast of demo:
 The library is in the very beginning but it can be used to create working utilities: below is the example of my Dilbert comix downloader:
 
 <img src="./demos/dilbert_demo.gif" alt="Dilbert Downloader">
+
+## License
+
+CLUI is dual-licensed under MIT OR BSD-2-Clause

@@ -1,3 +1,24 @@
+2019-05-10 - version 1.2.0
+[*] Dual license: MIT or BSD-2-Clause
+[*] Window icons minimize and maximize are swapped
+[*] UX improvement: minimize and maximize buttons moved to left side of
+    a window to avoid closing window accidentally after misclicking.
+    Old window title view:
+    ╔Demo═══════[^_X]╗
+    New one:
+    ╔[_^]═Demo════[X]╗
+
+2019-05-7 - version 1.2.0
+[*] Changed default window close icon from "O" to "■"
+[*] Doc comments clean up
+
+2019-03-16 - version 1.1.0
+[!] TextReader renamed to TextDisplay to avoid confusion with io.Reader. In
+    library version 1.x TextReader is deprecated but still available - it is
+    just an alias for TextDisplay. In next major release TextReader will be
+    removed.
+[*] Fix wrong window title for TextDisplay(TextReader) demo
+
 2018-12-01 - version 1.0.0
 [*] No changes. No bug reports. The version 1.0 is out
 

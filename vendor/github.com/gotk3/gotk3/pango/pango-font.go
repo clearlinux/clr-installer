@@ -18,7 +18,6 @@
 
 package pango
 
-// #cgo pkg-config: pango fontconfig
 // #include <pango/pango.h>
 // #include "pango.go.h"
 // #include "fontconfig.go.h"
@@ -40,8 +39,10 @@ func init() {
 	glib.RegisterGValueMarshalers(tm)
 }
 
+// AddFont adds the font to the configuration.
 func AddFont(fontPath string) {
-	C.addFont(C.CString(fontPath))
+	path := (*C.uchar)(unsafe.Pointer(C.CString(fontPath)))
+	C.addFont(path)
 }
 
 // FontDescription is a representation of PangoFontDescription.

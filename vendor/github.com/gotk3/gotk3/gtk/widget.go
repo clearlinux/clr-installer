@@ -83,6 +83,10 @@ func (v *Widget) DragDestSet(flags DestDefaults, targets []TargetEntry, actions 
 	C.gtk_drag_dest_set(v.native(), C.GtkDestDefaults(flags), (*C.GtkTargetEntry)(&targets[0]), C.gint(len(targets)), C.GdkDragAction(actions))
 }
 
+func (v *Widget) DragSourceSet(start_button_mask gdk.ModifierType, targets []TargetEntry, actions gdk.DragAction) {
+	C.gtk_drag_source_set(v.native(), C.GdkModifierType(start_button_mask), (*C.GtkTargetEntry)(&targets[0]), C.gint(len(targets)), C.GdkDragAction(actions))
+}
+
 // ResetStyle is a wrapper around gtk_widget_reset_style().
 func (v *Widget) ResetStyle() {
 	C.gtk_widget_reset_style(v.native())
@@ -378,6 +382,16 @@ func (v *Widget) GetEvents() int {
 // AddEvents is a wrapper around gtk_widget_add_events().
 func (v *Widget) AddEvents(events int) {
 	C.gtk_widget_add_events(v.native(), C.gint(events))
+}
+
+// FreezeChildNotify is a wrapper around gtk_widget_freeze_child_notify().
+func (v *Widget) FreezeChildNotify() {
+	C.gtk_widget_freeze_child_notify(v.native())
+}
+
+// ThawChildNotify is a wrapper around gtk_widget_thaw_child_notify().
+func (v *Widget) ThawChildNotify() {
+	C.gtk_widget_thaw_child_notify(v.native())
 }
 
 // HasDefault is a wrapper around gtk_widget_has_default().

@@ -26,48 +26,28 @@
 
 
 [[constraint]]
+  branch = "master"
+  name = "github.com/GehirnInc/crypt"
+
+[[constraint]]
   name = "github.com/VladimirMarkelov/clui"
-  version = "1.0"
+  version = "1.2.0"
 
 [[constraint]]
-  name = "github.com/huandu/xstrings"
-  version = "1.1.0"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/nsf/termbox-go"
-
-[[constraint]]
-  name = "github.com/spf13/pflag"
-  version = "1.0.2"
-
-[[constraint]]
-  name = "golang.org/x/text"
-  version = "0.3.0"
-
-[[constraint]]
-  name = "gopkg.in/yaml.v2"
-  version = "2.2.1"
-
-[prune]
-  go-tests = true
-  unused-packages = true
-
-[[constraint]]
-  branch = "master"
-  name = "golang.org/x/crypto"
+  name = "github.com/coreos/go-systemd"
+  version = "21.0.0"
 
 [[constraint]]
   branch = "master"
   name = "github.com/digitalocean/go-smbios"
 
 [[constraint]]
-  name = "github.com/coreos/go-systemd"
-  version = "19.0.0"
+  branch = "master"
+  name = "github.com/gotk3/gotk3"
 
 [[constraint]]
-  name = "github.com/gotk3/gotk3"
-  version= "GOTK3_0_3_0"
+  name = "github.com/huandu/xstrings"
+  version = "1.2.1"
 
 [[constraint]]
   name = "github.com/leonelquinteros/gotext"
@@ -75,8 +55,28 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/GehirnInc/crypt"
+  name = "github.com/nightlyone/lockfile"
 
 [[constraint]]
   branch = "master"
-  name = "github.com/nightlyone/lockfile"
+  name = "github.com/nsf/termbox-go"
+
+[[constraint]]
+  name = "github.com/spf13/pflag"
+  version = "1.0.5"
+
+[[constraint]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+
+[[constraint]]
+  name = "golang.org/x/text"
+  version = "0.3.2"
+
+[[constraint]]
+  name = "gopkg.in/yaml.v2"
+  version = "2.2.7"
+
+[prune]
+  go-tests = true
+  unused-packages = true

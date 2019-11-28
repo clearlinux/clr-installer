@@ -5,7 +5,7 @@ import (
 	term "github.com/nsf/termbox-go"
 )
 
-// Window is an implemetation of View managed by Composer.
+// Window is an implementation of View managed by Composer.
 type Window struct {
 	BaseControl
 
@@ -57,19 +57,18 @@ func CreateWindow(x, y, w, h int, title string) *Window {
 	return wnd
 }
 
-func (wnd *Window) buttonCount() int {
-	cnt := 0
+func (wnd *Window) buttonCount() (left, right int) {
 	if wnd.buttons&ButtonClose == ButtonClose {
-		cnt += 1
+		right += 1
 	}
 	if wnd.buttons&ButtonMaximize == ButtonMaximize {
-		cnt += 1
+		left += 1
 	}
 	if wnd.buttons&ButtonBottom == ButtonBottom {
-		cnt += 1
+		left += 1
 	}
 
-	return cnt
+	return left, right
 }
 
 func (wnd *Window) drawFrame() {
@@ -95,10 +94,19 @@ func (wnd *Window) drawTitle() {
 	PushAttributes()
 	defer PopAttributes()
 
-	btnCount := wnd.buttonCount()
-	maxw := wnd.width - 2 - btnCount
-	if btnCount > 0 {
-		maxw -= 2
+	lb, rb := wnd.buttonCount()
+	maxw := wnd.width - 2
+	xshift := 1
+	if lb > 0 {
+		lbSize := lb + 2 + 1
+		maxw -= lbSize
+		xshift += lbSize
+	}
+	if rb > 0 {
+		maxw -= rb + 2
+	}
+	if maxw < 3 {
+		return
 	}
 
 	fitTitle := wnd.title
@@ -106,13 +114,12 @@ func (wnd *Window) drawTitle() {
 	if xs.Len(rawText) > maxw {
 		fitTitle = SliceColorized(fitTitle, 0, maxw-3) + "..."
 	}
-
-	DrawText(wnd.x+1, wnd.y, fitTitle)
+	DrawText(wnd.x+xshift, wnd.y, fitTitle)
 }
 
 func (wnd *Window) drawButtons() {
-	btnCount := wnd.buttonCount()
-	if btnCount == 0 {
+	lb, rb := wnd.buttonCount()
+	if lb+rb == 0 {
 		return
 	}
 
@@ -122,24 +129,31 @@ func (wnd *Window) drawButtons() {
 	chars := []rune(SysObject(ObjViewButtons))
 	cMax, cBottom, cClose, cOpenB, cCloseB := chars[0], chars[1], chars[2], chars[3], chars[4]
 
-	pos := wnd.x + wnd.width - btnCount - 2
-	putCharUnsafe(pos, wnd.y, cOpenB)
-	pos += 1
-	if wnd.buttons&ButtonBottom == ButtonBottom {
-		putCharUnsafe(pos, wnd.y, cBottom)
-		pos += 1
+	// draw close button (rb can be either 1 or 0)
+	if rb != 0 {
+		pos := wnd.x + wnd.width - rb - 2
+		putCharUnsafe(pos, wnd.y, cOpenB)
+		putCharUnsafe(pos+1, wnd.y, cClose)
+		putCharUnsafe(pos+2, wnd.y, cCloseB)
 	}
-	if wnd.buttons&ButtonMaximize == ButtonMaximize {
-		putCharUnsafe(pos, wnd.y, cMax)
+
+	if lb > 0 {
+		pos := wnd.x + 1
+		putCharUnsafe(pos, wnd.y, cOpenB)
 		pos += 1
+		if wnd.buttons&ButtonBottom == ButtonBottom {
+			putCharUnsafe(pos, wnd.y, cBottom)
+			pos += 1
+		}
+		if wnd.buttons&ButtonMaximize == ButtonMaximize {
+			putCharUnsafe(pos, wnd.y, cMax)
+			pos += 1
+		}
+		putCharUnsafe(pos, wnd.y, cCloseB)
 	}
-	if wnd.buttons&ButtonClose == ButtonClose {
-		putCharUnsafe(pos, wnd.y, cClose)
-		pos += 1
-	}
-	putCharUnsafe(pos, wnd.y, cCloseB)
 }
 
+// Draw repaints the control on the screen
 func (wnd *Window) Draw() {
 	WindowManager().BeginUpdate()
 	defer WindowManager().EndUpdate()
@@ -161,6 +175,9 @@ func (wnd *Window) Draw() {
 	wnd.drawButtons()
 }
 
+// HitTest returns type of a Window region at a given screen coordinates. The
+// method is used to detect if a mouse cursor on a window border or outside,
+// which window icon is under cursor etc
 func (c *Window) HitTest(x, y int) HitResult {
 	if x > c.x && x < c.x+c.width-1 &&
 		y > c.y && y < c.y+c.height-1 {
@@ -182,27 +199,36 @@ func (c *Window) HitTest(x, y int) HitResult {
 	} else if x == c.x+c.width-1 && y > c.y && y < c.y+c.height-1 {
 		hResult = HitRight
 	} else if y == c.y && x > c.x && x < c.x+c.width-1 {
-		btnCount := c.buttonCount()
-		if x < c.x+c.width-1-btnCount {
+		lb, rb := c.buttonCount()
+		fromL, fromR := lb, rb
+		if lb > 0 {
+			fromL += 2
+		}
+		if rb > 0 {
+			fromR += 2
+		}
+		if x > c.x+fromL && x < c.x+c.width-fromR {
 			hResult = HitTop
 		} else {
-			hitRes := []HitResult{HitTop, HitTop, HitTop}
-			pos := 0
-
-			if c.buttons&ButtonBottom == ButtonBottom {
-				hitRes[pos] = HitButtonBottom
-				pos += 1
+			hResult = HitTop
+			if c.buttons&ButtonClose == ButtonClose && rb != 0 && x == c.x+c.width-2 {
+				hResult = HitButtonClose
+			} else if lb != 0 && x > c.x+1 && x < c.x+2+lb {
+				dx := x - c.x - 2
+				hitRes := []HitResult{HitTop, HitTop}
+				pos := 0
+				if c.buttons&ButtonBottom == ButtonBottom {
+					hitRes[pos] = HitButtonBottom
+					pos += 1
+				}
+				if c.buttons&ButtonMaximize == ButtonMaximize {
+					hitRes[pos] = HitButtonMaximize
+					pos += 1
+				}
+				if dx < len(hitRes) {
+					hResult = hitRes[dx]
+				}
 			}
-			if c.buttons&ButtonMaximize == ButtonMaximize {
-				hitRes[pos] = HitButtonMaximize
-				pos += 1
-			}
-			if c.buttons&ButtonClose == ButtonClose {
-				hitRes[pos] = HitButtonClose
-				pos += 1
-			}
-
-			hResult = hitRes[x-(c.x+c.width-1-btnCount)]
 		}
 	} else if y == c.y+c.height-1 && x > c.x && x < c.x+c.width-1 {
 		hResult = HitBottom
@@ -275,15 +301,14 @@ func (c *Window) ProcessEvent(ev Event) bool {
 				}
 			}
 			return true
-		} else {
-			if SendEventToChild(c, ev) {
-				return true
-			}
-			if c.onKeyDown != nil {
-				return c.onKeyDown.fn(ev, c.onKeyDown.data)
-			}
-			return false
 		}
+		if SendEventToChild(c, ev) {
+			return true
+		}
+		if c.onKeyDown != nil {
+			return c.onKeyDown.fn(ev, c.onKeyDown.data)
+		}
+		return false
 	default:
 		if ev.Type == EventMouse && ev.Key == term.MouseLeft {
 			DeactivateControls(c)
@@ -360,16 +385,18 @@ func (w *Window) Visible() bool {
 // SetVisible allows to temporarily remove the window from screen
 // and show it later without reconstruction
 func (w *Window) SetVisible(visible bool) {
-	if w.hidden == visible {
-		w.hidden = !visible
-		if w.hidden {
-			w.SetModal(false)
-			if WindowManager().topWindow() == w {
-				WindowManager().moveActiveWindowToBottom()
-			}
-		} else {
-			WindowManager().activateWindow(w)
+	if w.hidden != visible {
+		return
+	}
+
+	w.hidden = !visible
+	if w.hidden {
+		w.SetModal(false)
+		if WindowManager().topWindow() == w {
+			WindowManager().moveActiveWindowToBottom()
 		}
+	} else {
+		WindowManager().activateWindow(w)
 	}
 }
 

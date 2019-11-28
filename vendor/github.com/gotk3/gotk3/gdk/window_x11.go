@@ -3,7 +3,6 @@
 
 package gdk
 
-// #cgo pkg-config: gdk-x11-3.0
 // #include <gdk/gdk.h>
 // #include <gdk/gdkx.h>
 import "C"
@@ -24,4 +23,10 @@ func (v *Window) GetDesktop() uint32 {
 // It only works on GDK versions compiled with X11 support - its return value can't be used if WorkspaceControlSupported returns false
 func (v *Window) MoveToDesktop(d uint32) {
 	C.gdk_x11_window_move_to_desktop(v.native(), C.guint32(d))
+}
+
+// GetXID is a wrapper around gdk_x11_window_get_xid().
+// It only works on GDK versions compiled with X11 support - its return value can't be used if WorkspaceControlSupported returns false
+func (v *Window) GetXID() uint32 {
+        return uint32(C.gdk_x11_window_get_xid(v.native()))
 }
