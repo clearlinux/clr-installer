@@ -831,6 +831,30 @@ func (bd *BlockDevice) Equals(cmp *BlockDevice) bool {
 	return bd.Name == cmp.Name && bd.Model == cmp.Model && bd.MajorMinor == cmp.MajorMinor
 }
 
+func isBlockDeviceAvailable(blockDevices []*BlockDevice) bool {
+	available := true
+
+	for _, bd := range blockDevices {
+		// We ignore devices with any mount partition
+		if bd.MountPoint != "" {
+			available = false
+			break
+		}
+		// We ignore devices if any partition has a CLR_ISO label
+		if strings.Contains(bd.Label, "CLR_ISO") {
+			available = false
+			break
+		}
+
+		if bd.Children != nil {
+			if available = isBlockDeviceAvailable(bd.Children); !available {
+				break
+			}
+		}
+	}
+
+	return available
+}
 func parseBlockDevicesDescriptor(data []byte) ([]*BlockDevice, error) {
 	root := struct {
 		BlockDevices []*BlockDevice `json:"blockdevices"`
@@ -842,20 +866,7 @@ func parseBlockDevicesDescriptor(data []byte) ([]*BlockDevice, error) {
 	}
 
 	for _, bd := range root.BlockDevices {
-		bd.available = true
-
-		for _, ch := range bd.Children {
-			// We ignore devices with any mount partition
-			if ch.MountPoint != "" {
-				bd.available = false
-				break
-			}
-			// We ignore devices if any partition has a CLR_ISO label
-			if strings.Contains(ch.Label, "CLR_ISO") {
-				bd.available = false
-				break
-			}
-		}
+		bd.available = isBlockDeviceAvailable(bd.Children)
 
 		// We ignore devices if the filesystem is squashfs
 		if strings.Contains(bd.FsType, "squashfs") {
