@@ -819,7 +819,6 @@ func (bd *BlockDevice) RemovePartition(child *BlockDevice) *PartedPartition {
 	deleteIndex := -1
 	for idx, curr := range bd.Children {
 		if curr.Name == child.Name {
-			child.Parent = nil
 			deleteIndex = idx
 			break
 		}

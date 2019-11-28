@@ -53,7 +53,6 @@ type BlockDevice struct {
 	ReadOnly        bool               // read-only device
 	RemovableDevice bool               // removable device
 	Children        []*BlockDevice     // children devices/partitions
-	Parent          *BlockDevice       // Parent block device; nil for disk
 	UserDefined     bool               // was this value set by user?
 	MakePartition   bool               // Do we need to make a new partition?
 	FormatPartition bool               // Do we need to format the partition
@@ -393,7 +392,6 @@ func (bd *BlockDevice) Clone() *BlockDevice {
 		State:           bd.State,
 		ReadOnly:        bd.ReadOnly,
 		RemovableDevice: bd.RemovableDevice,
-		Parent:          bd.Parent,
 		UserDefined:     bd.UserDefined,
 		MakePartition:   bd.MakePartition,
 		FormatPartition: bd.FormatPartition,
@@ -407,7 +405,6 @@ func (bd *BlockDevice) Clone() *BlockDevice {
 
 	for _, curr := range bd.Children {
 		cc := curr.Clone()
-		cc.Parent = clone
 
 		clone.Children = append(clone.Children, cc)
 	}
@@ -538,7 +535,6 @@ func (bd *BlockDevice) RemoveChild(child *BlockDevice) {
 
 	for _, curr := range copyBd.Children {
 		if curr.Name == child.Name {
-			child.Parent = nil
 			continue
 		}
 
@@ -570,7 +566,6 @@ func (bd *BlockDevice) AddChild(child *BlockDevice) {
 		bd.Children = []*BlockDevice{}
 	}
 
-	child.Parent = bd
 	bd.Children = append(bd.Children, child)
 
 	if child.Name == "" {
@@ -850,7 +845,6 @@ func parseBlockDevicesDescriptor(data []byte) ([]*BlockDevice, error) {
 		bd.available = true
 
 		for _, ch := range bd.Children {
-			ch.Parent = bd
 			// We ignore devices with any mount partition
 			if ch.MountPoint != "" {
 				bd.available = false
