@@ -31,6 +31,7 @@ type DiskConfig struct {
 	devs                  []*storage.BlockDevice
 	safeTargets           []storage.InstallTarget
 	destructiveTargets    []storage.InstallTarget
+	tempSelectedTarget    string
 	activeDisk            *storage.BlockDevice
 	activeSerial          string
 	controller            Controller
@@ -254,6 +255,10 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	if err != nil {
 		log.Warning("Failed to make disk.chooserCombo")
 		return nil, err
+	}
+
+	if _, err := disk.chooserCombo.Connect("changed", disk.onChooserComboChanged); err != nil {
+		log.Warning("Error connecting to entry")
 	}
 
 	// Add the renderers to the ComboBox
@@ -751,6 +756,35 @@ func (disk *DiskConfig) onEncryptClick(button *gtk.CheckButton) {
 	}
 }
 
+func (disk *DiskConfig) onChooserComboChanged(combo *gtk.ComboBox) {
+	if combo == nil {
+		log.Warning("onChooserComboChanged with nil reference")
+		return
+	}
+
+	if iter, iterErr := combo.GetActiveIter(); iter != nil && iterErr == nil {
+		if model, modelErr := combo.GetModel(); modelErr == nil && model.GetNColumns() >= 2 {
+			// Extract from model
+			if valueObj, getErr := model.GetValue(iter, 2); getErr == nil && valueObj != nil {
+				if _, fType, typeErr := valueObj.Type(); typeErr == nil && fType == glib.TYPE_STRING {
+					if name, nameErr := valueObj.GetString(); nameErr == nil {
+						disk.tempSelectedTarget = name
+						log.Debug("ComboBox entry selected is: %v", name)
+					} else {
+						log.Warning("Failed to get model string from value: %v", nameErr)
+					}
+				}
+			} else {
+				log.Warning("Failed to get ComboBox model value from iter: %v", getErr)
+			}
+		} else {
+			log.Warning("Failed to get ComboBox model: %v", modelErr)
+		}
+	} else {
+		log.Warning("Failed to get ComboBox iter: %v", iterErr)
+	}
+}
+
 // populateComboBoxes populates the scrollBox with usable widget things
 func (disk *DiskConfig) populateComboBoxes() error {
 	// Clear any previous warning
@@ -806,8 +840,17 @@ func (disk *DiskConfig) populateComboBoxes() error {
 					log.Warning("SetValue safeStore")
 					return err
 				}
-				if target.Name == disk.model.InstallSelected[target.Name].Name {
-					selected = n
+
+				if disk.tempSelectedTarget == "" {
+					if target.Name == disk.model.InstallSelected[target.Name].Name {
+						log.Debug("Selecting Safe target from model: %s", target.Name)
+						selected = n
+					}
+				} else {
+					if target.Name == disk.tempSelectedTarget {
+						log.Debug("Selecting Safe target from active screen: %s", target.Name)
+						selected = n
+					}
 				}
 			}
 			disk.chooserCombo.SetModel(safeStore)
@@ -832,8 +875,17 @@ func (disk *DiskConfig) populateComboBoxes() error {
 					log.Warning("SetValue destructiveStore")
 					return err
 				}
-				if target.Name == disk.model.InstallSelected[target.Name].Name {
-					selected = n
+
+				if disk.tempSelectedTarget == "" {
+					if target.Name == disk.model.InstallSelected[target.Name].Name {
+						log.Debug("Selecting Destructive target from model: %s", target.Name)
+						selected = n
+					}
+				} else {
+					if target.Name == disk.tempSelectedTarget {
+						log.Debug("Selecting Destructive target from active screen: %s", target.Name)
+						selected = n
+					}
 				}
 			}
 			disk.chooserCombo.SetModel(destructiveStore)
