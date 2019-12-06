@@ -55,8 +55,7 @@
   version = "v5.0.3"
 
 [[projects]]
-  branch = "master"
-  digest = "1:da14763e8f3f2d9c831ee46e47cc4723dcc5312f55433b901ea7400f2c21d7f5"
+  digest = "1:b14571311a0cf3fc329f9ea02633fd89f8ef12886831de6eed78da046a3efc45"
   name = "github.com/gotk3/gotk3"
   packages = [
     "cairo",
@@ -66,7 +65,7 @@
     "pango",
   ]
   pruneopts = "UT"
-  revision = "60cba67d4ea42a3b841c37b37d94244ecdbc9770"
+  revision = "38a191286724f8eb4586fce4cb640393a32eba46"
 
 [[projects]]
   digest = "1:7e9014f41c8285f91b8f6170a30f633532c8d095b4ead42024e1f460c0ac497d"
@@ -88,12 +87,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:8b9352f5af622f234923139000732eb2fb32574949fa84d60a21c70e5dd7d3e6"
+  digest = "1:871aa208665f8c57d13ed13899c243454858ee6654cc4feed768096bcea6fbc3"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
   pruneopts = "UT"
-  revision = "f93a0d58d5fd95e53f82782d07bb0c79d23e1290"
-  version = "v0.0.6"
+  revision = "18c3d09a134a52720932bbaa92c798a0ab111004"
+  version = "v0.0.7"
 
 [[projects]]
   branch = "master"
@@ -125,18 +124,18 @@
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "ac88ee75c92c889b97e05591e9a39b6480c538b3"
+  revision = "e7c4368fe9ddd156b5f1463283cb51c5b400c373"
 
 [[projects]]
   branch = "master"
-  digest = "1:055d921edfad0ae56ef0d21a124a002cf3a669b4c42e85b810abf0225226e2a3"
+  digest = "1:4dade6126937937ae62a2d345ceef96e1122e49bf3360a567ccd4177c0fb547b"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "63cb32ae39b28d6bb8e7e215c1fc39dd80dcdb02"
+  revision = "ce4227a45e2eb77e5c847278dcc6a626742e2945"
 
 [[projects]]
   digest = "1:37a084d96d03d81a060791378bc44f98f9ad0d48c20ddbc3e154afeeb1ef60f6"

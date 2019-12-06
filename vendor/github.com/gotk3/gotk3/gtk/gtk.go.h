@@ -430,12 +430,6 @@ toGtkCellRendererPixbuf(void *p)
 	return (GTK_CELL_RENDERER_PIXBUF(p));
 }
 
-static GtkCellRendererProgress *
-toGtkCellRendererProgress(void *p)
-{
-    return (GTK_CELL_RENDERER_PROGRESS(p));
-}
-
 static GtkCellRendererText *
 toGtkCellRendererText(void *p)
 {
@@ -932,42 +926,4 @@ extern gboolean goTreeModelFilterFuncs (GtkTreeModel *model, GtkTreeIter *iter, 
 
 static inline void _gtk_tree_model_filter_set_visible_func(GtkTreeModelFilter *filter, gpointer user_data) {
     gtk_tree_model_filter_set_visible_func(filter, (GtkTreeModelFilterVisibleFunc)(goTreeModelFilterFuncs), user_data, NULL);
-}
-
-static inline void _gtk_text_buffer_insert_with_tag_by_name(GtkTextBuffer* buffer, GtkTextIter* iter, const gchar* text, gint len, const gchar* first_tag_name) {
-	gtk_text_buffer_insert_with_tags_by_name(buffer, iter, text, len, first_tag_name, NULL);
-}
-
-static inline void _gtk_text_buffer_insert_with_tag(GtkTextBuffer* buffer, GtkTextIter* iter, const gchar* text, gint len, GtkTextTag* tag) {
-	gtk_text_buffer_insert_with_tags(buffer, iter, text, len, tag, NULL);
-}
-
-extern gint goTreeSortableSortFuncs(GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpointer data);
-
-static inline void _gtk_tree_sortable_set_sort_func(GtkTreeSortable *sortable, gint sort_column_id, gpointer user_data) {
-    gtk_tree_sortable_set_sort_func(sortable, sort_column_id, (GtkTreeIterCompareFunc)(goTreeSortableSortFuncs), user_data, NULL);
-}
-
-static GtkWidget *
-_gtk_dialog_new_with_buttons(const gchar    *title,
-                             GtkWindow      *parent,
-                             GtkDialogFlags  flags,
-                             const gchar    *first_button_text) {
-	GtkWidget		*w;
-
-	w = gtk_dialog_new_with_buttons(title, parent, flags, first_button_text, NULL);
-	return (w);
-}
-
-extern gint goTreeModelForeachFunc(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer data);
-
-static inline void _gtk_tree_model_foreach(GtkTreeModel *model, gpointer user_data) {
-    gtk_tree_model_foreach(model, (GtkTreeModelForeachFunc)(goTreeModelForeachFunc), user_data);
-
-}
-
-extern void goTreeSelectionForeachFunc(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer data);
-
-static inline void _gtk_tree_selection_selected_foreach(GtkTreeSelection *selection, gpointer user_data) {
-    gtk_tree_selection_selected_foreach(selection, (GtkTreeSelectionForeachFunc)(goTreeSelectionForeachFunc), user_data);
 }

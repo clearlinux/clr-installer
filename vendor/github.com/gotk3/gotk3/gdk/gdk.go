@@ -49,7 +49,6 @@ func init() {
 		{glib.Type(C.gdk_display_get_type()), marshalDisplay},
 		{glib.Type(C.gdk_drag_context_get_type()), marshalDragContext},
 		{glib.Type(C.gdk_pixbuf_get_type()), marshalPixbuf},
-		{glib.Type(C.gdk_pixbuf_animation_get_type()), marshalPixbufAnimation},
 		{glib.Type(C.gdk_rgba_get_type()), marshalRGBA},
 		{glib.Type(C.gdk_screen_get_type()), marshalScreen},
 		{glib.Type(C.gdk_visual_get_type()), marshalVisual},
@@ -331,36 +330,6 @@ const (
 const (
 	GDK_EVENT_PROPAGATE bool = C.GDK_EVENT_PROPAGATE != 0
 	GDK_EVENT_STOP      bool = C.GDK_EVENT_STOP != 0
-)
-
-// CrossingMode is a representation of GDK's GdkCrossingMode.
-
-type CrossingMode int
-
-const (
-	CROSSING_NORMAL CrossingMode = C.GDK_CROSSING_NORMAL
-	CROSSING_GRAB CrossingMode = C.GDK_CROSSING_GRAB
-	CROSSING_UNGRAB CrossingMode = C.GDK_CROSSING_UNGRAB
-	CROSSING_GTK_GRAB CrossingMode = C.GDK_CROSSING_GTK_GRAB
-	CROSSING_GTK_UNGRAB CrossingMode = C.GDK_CROSSING_GTK_UNGRAB
-	CROSSING_STATE_CHANGED CrossingMode = C.GDK_CROSSING_STATE_CHANGED
-	CROSSING_TOUCH_BEGIN CrossingMode = C.GDK_CROSSING_TOUCH_BEGIN
-	CROSSING_TOUCH_END CrossingMode = C.GDK_CROSSING_TOUCH_END
-	CROSSING_DEVICE_SWITCH CrossingMode = C.GDK_CROSSING_DEVICE_SWITCH
-)
-
-
-// NotifyType is a representation of GDK's GdkNotifyType.
-
-type NotifyType int
-
-const (
-	NOTIFY_ANCESTOR NotifyType = C.GDK_NOTIFY_ANCESTOR
-	NOTIFY_VIRTUAL NotifyType = C.GDK_NOTIFY_VIRTUAL
-	NOTIFY_INFERIOR NotifyType = C.GDK_NOTIFY_INFERIOR
-	NOTIFY_NONLINEAR NotifyType = C.GDK_NOTIFY_NONLINEAR
-	NOTIFY_NONLINEAR_VIRTUAL NotifyType = C.GDK_NOTIFY_NONLINEAR_VIRTUAL
-	NOTIFY_UNKNOWN NotifyType = C.GDK_NOTIFY_UNKNOWN
 )
 
 /*
@@ -1120,110 +1089,6 @@ func (v *EventMotion) State() ModifierType {
 }
 
 /*
- * GdkEventCrossing
- */
-
-// EventCrossing is a representation of GDK's GdkEventCrossing.
-type EventCrossing struct {
-	*Event
-}
-
-func EventCrossingNew() *EventCrossing {
-	ee := (*C.GdkEvent)(unsafe.Pointer(&C.GdkEventCrossing{}))
-	ev := Event{ee}
-	return &EventCrossing{&ev}
-}
-
-// EventCrossingNewFromEvent returns an EventCrossing from an Event.
-//
-// Using widget.Connect() for a key related signal such as
-// "enter-notify-event" results in a *Event being passed as
-// the callback's second argument. The argument is actually a
-// *EventCrossing. EventCrossingNewFromEvent provides a means of creating
-// an EventCrossing from the Event.
-func EventCrossingNewFromEvent(event *Event) *EventCrossing {
-	ee := (*C.GdkEvent)(unsafe.Pointer(event.native()))
-	ev := Event{ee}
-	return &EventCrossing{&ev}
-}
-
-// Native returns a pointer to the underlying GdkEventCrossing.
-func (v *EventCrossing) Native() uintptr {
-	return uintptr(unsafe.Pointer(v.native()))
-}
-
-func (v *EventCrossing) native() *C.GdkEventCrossing {
-	return (*C.GdkEventCrossing)(unsafe.Pointer(v.Event.native()))
-}
-
-func (v *EventCrossing) X() float64 {
-	c := v.native().x
-	return float64(c)
-}
-
-func (v *EventCrossing) Y() float64 {
-	c := v.native().y
-	return float64(c)
-}
-
-// XRoot returns the x coordinate of the pointer relative to the root of the screen.
-func (v *EventCrossing) XRoot() float64 {
-	c := v.native().x_root
-	return float64(c)
-}
-
-// YRoot returns the y coordinate of the pointer relative to the root of the screen.
-func (v *EventCrossing) YRoot() float64 {
-	c := v.native().y_root
-	return float64(c)
-}
-
-func (v *EventCrossing) State() uint {
-	c := v.native().state
-	return uint(c)
-}
-
-// Time returns the time of the event in milliseconds.
-func (v *EventCrossing) Time() uint32 {
-	c := v.native().time
-	return uint32(c)
-}
-
-func (v *EventCrossing) Type() EventType {
-	c := v.native()._type
-	return EventType(c)
-}
-
-func (v *EventCrossing) MotionVal() (float64, float64) {
-	x := v.native().x
-	y := v.native().y
-	return float64(x), float64(y)
-}
-
-func (v *EventCrossing) MotionValRoot() (float64, float64) {
-	x := v.native().x_root
-	y := v.native().y_root
-	return float64(x), float64(y)
-}
-
-func (v *EventCrossing) Mode() CrossingMode {
-	c := v.native().mode
-	return CrossingMode(c)
-}
-
-func (v *EventCrossing) Detail() NotifyType {
-	c := v.native().detail
-	return NotifyType(c)
-}
-
-
-func (v *EventCrossing) Focus() bool {
-	c := v.native().focus
-	return gobool(c)
-}
-
-
-/*
  * GdkEventScroll
  */
 
@@ -1284,13 +1149,6 @@ func (v *EventScroll) Type() EventType {
 func (v *EventScroll) Direction() ScrollDirection {
 	c := v.native().direction
 	return ScrollDirection(c)
-}
-
-// A bit-mask representing the state of the modifier keys (e.g. Control, Shift
-// and Alt) and the pointer buttons. See gdk.ModifierType constants.
-func (v *EventScroll) State() ModifierType {
-	c := v.native().state
-	return ModifierType(c)
 }
 
 /*
@@ -1740,56 +1598,6 @@ func PixbufGetFileInfo(filename string) (format interface{}, width, height int) 
 }
 
 /*
- * GdkPixbufAnimation
- */
-
-// PixbufAnimation is a representation of GDK's GdkPixbufAnimation.
-type PixbufAnimation struct {
-	*glib.Object
-}
-
-// native returns a pointer to the underlying GdkPixbufAnimation.
-func (v *PixbufAnimation) native() *C.GdkPixbufAnimation {
-	if v == nil || v.GObject == nil {
-		return nil
-	}
-	p := unsafe.Pointer(v.GObject)
-	return C.toGdkPixbufAnimation(p)
-}
-
-func (v *PixbufAnimation) NativePrivate() *C.GdkPixbufAnimation {
-	if v == nil || v.GObject == nil {
-		return nil
-	}
-	p := unsafe.Pointer(v.GObject)
-	return C.toGdkPixbufAnimation(p)
-}
-
-func marshalPixbufAnimation(p uintptr) (interface{}, error) {
-	c := C.g_value_get_object((*C.GValue)(unsafe.Pointer(p)))
-	obj := &glib.Object{glib.ToGObject(unsafe.Pointer(c))}
-	return &PixbufAnimation{obj}, nil
-}
-
-// PixbufAnimationNewFromFile is a wrapper around gdk_pixbuf_animation_new_from_file().
-func PixbufAnimationNewFromFile(filename string) (*PixbufAnimation, error) {
-	cstr := C.CString(filename)
-	defer C.free(unsafe.Pointer(cstr))
-
-	var err *C.GError
-	c := C.gdk_pixbuf_animation_new_from_file((*C.char)(cstr), &err)
-	if c == nil {
-		defer C.g_error_free(err)
-		return nil, errors.New(C.GoString((*C.char)(err.message)))
-	}
-
-	obj := &glib.Object{glib.ToGObject(unsafe.Pointer(c))}
-	p := &PixbufAnimation{obj}
-	runtime.SetFinalizer(p, func(_ interface{}) { obj.Unref() })
-	return p, nil
-}
-
-/*
  * GdkPixbufLoader
  */
 
@@ -1929,48 +1737,6 @@ func (v *PixbufLoader) GetPixbuf() (*Pixbuf, error) {
 	return p, nil
 }
 
-// GetAnimation is a wrapper around gdk_pixbuf_loader_get_animation().
-func (v *PixbufLoader) GetAnimation() (*PixbufAnimation, error) {
-	c := C.gdk_pixbuf_loader_get_animation(v.native())
-	if c == nil {
-		return nil, nilPtrErr
-	}
-
-	obj := &glib.Object{glib.ToGObject(unsafe.Pointer(c))}
-	p := &PixbufAnimation{obj}
-	runtime.SetFinalizer(p, func(_ interface{}) { obj.Unref() })
-	return p, nil
-}
-
-// Convenient function like above for Pixbuf. Write data, close loader and return PixbufAnimation.
-func (v *PixbufLoader) WriteAndReturnPixbufAnimation(data []byte) (*PixbufAnimation, error) {
-
-	if len(data) == 0 {
-		return nil, errors.New("no data")
-	}
-
-	var err *C.GError
-	c := C.gdk_pixbuf_loader_write(v.native(), (*C.guchar)(unsafe.Pointer(&data[0])), C.gsize(len(data)), &err)
-
-	if !gobool(c) {
-		defer C.g_error_free(err)
-		return nil, errors.New(C.GoString((*C.char)(err.message)))
-	}
-
-	v.Close()
-
-	c2 := C.gdk_pixbuf_loader_get_animation(v.native())
-	if c2 == nil {
-		return nil, nilPtrErr
-	}
-
-	obj := &glib.Object{glib.ToGObject(unsafe.Pointer(c2))}
-	p := &PixbufAnimation{obj}
-	runtime.SetFinalizer(p, func(_ interface{}) { obj.Unref() })
-
-	return p, nil
-}
-
 type RGBA struct {
 	rgba *C.GdkRGBA
 }
@@ -2075,19 +1841,9 @@ func (r *Rectangle) GetX() int {
 	return int(r.native().x)
 }
 
-// SetX sets x field of the underlying GdkRectangle.
-func (r *Rectangle) SetX(x int) {
-	r.native().x = C.int(x)
-}
-
 // GetY returns y field of the underlying GdkRectangle.
 func (r *Rectangle) GetY() int {
 	return int(r.native().y)
-}
-
-// SetY sets y field of the underlying GdkRectangle.
-func (r *Rectangle) SetY(y int) {
-	r.native().y = C.int(y)
 }
 
 // GetWidth returns width field of the underlying GdkRectangle.
@@ -2095,19 +1851,9 @@ func (r *Rectangle) GetWidth() int {
 	return int(r.native().width)
 }
 
-// SetWidth sets width field of the underlying GdkRectangle.
-func (r *Rectangle) SetWidth(width int) {
-	r.native().width = C.int(width)
-}
-
 // GetHeight returns height field of the underlying GdkRectangle.
 func (r *Rectangle) GetHeight() int {
 	return int(r.native().height)
-}
-
-// SetHeight sets height field of the underlying GdkRectangle.
-func (r *Rectangle) SetHeight(height int) {
-	r.native().height = C.int(height)
 }
 
 /*
