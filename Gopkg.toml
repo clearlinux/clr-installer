@@ -42,8 +42,8 @@
   name = "github.com/digitalocean/go-smbios"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/gotk3/gotk3"
+  revision = "38a191286724f8eb4586fce4cb640393a32eba46"
 
 [[constraint]]
   name = "github.com/huandu/xstrings"
