@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2019 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -36,6 +36,8 @@ func TestLoadFile(t *testing.T) {
 		file  string
 		valid bool
 	}{
+		{"baseline.yaml", true},
+		{"image-generation.yaml", true},
 		{"basic-invalid-descriptor.yaml", false},
 		{"basic-valid-descriptor.yaml", true},
 		{"invalid-no-keyboard.yaml", false},

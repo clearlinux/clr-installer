@@ -409,7 +409,9 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		}
 	}
 
-	swupd.CopyConfigurations(rootDir)
+	if model.CopySwupd {
+		swupd.CopyConfigurations(rootDir)
+	}
 
 	if model.AllowInsecureHTTP {
 		swupd.CreateConfig(rootDir)

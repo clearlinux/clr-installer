@@ -97,6 +97,12 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 	// configurations to the target system
 	tui.model.CopyNetwork = options.CopyNetwork
 
+	// When using the Interactive Installer we want to copy configurations
+	// from /etc/swupd by default to the target system
+	if !options.CopySwupdSet {
+		tui.model.CopySwupd = true
+	}
+
 	clui.SetThemePath(themeDir)
 
 	if !clui.SetCurrentTheme("clr-installer") {

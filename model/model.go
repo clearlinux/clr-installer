@@ -81,6 +81,7 @@ type SystemInstall struct {
 	StorageAlias      []*StorageAlias                  `yaml:"block-devices,omitempty,flow"`
 	LegacyBios        bool                             `yaml:"legacyBios,omitempty,flow"`
 	CopyNetwork       bool                             `yaml:"copyNetwork,omitempty,flow"`
+	CopySwupd         bool                             `yaml:"copySwupd,omitempty,flow"`
 	Environment       map[string]string                `yaml:"env,omitempty,flow"`
 	CryptPass         string                           `yaml:"-"`
 	MakeISO           bool                             `yaml:"iso,omitempty,flow"`

@@ -505,7 +505,7 @@ func TestCheckAllBooleans(t *testing.T) {
 	os.Args = []string{currArgs[0], currArgs[1], currArgs[2],
 		"--demo", "--telemetry", "--reboot",
 		"--iso", "--keep-image", "--allow-insecure-http", "--offline",
-		"--cfPurge", "--swupd-skip-optional", "--archive",
+		"--cfPurge", "--swupd-skip-optional", "--archive", "--copy-swupd",
 	}
 	t.Logf("Current os.Args: %v", os.Args)
 
@@ -524,7 +524,7 @@ func TestCheckAllBooleansFalse(t *testing.T) {
 	os.Args = []string{currArgs[0], currArgs[1], currArgs[2],
 		"--demo=0", "--telemetry=0", "--reboot=0",
 		"--iso=0", "--keep-image=0", "--allow-insecure-http=0", "--offline=0",
-		"--cfPurge=0", "--swupd-skip-optional=0", "--archive=0",
+		"--cfPurge=0", "--swupd-skip-optional=0", "--archive=0", "--copy-swupd=0",
 	}
 	t.Logf("Current os.Args: %v", os.Args)
 
