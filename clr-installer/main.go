@@ -254,6 +254,9 @@ func execute(options args.Args) error {
 			}
 		}
 	}
+	if options.CopySwupdSet {
+		md.CopySwupd = options.CopySwupd
+	}
 
 	if options.AllowInsecureHTTPSet {
 		md.AllowInsecureHTTP = options.AllowInsecureHTTP

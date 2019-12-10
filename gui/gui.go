@@ -73,6 +73,12 @@ func (gui *Gui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 	// configurations to the target system
 	md.CopyNetwork = options.CopyNetwork
 
+	// When using the Interactive Installer we want to copy configurations
+	// from /etc/swupd by default to the target system
+	if !options.CopySwupdSet {
+		md.CopySwupd = true
+	}
+
 	// Use dark theming if available to differentiate from other apps
 	st, err := gtk.SettingsGetDefault()
 	if err != nil {

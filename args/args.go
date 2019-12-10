@@ -89,6 +89,8 @@ type Args struct {
 	KeepImageSet            bool
 	SystemCheck             bool
 	CopyNetwork             bool
+	CopySwupd               bool
+	CopySwupdSet            bool
 }
 
 func (args *Args) setKernelArgs() (err error) {
@@ -368,6 +370,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 		&args.CopyNetwork, "copy-network", true, "Copy the network interface configuration files to target",
 	)
 
+	flag.BoolVar(
+		&args.CopySwupd, "copy-swupd", false, "Copy /etc/swupd configuration files to target [interactive=true]",
+	)
+
 	spflag.ErrHelp = errors.New("Clear Linux Installer program")
 
 	saveConfigFile := args.ConfigFile
@@ -471,6 +477,13 @@ func (args *Args) setBoolFlagCheck(flag *spflag.FlagSet) {
 	if fflag != nil {
 		if fflag.Changed {
 			args.KeepImageSet = true
+		}
+	}
+
+	fflag = flag.Lookup("copy-swupd")
+	if fflag != nil {
+		if fflag.Changed {
+			args.CopySwupdSet = true
 		}
 	}
 }

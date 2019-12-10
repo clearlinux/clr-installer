@@ -122,6 +122,7 @@ Item | Description | Default
 `allowInsecureHttp` | Allow installation and downloads over insecure connections | false
 `hostname` | Name of the host system | `-UNIQUE RANDOM-`
 `version` | Version of Clear Linux OS to install | `-LATEST_VERSION-`
+`copySwupd` | Copy /etc/swupd configuration files to target | false (true for user-interface installs)
 `swupdFormat` | swupd format to use for the installation. | `-FORMART_ON_BUILD_SYSTEM-`
 `swupdMirror` | URL of the swupd stream to use. Useful for installing from a local mirror or from a locally published mix. | `-UNDEFINED-`
 `swupdSkipOptional` | Don't install optionally included bundles; true or false | false
