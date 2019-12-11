@@ -41,7 +41,7 @@ postReboot: false
 telemetry: false
 iso: true
 keepImage: true
-CopySwupd: false
+copySwupd: false
 
 keyboard: us
 language: en_US.UTF-8
