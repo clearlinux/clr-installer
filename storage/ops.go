@@ -237,6 +237,78 @@ func getStartEndMB(start uint64, end uint64) string {
 	return strStart + " " + strEnd
 }
 
+func (bd *BlockDevice) removeLogicalVolume() error {
+	if bd.Type != BlockDeviceTypeLVM2Volume {
+		return errors.Errorf("Block Type is not logical volume")
+	}
+
+	mesg := utils.Locale.Get("Removing logical disk volume: %s", bd.Name)
+	prg := progress.NewLoop(mesg)
+	log.Info(mesg)
+	args := []string{
+		"dmsetup",
+		"remove",
+		bd.Name,
+	}
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	prg.Success()
+
+	return nil
+}
+
+// findLogicalVolumes finds lvm2 volumes defined on this block device
+// called by WritePartitionTable to ensure we properly remove logical volumes
+// prior to wiping the disk partition table.
+func findLogicalVolumes(dryRun *[]string, blockDevices []*BlockDevice) error {
+	var err error
+
+	for _, bd := range blockDevices {
+		if bd.Type == BlockDeviceTypeLVM2Volume {
+			if dryRun != nil {
+				*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(LogicalVolumeWarning))
+			} else {
+				if err = bd.removeLogicalVolume(); err != nil {
+					break
+				}
+			}
+		}
+
+		if bd.Children != nil {
+			if err = findLogicalVolumes(dryRun, bd.Children); err != nil {
+				break
+			}
+		}
+	}
+
+	return err
+}
+
+func (bd *BlockDevice) removeAllLogicalVolumes(dryRun *[]string) error {
+	var err error
+	w := bytes.NewBuffer(nil)
+
+	err = cmd.Run(w, lsblkBinary, "-J", "-b", "-O", bd.GetDeviceFile())
+	if err != nil {
+		return fmt.Errorf("%s", w.String())
+	}
+
+	bds, err := parseBlockDevicesDescriptor(w.Bytes())
+	if err != nil {
+		return err
+	}
+
+	if err := findLogicalVolumes(dryRun, bds); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // WritePartitionLabel make a device a 'gpt' partition type
 // Only call when we are wiping and reusing the entire disk
 func (bd *BlockDevice) WritePartitionLabel() error {
@@ -269,6 +341,12 @@ func (bd *BlockDevice) WritePartitionLabel() error {
 func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryRun *[]string) error {
 	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop {
 		return errors.Errorf("Type is partition, disk required")
+	}
+
+	if wholeDisk {
+		if err := bd.removeAllLogicalVolumes(dryRun); err != nil {
+			return err
+		}
 	}
 
 	var prg progress.Progress

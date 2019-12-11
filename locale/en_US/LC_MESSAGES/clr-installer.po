@@ -110,6 +110,10 @@ msgid "Test Network Settings"
 msgstr "Test Network Settings"
 
 #, c-format
+msgid "Removing logical disk volume: %s"
+msgstr "Removing logical disk volume: %s"
+
+#, c-format
 msgid "Writing partition table to: %s"
 msgstr "Writing partition table to: %s"
 
@@ -507,6 +511,9 @@ msgstr "Selected media will have partitions added."
 
 msgid "WARNING: New Partition table will be created."
 msgstr "WARNING: New Partition table will be created."
+
+msgid "WARNING: Logical Volume will be removed."
+msgstr "WARNING: Logical Volume will be removed."
 
 msgid "WARNING: Selected media will be erased."
 msgstr "WARNING: Selected media will be erased."

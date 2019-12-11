@@ -158,6 +158,9 @@ const (
 	// PartitioningWarning specifies the warning message for writing partition table
 	PartitioningWarning = "WARNING: New Partition table will be created."
 
+	// LogicalVolumeWarning specifies the warning message when removing a logical volume
+	LogicalVolumeWarning = "WARNING: Logical Volume will be removed."
+
 	// DestructiveWarning specifies the warning message for destructive installation
 	DestructiveWarning = "WARNING: Selected media will be erased."
 
