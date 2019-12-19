@@ -253,6 +253,7 @@ func (bd *BlockDevice) removeLogicalVolume() error {
 
 	err := cmd.RunAndLog(args...)
 	if err != nil {
+		prg.Failure()
 		return errors.Wrap(err)
 	}
 
@@ -329,6 +330,7 @@ func (bd *BlockDevice) WritePartitionLabel() error {
 
 	err := cmd.RunAndLog(args...)
 	if err != nil {
+		prg.Failure()
 		return errors.Wrap(err)
 	}
 

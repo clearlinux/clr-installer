@@ -234,6 +234,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 					prg = progress.NewLoop(msg)
 					log.Info(msg)
 					if err = ch.MapEncrypted(model.CryptPass); err != nil {
+						prg.Failure()
 						return err
 					}
 					prg.Success()
@@ -259,6 +260,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 			prg = progress.NewLoop(msg)
 			log.Info(msg)
 			if err = ch.MakeFs(); err != nil {
+				prg.Failure()
 				return err
 			}
 			prg.Success()
@@ -341,6 +343,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	prg = progress.NewLoop(msg)
 	log.Info(msg)
 	if err = storage.GenerateTabFiles(rootDir, model.TargetMedias); err != nil {
+		prg.Failure()
 		return err
 	}
 	prg.Success()
@@ -612,6 +615,7 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 		if err := sw.DisableUpdate(); err != nil {
 			warnMsg := utils.Locale.Get("Disabling automatic updates failed")
 			log.Warning(warnMsg)
+			prg.Failure()
 			return prg, err
 		}
 		prg.Success()
@@ -637,6 +641,7 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 
 	err := cmd.RunAndLogWithEnv(envVars, args...)
 	if err != nil {
+		prg.Failure()
 		return prg, errors.Wrap(err)
 	}
 	prg.Success()
@@ -717,6 +722,7 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 		prg := progress.NewLoop(msg)
 		log.Info(msg)
 		if err := network.Apply("/", model.NetworkInterfaces); err != nil {
+			prg.Failure()
 			return prg, err
 		}
 		prg.Success()
@@ -725,6 +731,7 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 		prg = progress.NewLoop(msg)
 		log.Info(msg)
 		if err := network.Restart(); err != nil {
+			prg.Failure()
 			return prg, err
 		}
 		prg.Success()

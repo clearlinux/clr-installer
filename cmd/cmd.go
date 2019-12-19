@@ -147,7 +147,7 @@ func RunAndProcessOutput(printPrefix string, output Output, args ...string) erro
 
 	// run the command but don't wait for it to finish
 	if err := cmd.Start(); err != nil {
-		log.Error("Failed to start command execution")
+		log.Error("Failed to start command execution: %s", exe)
 		return err
 	}
 
