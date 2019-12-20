@@ -1052,6 +1052,16 @@ func displaySyscheckDialog(syscheckErr error) {
 	label.SetUseMarkup(true)
 	label.SetHAlign(gtk.ALIGN_START)
 	contentBox.PackStart(label, false, true, 0)
+	// Fail message label
+	text = syscheckErr.Error()
+	label, err = gtk.LabelNew(text)
+	if err != nil {
+		log.Error("Error creating specific label", err)
+		return
+	}
+	label.SetUseMarkup(true)
+	label.SetHAlign(gtk.ALIGN_START)
+	contentBox.PackStart(label, false, true, 0)
 
 	// Create dialog
 	title := utils.Locale.Get("Warning")
