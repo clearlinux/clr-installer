@@ -15,12 +15,12 @@
   revision = "6c0105aabd460ae06c87afeb5a47c869f6a7557e"
 
 [[projects]]
-  digest = "1:02a8f1f68c1d538a649440ce15ca9927c4b75a072b868529b932770cf11aa3e2"
+  branch = "master"
+  digest = "1:ae02c74afc68c563a70629cf3f09af20117739ac713ae07b45a18027443736e6"
   name = "github.com/VladimirMarkelov/clui"
   packages = ["."]
   pruneopts = "UT"
-  revision = "4848282327334c65d970afd0739db8cedbd19541"
-  version = "v1.2.0"
+  revision = "3c83a0fad60dde28e4c81db45c563d0f240dc7f4"
 
 [[projects]]
   digest = "1:323ef1c999160d12fafa4074b5a5706511baf1cd91a935ae62494791c94abaf4"
@@ -68,12 +68,12 @@
   revision = "38a191286724f8eb4586fce4cb640393a32eba46"
 
 [[projects]]
-  digest = "1:7e9014f41c8285f91b8f6170a30f633532c8d095b4ead42024e1f460c0ac497d"
+  digest = "1:af811250c188f2a74c35fb390631d282b669cba8f99532789aeb6d200bebc723"
   name = "github.com/huandu/xstrings"
   packages = ["."]
   pruneopts = "UT"
-  revision = "874a673206bf7a5c86d29876dfeaccca0922ab62"
-  version = "v1.2.1"
+  revision = "73cc8800d807c1a3393060290e46ab19b565d584"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:c1969ca636a3249ca89cc658fb22280f69bb6f191787b0a2437690daddb25e7d"
@@ -87,12 +87,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:871aa208665f8c57d13ed13899c243454858ee6654cc4feed768096bcea6fbc3"
+  digest = "1:eb1bffab7260bf5ddc95fc2c41d4bfee1a4f5fe18194b3946fe8a9e9121a282f"
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
   pruneopts = "UT"
-  revision = "18c3d09a134a52720932bbaa92c798a0ab111004"
-  version = "v0.0.7"
+  revision = "a4df4ddbff020e131056d91f580a1cdcd806e3ae"
+  version = "v0.0.8"
 
 [[projects]]
   branch = "master"
@@ -104,11 +104,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:3748273fbc527cb86628e8060e1a98df3d082f1d750a63056522e01ea87ff4a0"
+  digest = "1:b234efb8a53000a5ca62490bd903b02f6a36fe35ea313fee2a4ac70b3e221adf"
   name = "github.com/nsf/termbox-go"
   packages = ["."]
   pruneopts = "UT"
-  revision = "93860e16131719fa9722e7c448dbf8c0e3210a0d"
+  revision = "58d4fcbce2a7e6a3a48afbc6b7ec2a916ac33ee0"
 
 [[projects]]
   digest = "1:524b71991fc7d9246cc7dc2d9e0886ccb97648091c63e30eef619e6862c955dd"
@@ -120,22 +120,22 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:bbe51412d9915d64ffaa96b51d409e070665efc5194fcf145c4a27d4133107a4"
+  digest = "1:c8b0363634b7f813bd07d829fa98af420d99c68d9e88077a7c86fad8e6e31e27"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "e7c4368fe9ddd156b5f1463283cb51c5b400c373"
+  revision = "6d4e4cb37c7d6416dfea8472e751c7b6615267a6"
 
 [[projects]]
   branch = "master"
-  digest = "1:4dade6126937937ae62a2d345ceef96e1122e49bf3360a567ccd4177c0fb547b"
+  digest = "1:c8faf148023f13e62a93d3ed6c01fc586b3c6b52a40c5c9b0f2220bae71f390a"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "ce4227a45e2eb77e5c847278dcc6a626742e2945"
+  revision = "86b910548bc16777f40503131aa424ae0a092199"
 
 [[projects]]
   digest = "1:37a084d96d03d81a060791378bc44f98f9ad0d48c20ddbc3e154afeeb1ef60f6"
