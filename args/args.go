@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -29,10 +29,11 @@ import (
 )
 
 const (
-	kernelCmdlineConf = "clri.descriptor"
-	kernelCmdlineDemo = "clri.demo"
-	kernelCmdlineLog  = "clri.loglevel"
-	logFileEnvironVar = "CLR_INSTALLER_LOG_FILE"
+	kernelCmdlineConf         = "clri.descriptor"
+	kernelCmdlineDemo         = "clri.demo"
+	kernelCmdlineLog          = "clri.loglevel"
+	kernelCmdlineHighContrast = "clri.hc"
+	logFileEnvironVar         = "CLR_INSTALLER_LOG_FILE"
 )
 
 var (
@@ -91,6 +92,7 @@ type Args struct {
 	CopyNetwork             bool
 	CopySwupd               bool
 	CopySwupdSet            bool
+	HighContrast            bool
 }
 
 func (args *Args) setKernelArgs() (err error) {
@@ -110,6 +112,8 @@ func (args *Args) setKernelArgs() (err error) {
 			url = strings.Split(curr, "=")[1]
 		} else if strings.HasPrefix(curr, kernelCmdlineDemo) {
 			args.DemoMode = true
+		} else if strings.HasPrefix(curr, kernelCmdlineHighContrast) {
+			args.HighContrast = true
 		} else if strings.HasPrefix(curr, kernelCmdlineLog) {
 			logLevelString := strings.Split(curr, "=")[1]
 			if logLevel, _ := strconv.Atoi(logLevelString); err != nil {
@@ -372,6 +376,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.BoolVar(
 		&args.CopySwupd, "copy-swupd", false, "Copy /etc/swupd configuration files to target [interactive=true]",
+	)
+
+	flag.BoolVar(
+		&args.HighContrast, "high-contrast", false, "Use high-contrast colors for text-based UI",
 	)
 
 	spflag.ErrHelp = errors.New("Clear Linux Installer program")

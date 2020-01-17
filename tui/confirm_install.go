@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -129,13 +129,13 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 	dialog.mediaLabel.SetMultiline(true)
 
 	if eraseDisk {
-		dialog.mediaLabel.SetBackColor(term.ColorRed)
+		dialog.mediaLabel.SetStyle("WarningLabel")
 	}
 
 	dialog.mediaDetail = clui.CreateTextView(borderFrame, 50, 5, 1)
 	dialog.mediaDetail.SetWordWrap(true)
-	dialog.mediaDetail.SetTextColor(term.ColorWhite | term.AttrBold)
-	dialog.mediaDetail.SetBackColor(term.ColorBlack)
+	dialog.mediaDetail.SetStyle("AltEdit")
+
 	medias := storage.GetPlannedMediaChanges(dialog.modelSI.InstallSelected, dialog.modelSI.TargetMedias)
 	for _, media := range medias {
 		log.Debug("MediaChange: %s", media)

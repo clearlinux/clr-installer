@@ -1,0 +1,183 @@
+﻿// Copyright 2020 Intel Corporation
+//
+// SPDX-License-Identifier: GPL-3.0-only
+
+//
+// Do not use 'bold' attribute on background colors
+// This results in flashing text on some terminals
+//
+
+// This is intended for user who need higher contrast
+// such a color-blindness
+
+//----------------- Theme properties -----------------
+title=Clear Linux Installer High Contrast
+author=Mark Horn
+version=0.1
+parent=default
+
+//----------------- Colors -----------------
+// View colors - internal area and border
+ViewBack = black
+ViewText = white bold
+
+// general colors
+Back = black
+Text = white
+
+// button control
+ButtonBack=white
+ButtonText=black
+
+ButtonActiveBack=black
+ButtonActiveText=white bold underline
+
+ButtonShadowBack=black
+
+ButtonDisabledText=white
+ButtonDisabledBack=black
+
+// lists
+List.EditBack       = black
+List.EditText       = white
+
+List.EditActiveBack = black
+List.EditActiveText = white bold underline
+
+List.SelectionText  = black
+List.SelectionBack  = white
+
+// active lists variation
+ListActive.EditBack       = white
+ListActive.EditText       = black
+
+ListActive.EditActiveBack = black
+ListActive.EditActiveText = white
+
+ListActive.SelectionText = white bold underline
+ListActive.SelectionBack = black
+
+// Highlight alt editable view
+AltEdit.EditBack = black
+AltEdit.EditText = white
+AltEdit.EditActiveBack = white bold underline
+AltEdit.EditActiveText = black
+
+// editable & listbox-like controls (interactive ones)
+EditBack       = black
+EditText       = white
+
+EditActiveBack = black
+EditActiveText = white bold underline
+
+EditDisabledBack = black
+EditDisabledText = white
+
+whiteText = white
+whiteBack = black
+
+SelectionText  = white
+SelectionBack  = black
+
+// progressbar control
+ProgressBack       = black
+ProgressText       = white
+ProgressActiveBack = white
+ProgressActiveText = white bold
+AltProgress.ProgressBack       = white bold
+AltProgress.ProgressText       = white
+AltProgress.ProgressActiveBack = black
+AltProgress.ProgressActiveText = white
+
+// checkbox
+ControlBack = black
+ControlText = white
+ControlDisabledBack = black
+ControlDisabledText = white
+ControlActiveBack = white bold underline
+ControlActiveText = black
+
+//----------------- Objects -----------------
+SingleBorder=─│┌┐└┘
+DoubleBorder=═║╔╗╚╝
+Edit=←→V*
+ScrollBar=░■▲▼◄►
+ViewButtons=^↓○[]
+CheckBox=[] X?
+Radio=() *
+ProgressBar=░▒
+BarChart=█─│┌┐└┘┬┴├┤┼
+SparkChart=█
+TableView=─│┼▼▲
+
+// ----- Custom -----
+ManualPartition.Back = black
+ErrorLabel.Back = black
+ErrorLabel.Text = white bold
+WarningLabel.Back = white
+WarningLabel.Text = black
+InfoLabel.Back = black
+InfoLabel.Text = white bold
+
+Menu.ButtonBack=white
+Menu.ButtonText=black
+
+Menu.ButtonActiveBack=black
+Menu.ButtonActiveText=white bold underline
+
+Menu.ButtonShadowBack=black
+
+Menu.ButtonDisabledText= white
+Menu.ButtonDisabledBack= black
+
+// Media Install Types
+Media.ControlBack = black
+Media.ControlText = white bold
+Media.ControlDisabledBack = black
+Media.ControlDisabledText = white
+Media.ControlActiveBack = black
+Media.ControlActiveText = white bold underline
+
+// disk partitioning
+DiskSelected.ButtonBack=white
+DiskSelected.ButtonText=black
+DiskSelected.ButtonActiveBack=black
+DiskSelected.ButtonActiveText=white bold underline
+
+Partition.ButtonBack=black
+Partition.ButtonText=white
+
+Partition.ButtonActiveBack=white
+Partition.ButtonActiveText=black underline
+
+Partition.ButtonDisabledText=white
+Partition.ButtonDisabledBack=black
+
+
+//----- Main menu tab theme ------------------
+Tab.ButtonBack=black
+Tab.ButtonText=white
+
+Tab.ButtonActiveBack=white
+Tab.ButtonActiveText=black
+
+Tab.ButtonShadowBack=black
+
+Tab.ButtonDisabledText=white
+Tab.ButtonDisabledBack=black
+
+Tab.ViewBack = black
+Tab.ViewText = white
+
+// ---- Main menu items ---------------------
+Main.MenuText = white
+Main.MenuBack = black
+
+Main.MenuActiveText=black
+Main.MenuActiveBack=white
+
+Main.MenuContentText=white
+Main.MenuContentBack=black
+
+Main.MenuContentActiveText=black
+Main.MenuContentActiveBack=white
