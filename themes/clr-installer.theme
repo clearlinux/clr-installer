@@ -1,4 +1,4 @@
-﻿// Copyright 2019 Intel Corporation
+﻿// Copyright 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -54,6 +54,12 @@ ListActive.EditActiveText = white
 ListActive.SelectionText = blue bold
 ListActive.SelectionBack = cyan
 
+// Highlight alt editable view
+AltEdit.EditBack = blue
+AltEdit.EditText = white
+AltEdit.EditActiveBack = cyan
+AltEdit.EditActiveText = blue
+
 // editable & listbox-like controls (interactive ones)
 EditBack       = white
 EditText       = blue bold
@@ -75,6 +81,10 @@ ProgressBack       = blue
 ProgressText       = yellow
 ProgressActiveBack = cyan
 ProgressActiveText = yellow bold
+AltProgress.ProgressBack       = red
+AltProgress.ProgressText       = yellow
+AltProgress.ProgressActiveBack = red
+AltProgress.ProgressActiveText = yellow bold
 
 // checkbox
 ControlBack = blue
@@ -101,6 +111,8 @@ TableView=─│┼▼▲
 ManualPartition.Back = blue
 ErrorLabel.Back = blue
 ErrorLabel.Text = red bold
+WarningLabel.Back = red
+WarningLabel.Text = white
 InfoLabel.Back = blue
 InfoLabel.Text = cyan bold
 

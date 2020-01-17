@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/VladimirMarkelov/clui"
-	term "github.com/nsf/termbox-go"
 
 	"github.com/clearlinux/clr-installer/controller"
 	"github.com/clearlinux/clr-installer/network"
@@ -44,13 +43,12 @@ func (page *InstallPage) Success() {
 // unsuccessful progress completion of a task by setting
 // the progress bar to "fail"
 func (page *InstallPage) Failure() {
-	bg := page.prgBar.BackColor()
 	page.prgBar.SetValue(0)
 	for i := 1; i <= 5; i++ {
-		page.prgBar.SetBackColor(term.ColorRed)
+		page.prgBar.SetStyle("AltProgress")
 		clui.RefreshScreen()
 		time.Sleep(100 * time.Millisecond)
-		page.prgBar.SetBackColor(bg)
+		page.prgBar.SetStyle("")
 		clui.RefreshScreen()
 		time.Sleep(100 * time.Millisecond)
 	}

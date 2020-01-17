@@ -49,14 +49,13 @@ func (dialog *NetworkTestDialog) Success() {
 // unsuccessful progress completion of a task by setting
 // the progress bar to "fail"
 func (dialog *NetworkTestDialog) Failure() {
-	bg := dialog.progressBar.BackColor()
 	flashTime := 100 * time.Millisecond
 	//dialog.progressBar.SetValue(0)  // leave the bar where it fails?
 	for i := 1; i <= 5; i++ {
-		dialog.progressBar.SetBackColor(term.ColorRed)
+		dialog.progressBar.SetStyle("AltProgress")
 		clui.RefreshScreen()
 		time.Sleep(flashTime)
-		dialog.progressBar.SetBackColor(bg)
+		dialog.progressBar.SetStyle("")
 		clui.RefreshScreen()
 		time.Sleep(flashTime)
 	}

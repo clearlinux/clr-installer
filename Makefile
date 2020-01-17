@@ -1,4 +1,4 @@
-# Copyright 2019 Intel Corporation
+# Copyright 2020 Intel Corporation
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
@@ -94,6 +94,7 @@ install: install-tui install-gui
 
 install-common:
 	@install -D -m 644 $(top_srcdir)/themes/clr-installer.theme $(THEME_DIR)/clr-installer.theme
+	@install -D -m 644 $(top_srcdir)/themes/high-contrast.theme $(THEME_DIR)/high-contrast.theme
 	@mkdir -p -m 755 $(LOCALE_DIR)/
 	@cp -rp --no-preserve=ownership $(top_srcdir)/locale/* $(LOCALE_DIR)/
 	@install -D -m 644 $(top_srcdir)/iso_templates/initrd_init_template $(ISO_TEMPLATE_DIR)/initrd_init_template
@@ -120,6 +121,7 @@ uninstall:
 	@rm -f $(PKIT_DIR)/actions/org.clearlinux.clr-installer-gui.policy
 	@rm -f $(PKIT_DIR)/rules.d/org.clearlinux.clr-installer-gui.rules
 	@rm -f $(THEME_DIR)/clr-installer.theme
+	@rm -f $(THEME_DIR)/high-contrast.theme
 	@rm -f $(THEME_DIR)/clr.png
 	@rm -f $(THEME_DIR)/style.css
 	@rm -f $(LOCALE_DIR)/*/LC_MESSAGES/clr-installer.po
