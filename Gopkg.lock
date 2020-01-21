@@ -15,12 +15,12 @@
   revision = "6c0105aabd460ae06c87afeb5a47c869f6a7557e"
 
 [[projects]]
-  branch = "master"
   digest = "1:ae02c74afc68c563a70629cf3f09af20117739ac713ae07b45a18027443736e6"
   name = "github.com/VladimirMarkelov/clui"
   packages = ["."]
   pruneopts = "UT"
   revision = "3c83a0fad60dde28e4c81db45c563d0f240dc7f4"
+  version = "v1.2.1"
 
 [[projects]]
   digest = "1:323ef1c999160d12fafa4074b5a5706511baf1cd91a935ae62494791c94abaf4"
@@ -124,18 +124,18 @@
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "6d4e4cb37c7d6416dfea8472e751c7b6615267a6"
+  revision = "530e935923ad688be97c15eeb8e5ee42ebf2b54a"
 
 [[projects]]
   branch = "master"
-  digest = "1:c8faf148023f13e62a93d3ed6c01fc586b3c6b52a40c5c9b0f2220bae71f390a"
+  digest = "1:90acf443a8ab1cc0fd72406089c69db5c9accbdf98279a5827ca2920face8918"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "86b910548bc16777f40503131aa424ae0a092199"
+  revision = "34d275377bf96a094e8d5b0c61750ddd54cd6b36"
 
 [[projects]]
   digest = "1:37a084d96d03d81a060791378bc44f98f9ad0d48c20ddbc3e154afeeb1ef60f6"
