@@ -30,9 +30,8 @@
   name = "github.com/GehirnInc/crypt"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/VladimirMarkelov/clui"
-#  version = "1.2.0"
+  version = "1.2.1"
 
 [[constraint]]
   name = "github.com/coreos/go-systemd"
