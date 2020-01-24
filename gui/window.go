@@ -554,7 +554,7 @@ func (window *Window) UpdateFooter() error {
 	}
 
 	// Warning label
-	warningTxt := utils.Locale.Get("Network check failed.")
+	warningTxt := utils.Locale.Get("Network check failed or Cancelled")
 	if window.warningLabel, err = common.SetLabel(warningTxt, "label-warning", 0.0); err != nil {
 		return err
 	}

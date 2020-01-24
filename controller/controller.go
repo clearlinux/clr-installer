@@ -49,6 +49,14 @@ const (
 	NetWorkManager = "Network Manager"
 )
 
+type NetworkTestReturn int
+
+const (
+	SUCCESS   NetworkTestReturn = 0
+	FAILURE   NetworkTestReturn = 1
+	CANCELLED NetworkTestReturn = 2
+)
+
 func sortMountPoint(bds []*storage.BlockDevice) []*storage.BlockDevice {
 	sort.Slice(bds[:], func(i, j int) bool {
 		return filepath.HasPrefix(bds[j].MountPoint, bds[i].MountPoint)
@@ -107,8 +115,9 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	}
 
 	// Using MassInstaller (non-UI) the network will not have been checked yet
+	ch := make(<-chan bool)
 	if !NetworkPassing && !options.StubImage && !swupd.IsOfflineContent() && len(model.UserBundles) != 0 {
-		if err = ConfigureNetwork(model); err != nil {
+		if _, err := ConfigureNetwork(model, ch); err != nil {
 			return err
 		}
 	}
@@ -701,20 +710,25 @@ func copyOfflineToStatedir(rootDir, stateDir string) error {
 }
 
 // ConfigureNetwork applies the model/configured network interfaces
-func ConfigureNetwork(model *model.SystemInstall) error {
-	prg, err := configureNetwork(model)
+func ConfigureNetwork(model *model.SystemInstall, ch <-chan bool) (NetworkTestReturn, error) {
+	prg, status, err := configureNetwork(model, ch)
+
+	if status == CANCELLED {
+		return status, nil
+	}
+
 	if err != nil {
 		prg.Failure()
 		NetworkPassing = false
-		return err
+		return FAILURE, err
 	}
 
 	NetworkPassing = true
 
-	return nil
+	return SUCCESS, nil
 }
 
-func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
+func configureNetwork(model *model.SystemInstall, ch <-chan bool) (progress.Progress, NetworkTestReturn, error) {
 	proxy.SetHTTPSProxy(model.HTTPSProxy)
 
 	if len(model.NetworkInterfaces) > 0 {
@@ -723,7 +737,7 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 		log.Info(msg)
 		if err := network.Apply("/", model.NetworkInterfaces); err != nil {
 			prg.Failure()
-			return prg, err
+			return prg, FAILURE, err
 		}
 		prg.Success()
 
@@ -732,7 +746,7 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 		log.Info(msg)
 		if err := network.Restart(); err != nil {
 			prg.Failure()
-			return prg, err
+			return prg, FAILURE, err
 		}
 		prg.Success()
 	}
@@ -741,12 +755,24 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 	attempts := 3
 	prg := progress.NewLoop(msg)
 	ok := false
+	cancelled := false
 	// 3 attempts to test connectivity
 	for i := 0; i < attempts; i++ {
 		time.Sleep(2 * time.Second)
+		select {
+		case cancelled = <-ch:
+			log.Info("Network test cancelled by user")
+		default:
+			log.Debug("Continuing attempts")
+		}
+
+		if cancelled {
+			return prg, CANCELLED, nil
+		}
 
 		log.Info(msg)
 		if err := network.VerifyConnectivity(); err == nil {
+			log.Info("Verified connectivity")
 			ok = true
 			break
 		}
@@ -764,12 +790,12 @@ func configureNetwork(model *model.SystemInstall) (progress.Progress, error) {
 	if !ok {
 		msg = utils.Locale.Get("Network check failed.")
 		msg += " " + utils.Locale.Get("Use %s to configure network.", NetWorkManager)
-		return prg, errors.Errorf(msg)
+		return prg, FAILURE, errors.Errorf(msg)
 	}
 
 	prg.Success()
 
-	return nil, nil
+	return nil, SUCCESS, nil
 }
 
 // configureTimezone applies the model/configured Timezone to the target

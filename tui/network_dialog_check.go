@@ -202,7 +202,8 @@ func (dialog *NetworkTestDialog) RunNetworkTest() bool {
 	time.Sleep(time.Second)
 
 	var err error
-	if err = controller.ConfigureNetwork(dialog.modelSI); err != nil {
+	ch := make(chan bool)
+	if err = controller.ConfigureNetwork(dialog.modelSI, ch); err != nil {
 		log.Error("Network Testing: %s", err)
 		dialog.resultLabel.SetTitle("Failed. Network is not working.")
 		dialog.Failure()

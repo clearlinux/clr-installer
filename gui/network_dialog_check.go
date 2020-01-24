@@ -20,12 +20,13 @@ type networkTestDialog struct {
 	box           *gtk.Box
 	label         *gtk.Label
 	confirmButton *gtk.Widget
+	cancelButton  *gtk.Widget
 	dialog        *gtk.Dialog
 	pbar          *gtk.ProgressBar
 }
 
 // createNetworkTestDialog creates a pop-up window for the network test
-func createNetworkTestDialog() (*networkTestDialog, error) {
+func createNetworkTestDialog(ch chan<- bool) (*networkTestDialog, error) {
 	var err error
 	netDialog := &networkTestDialog{}
 	progress.Set(netDialog)
@@ -68,7 +69,7 @@ func createNetworkTestDialog() (*networkTestDialog, error) {
 	netDialog.box.PackStart(netDialog.label, false, true, 0)
 
 	// Create dialog
-	netDialog.dialog, err = common.CreateDialogOneButton(netDialog.box, text, utils.Locale.Get("OK"), "button-confirm")
+	netDialog.dialog, err = common.CreateDialogOkCancel(netDialog.box, text, utils.Locale.Get("OK"), utils.Locale.Get("Cancel"))
 	if err != nil {
 		log.Error("Error creating dialog", err)
 		return nil, err
@@ -81,14 +82,32 @@ func createNetworkTestDialog() (*networkTestDialog, error) {
 		log.Error("Error getting confirm button", err)
 		return nil, err
 	}
+
+	// Configure cancel button
+	netDialog.cancelButton, err = netDialog.dialog.GetWidgetForResponse(gtk.RESPONSE_CANCEL)
+	if err != nil {
+		log.Error("Error getting cancel button", err)
+		return nil, err
+	}
+
 	_, err = netDialog.confirmButton.Connect("clicked", func() {
 		netDialog.dialog.Destroy()
 	})
 	if err != nil {
 		return nil, err
 	}
-	netDialog.confirmButton.SetSensitive(false)
 
+	_, err = netDialog.cancelButton.Connect("clicked", func() {
+		ch <- true
+		close(ch)
+		netDialog.dialog.Destroy()
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	netDialog.confirmButton.SetSensitive(false)
+	netDialog.cancelButton.SetSensitive(true)
 	netDialog.dialog.ShowAll()
 
 	return netDialog, nil
@@ -96,15 +115,23 @@ func createNetworkTestDialog() (*networkTestDialog, error) {
 
 // RunNetworkTest creates pop-up window that runs a network check
 func RunNetworkTest(md *model.SystemInstall) error {
-	netDialog, err := createNetworkTestDialog()
+	ch := make(chan bool)
+	netDialog, err := createNetworkTestDialog(ch)
 	if err != nil {
 		return err
 	}
 
 	go func() {
-		if err = controller.ConfigureNetwork(md); err != nil {
+		if _, err = controller.ConfigureNetwork(md, ch); err != nil {
 			// Network check failed
 			log.Error("Network Testing: %s", err)
+			_, err = glib.IdleAdd(func() {
+				netDialog.dialog.Destroy()
+			})
+			if err != nil {
+				log.ErrorError(err)
+				netDialog.dialog.Destroy()
+			}
 		}
 
 		// Automatically close the dialog on success
@@ -145,6 +172,7 @@ func (netDialog *networkTestDialog) Failure() {
 	_, err := glib.IdleAdd(func() {
 		netDialog.label.SetText(utils.Locale.Get("Network check failed."))
 		netDialog.confirmButton.SetSensitive(true)
+		netDialog.cancelButton.SetSensitive(false)
 		netDialog.label.ShowAll()
 	})
 	if err != nil {
@@ -157,9 +185,10 @@ func (netDialog *networkTestDialog) Failure() {
 func (netDialog *networkTestDialog) Success() {
 	_, err := glib.IdleAdd(func() {
 		netDialog.label.SetText(utils.Locale.Get("Success"))
+		netDialog.cancelButton.SetSensitive(false)
 		netDialog.confirmButton.SetSensitive(true)
-		netDialog.label.ShowAll()
 	})
+
 	if err != nil {
 		log.ErrorError(err)
 		return
