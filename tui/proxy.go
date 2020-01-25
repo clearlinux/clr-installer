@@ -101,11 +101,12 @@ func newProxyPage(tui *Tui) (Page, error) {
 		proxy := page.httpsProxyEdit.Title()
 		currentProxy := page.getModel().HTTPSProxy
 		page.getModel().HTTPSProxy = proxy
-		if dialog, err := CreateNetworkTestDialogBox(page.tui.model); err == nil {
+		networkCancel := make(chan bool)
+		if dialog, err := CreateNetworkTestDialogBox(page.tui.model, networkCancel); err == nil {
 			dialog.OnClose(func() {
 				page.GotoPage(TuiPageMenu)
 			})
-			if dialog.RunNetworkTest() {
+			if dialog.RunNetworkTest(networkCancel) {
 				page.SetDone(proxy != "")
 
 				// Automatically close if it worked

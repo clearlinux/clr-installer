@@ -48,8 +48,9 @@ func (bp *BundlePage) Activate() {
 
 	// Network connection is required to add additional bundles
 	if !controller.NetworkPassing {
-		if dialog, err := CreateNetworkTestDialogBox(bp.tui.model); err == nil {
-			if dialog.RunNetworkTest() {
+		networkCancel := make(chan bool)
+		if dialog, err := CreateNetworkTestDialogBox(bp.tui.model, networkCancel); err == nil {
+			if dialog.RunNetworkTest(networkCancel) {
 				// Automatically close if it worked
 				clui.RefreshScreen()
 				time.Sleep(time.Second)

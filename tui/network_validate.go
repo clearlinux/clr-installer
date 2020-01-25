@@ -73,14 +73,15 @@ func (page *NetworkValidatePage) GetDone() bool {
 
 // Activate resets the page state
 func (page *NetworkValidatePage) Activate() {
-	if dialog, err := CreateNetworkTestDialogBox(page.tui.model); err == nil {
+	networkCancel := make(chan bool)
+	if dialog, err := CreateNetworkTestDialogBox(page.tui.model, networkCancel); err == nil {
 		dialog.OnClose(func() {
 			page.tui.gotoPage(TuiPageMenu, page.tui.currPage)
 		})
 
-		result := dialog.RunNetworkTest()
+		result := dialog.RunNetworkTest(networkCancel)
 		page.SetDone(result)
-		if result {
+		if page.GetDone() {
 			// Automatically close if it worked
 			clui.RefreshScreen()
 			time.Sleep(time.Second)

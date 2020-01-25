@@ -194,11 +194,12 @@ func newMenuPage(tui *Tui) (Page, error) {
 		// Network needs to be validated before the install when offline content isn't supported
 		// or additional bundles were added
 		if (!swupd.IsOfflineContent() || len(page.tui.model.UserBundles) != 0) && !controller.NetworkPassing {
-			if dialog, err := CreateNetworkTestDialogBox(page.tui.model); err == nil {
+			networkCancel := make(chan bool)
+			if dialog, err := CreateNetworkTestDialogBox(page.tui.model, networkCancel); err == nil {
 				dialog.OnClose(func() {
 					page.launchConfirmInstallDialogBox()
 				})
-				if dialog.RunNetworkTest() {
+				if dialog.RunNetworkTest(networkCancel) {
 					// Automatically close if it worked
 					clui.RefreshScreen()
 					time.Sleep(time.Second)

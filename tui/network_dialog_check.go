@@ -30,11 +30,12 @@ type NetworkTestDialog struct {
 	DialogBox *clui.Window
 	onClose   func()
 
-	modelSI     *model.SystemInstall
-	progressBar *clui.ProgressBar
-	progressMax int
-	resultLabel *clui.Label
-	okayButton  *SimpleButton
+	modelSI      *model.SystemInstall
+	progressBar  *clui.ProgressBar
+	progressMax  int
+	resultLabel  *clui.Label
+	okayButton   *SimpleButton
+	cancelButton *SimpleButton
 }
 
 // Success is part of the progress.Client implementation and represents the
@@ -161,15 +162,21 @@ func initDiaglogWindow(dialog *NetworkTestDialog) error {
 
 	buttonFrame := clui.CreateFrame(borderFrame, AutoSize, 1, clui.BorderNone, clui.Fixed)
 	buttonFrame.SetPack(clui.Horizontal)
-	buttonFrame.SetGaps(1, 0)
+	buttonFrame.SetGaps(1, 1)
+	buttonFrame.SetPaddings(1, 2)
 	dialog.okayButton = CreateSimpleButton(buttonFrame, AutoSize, AutoSize, " OK ", Fixed)
-	dialog.okayButton.SetEnabled(false)
+	dialog.cancelButton = CreateSimpleButton(buttonFrame, AutoSize, AutoSize, " CANCEL ", Fixed)
+	dialog.okayButton.SetEnabled(true)
+	dialog.okayButton.SetActive(false)
+	dialog.cancelButton.SetEnabled(true)
+	dialog.cancelButton.SetActive(true)
+	clui.ActivateControl(dialog.DialogBox, dialog.cancelButton)
 
 	return nil
 }
 
 // CreateNetworkTestDialogBox creates the Network PopUp
-func CreateNetworkTestDialogBox(modelSI *model.SystemInstall) (*NetworkTestDialog, error) {
+func CreateNetworkTestDialogBox(modelSI *model.SystemInstall, networkCancel chan<- bool) (*NetworkTestDialog, error) {
 	dialog := new(NetworkTestDialog)
 
 	if dialog == nil {
@@ -189,33 +196,55 @@ func CreateNetworkTestDialogBox(modelSI *model.SystemInstall) (*NetworkTestDialo
 		dialog.Close()
 	})
 
+	dialog.cancelButton.OnClick(func(ev clui.Event) {
+		networkCancel <- true
+		dialog.Close()
+	})
+
 	progress.Set(dialog)
+	clui.ActivateControl(dialog.DialogBox, dialog.cancelButton)
+	dialog.cancelButton.SetEnabled(true)
 	clui.RefreshScreen()
 
 	return dialog, nil
 }
 
 // RunNetworkTest runs the test function
-func (dialog *NetworkTestDialog) RunNetworkTest() bool {
+func (dialog *NetworkTestDialog) RunNetworkTest(networkCancel <-chan bool) bool {
 	var status bool
 
 	time.Sleep(time.Second)
 
-	var err error
-	ch := make(chan bool)
-	if err = controller.ConfigureNetwork(dialog.modelSI, ch); err != nil {
-		log.Error("Network Testing: %s", err)
-		dialog.resultLabel.SetTitle("Failed. Network is not working.")
-		dialog.Failure()
-		status = false
-	} else {
-		dialog.resultLabel.SetTitle("Success.")
-		dialog.Success()
-		status = true
-	}
-
-	dialog.okayButton.SetEnabled(true)
-	clui.ActivateControl(dialog.DialogBox, dialog.okayButton)
+	go func() {
+		clui.ActivateControl(dialog.DialogBox, dialog.cancelButton)
+		network_test_status, err := controller.ConfigureNetwork(dialog.modelSI, networkCancel)
+		if err != nil && network_test_status == controller.FAILURE {
+			log.Error("Network Testing: %s", err)
+			dialog.resultLabel.SetTitle("Failed. Network is not working.")
+			dialog.Failure()
+			status = false
+			dialog.cancelButton.SetEnabled(false)
+			dialog.okayButton.SetEnabled(true)
+			clui.ActivateControl(dialog.DialogBox, dialog.okayButton)
+		} else if err == nil && network_test_status == controller.SUCCESS {
+			log.Error("Network Testing: Succeeded")
+			dialog.resultLabel.SetTitle("Success.")
+			dialog.Success()
+			status = true
+			dialog.cancelButton.SetEnabled(false)
+			dialog.okayButton.SetEnabled(true)
+			clui.ActivateControl(dialog.DialogBox, dialog.okayButton)
+			dialog.Close()
+			clui.RefreshScreen()
+		} else {
+			log.Debug("Network Testing: Cancelled")
+			dialog.resultLabel.SetTitle("Cancelled.")
+			dialog.Success()
+			status = false
+			dialog.cancelButton.SetEnabled(false)
+			clui.RefreshScreen()
+		}
+	}()
 
 	return status
 }

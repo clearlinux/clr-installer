@@ -356,11 +356,12 @@ func newNetworkInterfacePage(tui *Tui) (Page, error) {
 			page.getModel().AddNetworkInterface(sel)
 		}
 
-		if dialog, err := CreateNetworkTestDialogBox(page.tui.model); err == nil {
+		networkCancel := make(chan bool)
+		if dialog, err := CreateNetworkTestDialogBox(page.tui.model, networkCancel); err == nil {
 			dialog.OnClose(func() {
 				page.GotoPage(TuiPageNetwork)
 			})
-			if dialog.RunNetworkTest() {
+			if dialog.RunNetworkTest(networkCancel) {
 				page.getModel().CopyNetwork = true
 				page.tui.getPage(TuiPageNetwork).SetDone(true)
 
