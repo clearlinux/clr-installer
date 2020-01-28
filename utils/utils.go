@@ -346,6 +346,11 @@ func lookupDir(dir, env string) (string, error) {
 // Locale is used to access the localization functions
 var Locale *gotext.Locale
 
+// Ensure Locale always has a default
+func init() {
+	SetLocale("en_US.UTF-8")
+}
+
 // SetLocale sets the locale of the installer based on the selected language
 func SetLocale(language string) {
 	dir, err := LookupLocaleDir()
