@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -14,6 +14,8 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 
 	"github.com/clearlinux/clr-installer/controller"
+	"github.com/clearlinux/clr-installer/gui/common"
+	"github.com/clearlinux/clr-installer/gui/network"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/swupd"
 	"github.com/clearlinux/clr-installer/utils"
@@ -35,14 +37,23 @@ var (
 
 // Bundle is a simple page to help with Bundle settings
 type Bundle struct {
-	model      *model.SystemInstall
-	controller Controller
-	bundles    []*swupd.Bundle     // Known bundles
-	box        *gtk.Box            // Main layout
-	checks     *gtk.FlowBox        // Where to store checks
-	scroll     *gtk.ScrolledWindow // Scroll the checks
+	model            *model.SystemInstall
+	windowController Controller
+	bundles          []*swupd.Bundle     // Known bundles
+	box              *gtk.Box            // Main layout
+	checks           *gtk.FlowBox        // Where to store checks
+	scroll           *gtk.ScrolledWindow // Scroll the checks
 
 	selections []*gtk.CheckButton
+	clearPage  bool
+}
+
+type decisionDialog struct {
+	box           *gtk.Box
+	label         *gtk.Label
+	dialog        *gtk.Dialog
+	confirmButton *gtk.Widget
+	cancelButton  *gtk.Widget
 }
 
 // LookupBundleIcon attempts to find the icon for the given bundle.
@@ -114,12 +125,85 @@ func createBundleWidget(bundle *swupd.Bundle) (*gtk.CheckButton, error) {
 	return check, nil
 }
 
+func createDecisionBox(model *model.SystemInstall, bundle *Bundle) (*decisionDialog, error) {
+	var err error
+	decisionMaker := &decisionDialog{}
+
+	decisionMaker.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		return nil, err
+	}
+	decisionMaker.box.SetHAlign(gtk.ALIGN_FILL)
+	decisionMaker.box.SetMarginBottom(common.TopBottomMargin)
+
+	text := utils.Locale.Get("This requires a working network connection.\nProceed with a network test?")
+	decisionMaker.label, err = common.SetLabel(text, "label-warning", 0.0)
+
+	if err != nil {
+		return nil, err
+	}
+	decisionMaker.label.SetUseMarkup(true)
+	decisionMaker.label.SetHAlign(gtk.ALIGN_START)
+	decisionMaker.box.PackStart(decisionMaker.label, false, true, 0)
+
+	decisionMaker.dialog, err = common.CreateDialogOkCancel(decisionMaker.box,
+		utils.Locale.Get("Network Required"), utils.Locale.Get("CONFIRM"), utils.Locale.Get("CANCEL"))
+
+	if err != nil {
+		return nil, err
+	}
+
+	decisionMaker.dialog.SetDeletable(false)
+
+	// Configure confirm button
+	decisionMaker.confirmButton, err = decisionMaker.dialog.GetWidgetForResponse(gtk.RESPONSE_OK)
+	if err != nil {
+		return nil, err
+	}
+
+	// Configure cancel button
+	decisionMaker.cancelButton, err = decisionMaker.dialog.GetWidgetForResponse(gtk.RESPONSE_CANCEL)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = decisionMaker.confirmButton.Connect("clicked", func() {
+		if ret, _ := network.RunNetworkTest(model); ret != network.NetTestSuccess {
+			bundle.clearPage = true
+			bundle.ResetChanges()
+			decisionMaker.dialog.Destroy()
+			return
+		}
+		bundle.clearPage = false
+		bundle.windowController.SetButtonState(ButtonConfirm, controller.NetworkPassing)
+		decisionMaker.dialog.Destroy()
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = decisionMaker.cancelButton.Connect("clicked", func() {
+		bundle.clearPage = true
+		decisionMaker.dialog.Destroy()
+		bundle.ResetChanges()
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	decisionMaker.confirmButton.SetSensitive(true)
+	decisionMaker.cancelButton.SetSensitive(true)
+	decisionMaker.dialog.ShowAll()
+
+	return decisionMaker, nil
+}
+
 // NewBundlePage returns a new BundlePage
-func NewBundlePage(controller Controller, model *model.SystemInstall) (Page, error) {
+func NewBundlePage(windowController Controller, model *model.SystemInstall) (Page, error) {
 	var err error
 	bundle := &Bundle{
-		controller: controller,
-		model:      model,
+		windowController: windowController,
+		model:            model,
 	}
 
 	// Load our bundles
@@ -140,7 +224,7 @@ func NewBundlePage(controller Controller, model *model.SystemInstall) (Page, err
 	if err != nil {
 		return nil, err
 	}
-	bundle.checks.SetSelectionMode(gtk.SELECTION_NONE)
+	bundle.checks.SetSelectionMode(gtk.SELECTION_MULTIPLE)
 	bundle.scroll, err = gtk.ScrolledWindowNew(nil, nil)
 	if err != nil {
 		return nil, err
@@ -158,6 +242,30 @@ func NewBundlePage(controller Controller, model *model.SystemInstall) (Page, err
 		}
 		bundle.checks.Add(wid)
 		bundle.selections = append(bundle.selections, wid)
+	}
+
+	for i := range bundle.selections {
+		if !controller.NetworkPassing {
+			if _, err := bundle.selections[i].Connect("toggled", func() {
+				if !controller.NetworkPassing && !bundle.clearPage {
+					// we dont want to fire any checkbox signals
+					// when we want to clear the page. if encounter
+					// clearPage set to true, we set to
+					// false so that it fire nexttime
+					// onwards
+					_, err := createDecisionBox(model, bundle)
+					if err != nil {
+						return
+					}
+				}
+
+				if !controller.NetworkPassing && bundle.clearPage {
+					bundle.clearPage = false
+				}
+			}); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return bundle, nil
@@ -216,9 +324,8 @@ func (bundle *Bundle) ResetChanges() {
 	// Match selection to what's in the model
 	for n, b := range bundle.bundles {
 		bundle.selections[n].SetActive(bundle.model.ContainsUserBundle(b.Name))
-		bundle.selections[n].SetSensitive(controller.NetworkPassing)
 	}
-	bundle.controller.SetButtonState(ButtonConfirm, controller.NetworkPassing)
+	bundle.windowController.SetButtonState(ButtonConfirm, controller.NetworkPassing)
 }
 
 // GetConfiguredValue returns our current config

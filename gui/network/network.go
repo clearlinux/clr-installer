@@ -1,4 +1,8 @@
-package gui
+// Copyright © 2020 Intel Corporation
+//
+// SPDX-License-Identifier: GPL-3.0-only
+
+package network
 
 import (
 	"strings"
@@ -24,6 +28,14 @@ type networkTestDialog struct {
 	pbar          *gtk.ProgressBar
 }
 
+type NetTestReturnCode int
+
+const (
+	NetTestSuccess NetTestReturnCode = 0
+	NetTestFailure NetTestReturnCode = 1
+	NetTestErr     NetTestReturnCode = 2
+)
+
 // createNetworkTestDialog creates a pop-up window for the network test
 func createNetworkTestDialog() (*networkTestDialog, error) {
 	var err error
@@ -32,12 +44,12 @@ func createNetworkTestDialog() (*networkTestDialog, error) {
 
 	// Create box
 	netDialog.box, err = gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	netDialog.box.SetHAlign(gtk.ALIGN_FILL)
-	netDialog.box.SetMarginBottom(common.TopBottomMargin)
 	if err != nil {
 		log.Error("Error creating box", err)
 		return nil, err
 	}
+	netDialog.box.SetHAlign(gtk.ALIGN_FILL)
+	netDialog.box.SetMarginBottom(common.TopBottomMargin)
 
 	// Create progress bar
 	netDialog.pbar, err = gtk.ProgressBarNew()
@@ -95,10 +107,10 @@ func createNetworkTestDialog() (*networkTestDialog, error) {
 }
 
 // RunNetworkTest creates pop-up window that runs a network check
-func RunNetworkTest(md *model.SystemInstall) error {
+func RunNetworkTest(md *model.SystemInstall) (NetTestReturnCode, error) {
 	netDialog, err := createNetworkTestDialog()
 	if err != nil {
-		return err
+		return NetTestErr, err
 	}
 
 	go func() {
@@ -121,7 +133,12 @@ func RunNetworkTest(md *model.SystemInstall) error {
 	}()
 	netDialog.dialog.Run()
 
-	return nil
+	if controller.NetworkPassing {
+		return NetTestSuccess, nil
+	}
+
+	return NetTestFailure, nil
+
 }
 
 // Desc will push a description box into the view for later marking
