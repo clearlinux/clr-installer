@@ -793,3 +793,10 @@ msgstr "Encrypted"
 
 msgid "Allow installation over insecure connections (http://)"
 msgstr "Allow installation over insecure connections (http://)"
+
+#, c-format
+msgid "This requires a working network connection.\nProceed with a network test?"
+msgstr "This requires a working network connection.\nProceed with a network test?"
+
+msgid "Network Required"
+msgstr "Network Required"

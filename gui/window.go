@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -15,6 +15,7 @@ import (
 	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/controller"
 	"github.com/clearlinux/clr-installer/gui/common"
+	"github.com/clearlinux/clr-installer/gui/network"
 	"github.com/clearlinux/clr-installer/gui/pages"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
@@ -83,8 +84,6 @@ type Window struct {
 		confirm *gtk.Button // Confirm changes
 		cancel  *gtk.Button // Cancel changes
 	}
-
-	warningLabel *gtk.Label // Warning label in footer
 
 	didInit  bool                // Whether initialized the view animation
 	pages    map[int]gtk.IWidget // Mapping to each root page
@@ -553,14 +552,6 @@ func (window *Window) UpdateFooter() error {
 		return err
 	}
 
-	// Warning label
-	warningTxt := utils.Locale.Get("Network check failed.")
-	if window.warningLabel, err = common.SetLabel(warningTxt, "label-warning", 0.0); err != nil {
-		return err
-	}
-	window.warningLabel.SetYAlign(0.25)
-	window.warningLabel.Hide()
-
 	// Create box for primary buttons
 	if window.buttons.boxPrimary, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0); err != nil {
 		return err
@@ -575,7 +566,6 @@ func (window *Window) UpdateFooter() error {
 	}
 	window.buttons.boxSecondary.PackEnd(window.buttons.confirm, false, false, 4)
 	window.buttons.boxSecondary.PackEnd(window.buttons.cancel, false, false, 4)
-	window.buttons.boxSecondary.PackStart(window.warningLabel, false, false, 15)
 
 	// Add the boxes
 	window.buttons.stack.AddNamed(window.buttons.boxPrimary, "primary")
@@ -629,11 +619,6 @@ func (window *Window) closePage() {
 func (window *Window) ActivatePage(page pages.Page) {
 	id := page.GetID()
 
-	// Hide the warning label on page transitions
-	if window.warningLabel != nil {
-		window.warningLabel.Hide()
-	}
-
 	// Customize common widgets based on the page being loaded
 	switch id {
 	case pages.PageIDWelcome:
@@ -665,7 +650,7 @@ func (window *Window) ActivatePage(page pages.Page) {
 		window.buttons.cancel.SetLabel(utils.Locale.Get("NO"))
 	case pages.PageIDNetwork:
 		// Launches network check pop-up without changing page
-		if err := RunNetworkTest(window.model); err != nil {
+		if _, err := network.RunNetworkTest(window.model); err != nil {
 			log.Warning("Error running network test: ", err)
 		}
 		return
@@ -676,24 +661,7 @@ func (window *Window) ActivatePage(page pages.Page) {
 		window.buttons.confirm.SetSensitive(false)
 		window.buttons.confirm.SetLabel(utils.Locale.Get("CONFIRM"))
 		window.buttons.cancel.SetLabel(utils.Locale.Get("CANCEL"))
-
-		if !controller.NetworkPassing {
-			// Launches network check pop-up on bundle page
-			_, err := glib.IdleAdd(func() {
-				if err := RunNetworkTest(window.model); err != nil {
-					log.Warning("Error running network test: ", err)
-				}
-				page.ResetChanges()
-
-				// Show no network warning
-				if !controller.NetworkPassing {
-					window.warningLabel.Show()
-				}
-			})
-			if err != nil {
-				log.ErrorError(err)
-			}
-		}
+		page.ResetChanges()
 	default:
 		window.menu.switcher.Hide()
 		window.banner.Hide()
@@ -879,7 +847,7 @@ func (window *Window) confirmInstall() {
 
 	// Valid network is required to install without offline content or additional bundles
 	if (!swupd.IsOfflineContent() || len(window.model.UserBundles) != 0) && !controller.NetworkPassing {
-		if err := RunNetworkTest(window.model); err != nil {
+		if ret, err := network.RunNetworkTest(window.model); ret == network.NetTestErr {
 			log.Warning("Error running network test: ", err)
 			return
 		}

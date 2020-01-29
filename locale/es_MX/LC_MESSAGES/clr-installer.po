@@ -791,5 +791,12 @@ msgstr "Utilice la partición existente."
 msgid "Encrypted"
 msgstr "Encriptado"
 
+#, c-format
 msgid "Allow installation over insecure connections (http://)"
 msgstr "Permitir la instalación a través de conexiones inseguras (http://)"
+
+msgid "This requires a working network connection.\nProceed with a network test?"
+msgstr "Esto requiere una conexión de red que funcione.\n¿Continuar con una prueba de red?"
+
+msgid "Network Required"
+msgstr "Red requerida"

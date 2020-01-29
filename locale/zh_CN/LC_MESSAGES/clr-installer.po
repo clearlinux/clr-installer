@@ -793,3 +793,10 @@ msgstr "加密"
 
 msgid "Allow installation over insecure connections (http://)"
 msgstr "允许在不安全的连接（http://）上安装"
+
+#, c-format
+msgid "This requires a working network connection.\nProceed with a network test?"
+msgstr "这需要有效的网络连接\n进行网络测试"
+
+msgid "Network Required"
+msgstr "需要网络"
