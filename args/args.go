@@ -93,6 +93,7 @@ type Args struct {
 	CopySwupd               bool
 	CopySwupdSet            bool
 	HighContrast            bool
+	CBMPath                 string
 }
 
 func (args *Args) setKernelArgs() (err error) {
@@ -381,6 +382,15 @@ func (args *Args) setCommandLineArgs() (err error) {
 	flag.BoolVar(
 		&args.HighContrast, "high-contrast", false, "Use high-contrast colors for text-based UI",
 	)
+
+	flag.StringVarP(
+		&args.CBMPath, "cbm-path", "", "", "Path to clr-boot-manager (default: the target systems /usr/bin/clr-boot-manager)",
+	)
+	// We do not want this flag to be shown as part of the standard help message
+	fflag = flag.Lookup("cbm-path")
+	if fflag != nil {
+		fflag.Hidden = true
+	}
 
 	spflag.ErrHelp = errors.New("Clear Linux Installer program")
 

@@ -624,8 +624,14 @@ func contentInstall(rootDir string, version string, md *model.SystemInstall, opt
 	msg = utils.Locale.Get("Installing boot loader")
 	prg = progress.NewLoop(msg)
 	log.Info(msg)
+
+	cbmPath := options.CBMPath
+	if cbmPath == "" {
+		cbmPath = fmt.Sprintf("%s/usr/bin/clr-boot-manager", rootDir)
+	}
+
 	args := []string{
-		fmt.Sprintf("%s/usr/bin/clr-boot-manager", rootDir),
+		cbmPath,
 		"update",
 		"--image",
 		fmt.Sprintf("--path=%s", rootDir),
