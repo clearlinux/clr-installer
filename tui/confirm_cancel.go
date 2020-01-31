@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -45,9 +45,8 @@ func (dialog *ConfirmCancelDialog) Close() {
 	}
 }
 
-func initCancelDiaglogWindow(dialog *ConfirmCancelDialog) error {
+func initCancelDiaglogWindow(dialog *ConfirmCancelDialog, title string) error {
 
-	const title = "Discard Data Changes?"
 	const wBuff = 5
 	const hBuff = 5
 	const dWidth = 50
@@ -91,11 +90,11 @@ func initCancelDiaglogWindow(dialog *ConfirmCancelDialog) error {
 	buttonFrame := clui.CreateFrame(borderFrame, AutoSize, 1, clui.BorderNone, clui.Fixed)
 	buttonFrame.SetPack(clui.Horizontal)
 	buttonFrame.SetGaps(1, 0)
-	dialog.cancelButton = CreateSimpleButton(buttonFrame, AutoSize, AutoSize, "No", Fixed)
+	dialog.cancelButton = CreateSimpleButton(buttonFrame, AutoSize, AutoSize, "Cancel", Fixed)
 	dialog.cancelButton.SetEnabled(true)
 	dialog.cancelButton.SetActive(true)
 
-	dialog.confirmButton = CreateSimpleButton(buttonFrame, AutoSize, AutoSize, "Yes", Fixed)
+	dialog.confirmButton = CreateSimpleButton(buttonFrame, AutoSize, AutoSize, "Confirm", Fixed)
 	dialog.confirmButton.SetEnabled(true)
 	dialog.confirmButton.SetActive(false)
 
@@ -103,7 +102,7 @@ func initCancelDiaglogWindow(dialog *ConfirmCancelDialog) error {
 }
 
 // CreateConfirmCancelDialogBox creates the Network PopUp
-func CreateConfirmCancelDialogBox(message string) (*ConfirmCancelDialog, error) {
+func CreateConfirmCancelDialogBox(message string, title string) (*ConfirmCancelDialog, error) {
 	dialog := new(ConfirmCancelDialog)
 
 	if dialog == nil {
@@ -115,7 +114,7 @@ func CreateConfirmCancelDialogBox(message string) (*ConfirmCancelDialog, error) 
 		dialog.message = "Data has changed and will be lost!\n\nDiscard data changes?"
 	}
 
-	if err := initCancelDiaglogWindow(dialog); err != nil {
+	if err := initCancelDiaglogWindow(dialog, title); err != nil {
 		return nil, fmt.Errorf("Failed to create Confirmation of Cancel Dialog: %v", err)
 	}
 

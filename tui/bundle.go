@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -17,7 +17,6 @@ import (
 // BundlePage is the Page implementation for the proxy configuration page
 type BundlePage struct {
 	BasePage
-	offlineLabel *clui.Label
 }
 
 // BundleCheck maps a map name and description with the actual checkbox
@@ -41,22 +40,14 @@ func (bp *BundlePage) GetConfiguredValue() string {
 	return strings.Join(bundles, ", ")
 }
 
+func (bp *BundlePage) updateNetworkStatus() {
+	bp.confirmBtn.SetEnabled(controller.NetworkPassing)
+}
+
 // Activate marks the checkbox selections based on the data model
 func (bp *BundlePage) Activate() {
 	bp.GetWindow().SetVisible(true)
 	model := bp.getModel()
-
-	// Network connection is required to add additional bundles
-	if !controller.NetworkPassing {
-		if dialog, err := CreateNetworkTestDialogBox(bp.tui.model); err == nil {
-			if dialog.RunNetworkTest() {
-				// Automatically close if it worked
-				clui.RefreshScreen()
-				time.Sleep(time.Second)
-				dialog.Close()
-			}
-		}
-	}
 
 	for _, curr := range bundles {
 		state := 0
@@ -65,18 +56,44 @@ func (bp *BundlePage) Activate() {
 			state = 1
 		}
 
-		curr.check.SetEnabled(controller.NetworkPassing)
 		curr.check.SetState(state)
 	}
 
-	if controller.NetworkPassing {
-		bp.offlineLabel.SetTitle("")
-	} else {
-		bp.offlineLabel.SetTitle("Network check failed.")
-	}
+	bp.updateNetworkStatus()
+}
 
-	bp.confirmBtn.SetEnabled(controller.NetworkPassing)
-	bp.offlineLabel.SetEnabled(!controller.NetworkPassing)
+func bundleCheck(bp *BundlePage) {
+	text := "This requires a working network connection.\nProceed with a network test?"
+	title := "Network Required"
+	if dialogDecision, err := CreateConfirmCancelDialogBox(text, title); err == nil {
+		dialogDecision.OnClose(func() {
+			if dialogDecision.Confirmed {
+				// Network connection is required to add additional bundles
+				if !controller.NetworkPassing {
+					if dialogNet, err := CreateNetworkTestDialogBox(bp.getModel()); err == nil {
+						if dialogNet.RunNetworkTest() {
+							// Automatically close if it worked
+							clui.RefreshScreen()
+							time.Sleep(time.Second)
+							dialogNet.Close()
+							bp.updateNetworkStatus()
+						}
+					}
+				}
+			}
+
+			/* Dialog box at end while closing will uncheck all the checked boxes
+			 * if the network test did not pass
+			 */
+			if !controller.NetworkPassing {
+				for _, curr := range bundles {
+					if curr.check.State() == 1 {
+						curr.check.SetState(0)
+					}
+				}
+			}
+		})
+	}
 }
 
 func newBundlePage(tui *Tui) (Page, error) {
@@ -106,6 +123,11 @@ func newBundlePage(tui *Tui) (Page, error) {
 		lbl := fmt.Sprintf("%s: %s", curr.bundle.Name, curr.bundle.Desc)
 		curr.check = clui.CreateCheckBox(lblFrm, AutoSize, lbl, AutoSize)
 		curr.check.SetPack(clui.Horizontal)
+		curr.check.OnChange(func(ev int) {
+			if ev == 1 && !controller.NetworkPassing {
+				bundleCheck(page)
+			}
+		})
 	}
 
 	fldFrm := clui.CreateFrame(frm, 30, AutoSize, BorderNone, Fixed)
@@ -131,11 +153,6 @@ func newBundlePage(tui *Tui) (Page, error) {
 		page.SetDone(anySelected)
 		page.GotoPage(TuiPageMenu)
 	})
-
-	page.offlineLabel = clui.CreateLabel(page.cFrame, 1, 2, "", 1)
-	page.offlineLabel.SetBackColor(errorLabelBg)
-	page.offlineLabel.SetTextColor(errorLabelFg)
-	page.offlineLabel.SetAlign(clui.AlignRight)
 
 	return page, nil
 }

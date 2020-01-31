@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -327,7 +327,8 @@ func newUserManagerPage(tui *Tui) (Page, error) {
 	page.cancelBtn.OnClick(func(ev clui.Event) {
 		if page.usersChanged {
 			message := "User data modified and will be lost!\n\nDiscard user changes?"
-			if dialog, err := CreateConfirmCancelDialogBox(message); err == nil {
+			title := "Discard Data Changes?"
+			if dialog, err := CreateConfirmCancelDialogBox(message, title); err == nil {
 				dialog.OnClose(func() {
 					if dialog.Confirmed {
 						page.data = nil
@@ -359,7 +360,8 @@ func newUserManagerPage(tui *Tui) (Page, error) {
 	revertBtn.OnClick(func(ev clui.Event) {
 		if page.usersChanged {
 			message := "User data modified and will be lost!\n\nDiscard user changes?"
-			if dialog, err := CreateConfirmCancelDialogBox(message); err == nil {
+			title := "Discard Data Changes?"
+			if dialog, err := CreateConfirmCancelDialogBox(message, title); err == nil {
 				dialog.OnClose(func() {
 					if dialog.Confirmed {
 						page.removeAllUsers()
