@@ -69,10 +69,6 @@
       "desc": "Multi-protocol instant messagging (IM) client"
     },
     {
-      "name": "python2-basic",
-      "desc": "Run legacy python language programs"
-    },
-    {
       "name": "python3-basic",
       "desc": "Run python language programs"
     },

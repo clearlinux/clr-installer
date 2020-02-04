@@ -486,9 +486,6 @@ msgstr "Ejecución de programas de lenguaje perl"
 msgid "Multi-protocol instant messagging (IM) client"
 msgstr "Cliente de mensajes instantáneos (IM) multiprotocolo"
 
-msgid "Run legacy python language programs"
-msgstr "Ejecución de programas heredados de lenguaje python"
-
 msgid "Run python language programs"
 msgstr "Ejecución de programas de lenguaje python"
 
