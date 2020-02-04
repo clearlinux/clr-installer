@@ -486,9 +486,6 @@ msgstr "运行 Perl 语言程序"
 msgid "Multi-protocol instant messagging (IM) client"
 msgstr "多协议即时消息 (IM) 客户端"
 
-msgid "Run legacy python language programs"
-msgstr "运行旧有的 Python 语言程序"
-
 msgid "Run python language programs"
 msgstr "运行 Python 语言程序"
 
