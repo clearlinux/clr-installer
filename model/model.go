@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -85,6 +85,8 @@ type SystemInstall struct {
 	Environment       map[string]string                `yaml:"env,omitempty,flow"`
 	CryptPass         string                           `yaml:"-"`
 	MakeISO           bool                             `yaml:"iso,omitempty,flow"`
+	ISOPublisher      string                           `yaml:"isoPublisher,omitempty,flow"`
+	ISOApplicationID  string                           `yaml:"isoApplicationId,omitempty,flow"`
 	KeepImage         bool                             `yaml:"keepImage,omitempty,flow"`
 	LockFile          string                           `yaml:"-"`
 	ClearCfFile       string                           `yaml:"-"`
@@ -274,6 +276,32 @@ func (si *SystemInstall) OverrideBundles(overrideBundles []string) {
 	}
 }
 
+// IsDesktopInstall determines if this installation is a Desktop
+// installation by check all bundle lists for any desktop bundles.
+func (si *SystemInstall) IsDesktopInstall() bool {
+	isDesktop := false
+
+	// Check the default bundle list
+	for _, curr := range si.Bundles {
+		if strings.Contains(strings.ToLower(curr), "desktop") {
+			isDesktop = true
+			break
+		}
+	}
+
+	if !isDesktop {
+		// Check the user bundle list
+		for _, curr := range si.UserBundles {
+			if strings.Contains(strings.ToLower(curr), "desktop") {
+				isDesktop = true
+				break
+			}
+		}
+	}
+
+	return isDesktop
+}
+
 // RemoveAllUsers remove from the data model all previously added user
 func (si *SystemInstall) RemoveAllUsers() {
 	si.Users = []*user.User{}
@@ -335,6 +363,14 @@ func (si *SystemInstall) Validate() error {
 
 	if si.Kernel == nil {
 		return errors.ValidationErrorf("A kernel must be provided")
+	}
+
+	if len(si.ISOPublisher) > 128 {
+		return errors.ValidationErrorf("isoPublisher must be shorter than 128 characters")
+	}
+
+	if len(si.ISOApplicationID) > 128 {
+		return errors.ValidationErrorf("isoApplicationId must be shorter than 128 characters")
 	}
 
 	return nil

@@ -1,0 +1,55 @@
+#clear-linux-config
+
+# c-basic-offset: 2; tab-width: 2; indent-tabs-mode: nil
+# vi: set shiftwidth=2 tabstop=2 expandtab:
+# :indentSize=2:tabSize=2:noTabs=true:
+
+# File:         iso-good.yaml
+# Use Case:     Basic functionality testing for a bad ISO.
+
+# switch between aliases if you want to install to an actual block device
+# i.e /dev/sda
+block-devices: [
+   {name: "image-gen", file: "image-gen.img"}
+]
+
+targetMedia:
+- name: ${baseimg}
+  type: disk
+  children:
+  - name: ${baseimg}1
+    fstype: vfat
+    mountpoint: /boot
+    size: "50M"
+    type: part
+  - name: ${baseimg}2
+    fstype: swap
+    size: "32M"
+    type: part
+  - name: ${baseimg}3
+    fstype: ext4
+    mountpoint: /
+    size: "1.5G"
+    type: part
+
+bundles: [os-core, os-core-update, desktop, NetworkManager,  vim]
+
+autoUpdate: false
+postArchive: true
+postReboot: false
+telemetry: false
+iso: true
+isoPublisher: Intel Corporation
+keepImage: true
+copySwupd: false
+
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-native
+
+post-install: [
+   {cmd: "/bin/ls ${chrootDir}/etc"},
+   {chroot:true, cmd: "/bin/ls /etc"},
+]
+
+version: 0

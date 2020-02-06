@@ -133,6 +133,8 @@ Item | Description | Default
 `legacyBios` | Is the install using the Legacy boot from BIOS?; true or false | false
 `copyNetwork` | Copy the locally configured network interfaces to target; `/etc/systemd/network` | false
 `iso` | Generate a bootable ISO image file?; true or false | false
+`isoPublisher` | Publisher string added to ISO metadata; 128 char max | `-UNDEFINED-`
+`isoApplicationId` | Publisher string added to ISO metadata; 128 char max | server|desktop determined by bundle list
 `keepImage` | Retain the raw image file?; true or false | true (false when iso is true)
 `telemetry` | Should telemetry be enabled by default; true or false | false
 `telemetryURL` | URL of where the telemetry records should publish | `-UNDEFINED-`
