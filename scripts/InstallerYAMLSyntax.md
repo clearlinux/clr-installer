@@ -175,7 +175,7 @@ Clear Linux OS Installer supports both `pre-install` and `post-install` hooks wh
 Item | Description | Required?
 ------------ | ------------- | ------------- 
 `cmd:` | The command to run plus any arguments; usually passing `chrootDir`| Yes
-`chroot:` | Boolean indicating if this command should be run chrooted | No
+`chroot:` | Boolean indicating if this command should be run chrooted. *NOTE: Commands which require network access should not be run in a chrooted environment as the network (resolver at a minimum) are not configured.* | No
 
 
 ### Environment Variables
