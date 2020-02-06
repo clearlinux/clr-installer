@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -526,7 +526,7 @@ func mkLegacyBoot(templatePath string) error {
 	return err
 }
 
-func packageIso(imgName string) error {
+func packageIso(imgName, appID, publisher string) error {
 	msg := "Building ISO"
 	prg := progress.NewLoop(msg)
 	log.Info(msg)
@@ -535,12 +535,23 @@ func packageIso(imgName string) error {
 		"xorriso", "-as", "mkisofs",
 		"-o", imgName + ".iso",
 		"-V", "CLR_ISO",
-		"-isohybrid-mbr", tmpPaths[clrCdroot] + "/isolinux/isohdpfx.bin",
+	}
+
+	if len(appID) > 0 {
+		args = append(args, "-appid", appID)
+	}
+	if len(publisher) > 0 {
+		args = append(args, "-publisher", publisher)
+	}
+
+	args = append(args,
+		"-isohybrid-mbr", tmpPaths[clrCdroot]+"/isolinux/isohdpfx.bin",
 		"-c", "isolinux/boot.cat", "-b", "isolinux/isolinux.bin",
 		"-no-emul-boot", "-boot-load-size", "4", "-boot-info-table",
 		"-eltorito-alt-boot", "-e", "EFI/efiboot.img", "-no-emul-boot",
 		"-isohybrid-gpt-basdat", tmpPaths[clrCdroot],
-	}
+	)
+
 	err := cmd.RunAndLog(args...)
 	if err != nil {
 		prg.Failure()
@@ -549,7 +560,6 @@ func packageIso(imgName string) error {
 
 	prg.Success()
 	return err
-
 }
 
 func cleanup() {
@@ -622,7 +632,15 @@ func MakeIso(rootDir string, imgName string, model *model.SystemInstall, options
 		return err
 	}
 
-	if err = packageIso(imgName); err != nil {
+	appID := model.ISOApplicationID
+	if len(appID) == 0 {
+		appID = "server"
+		if model.IsDesktopInstall() {
+			appID = "desktop"
+		}
+	}
+
+	if err = packageIso(imgName, appID, model.ISOPublisher); err != nil {
 		return err
 	}
 

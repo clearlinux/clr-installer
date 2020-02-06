@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -56,6 +56,9 @@ func TestLoadFile(t *testing.T) {
 		{"valid-network.yaml", true},
 		{"valid-with-pre-post-hooks.yaml", true},
 		{"valid-with-version.yaml", true},
+		{"iso-bad.yaml", false},
+		{"iso-good.yaml", true},
+		{"iso-desktop.yaml", true},
 		{"azure-config.json", true},
 		{"azure-docker-config.json", true},
 		{"azure-machine-learning-config.json", true},
@@ -376,6 +379,55 @@ func TestAddNetworkInterface(t *testing.T) {
 	nm.AddNetworkInterface(loaded.NetworkInterfaces[0])
 	if len(nm.NetworkInterfaces) != 1 {
 		t.Fatal("Failed to add network interface to model")
+	}
+}
+
+func TestDesktopISOType(t *testing.T) {
+	path := filepath.Join(testsDir, "iso-desktop.yaml")
+	loaded, err := LoadFile(path, args.Args{})
+
+	loaded.AddUserBundle("user-basic")
+	loaded.AddUserBundle("python3-basic")
+
+	if err != nil {
+		t.Fatal("Failed to load a valid descriptor")
+	}
+
+	if !loaded.IsDesktopInstall() {
+		t.Fatal("Failed to detect Desktop ISO install from model")
+	}
+}
+
+func TestDesktopUserISOType(t *testing.T) {
+	path := filepath.Join(testsDir, "iso-good.yaml")
+	loaded, err := LoadFile(path, args.Args{})
+
+	loaded.AddUserBundle("user-basic")
+	loaded.AddUserBundle("python3-basic")
+	loaded.AddUserBundle("desktop-apps")
+
+	if err != nil {
+		t.Fatal("Failed to load a valid descriptor")
+	}
+
+	if !loaded.IsDesktopInstall() {
+		t.Fatal("Failed to detect Desktop ISO install from model")
+	}
+}
+
+func TestServerISOType(t *testing.T) {
+	path := filepath.Join(testsDir, "iso-good.yaml")
+	loaded, err := LoadFile(path, args.Args{})
+
+	loaded.AddUserBundle("user-basic")
+	loaded.AddUserBundle("python3-basic")
+
+	if err != nil {
+		t.Fatal("Failed to load a valid descriptor")
+	}
+
+	if loaded.IsDesktopInstall() {
+		t.Fatal("Detected Desktop ISO install, but should be Server from model")
 	}
 }
 
