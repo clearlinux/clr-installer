@@ -18,7 +18,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/coreos/go-systemd/dbus"
+	"github.com/coreos/go-systemd/v22/dbus"
 	"gopkg.in/yaml.v2"
 
 	"github.com/clearlinux/clr-installer/cmd"

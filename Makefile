@@ -30,6 +30,10 @@ export BASEIMG := $(TESTS_DIR)/$(BASEIMGNAME)
 export BASEIMGLOG := $(BASEBUILD_DIR)/$(BASEIMGNAME).log
 export TRAVIS_CONF = $(top_srcdir)/.travis.yml
 export UPDATE_COVERAGE = 1
+export GO111MODULE=auto
+LOCAL_GOPATH := ${CURDIR}/.gopath
+export GOPATH := ${LOCAL_GOPATH}
+export GOFLAGS += -mod=vendor
 
 CLR_INSTALLER_TEST_HTTP_PORT ?= 8181
 
@@ -39,13 +43,12 @@ export TEST_HTTP_PORT = ${CLR_INSTALLER_TEST_HTTP_PORT}
 THEME_DIR=$(DESTDIR)/usr/share/clr-installer/themes/
 LOCALE_DIR=$(DESTDIR)/usr/share/locale
 ISO_TEMPLATE_DIR=$(DESTDIR)/usr/share/clr-installer/iso_templates/
-
 DESKTOP_DIR=$(DESTDIR)/usr/share/applications/
 CONFIG_DIR=$(DESTDIR)/usr/share/defaults/clr-installer/
 SYSTEMD_DIR=$(DESTDIR)/usr/lib/systemd/system/
 PKIT_DIR=$(DESTDIR)/usr/share/polkit-1/
-
 BUILDDATE=$(shell date -u "+%Y-%m-%d_%H:%M:%S_%Z")
+
 # Are we running from a Git Repo?
 $(shell [ -d .git ] || git rev-parse --is-inside-work-tree > /dev/null 2>&1)
 ifeq ($(.SHELLSTATUS),0)
@@ -77,19 +80,7 @@ ifeq (,$(shell echo $(VERSION) | egrep '^[0-9]+.[0-9]+.[0-9]+$$' 2> /dev/null))
 endif
 endif
 
-.PHONY: gopath
-LOCAL_GOPATH := ${CURDIR}/.gopath
-export GOPATH := ${LOCAL_GOPATH}
-gopath:
-	@rm -rf ${LOCAL_GOPATH}/src
-	@mkdir -p ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
-ifeq ($(IS_GIT_REPO),1)
-# Smart copy only files under version control
-	@tar cf - `git ls-files` | tar xf - --directory=${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
-else
-	@cp -af * ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
-endif
-
+# Install
 install: install-tui install-gui
 
 install-common:
@@ -133,27 +124,11 @@ uninstall:
 	@rm -f $(DESTDIR)/var/lib/clr-installer/clr-installer.yaml
 	@rm -f $(SYSTEMD_DIR)/clr-installer-provision.service
 
-build-pkgs: build
-	@for pkg in `find -path ./vendor -prune -o -path ./.gopath -prune -o -name "*.go" \
-	   -printf "%h\n" | sort -u | sed 's/\.\///g'`; do \
-	   go install -p ${nproc} -v $${GO_PACKAGE_PREFIX}/$$pkg; \
-   done
-
-build-vendor: build
-	@cp -a vendor/* .gopath/src/
-	@for pkg in `find ./vendor -name "*.go" \
-	   -printf "%h\n" | sort -u | sed 's/\.\/vendor\///g'`; do \
-	   go install -p ${nproc} -v $$pkg; \
-   done
-	@rm -rf .gopath/src/*
-
-build: build-tui build-gui
+# Build
+build: validate_version build-tui build-gui
 	ln ${GOPATH}/bin/clr-installer-tui ${GOPATH}/bin/clr-installer
 
-build-go-get-tui: validate_version gopath
-	go get -p ${nproc} -v ${GO_PACKAGE_PREFIX}/clr-installer
-
-build-tui: build-go-get-tui
+build-tui:
 	@echo "MAKEFLAGS=${MAKEFLAGS}"
 	go install -p ${nproc} -v \
 		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
@@ -161,26 +136,26 @@ build-tui: build-go-get-tui
 		${GO_PACKAGE_PREFIX}/clr-installer
 	mv ${GOPATH}/bin/clr-installer ${GOPATH}/bin/clr-installer-tui
 
-build-gui: build-go-get-tui
-	go get -p ${nproc} -v -tags guiBuild ${GO_PACKAGE_PREFIX}/clr-installer
+build-gui:
+	@echo "MAKEFLAGS=${MAKEFLAGS}"
 	go install -p ${nproc} -v -tags guiBuild \
 		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
 		-X github.com/clearlinux/clr-installer/model.BuildDate=${BUILDDATE}" \
 		${GO_PACKAGE_PREFIX}/clr-installer
 	mv ${GOPATH}/bin/clr-installer ${GOPATH}/bin/clr-installer-gui
 
-build-local-travis: validate_version gopath
-	@go get -p ${nproc} -v ${GO_PACKAGE_PREFIX}/local-travis
+build-local-travis: validate_version
 	@go install -p ${nproc} -v \
 		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
 		-X github.com/clearlinux/clr-installer/model.BuildDate=${BUILDDATE}" \
 		${GO_PACKAGE_PREFIX}/local-travis
 
+#  Checks
 check-coverage: build-local-travis
 	@echo "local-travis simulation:"
 	@$(top_srcdir)/.gopath/bin/local-travis
 
-check: gopath bundle-check
+check: bundle-check
 	@# Ensure no temp files are left behind
 	@LSCMD='ls -lart --ignore="." /tmp'; \
 	SHACMD='ls -art --ignore="." /tmp | sha512sum'; \
@@ -198,7 +173,7 @@ check: gopath bundle-check
 		/bin/false ; \
 	fi; \
 
-check-image: gopath build-tui
+check-image: build-tui
 	@if [ "${runuid}" != "0" ] ; then \
 		echo "check-image needs to be run as root; please use 'sudo'"; \
 		/bin/false; \
@@ -222,15 +197,20 @@ check-image: gopath build-tui
 	fi
 	@echo "consider running 'sudo make clean' to remove the files built as root"
 
-check-clean: gopath
-	go clean -testcache
+check-clean:
+	@go clean -testcache
 
-check-root: gopath
-	sudo -E go test ${CHECK_VERBOSE} -cover ${GO_PACKAGE_PREFIX}/...
+check-root:
+	@sudo -E go test ${CHECK_VERBOSE} -cover ${GO_PACKAGE_PREFIX}/...
 
 PHONY += bundle-check
 bundle-check:
 	@${top_srcdir}/scripts/bundle-check.sh
+
+# coverage
+# There is a bug between vet and test of duplication with mod flag inside GOFLAGS
+# https://github.com/golang/go/issues/32471 looks this will resolve with go 1.15
+# Till then we will Overide with GOFLAGS=""
 
 PHONY += coverage
 coverage: build
@@ -255,6 +235,7 @@ PHONY += coverage-html
 coverage-html: coverage
 	@go tool cover -html="${cov_dir}/cover.out"
 
+# linters
 PHONY += install-linters
 install-linters:
 	@if ! ${orig_go_path}/bin/golangci-lint --version &>/dev/null; then \
@@ -285,9 +266,7 @@ lint-release: lint-checkers
 	@echo "Linters complete"
 
 PHONY += lint-core
-lint-core: build install-linters gopath
-	@rm -rf ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor
-	@cp -af vendor/* ${LOCAL_GOPATH}/src/
+lint-core: build install-linters
 	@echo "Running linters"
 
 PHONY += lint-checkers
@@ -407,72 +386,6 @@ lint-errcheck: lint-core
 	--enable=errcheck \
 	./...
 
-PHONY += dep-install
-dep-install: gopath
-	@if ! dep version &>/dev/null; then \
-		echo "Installing dep..."; \
-		mkdir -p ${orig_go_path}/bin; \
-		curl https://raw.githubusercontent.com/golang/dep/master/install.sh 2>/dev/null \
-		| GOPATH=${orig_go_path} bash; \
-	fi
-
-PHONY += dep-check
-dep-check: dep-install
-	@if ! dep version &>/dev/null; then \
-		echo "Installing dep..."; \
-		mkdir -p ${orig_go_path}/bin; \
-		curl https://raw.githubusercontent.com/golang/dep/master/install.sh 2>/dev/null \
-		| GOPATH=${orig_go_path} bash; \
-	fi
-	@cd ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX} ; GOPATH=${LOCAL_GOPATH} dep check
-
-PHONY += dep-update
-dep-update: dep-install
-	@if dep version &>/dev/null; then \
-		echo "Updating dep..."; \
-		curl https://raw.githubusercontent.com/golang/dep/master/install.sh 2>/dev/null \
-		| GOPATH=${orig_go_path} bash; \
-	else \
-		echo "Dep not installed"; \
-		exit 1; \
-	fi
-
-PHONY += vendor-init
-vendor-init: gopath dep-install
-	@rm -rf ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor
-	@rm -f ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/Gopkg.*
-	@cd ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX} ; GOPATH=${LOCAL_GOPATH} dep init
-	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor ${top_srcdir}
-	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/Gopkg.* ${top_srcdir}
-
-PHONY += vendor-status
-vendor-status: gopath dep-install
-	@cd ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX} ; GOPATH=${LOCAL_GOPATH} dep status
-
-PHONY += vendor-check
-vendor-check: dep-check
-
-PHONY += vendor-update
-vendor-update: gopath dep-install
-	@# Copy the updated files from revision control area
-	@cp -a ${top_srcdir}/Gopkg.* ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
-	@# Pull updates
-	@cd ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX} ; GOPATH=${LOCAL_GOPATH} dep ensure -update
-	@# Copy results back to revision control area
-	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor ${top_srcdir}
-	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/Gopkg.* ${top_srcdir}
-
-PHONY += vendor-add
-vendor-add: gopath dep-install
-	@# Copy the updated files from revision control area
-	@cp -a ${top_srcdir}/Gopkg.* ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}
-	@# Pull updates
-	@cd ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX} ; GOPATH=${LOCAL_GOPATH} dep ensure -add ${GOADD}
-	@# Copy results back to revision control area
-	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/vendor ${top_srcdir}
-	@cp -a ${LOCAL_GOPATH}/src/${GO_PACKAGE_PREFIX}/Gopkg.* ${top_srcdir}
-
-
 PHONY += tag
 ifeq ($(IS_GIT_REPO),1)
 tag:
@@ -495,15 +408,46 @@ tag:
 	@exit 1
 endif
 
+# clean
 PHONY += clean
 ifeq ($(IS_GIT_REPO),1)
 clean:
-	@go clean -i -r
+	@go clean -modcache
+	@rm -rf ${LOCAL_GOPATH}/{bin,src}
 	@git clean -fdXq
 else
-clean:
-	@go clean -i -r
+	@go clean -modcache
+	@rm -rf ${LOCAL_GOPATH}/{bin,src}
 endif
+
+# vendor management
+# (dont execute vendor-init this on travis)
+PHONY += vendor-init
+vendor-init:
+	@echo "Initializing Dependencies "
+	@echo "--------------------------------"
+	@go mod vendor
+
+PHONY += vendor-status
+vendor-status:
+	@GOFLAGS="" go list -m -u --json all 2>/dev/null \
+	| jq -r --slurp '.[] | [.Path, .Version, .Indirect, .Update.Version] | @csv' \
+	| awk -v FS="," 'BEGIN{print "Module\t\t\t\t\t\tVersion\t\t\t\t\t\tInDirect\tAvailable-Update";print "============================================================================================================================="};{printf "%-50s%-50s%-10s%-50s\n",$$1,$$2==NULL? "NA":$$2,$$3, $$4}'
+
+PHONY += vendor-update
+vendor-update:
+	@for pkg in `go list -m all | cut -d" " -f1`; do \
+		if [ "$$pkg" != "github.com/clearlinux/clr-installer" ]; then \
+			go get -u $$pkg; \
+		fi; \
+	done
+	@go mod tidy
+
+PHONY += vendor-check
+vendor-check:
+	@go mod tidy 2>/dev/null
+	@go mod verify 2>/dev/null
+
 
 PHONY += distclean
 ifeq ($(IS_GIT_REPO),1)
@@ -512,7 +456,6 @@ dist-clean: clean
 		git clean -fdxq; \
 		git reset HEAD; \
 		go clean -testcache; \
-		go clean -modcache; \
 	else \
 		echo "There are pending changes in the repository!"; \
 		git status -s; \
@@ -521,7 +464,6 @@ dist-clean: clean
 else
 dist-clean: clean
 	@go clean -testcache
-	@go clean -modcache
 endif
 
 all: build
