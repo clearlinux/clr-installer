@@ -64,7 +64,7 @@ func lookupDefaultFile(file, pathPrefix string) (string, error) {
 
 		// use the config from source code's etc dir if not installed binary
 		if isSourceTree {
-			sourceRoot := strings.Replace(sourcePath, "bin", filepath.Join(SourcePath, "etc"), 1)
+			sourceRoot := strings.Replace(sourcePath, "/.gopath/bin", "/etc", 1)
 			return filepath.Join(sourceRoot, file), nil
 		}
 	}

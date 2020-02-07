@@ -51,15 +51,9 @@ func formatTraceIdx(idx int) (string, string) {
 		funcName = fn[0]
 	}
 
-	dir := strings.Split(filepath.Dir(file), "/clr-installer/")
-	var dirName string
-	if len(dir) > 1 {
-		dirName = dir[1]
-	} else {
-		dirName = dir[0]
-	}
+	dir := filepath.Dir(file)
 
-	return funcName, fmt.Sprintf("%s/%s:%d", dirName, fileName, line)
+	return funcName, fmt.Sprintf("%s/%s:%d", dir, fileName, line)
 }
 
 func getTrace() string {

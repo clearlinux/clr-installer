@@ -16,6 +16,22 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#pragma once
+
+#include <stdlib.h>
+
+static GtkModelButton *
+toGtkModelButton(void *mb)
+{
+	return (GTK_MODEL_BUTTON(mb));
+}
+
+static GtkPopoverMenu *
+toGtkPopoverMenu(void *p)
+{
+	return (GTK_POPOVER_MENU(p));
+}
+
 static GtkStackSidebar *
 toGtkStackSidebar(void *p)
 {

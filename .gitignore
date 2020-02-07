@@ -12,3 +12,7 @@
 .gopath/
 bin/
 pkg/
+
+#editors
+.vscode
+clrinstaller.code-workspace

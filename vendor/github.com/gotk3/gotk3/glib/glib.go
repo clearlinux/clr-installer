@@ -121,6 +121,23 @@ func (t Type) Parent() Type {
 	return Type(C.g_type_parent(C.GType(t)))
 }
 
+// IsA is a wrapper around g_type_is_a().
+func (t Type) IsA(isAType Type) bool {
+	return gobool(C.g_type_is_a(C.GType(t), C.GType(isAType)))
+}
+
+// TypeFromName is a wrapper around g_type_from_name
+func TypeFromName(typeName string) Type {
+	cstr := (*C.gchar)(C.CString(typeName))
+	defer C.free(unsafe.Pointer(cstr))
+	return Type(C.g_type_from_name(cstr))
+}
+
+//TypeNextBase is a wrapper around g_type_next_base
+func TypeNextBase(leafType, rootType Type) Type {
+	return Type(C.g_type_next_base(C.GType(leafType), C.GType(rootType)))
+}
+
 // UserDirectory is a representation of GLib's GUserDirectory.
 type UserDirectory int
 
@@ -328,6 +345,35 @@ func sourceAttach(src *C.struct__GSource, rf reflect.Value, args ...interface{})
 	// context.
 	cid := C.g_source_attach(src, nil)
 	return SourceHandle(cid), nil
+}
+
+// Destroy is a wrapper around g_source_destroy()
+func (v *Source) Destroy() {
+	C.g_source_destroy(v.native())
+}
+
+// IsDestroyed is a wrapper around g_source_is_destroyed()
+func (v *Source) IsDestroyed() bool {
+	return gobool(C.g_source_is_destroyed(v.native()))
+}
+
+// Unref is a wrapper around g_source_unref()
+func (v *Source) Unref() {
+	C.g_source_unref(v.native())
+}
+
+// Ref is a wrapper around g_source_ref()
+func (v *Source) Ref() *Source {
+	c := C.g_source_ref(v.native())
+	if c == nil {
+		return nil
+	}
+	return (*Source)(c)
+}
+
+// SourceRemove is a wrapper around g_source_remove()
+func SourceRemove(src SourceHandle) bool {
+	return gobool(C.g_source_remove(C.guint(src)))
 }
 
 /*
@@ -1092,8 +1138,8 @@ type TypeMarshaler struct {
 }
 
 // RegisterGValueMarshalers adds marshalers for several types to the
-// internal marshalers map.  Once registered, calling GoValue on any
-// Value witha registered type will return the data returned by the
+// internal marshalers map. Once registered, calling GoValue on any
+// Value with a registered type will return the data returned by the
 // marshaler.
 func RegisterGValueMarshalers(tm []TypeMarshaler) {
 	gValueMarshalers.register(tm)
