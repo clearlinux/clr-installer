@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -36,6 +36,7 @@ var (
 		"ext4":  {commonMakeFsCommand, []string{"-v", "-F", "-b", "4096"}, commonMakePartCommand},
 		"btrfs": {commonMakeFsCommand, []string{"-f"}, commonMakePartCommand},
 		"xfs":   {commonMakeFsCommand, []string{"-f"}, commonMakePartCommand},
+		"f2fs":  {commonMakeFsCommand, []string{"-f"}, commonMakePartCommand},
 		"swap":  {swapMakeFsCommand, []string{}, swapMakePartCommand},
 		"vfat":  {commonMakeFsCommand, []string{"-F32"}, vfatMakePartCommand},
 	}
@@ -1489,7 +1490,7 @@ func FindModifyInstallTargets(medias []*BlockDevice) []InstallTarget {
 // for an advanced installations.
 //	CLR_BOOT = The /boot partition; must be vfat
 //	CLR_SWAP = A swap partition to use; can be more than one
-//	CLR_ROOT = The / root partition; must be ext[234] or xfs
+//	CLR_ROOT = The / root partition; must be ext[234], xfs or f2fs.
 //		due to clr-boot-manager
 //	CLR_MNT = Any additional partitions that should be
 //		included in the install like /srv, /home, ...
@@ -1726,8 +1727,9 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice) []string
 					} else {
 						rootFound = true
 						if !(ch.FsType == "ext2" || ch.FsType == "ext3" ||
-							ch.FsType == "ext4" || ch.FsType == "xfs") {
-							warning := utils.Locale.Get("%s must be %s", "CLR_ROOT", "ext*|xfs")
+							ch.FsType == "ext4" || ch.FsType == "xfs" ||
+							ch.FsType == "f2fs") {
+							warning := utils.Locale.Get("%s must be %s", "CLR_ROOT", "ext*|xfs|f2fs")
 							results = append(results, warning)
 							log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
 						}

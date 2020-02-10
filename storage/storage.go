@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -1388,6 +1388,8 @@ func MaxLabelLength(fstype string) int {
 		maxLen = 15
 	case "xfs":
 		maxLen = 12
+	case "f2fs":
+		maxLen = 512
 	case "btrfs":
 		maxLen = 255
 	case "vfat":

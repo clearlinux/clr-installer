@@ -40,7 +40,7 @@ Item | Description | Required?
 ------------ | ------------- | ------------- 
 `name:` | Block-device alias and partition number or the physical partition name| Yes
 `type:` | Partition type should be `part` for a standard partition or `crypt` for encrypted partitions | Yes
-`fstype:` | Type of the partition can be one of: `swap`, or `ext2`, `ext3`, `ext4`, `xfs`, `btrfs`, or `vfat` | Yes
+`fstype:` | Type of the partition can be one of: `swap`, or `ext2`, `ext3`, `ext4`, `xfs`, `f2fs`, `btrfs`, or `vfat` | Yes
 `size:` | Size of the partition. Set to `0` to use the remaining free space for this partition; there can only be one partition of size `0`.The suffixes `B` for bytes, `K` for kilobytes, `M` for megabytes, `G` for gigabytes, `T` for terabytes, or `P` for petabytes can be used. | Yes 
 `mountpoint:` | The file system path where the partition should be mounted. | No
 `options:` | Additional file system options to be used when creating the fs | No
