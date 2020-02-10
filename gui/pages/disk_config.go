@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -381,7 +381,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	} else {
 		sc.AddClass("label-radio")
 	}
-	reqs := []string{"CLR_BOOT:vfat", "CLR_SWAP:linux-swap", "CLR_ROOT:ext*|xfs"}
+	reqs := []string{"CLR_BOOT:vfat", "CLR_SWAP:linux-swap", "CLR_ROOT:ext*|xfs|f2fs"}
 	disk.advancedButton.SetTooltipText(utils.Locale.Get("Minimum requirements: %s", strings.Join(reqs, ", ")))
 	advancedBox.PackStart(disk.advancedButton, false, false, 0)
 	if _, err := disk.advancedButton.Connect("toggled", disk.advancedButtonToggled); err != nil {

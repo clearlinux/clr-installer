@@ -19,7 +19,7 @@
                                { "disk" : "sdb", "partition" : 3, "mount" : "/three" } ],
     "Version": "latest",
     "Bundles": ["kernel-native", "os-core", "os-core-update"],
-    "cmdline": "quiet console=tty0 console=ttyS0,115200n8 init=/usr/bin/initra-desktop initcall_debug tsc=reliable no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 rcu_nocbs=0-64 rw",
+    "cmdline": "quiet console=tty0 console=ttyS0,115200n8 init=/usr/bin/initra-desktop initcall_debug tsc=reliable no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 rcu_nocbs=0-64 rw",
     "Users" : [ { "username" : "test", "key" : "key.pub", "uid" : 1000, "sudo" : true } ],
     "Hostname": "testhost",
     "Static_IP": { "iface" : "enp1s0", "address" : "10.1.10.9/24", "gateway" : "10.1.10.1", "dns" : "10.1.10.1" },
