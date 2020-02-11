@@ -297,7 +297,7 @@ func (window *Window) createWelcomePage() (*Window, error) {
 	window.ActivatePage(window.menu.welcomePage)
 
 	// Create syscheck pop-up when system check fails
-	if syscheckErr := syscheck.RunSystemCheck(true); syscheckErr != nil {
+	if syscheckErr := syscheck.RunSystemCheck(window.model, true); syscheckErr != nil {
 		_, err = glib.IdleAdd(func() {
 			displaySyscheckDialog(syscheckErr)
 		})

@@ -169,7 +169,7 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 	}()
 
 	// Run system check, if fail report error and exit
-	if retErr := syscheck.RunSystemCheck(true); retErr != nil {
+	if retErr := syscheck.RunSystemCheck(md, true); retErr != nil {
 		msg := "System failed to pass pre-install checks." + "\n" +
 			retErr.Error() + "\n\n" +
 			"The application will now exit."

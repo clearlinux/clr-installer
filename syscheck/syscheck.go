@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/clearlinux/clr-installer/log"
+	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -31,14 +32,14 @@ func getCPUFeature(feature string) error {
 
 func getEFIExist() error {
 	if _, err := os.Stat("/sys/firmware/efi"); os.IsNotExist(err) {
-		return errors.New(utils.Locale.Get("Failed to find EFI firmware"))
+		return errors.New(utils.Locale.Get("Failed to find EFI firmware, falling back to legacy bios"))
 	}
 
 	return nil
 }
 
 // RunSystemCheck checks compatibility for clear linux. (e.g. EFI firmware, CPU featureset)
-func RunSystemCheck(quiet bool) error {
+func RunSystemCheck(md *model.SystemInstall, quiet bool) error {
 	log.Info("Running system compatibility checks.")
 
 	//Check the following CPU features from /proc/cpuinfo
@@ -80,8 +81,7 @@ func RunSystemCheck(quiet bool) error {
 			fmt.Println(err)
 		}
 		log.ErrorError(err)
-
-		return err
+		md.LegacyBios = true
 	}
 
 	if !quiet {

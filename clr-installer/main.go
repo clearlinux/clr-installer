@@ -410,7 +410,7 @@ func execute(options args.Args) error {
 
 	// Run system check and exit
 	if options.SystemCheck {
-		return syscheck.RunSystemCheck(false)
+		return syscheck.RunSystemCheck(md, false)
 	}
 
 	installReboot := false
