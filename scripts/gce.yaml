@@ -1,6 +1,6 @@
-#clear-linux-config
+# clear-linux-config
 
-# switch between aliases if you want to install to an actuall block device
+# Switch between aliases if you want to install to an actual block device.
 # i.e /dev/sda
 block-devices: [
    {name: "bdevice", file: "disk.raw"}

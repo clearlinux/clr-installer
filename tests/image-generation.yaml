@@ -1,4 +1,4 @@
-#clear-linux-config
+# clear-linux-config
 
 # c-basic-offset: 2; tab-width: 2; indent-tabs-mode: nil
 # vi: set shiftwidth=2 tabstop=2 expandtab:
@@ -8,7 +8,7 @@
 # Use Case:     Image file for basic functionality testing.
 #               Initially create for use by swupd-client as a validation.
 
-# switch between aliases if you want to install to an actual block device
+# Switch between aliases if you want to install to an actual block device.
 # i.e /dev/sda
 block-devices: [
    {name: "image-gen", file: "image-gen.img"}
