@@ -1,11 +1,11 @@
-#clear-linux-config
+# clear-linux-config
 
 # installer.yaml
 #
 # This YAML file generates the basic TUI installer image for
 # Clear Linux OS
 
-# switch between aliases if you want to install to an actual block device
+# Switch between aliases if you want to install to an actual block device.
 # i.e /dev/sda
 block-devices: [
    {name: "installer", file: "installer.img"}

@@ -1,4 +1,4 @@
-#clear-linux-config
+# clear-linux-config
 
 # c-basic-offset: 2; tab-width: 2; indent-tabs-mode: nil
 # vi: set shiftwidth=2 tabstop=2 expandtab:
@@ -9,7 +9,7 @@
 #               Optionally allows for installing Clear Linux OS
 #               using the TUI clr-installer by running clr-installer
 
-# switch between aliases if you want to install to an actual block device
+# Switch between aliases if you want to install to an actual block device.
 # i.e /dev/sda
 block-devices: [
    {name: "installer", file: "dev-clear-live-server.img"}
