@@ -662,6 +662,9 @@ msgstr "Cutting-edge Linux kernel tailored for bare metal"
 msgid "Run the latest Long Term Support (LTS) Linux Kernel"
 msgstr "Run the latest Long Term Support (LTS) Linux Kernel"
 
+msgid "Run the Long Term Support (LTS) 2019 Linux Kernel 5.4"
+msgstr "Run the Long Term Support (LTS) 2019 Linux Kernel 5.4"
+
 msgid "Run the Long Term Support (LTS) 2018 Linux Kernel 4.19"
 msgstr "Run the Long Term Support (LTS) 2018 Linux Kernel 4.19"
 
