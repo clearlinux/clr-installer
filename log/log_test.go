@@ -220,6 +220,10 @@ func TestLogTraceableError(t *testing.T) {
 }
 
 func TestFailSeek(t *testing.T) {
+	defer func() {
+		_ = os.Remove("archivefile")
+	}()
+
 	err := ArchiveLogFile("archivefile")
 	if err == nil {
 		t.Fatal("Should have failed, unseekable file")
@@ -227,6 +231,10 @@ func TestFailSeek(t *testing.T) {
 }
 
 func TestNoFileHandle(t *testing.T) {
+	defer func() {
+		_ = os.Remove("archivefile")
+	}()
+
 	prevHandle := filehandle
 	filehandle = nil
 	err := ArchiveLogFile("archivefile")

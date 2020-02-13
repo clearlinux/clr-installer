@@ -638,7 +638,10 @@ func TestBackupFile(t *testing.T) {
 
 	md2, err := JSONtoYAMLConfig(path)
 	if err == nil {
-		defer func() { _ = os.Remove(path) }()
+		defer func() {
+			_ = os.Remove(path)
+			_ = os.Remove(bf)
+		}()
 		path, err = md2.WriteYAMLConfig(path)
 	}
 
