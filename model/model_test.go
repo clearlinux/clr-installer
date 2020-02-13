@@ -103,6 +103,7 @@ func TestLoadFile(t *testing.T) {
 			md, err := JSONtoYAMLConfig(path)
 			if err == nil {
 				path, err = md.WriteYAMLConfig(path)
+				defer func() { _ = os.Remove(path) }()
 			}
 
 			if curr.valid && err != nil {
@@ -615,7 +616,14 @@ func TestAddEncryptedTargetMedia(t *testing.T) {
 func TestBackupFile(t *testing.T) {
 	var err error
 	path := filepath.Join(testsDir, "valid-ister-full-physical.json")
+	md, err := JSONtoYAMLConfig(path)
+
 	cf := strings.TrimSuffix(path, filepath.Ext(path)) + ".yaml"
+	if err == nil {
+		newpath, _ := md.WriteYAMLConfig(cf)
+		defer func() { _ = os.Remove(newpath) }()
+	}
+
 	info, err := os.Stat(cf)
 	if os.IsNotExist(err) {
 		t.Fatalf("%s should already exist and shouldn't return an error: %v", cf, err)
@@ -626,8 +634,9 @@ func TestBackupFile(t *testing.T) {
 		mt.Year(), mt.Month(), mt.Day(),
 		mt.Hour(), mt.Minute(), mt.Second())
 	bf := strings.TrimSuffix(cf, filepath.Ext(cf)) + suffix + ".yaml"
+	defer func() { _ = os.Remove(bf) }()
 
-	md, err := JSONtoYAMLConfig(path)
+	md, err = JSONtoYAMLConfig(path)
 	if err == nil {
 		path, err = md.WriteYAMLConfig(path)
 	}
