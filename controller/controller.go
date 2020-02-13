@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -478,6 +478,11 @@ func runInstallHook(vars map[string]string, hook *model.InstallHook) error {
 	if hook.Chroot {
 		args = append(args, []string{"chroot", vars["chrootDir"]}...)
 		vars["chrooted"] = "1"
+
+		restoreFile := copyHostResolvToTarget(vars["chrootDir"])
+		defer func() {
+			restoreTargetResolv(vars["chrootDir"], restoreFile)
+		}()
 	}
 
 	exec := utils.ExpandVariables(vars, hook.Cmd)
@@ -992,4 +997,55 @@ func writeCustomConfig(chrootPath string, md *model.SystemInstall) error {
 	}
 
 	return customModel.WriteFile(path.Join(customPath, conf.ConfigFile))
+}
+
+// copyHostResolvToTarget first saves the original /etc/resolve.conf if it exists,
+// then copies the hosts /etc/resolv.conf to the target to enable networking (DNS)
+// in the chrooted environment.
+// Used with restoreTargetResolv
+func copyHostResolvToTarget(rootDir string) string {
+	resolvConf := filepath.Join(rootDir, "etc", "resolv.conf")
+	restoreFile := ""
+
+	// make a backup if it exists
+	if ok, _ := utils.FileExists(resolvConf); ok {
+		restoreFile = fmt.Sprintf("%s.%d", resolvConf, os.Getpid())
+		log.Debug("Saving a temp copy of file %q as %q", resolvConf, restoreFile)
+		if err := utils.CopyFile(resolvConf, restoreFile); err != nil {
+			log.Error("Failed to save file %q: %s", restoreFile, err)
+			restoreFile = ""
+		}
+	}
+
+	// copy the host to target
+	log.Debug("Copying host's /etc/resolv.conf to target to enable DNS for networking during hook %q", resolvConf)
+	if err := utils.CopyFile("/etc/resolv.conf", resolvConf); err != nil {
+		log.Error("Failed to install file %q: %s", resolvConf, err)
+	}
+
+	return restoreFile
+}
+
+// restoreTargetResolv removed the temporary /etc/resolv.conf on the target system
+// then restores the original /etc/resolve.conf if it exists,
+// Used with copyHostResolvToTarget
+func restoreTargetResolv(rootDir string, restoreFile string) {
+	resolvConf := filepath.Join(rootDir, "etc", "resolv.conf")
+
+	if restoreFile != "" {
+		log.Debug("Restore original resolv.conf file %q", restoreFile)
+		if ok, _ := utils.FileExists(restoreFile); ok {
+			// restore the target file
+			if err := utils.CopyFile(restoreFile, resolvConf); err != nil {
+				log.Error("Failed to restore file %q: %s", resolvConf, err)
+			}
+		} else {
+			log.Warning("Resolv.conf restore file missing: %s", restoreFile)
+		}
+	} else {
+		log.Debug("Removing temp copy of file %q", resolvConf)
+		if err := os.Remove(resolvConf); err != nil {
+			log.Warning("Failed to clean up temporary network file: %q: %s", resolvConf, err)
+		}
+	}
 }
