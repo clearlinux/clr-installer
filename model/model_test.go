@@ -103,6 +103,9 @@ func TestLoadFile(t *testing.T) {
 			md, err := JSONtoYAMLConfig(path)
 			if err == nil {
 				path, err = md.WriteYAMLConfig(path)
+				defer func() {
+					_ = os.Remove(path)
+				}()
 			}
 
 			if curr.valid && err != nil {
@@ -616,6 +619,12 @@ func TestBackupFile(t *testing.T) {
 	var err error
 	path := filepath.Join(testsDir, "valid-ister-full-physical.json")
 	cf := strings.TrimSuffix(path, filepath.Ext(path)) + ".yaml"
+	md, err := JSONtoYAMLConfig(path)
+	if err == nil {
+		_, _ = md.WriteYAMLConfig(cf)
+		defer func() { _ = os.Remove(cf) }()
+	}
+
 	info, err := os.Stat(cf)
 	if os.IsNotExist(err) {
 		t.Fatalf("%s should already exist and shouldn't return an error: %v", cf, err)
@@ -627,9 +636,10 @@ func TestBackupFile(t *testing.T) {
 		mt.Hour(), mt.Minute(), mt.Second())
 	bf := strings.TrimSuffix(cf, filepath.Ext(cf)) + suffix + ".yaml"
 
-	md, err := JSONtoYAMLConfig(path)
+	md2, err := JSONtoYAMLConfig(path)
 	if err == nil {
-		path, err = md.WriteYAMLConfig(path)
+		defer func() { _ = os.Remove(path) }()
+		path, err = md2.WriteYAMLConfig(path)
 	}
 
 	if err != nil {
