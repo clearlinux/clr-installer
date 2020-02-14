@@ -884,7 +884,7 @@ func (window *Window) confirmInstall() {
 		}
 	}
 
-	medias := storage.GetPlannedMediaChanges(window.model.InstallSelected, window.model.TargetMedias)
+	medias := storage.GetPlannedMediaChanges(window.model.InstallSelected, window.model.TargetMedias, window.model.LegacyBios)
 	for _, media := range medias {
 		log.Debug("MediaChange: %s", media)
 		buffer.Insert(buffer.GetEndIter(), media+"\n")

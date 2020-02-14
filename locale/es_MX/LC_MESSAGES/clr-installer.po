@@ -509,6 +509,9 @@ msgstr "Los medios seleccionados se dividirán en particiones."
 msgid "Selected media will have partitions added."
 msgstr "Se añadirán particiones a los medios seleccionados."
 
+msgid "WARNING: Booting set for legacy BIOS mode."
+msgstr "ADVERTENCIA: arranque para el modo BIOS heredado."
+
 msgid "WARNING: New Partition table will be created."
 msgstr "ADVERTENCIA: se creará una nueva tabla de particiones."
 

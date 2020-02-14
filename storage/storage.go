@@ -155,6 +155,9 @@ const (
 	// MediaToBeUsed identified a disk which will be used during the installation
 	MediaToBeUsed = "Selected media will be used for installation."
 
+	// LegacyModeWarning specifies the warning message we are using legacy bios mode
+	LegacyModeWarning = "WARNING: Booting set for legacy BIOS mode."
+
 	// PartitioningWarning specifies the warning message for writing partition table
 	PartitioningWarning = "WARNING: New Partition table will be created."
 

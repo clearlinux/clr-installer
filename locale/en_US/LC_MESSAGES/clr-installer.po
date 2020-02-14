@@ -509,6 +509,9 @@ msgstr "Selected media will be partitioned."
 msgid "Selected media will have partitions added."
 msgstr "Selected media will have partitions added."
 
+msgid "WARNING: Booting set for legacy BIOS mode."
+msgstr "WARNING: Booting set for legacy BIOS mode."
+
 msgid "WARNING: New Partition table will be created."
 msgstr "WARNING: New Partition table will be created."
 
