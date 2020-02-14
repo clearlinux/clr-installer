@@ -356,6 +356,9 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 
 	//write the partition label
 	if dryRun != nil {
+		if legacyBios {
+			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(LegacyModeWarning))
+		}
 		if wholeDisk {
 			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(PartitioningWarning))
 		}
@@ -1934,7 +1937,7 @@ func getPlannedPartitionChanges(media *BlockDevice) []string {
 
 // GetPlannedMediaChanges returns an array of strings with all of
 // disk and partition planned changes to advise the user before start
-func GetPlannedMediaChanges(targets map[string]InstallTarget, medias []*BlockDevice) []string {
+func GetPlannedMediaChanges(targets map[string]InstallTarget, medias []*BlockDevice, legacyBios bool) []string {
 	results := []string{}
 
 	if len(targets) != len(medias) {
@@ -1962,7 +1965,7 @@ func GetPlannedMediaChanges(targets map[string]InstallTarget, medias []*BlockDev
 
 		for _, curr := range medias {
 			if target.Name == curr.Name {
-				if err := curr.WritePartitionTable(false, target.WholeDisk, &results); err != nil {
+				if err := curr.WritePartitionTable(legacyBios, target.WholeDisk, &results); err != nil {
 					results = append(results, FailedPartitionWarning)
 				}
 				if partChanges := getPlannedPartitionChanges(curr); len(partChanges) > 0 {

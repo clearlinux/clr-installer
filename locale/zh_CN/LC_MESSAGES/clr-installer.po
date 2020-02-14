@@ -506,6 +506,9 @@ msgstr "将对选定的媒介进行分区。"
 msgid "Selected media will have partitions added."
 msgstr "选定的媒介将添加分区。"
 
+msgid "WARNING: Booting set for legacy BIOS mode."
+msgstr "警告：启动设置为传统 BIOS 模式。"
+
 msgid "WARNING: New Partition table will be created."
 msgstr "警告: 将创建新的分区表。"
 
