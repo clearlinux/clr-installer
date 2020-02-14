@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"strings"
 
 	"github.com/clearlinux/clr-installer/log"
@@ -24,14 +23,6 @@ func getCPUFeature(feature string) error {
 	}
 	if !strings.Contains(string(cpuInfo), feature) {
 		return errors.New(utils.Locale.Get("Missing CPU feature: ") + feature)
-	}
-
-	return nil
-}
-
-func getEFIExist() error {
-	if _, err := os.Stat("/sys/firmware/efi"); os.IsNotExist(err) {
-		return errors.New(utils.Locale.Get("Failed to find EFI firmware"))
 	}
 
 	return nil
@@ -69,25 +60,10 @@ func RunSystemCheck(quiet bool) error {
 		}
 	}
 
-	//Check if we have EFI firmware
 	if !quiet {
-		fmt.Printf("Checking for required EFI firmware")
-	}
-	err := getEFIExist()
-	if err != nil {
-		if !quiet {
-			fmt.Printf(" [*failed*]\n")
-			fmt.Println(err)
-		}
-		log.ErrorError(err)
-
-		return err
-	}
-
-	if !quiet {
-		fmt.Println(" [success]")
 		fmt.Println("Success: System is compatible")
 	}
 	log.Info("Success: System is compatible")
+
 	return nil
 }

@@ -184,6 +184,12 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 		}
 	}
 
+	// Check if we can boot EFI
+	if !utils.HostHasEFI() {
+		log.Warning("Failed to find EFI firmware, falling back to legacy BIOS for installation.")
+		tui.model.LegacyBios = true
+	}
+
 	clui.MainLoop()
 
 	if paniced != nil {
