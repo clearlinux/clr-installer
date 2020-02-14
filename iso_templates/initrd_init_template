@@ -49,14 +49,6 @@ check_result() {
     echo_tty_kmsg "[${SUCCESS}  OK  ${NORMAL}] $msg"
 }
 
-have_vmx() {
-    local feature="vmx"
-    local desc="Virtualisation support"
-    local need="$desc ($feature)"
-    have_cpu_feature "$feature"
-    check_result "$?" "$need"
-}
-
 have_ssse3_cpu_feature () {
     local feature="ssse3"
     local desc="Supplemental Streaming SIMD Extensions 3"
