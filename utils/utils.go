@@ -474,3 +474,12 @@ func RunDiskPartitionTool(tmpYaml string, lockFile string, diskUtilCmd string, r
 
 	return tmpBash.Name(), nil
 }
+
+// HostHasEFI check if the running host supports EFI booting
+func HostHasEFI() bool {
+	if _, err := os.Stat("/sys/firmware/efi"); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
+}

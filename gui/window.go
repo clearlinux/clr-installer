@@ -191,6 +191,12 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 	// Set locale
 	utils.SetLocale(model.Language.Code)
 
+	// Check if we can boot EFI
+	if !utils.HostHasEFI() {
+		log.Warning("Failed to find EFI firmware, falling back to legacy BIOS for installation.")
+		model.LegacyBios = true
+	}
+
 	// Create welcome page
 	window, err = window.createWelcomePage()
 	if err != nil {
