@@ -45,7 +45,7 @@ is collected.
 `
 
 	// TelemetryAboutURL is the URL to reference for telemetry details
-	TelemetryAboutURL = `https://clearlinux.org/documentation/clear-linux/concepts/telemetry-about`
+	TelemetryAboutURL = `https://docs.01.org/clearlinux/latest/guides/clear/telemetrics.html`
 
 	// telemetry controlling interface command
 	telemctlCmd = "telemctl"
