@@ -1226,6 +1226,7 @@ func MakeImage(bd *BlockDevice, file string) error {
 func SetupLoopDevice(file string) (string, error) {
 	args := []string{
 		"losetup",
+		"--partscan",
 		"--find",
 		"--show",
 		file,
