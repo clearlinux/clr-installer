@@ -162,7 +162,7 @@ func (page *UseraddPage) validatePassword() {
 		return
 	}
 
-	if ok, msg := user.IsValidPassword(page.passwordEdit.Title()); !ok {
+	if ok, msg := user.IsValidPassword(page.passwordEdit.Title(), page.usernameEdit.Title(), page.loginEdit.Title()); !ok {
 		page.passwordWarning.SetTitle(msg)
 	} else if page.passwordEdit.Title() != page.pwConfirmEdit.Title() {
 		page.passwordWarning.SetTitle("Passwords do not match")

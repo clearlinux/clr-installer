@@ -6,6 +6,7 @@ package user
 
 import (
 	"bytes"
+	liberr "errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -21,6 +22,7 @@ import (
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/progress"
 	"github.com/clearlinux/clr-installer/utils"
+	"github.com/go-passwd/validator"
 )
 
 // User abstracts a target system definition
@@ -448,17 +450,20 @@ func IsValidLogin(login string) (bool, string) {
 }
 
 // IsValidPassword checks the minimum password requirements
-func IsValidPassword(pwd string) (bool, string) {
-	if pwd == "" {
-		return false, utils.Locale.Get("Password is required")
-	}
+func IsValidPassword(pwd string, username string, login string) (bool, string) {
 
-	if len(pwd) < MinPasswordLength {
-		return false, utils.Locale.Get("Password must be at least %d characters long", MinPasswordLength)
-	}
+	passwordValidator := validator.New(validator.CommonPassword(liberr.New(utils.Locale.Get("Password is extremely common..choose another one"))),
+		validator.MaxLength(MaxPasswordLength, liberr.New(utils.Locale.Get("Password may be at most %d characters long", MaxPasswordLength))),
+		validator.MinLength(MinPasswordLength, liberr.New(utils.Locale.Get("Password must be at least %d characters long", MinPasswordLength))),
+		validator.ContainsAtLeast("@!#$%^&*", 1, liberr.New(utils.Locale.Get("Password needs atleast one of (@!#$%^&*)"))),
+		validator.Similarity([]string{username, login}, nil, nil),
+		validator.Unique(nil),
+	)
 
-	if len(pwd) > MaxPasswordLength {
-		return false, utils.Locale.Get("Password may be at most %d characters long", MaxPasswordLength)
+	err := passwordValidator.Validate(pwd)
+
+	if err != nil {
+		return false, err.Error()
 	}
 
 	return true, ""

@@ -202,6 +202,8 @@ func (page *UserAddPage) onPasswordChange(entry *gtk.Entry) {
 	}
 
 	password := getTextFromEntry(page.password)
+	username := getTextFromEntry(page.name)
+	login := getTextFromEntry(page.login)
 	if password != page.user.Password {
 		page.passwordChanged = true
 	} else {
@@ -210,7 +212,7 @@ func (page *UserAddPage) onPasswordChange(entry *gtk.Entry) {
 
 	passwordConfirm := getTextFromEntry(page.passwordConfirm)
 
-	if ok, msg := user.IsValidPassword(password); !ok {
+	if ok, msg := user.IsValidPassword(password, username, login); !ok {
 		page.passwordWarning.SetText(msg)
 	} else if password != passwordConfirm {
 		page.passwordWarning.SetText(utils.Locale.Get("Passwords do not match"))
