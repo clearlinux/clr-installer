@@ -402,6 +402,9 @@ msgstr "pre-install"
 msgid "post-install"
 msgstr "post-install"
 
+msgid "post-image"
+msgstr "post-image"
+
 #, c-format
 msgid "Setting Language locale to %s"
 msgstr "Setting Language locale to %s"

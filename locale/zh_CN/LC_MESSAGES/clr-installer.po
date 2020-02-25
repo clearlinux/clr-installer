@@ -397,10 +397,13 @@ msgid "admin"
 msgstr "管理员"
 
 msgid "pre-install"
-msgstr "预先安装"
+msgstr "安装前"
 
 msgid "post-install"
 msgstr "安装后"
+
+msgid "post-image"
+msgstr "创建映像后"
 
 #, c-format
 msgid "Setting Language locale to %s"

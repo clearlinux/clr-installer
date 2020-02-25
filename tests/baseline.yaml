@@ -40,7 +40,7 @@ postArchive: true
 postReboot: false
 telemetry: false
 iso: true
-keepImage: true
+keepImage: false
 
 keyboard: us
 language: en_US.UTF-8
@@ -49,6 +49,10 @@ kernel: kernel-native
 post-install: [
    {cmd: "/bin/ls ${chrootDir}/etc"},
    {chroot:true, cmd: "/bin/ls /etc"},
+]
+
+post-image: [
+   {cmd: "xz -q -T0 --stdout ${imageFile} > ${imageFile}.xz"},
 ]
 
 version: 0

@@ -140,6 +140,9 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 			}
 		}
 
+		// Add the image file to the hooks variables
+		vars["imageFile"] = alias.File
+
 		file, err = storage.SetupLoopDevice(alias.File)
 		if err != nil {
 			return errors.Wrap(err)
@@ -179,6 +182,12 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		for _, file := range detachMe {
 			storage.DetachLoopDevice(file)
 		}
+
+		// Now that image is unmounted, run post-image hooks
+		if err = applyHooks("post-image", vars, model.PostImage); err != nil {
+			log.Error("Error during post-image hook: %q", err)
+		}
+
 		// The request to keep image may have changed during execution
 		// such as dynamically decided to not make an ISO or failing to
 		// make an ISO

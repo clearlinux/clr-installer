@@ -184,8 +184,8 @@ check-image: build-tui
 		echo "Test Failed: Missing ${BASEIMGNAME}.iso"; \
 		/bin/false; \
 	fi
-	@if [ ! -f "$(BASEBUILD_DIR)/${BASEIMGNAME}.img" ] ; then \
-		echo "Test Failed: Missing ${BASEIMGNAME}.img"; \
+	@if [ ! -f "$(BASEBUILD_DIR)/${BASEIMGNAME}.img.xz" ] ; then \
+		echo "Test Failed: Missing ${BASEIMGNAME}.img.xz"; \
 		/bin/false; \
 	fi
 	@cd ${top_srcdir}
