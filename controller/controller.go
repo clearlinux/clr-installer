@@ -465,7 +465,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 func applyHooks(name string, vars map[string]string, hooks []*model.InstallHook) error {
 	locName := utils.Locale.Get(name)
 	msg := utils.Locale.Get("Running %s hooks", locName)
-	prg := progress.MultiStep(len(hooks), msg)
+	prg := progress.NewLoop(msg)
 	log.Info(msg)
 
 	for idx, curr := range hooks {
