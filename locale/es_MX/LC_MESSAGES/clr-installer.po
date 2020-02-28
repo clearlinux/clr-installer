@@ -253,8 +253,8 @@ msgstr "Debe iniciar sesión."
 msgid "Login maximum length is %d"
 msgstr "La extensión máxima del inicio de sesión debe ser de %d."
 
-msgid "Login must contain only numbers, letters, -, _ or ."
-msgstr "El inicio de sesión debe contener solo números, letras, -, _ o ."
+msgid "Login must contain only numbers, letters, -, . or _"
+msgstr "El inicio de sesión debe contener solo números, letras, -, . o _"
 
 msgid "Password is required"
 msgstr "Se requiere una contraseña."
@@ -812,3 +812,29 @@ msgstr "Red requerida"
 
 msgid "Installation Steps Complete"
 msgstr "Pasos de instalación completados"
+
+# cracklib password messages
+msgid "Password does not contain enough DIFFERENT characters"
+msgstr "La contraseña no contiene suficientes caracteres DIFERENTES"
+
+msgid "Password is too simplistic/systematic"
+msgstr "La contraseña es muy simple"
+
+msgid "Password is based on a dictionary word"
+msgstr "La contraseña se basa en una palabra del diccionario"
+
+msgid "Password is based on a (reversed) dictionary word"
+msgstr "La contraseña se basa en una palabra del diccionario invertida"
+
+# cracklib passphrase messages
+msgid "Passphrase does not contain enough DIFFERENT characters"
+msgstr "La frase de contraseña no contiene suficientes caracteres DIFERENTES"
+
+msgid "Passphrase is too simplistic/systematic"
+msgstr "La frase de contraseña es muy simple"
+
+msgid "Passphrase is based on a dictionary word"
+msgstr "La frase de contraseña se basa en una palabra del diccionario"
+
+msgid "Passphrase is based on a (reversed) dictionary word"
+msgstr "La frase de contraseña se basa en una palabra del diccionario invertida"

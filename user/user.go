@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
@@ -34,22 +33,12 @@ type User struct {
 
 const (
 	defaultUsersFile = "/usr/share/defaults/etc/passwd"
-	// MaxUsernameLength is the longest possible username
-	MaxUsernameLength = 64
-	// MaxLoginLength is the longest possible login
-	MaxLoginLength = 31
-	// MinPasswordLength is the shortest possible password
-	MinPasswordLength = 8
-	// MaxPasswordLength is the shortest possible password
-	MaxPasswordLength = 255
 
 	// RequiredBundle the bundle needed to enable non-root user accounts
 	RequiredBundle = "sysadmin-basic"
 )
 
 var (
-	usernameExp     = regexp.MustCompile("^([a-zA-Z]+[0-9a-zA-Z-_ ,'.]*|)$")
-	loginExp        = regexp.MustCompile("^[a-zA-Z]+[0-9a-zA-Z-_.]*$")
 	sysDefaultUsers = []string{}
 )
 
@@ -419,12 +408,15 @@ func writeSSHKey(rootDir string, u *User) error {
 
 // IsValidUsername checks the username restrictions
 func IsValidUsername(username string) (bool, string) {
-	if !usernameExp.MatchString(username) {
-		return false, utils.Locale.Get("Username must contain only numbers, letters, commas, - or _")
+
+	validator := NewValidator("", username, "")
+
+	if err := validator.usernameRegexCheck(); err != nil {
+		return false, err.Error()
 	}
 
-	if len(username) > MaxUsernameLength {
-		return false, utils.Locale.Get("UserName maximum length is %d", MaxUsernameLength)
+	if err := validator.usernameMaxLengthCheck(); err != nil {
+		return false, err.Error()
 	}
 
 	return true, ""
@@ -432,33 +424,41 @@ func IsValidUsername(username string) (bool, string) {
 
 // IsValidLogin checks the minimum login requirements
 func IsValidLogin(login string) (bool, string) {
-	if login == "" {
-		return false, utils.Locale.Get("Login is required")
+
+	validator := NewValidator(login, "", "")
+
+	if err := validator.loginEmptyCheck(); err != nil {
+		return false, err.Error()
 	}
 
-	if len(login) > MaxLoginLength {
-		return false, utils.Locale.Get("Login maximum length is %d", MaxLoginLength)
+	if err := validator.loginRegexCheck(); err != nil {
+		return false, err.Error()
 	}
 
-	if !loginExp.MatchString(login) {
-		return false, utils.Locale.Get("Login must contain only numbers, letters, -, _ or .")
+	if err := validator.loginMaxLengthCheck(); err != nil {
+		return false, err.Error()
 	}
 
 	return true, ""
+
 }
 
 // IsValidPassword checks the minimum password requirements
 func IsValidPassword(pwd string) (bool, string) {
-	if pwd == "" {
-		return false, utils.Locale.Get("Password is required")
+
+	validator := NewValidator("", "", pwd)
+
+	if err := validator.passwordMaximumLengthCheck(); err != nil {
+		return false, err.Error()
 	}
 
-	if len(pwd) < MinPasswordLength {
-		return false, utils.Locale.Get("Password must be at least %d characters long", MinPasswordLength)
+	if err := validator.passwordMinimumLengthCheck(); err != nil {
+		return false, err.Error()
 	}
 
-	if len(pwd) > MaxPasswordLength {
-		return false, utils.Locale.Get("Password may be at most %d characters long", MaxPasswordLength)
+	// always perform this at the end
+	if err := validator.passwordCracklibCheck(); err != nil {
+		return false, err.Error()
 	}
 
 	return true, ""

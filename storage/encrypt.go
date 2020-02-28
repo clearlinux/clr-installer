@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -7,7 +7,6 @@ package storage
 import (
 	"bytes"
 	"fmt"
-	"github.com/clearlinux/clr-installer/utils"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/clearlinux/clr-installer/utils"
 
 	"golang.org/x/crypto/ssh/terminal"
 
@@ -235,6 +236,10 @@ func IsValidPassphrase(phrase string) (bool, string) {
 
 	if len(phrase) > MaxPassphraseLength {
 		return false, utils.Locale.Get("Passphrase may be at most %d characters long", MaxPassphraseLength)
+	}
+
+	if status, errstring := cmd.CracklibCheck(phrase, "Passphrase"); !status {
+		return false, errstring
 	}
 
 	return true, ""
