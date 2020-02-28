@@ -35,8 +35,10 @@ LOCAL_GOPATH := ${CURDIR}/.gopath
 export GOPATH := ${LOCAL_GOPATH}
 export GOFLAGS += -mod=vendor
 
-CLR_INSTALLER_TEST_HTTP_PORT ?= 8181
 
+# Required for tests to work well
+export CLR_INSTALLER_LOCALE_DIR := $(top_srcdir)/locale
+CLR_INSTALLER_TEST_HTTP_PORT ?= 8181
 export TEST_HTTP_PORT = ${CLR_INSTALLER_TEST_HTTP_PORT}
 
 

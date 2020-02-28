@@ -253,8 +253,8 @@ msgstr "Login is required"
 msgid "Login maximum length is %d"
 msgstr "Login maximum length is %d"
 
-msgid "Login must contain only numbers, letters, -, _ or ."
-msgstr "Login must contain only numbers, letters, -, _ or ."
+msgid "Login must contain only numbers, letters, -, . or _"
+msgstr "Login must contain only numbers, letters, -, . or _"
 
 msgid "Password is required"
 msgstr "Password is required"
@@ -812,3 +812,29 @@ msgstr "Network Required"
 
 msgid "Installation Steps Complete"
 msgstr "Installation Steps Complete"
+
+# cracklib password messages
+msgid "Password does not contain enough DIFFERENT characters"
+msgstr "Password does not contain enough DIFFERENT characters"
+
+msgid "Password is too simplistic/systematic"
+msgstr "Password is too simplistic/systematic"
+
+msgid "Password is based on a dictionary word"
+msgstr "Password is based on a dictionary word"
+
+msgid "Password is based on a (reversed) dictionary word"
+msgstr "Password is based on a (reversed) dictionary word"
+
+# cracklib passphrase messages
+msgid "Passphrase does not contain enough DIFFERENT characters"
+msgstr "Passphrase does not contain enough DIFFERENT characters"
+
+msgid "Passphrase is too simplistic/systematic"
+msgstr "Passphrase is too simplistic/systematic"
+
+msgid "Passphrase is based on a dictionary word"
+msgstr "Passphrase is based on a dictionary word"
+
+msgid "Passphrase is based on a (reversed) dictionary word"
+msgstr "Passphrase is based on a (reversed) dictionary word"

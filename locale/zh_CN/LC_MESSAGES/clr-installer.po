@@ -253,7 +253,7 @@ msgstr "需要登录"
 msgid "Login maximum length is %d"
 msgstr "登录名最大长度为 %d"
 
-msgid "Login must contain only numbers, letters, -, _ or ."
+msgid "Login must contain only numbers, letters, -, . or _"
 msgstr "登录名必须仅包含数字、字母、连字符、下划线或句点。"
 
 msgid "Password is required"
@@ -812,3 +812,29 @@ msgstr "需要网络"
 
 msgid "Installation Steps Complete"
 msgstr "安装步骤完成"
+
+# cracklib password messages
+msgid "Password does not contain enough DIFFERENT characters"
+msgstr "密码不包含足够的不同字符"
+
+msgid "Password is too simplistic/systematic"
+msgstr "密码太简单"
+
+msgid "Password is based on a dictionary word"
+msgstr "密码基于词典词"
+
+msgid "Password is based on a (reversed) dictionary word"
+msgstr "密码基于反向字典词"
+
+# cracklib passphrase messages
+msgid "Passphrase does not contain enough DIFFERENT characters"
+msgstr "密码不包含足够的不同字符"
+
+msgid "Passphrase is too simplistic/systematic"
+msgstr "密码短语太简单"
+
+msgid "Passphrase is based on a dictionary word"
+msgstr "密码短语基于字典中的单词"
+
+msgid "Passphrase is based on a (reversed) dictionary word"
+msgstr "密码短语基于反向词典词"

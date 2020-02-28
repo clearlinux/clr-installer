@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -66,6 +67,27 @@ func PipeRunAndLog(in string, args ...string) error {
 
 		return nil
 	}, runLogger{}, nil, args...)
+}
+
+// PipeRunAndPipeOut is similar to PipeRunAndLog but runs a command by feeding
+// a string to stdin of Cmd and output is written to a byte buffer instead of a log
+func PipeRunAndPipeOut(in string, out *bytes.Buffer, args ...string) error {
+	return run(func(cmd *exec.Cmd) error {
+		stdin, err := cmd.StdinPipe()
+		if err != nil {
+			return err
+		}
+
+		go func() {
+			defer func() {
+				_ = stdin.Close()
+			}()
+
+			_, _ = io.WriteString(stdin, in)
+		}()
+
+		return nil
+	}, out, nil, args...)
 }
 
 func run(sw func(cmd *exec.Cmd) error, writer io.Writer, env map[string]string, args ...string) error {

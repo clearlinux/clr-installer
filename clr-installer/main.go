@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -35,6 +35,7 @@ import (
 	"github.com/clearlinux/clr-installer/syscheck"
 	"github.com/clearlinux/clr-installer/telemetry"
 	"github.com/clearlinux/clr-installer/timezone"
+	"github.com/clearlinux/clr-installer/user"
 	"github.com/clearlinux/clr-installer/utils"
 )
 
@@ -138,6 +139,10 @@ func execute(options args.Args) error {
 		", built on " + model.BuildDate)
 
 	if options.PamSalt != "" {
+		if status, err := user.IsValidPassword(options.PamSalt); !status {
+			return fmt.Errorf(err)
+		}
+
 		hashed, errHash := encrypt.Crypt(options.PamSalt)
 		if errHash != nil {
 			return errHash
