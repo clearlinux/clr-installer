@@ -416,6 +416,7 @@ clean:
 	@rm -rf ${LOCAL_GOPATH}/{bin,src}
 	@git clean -fdXq
 else
+clean:
 	@go clean -modcache
 	@rm -rf ${LOCAL_GOPATH}/{bin,src}
 endif
