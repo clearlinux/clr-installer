@@ -41,7 +41,7 @@ Item | Description | Required?
 `name:` | Block-device alias and partition number or the physical partition name| Yes
 `type:` | Partition type should be `part` for a standard partition or `crypt` for encrypted partitions | Yes
 `fstype:` | Type of the partition can be one of: `swap`, or `ext2`, `ext3`, `ext4`, `xfs`, `f2fs`, `btrfs`, or `vfat` | Yes
-`size:` | Size of the partition. Set to `0` to use the remaining free space for this partition; there can only be one partition of size `0`.The suffixes `B` for bytes, `K` for kilobytes, `M` for megabytes, `G` for gigabytes, `T` for terabytes, or `P` for petabytes can be used. | Yes 
+`size:` | Size of the partition. Set to `0` to use the remaining free space for this partition; there can only be one partition of size `0`.The suffixes `B` for bytes, `K` for kilobytes, `M` for megabytes, `G` for gigabytes, `T` for terabytes, or `P` for petabytes can be used. | Yes
 `mountpoint:` | The file system path where the partition should be mounted. | No
 `options:` | Additional file system options to be used when creating the fs | No
 `label:` | Short string labeling the partition | No
@@ -70,6 +70,29 @@ targetMedia:
     size: "2.6G"
     type: part
 ```
+
+### Advanced Installation Media Targets
+
+To use Advance Partition Labels for a command line installation, `targetMedia`
+should  be left out of the YAML configuration file. Instead, Partition Labels
+are used in to tag and convey which partitions should be used for an advanced
+installation.
+
+Partition Label | Description | Required?
+------------ | ------------- | ------------- 
+`CLR_BOOT` | The /boot partition; must be vfat | Yes
+`CLR_SWAP` | A swap partition to use; can be more than one | Yes
+`CLR_ROOT` | The / root partition; must be ext[234], xfs, or f2fs due to clr-boot-manager requirement | Yes
+`CLR_MNT_<mount_point>` | Any additional partitions that should be included in the install like /srv, /home, ... | No
+
+#### NOTE:
+You may also add `_F` to the partition label to force the formatting.
+#### EXAMPLES:
+Partition Label | Description
+------------ | -------------
+`CLR_F_SWAP` | Label a partition to be used as swap, and have the installer run mkswap on the partition.
+`CLR_MNT_/home` | Label a partition to be mounted as `/home`.
+`CLR_F_MNT_/data` | Label a partition to be mounted as `/data`, and have the installer run mkfs on the partition.
 
 ## Clear Linux Bundles
 This is a list of the Clear Linux OS Bundles that should be installed during the installation of the OS on the target media.

@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -125,10 +125,40 @@ func (mi *MassInstall) MustRun(args *args.Args) bool {
 func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args.Args) (bool, error) {
 	var instError error
 
-	// Need to ensure the partitioner knows we are running from
-	// the command line and will be using the whole disk
-	for _, curr := range md.TargetMedias {
-		md.InstallSelected[curr.Name] = storage.InstallTarget{WholeDisk: true}
+	// If there are no media defined, then we should look for
+	// Advanced Configuration labels
+	if len(md.TargetMedias) > 0 {
+		// Need to ensure the partitioner knows we are running from
+		// the command line and will be using the whole disk
+		for _, curr := range md.TargetMedias {
+			md.InstallSelected[curr.Name] = storage.InstallTarget{WholeDisk: true}
+			log.Debug("Mass installer using defined media in YAML")
+		}
+	} else {
+		// Check for Advance Partitioning labels
+		log.Debug("Mass installer found no media in YAML; checking for Advanced Disk Partition Labels.")
+		isAdvancedSelected := false
+		devs, err := storage.ListAvailableBlockDevices(md.TargetMedias)
+		if err != nil {
+			log.Error("Error detecting advanced partitions: %q", err)
+			fmt.Printf("Error detecting advanced partitions: %q\n", err)
+			return false, err
+		}
+
+		for _, curr := range storage.FindAdvancedInstallTargets(devs) {
+			md.AddTargetMedia(curr)
+			log.Debug("AddTargetMedia %+v", curr)
+			md.InstallSelected[curr.Name] = storage.InstallTarget{Name: curr.Name, Friendly: curr.Model,
+				Removable: curr.RemovableDevice}
+			isAdvancedSelected = true
+		}
+		if isAdvancedSelected {
+			log.Debug("Mass installer operating in Advanced Disk Partition Mode.")
+		} else {
+			log.Error("Failed to detected advanced partition labels!")
+			fmt.Println("Failed to detected advanced partition labels!")
+			return false, nil
+		}
 	}
 
 	progress.Set(mi)
