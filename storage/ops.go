@@ -574,8 +574,8 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 		// In case we didn't have a /boot partition, we
 		// need to set / as boot
 		for _, curr := range bd.Children {
-			// Only check for / in new partitions
-			if !curr.MakePartition {
+			// Only check for / in new or advanced partitions
+			if !curr.MakePartition && !curr.LabeledAdvanced {
 				continue
 			}
 
@@ -1509,6 +1509,8 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 	var targetMedias []*BlockDevice
 	defaultFsType := "ext4"
 	defaultBootFsType := "vfat"
+	labelMap := make(map[string]bool)
+	duplicateFound := false
 
 	for _, curr := range medias {
 		var installBlockDevice *BlockDevice
@@ -1518,6 +1520,7 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 		for _, ch := range installBlockDevice.Children {
 			clrFound := false
 			label := ch.PartitionLabel
+			labelUpper := ""
 
 			if label != "" {
 				log.Debug("FindAdvancedInstallTargets: Found partition %s with name %s", ch.Name, label)
@@ -1525,6 +1528,10 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 
 			for _, part := range strings.Split(label, "_") {
 				lowerPart := strings.ToLower(part)
+				if labelUpper != "" {
+					labelUpper = labelUpper + "_"
+				}
+				labelUpper = labelUpper + strings.ToUpper(part)
 
 				if !clrFound {
 					if lowerPart == "clr" {
@@ -1536,8 +1543,9 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 
 				switch lowerPart {
 				case "boot":
+					ch.LabeledAdvanced = true
 					if ch.Type == BlockDeviceTypeCrypt {
-						log.Warning("AdvancedPartitioning: /boot can no be encrypted, skipping")
+						log.Warning("AdvancedPartitioning: /boot can not be encrypted, skipping")
 						ch.Type = BlockDeviceTypePart
 					}
 					log.Debug("AdvancedPartitioning: Boot is %s", ch.Name)
@@ -1549,8 +1557,15 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 						ch.FormatPartition = true
 					}
 					clrAdded = true
+					if labelMap[labelUpper] {
+						duplicateFound = true
+						log.Error("FindAdvancedInstallTargets: Found duplicate Partition label %q", label)
+					} else {
+						labelMap[labelUpper] = true
+					}
 				case "root":
 					log.Debug("AdvancedPartitioning: Root is %s", ch.Name)
+					ch.LabeledAdvanced = true
 					ch.MountPoint = "/"
 					if ch.FsType == "" {
 						log.Debug("AdvancedPartitioning: No FsType set for %s, defaulting to %s", ch.Name, defaultFsType)
@@ -1559,14 +1574,27 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 						ch.FormatPartition = true
 					}
 					clrAdded = true
+					if labelMap[labelUpper] {
+						duplicateFound = true
+						log.Error("FindAdvancedInstallTargets: Found duplicate Partition label %q", label)
+					} else {
+						labelMap[labelUpper] = true
+					}
 				case "swap":
 					log.Debug("AdvancedPartitioning: Swap on %s", ch.Name)
+					ch.LabeledAdvanced = true
 					clrAdded = true
 					if ch.FsType == "" {
 						log.Debug("AdvancedPartitioning: No FsType set for %s, defaulting to %s", ch.Name, "swap")
 						ch.FsType = "swap"
 						log.Debug("AdvancedPartitioning: Forcing Format partition %s enabled", ch.Name)
 						ch.FormatPartition = true
+					}
+					if labelMap[labelUpper] {
+						duplicateFound = true
+						log.Error("FindAdvancedInstallTargets: Found duplicate Partition label %q", label)
+					} else {
+						labelMap[labelUpper] = true
 					}
 				case "mnt":
 					mntParts := strings.Split(label, "MNT_")
@@ -1576,6 +1604,7 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 							log.Debug("AdvancedPartitioning: Extra mount %q for %s", path, ch.Name)
 
 							ch.MountPoint = path
+							ch.LabeledAdvanced = true
 							if ch.FsType == "" {
 								log.Debug("AdvancedPartitioning: No FsType set for %s, defaulting to %s", ch.Name, defaultFsType)
 								ch.FsType = defaultFsType
@@ -1583,6 +1612,12 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 								ch.FormatPartition = true
 							}
 							clrAdded = true
+							if labelMap[labelUpper] {
+								duplicateFound = true
+								log.Error("FindAdvancedInstallTargets: Found duplicate Partition label %q", label)
+							} else {
+								labelMap[labelUpper] = true
+							}
 						}
 					}
 					break
@@ -1611,6 +1646,11 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 		for _, ch := range curr.Children {
 			log.Debug("FindAdvancedInstallTargets: child: %+v", ch)
 		}
+	}
+
+	if duplicateFound {
+		log.Error("Duplicate Advanced labels found, can not continue!")
+		targetMedias = nil
 	}
 
 	return targetMedias

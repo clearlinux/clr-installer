@@ -55,7 +55,8 @@ type BlockDevice struct {
 	Children        []*BlockDevice     // children devices/partitions
 	UserDefined     bool               // was this value set by user?
 	MakePartition   bool               // Do we need to make a new partition?
-	FormatPartition bool               // Do we need to format the partition
+	FormatPartition bool               // Do we need to format the partition?
+	LabeledAdvanced bool               // Does this partition have a valid Advanced Label?
 	Options         string             // arbitrary mkfs.* options
 	available       bool               // was it mounted the moment we loaded?
 	partition       uint64             // Assigned partition for media - can't set until after mkpart
@@ -401,6 +402,7 @@ func (bd *BlockDevice) Clone() *BlockDevice {
 		UserDefined:     bd.UserDefined,
 		MakePartition:   bd.MakePartition,
 		FormatPartition: bd.FormatPartition,
+		LabeledAdvanced: bd.LabeledAdvanced,
 		available:       bd.available,
 		partition:       bd.partition,
 		PartTable:       bd.PartTable,
