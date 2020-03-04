@@ -806,3 +806,6 @@ msgstr "This requires a working network connection.\nProceed with a network test
 
 msgid "Network Required"
 msgstr "Network Required"
+
+msgid "Installation Steps Complete"
+msgstr "Installation Steps Complete"
