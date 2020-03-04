@@ -806,3 +806,6 @@ msgstr "这需要有效的网络连接\n进行网络测试"
 
 msgid "Network Required"
 msgstr "需要网络"
+
+msgid "Installation Steps Complete"
+msgstr "安装步骤完成"

@@ -199,6 +199,12 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 				}
 			}
 		}
+
+		// Final message to user that the installation has fully completed
+		msg := utils.Locale.Get("Installation Steps Complete")
+		prg = progress.NewLoop(msg)
+		log.Info(msg)
+		prg.Success()
 	}()
 
 	// expand block device's name case we've detected image replacement cases

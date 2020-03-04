@@ -806,3 +806,6 @@ msgstr "Esto requiere una conexión de red que funcione.\n¿Continuar con una pr
 
 msgid "Network Required"
 msgstr "Red requerida"
+
+msgid "Installation Steps Complete"
+msgstr "Pasos de instalación completados"
