@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -135,7 +135,7 @@ func newKeyboardPage(tui *Tui) (Page, error) {
 		lbl = clui.CreateLabel(frame, AutoSize, 1, "Test keyboard", Fixed)
 		lbl.SetPaddings(0, 1)
 
-		newEditField(frame, false, nil)
+		newEditField(frame, false, nil, 0)
 
 		page.activated = page.confirmBtn
 	} else {

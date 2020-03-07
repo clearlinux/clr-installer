@@ -445,20 +445,28 @@ func (page *BasePage) getModel() *model.SystemInstall {
 	return page.tui.model
 }
 
-func newEditField(frame *clui.Frame, validation bool, cb func(k term.Key, ch rune) bool) (*clui.EditField, *clui.Label) {
+func newEditField(frame *clui.Frame, validation bool, cb func(k term.Key, ch rune) bool, labelHeight int) (*clui.EditField, *clui.Label) {
 	var label *clui.Label
 
-	height := 2
+	frameheight := 2
+
 	if validation {
-		height = 1
+		frameheight = 1
 	}
 
-	iframe := clui.CreateFrame(frame, 5, height, BorderNone, Fixed)
+	iframe := clui.CreateFrame(frame, 5, frameheight, BorderNone, Fixed)
 	iframe.SetPack(clui.Vertical)
 	edit := clui.CreateEditField(iframe, 1, "", Fixed)
 
 	if validation {
-		label = clui.CreateLabel(iframe, AutoSize, 1, "", Fixed)
+		labelH := func() int {
+			if labelHeight == 0 {
+				return AutoSize
+			}
+			return labelHeight
+		}
+
+		label = clui.CreateLabel(iframe, 1, labelH(), "", Fixed)
 		label.SetVisible(false)
 		label.SetBackColor(errorLabelBg)
 		label.SetTextColor(errorLabelFg)

@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -193,7 +193,7 @@ func newUseraddPage(tui *Tui) (Page, error) {
 	fldFrm := clui.CreateFrame(frm, 50, AutoSize, BorderNone, Fixed)
 	fldFrm.SetPack(clui.Vertical)
 
-	page.usernameEdit, page.usernameWarning = newEditField(fldFrm, true, nil)
+	page.usernameEdit, page.usernameWarning = newEditField(fldFrm, true, nil, 0)
 	page.usernameEdit.OnChange(func(ev clui.Event) {
 		if len(page.loginEdit.Title()) == 0 {
 			page.changedLogin = false
@@ -214,7 +214,7 @@ func newUseraddPage(tui *Tui) (Page, error) {
 	})
 	page.usernameWarning.SetVisible(true)
 
-	page.loginEdit, page.loginWarning = newEditField(fldFrm, true, nil)
+	page.loginEdit, page.loginWarning = newEditField(fldFrm, true, nil, 0)
 	page.loginEdit.OnChange(func(ev clui.Event) {
 		if len(page.loginEdit.Title()) == 0 {
 			page.changedLogin = false
@@ -236,7 +236,7 @@ func newUseraddPage(tui *Tui) (Page, error) {
 
 	page.loginWarning.SetVisible(true)
 
-	page.passwordEdit, _ = newEditField(fldFrm, false, nil)
+	page.passwordEdit, _ = newEditField(fldFrm, false, nil, 0)
 	page.passwordEdit.SetPasswordMode(true)
 
 	page.passwordEdit.OnChange(func(ev clui.Event) {
@@ -265,9 +265,10 @@ func newUseraddPage(tui *Tui) (Page, error) {
 		return false
 	})
 
-	page.pwConfirmEdit, page.passwordWarning = newEditField(fldFrm, true, nil)
+	page.pwConfirmEdit, page.passwordWarning = newEditField(fldFrm, true, nil, 2)
 	page.pwConfirmEdit.SetPasswordMode(true)
 	page.passwordWarning.SetVisible(true)
+	page.passwordWarning.SetMultiline(true)
 
 	page.pwConfirmEdit.OnChange(func(ev clui.Event) {
 		page.validatePassword()
