@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -210,11 +210,11 @@ func newNetworkInterfacePage(tui *Tui) (Page, error) {
 	page.ifaceLbl = clui.CreateLabel(ifaceFrm, AutoSize, 2, "", Fixed)
 	page.ifaceLbl.SetAlign(AlignLeft)
 
-	page.IPEdit, page.IPWarning = newEditField(fldFrm, true, validateIPEdit)
-	page.NetMaskEdit, page.NetMaskWarning = newEditField(fldFrm, true, validateIPEdit)
-	page.GatewayEdit, page.GatewayWarning = newEditField(fldFrm, true, nil)
-	page.DNSServerEdit, page.DNSServerWarning = newEditField(fldFrm, true, nil)
-	page.DNSDomainEdit, page.DNSDomainWarning = newEditField(fldFrm, true, nil)
+	page.IPEdit, page.IPWarning = newEditField(fldFrm, true, validateIPEdit, 0)
+	page.NetMaskEdit, page.NetMaskWarning = newEditField(fldFrm, true, validateIPEdit, 0)
+	page.GatewayEdit, page.GatewayWarning = newEditField(fldFrm, true, nil, 0)
+	page.DNSServerEdit, page.DNSServerWarning = newEditField(fldFrm, true, nil, 0)
+	page.DNSDomainEdit, page.DNSDomainWarning = newEditField(fldFrm, true, nil, 0)
 
 	page.IPEdit.OnChange(func(ev clui.Event) {
 		page.validateIPField(page.IPEdit, page.IPWarning)
