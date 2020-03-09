@@ -127,7 +127,7 @@ type Message struct {
 	StepDescription string `json:"stepDescription"`
 }
 
-// Process parses the output received from swup and process it according to its type
+// Process parses the output received from swupd and process it according to its type
 func (m Message) Process(printPrefix, line string) {
 
 	var description string
@@ -146,7 +146,7 @@ func (m Message) Process(printPrefix, line string) {
 		return
 	}
 
-	// also remove the "," ath the end of the string if exist
+	// also remove the "," at the end of the string if exist
 	trimmedMsg := strings.TrimSuffix(line, ",")
 
 	// decode the message assuming it is a JSON stream and ignore those that are not
@@ -392,7 +392,7 @@ func (s SoftwareUpdater) DownloadBundles(version string, bundles []string) error
 
 	// The statedir-cache is set to the statedir that was used to install bundles to the
 	// installer image which reduces the number of bundle downloads. The statedir specifies the
-	// location to download offline content which is set ot the offline content directory within
+	// location to download offline content which is set to the offline content directory within
 	// the installer image.
 	s.stateDirCache = s.stateDir
 	s.stateDir = filepath.Join(s.rootDir, conf.OfflineContentDir)
