@@ -37,9 +37,6 @@ const (
 
 	// KernelListFile is the file describing the available kernel bundles
 	KernelListFile = "kernels.json"
-
-	// SourcePath is the source path (within the .gopath)
-	SourcePath = "src/github.com/clearlinux/clr-installer"
 )
 
 func isRunningFromSourceTree() (bool, string, error) {
