@@ -208,7 +208,14 @@ func TestApply(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	etcDir := filepath.Join(dir, systemdNetworkdDir)
+	netService := func() string {
+		if IsNetworkManagerActive() {
+			return networkManagerDir
+		}
+		return systemdNetworkdDir
+	}
+
+	etcDir := filepath.Join(dir, netService())
 	if err = utils.MkdirAll(etcDir, 0755); err != nil {
 		t.Fatal(err)
 	}
