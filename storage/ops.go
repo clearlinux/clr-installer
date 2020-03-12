@@ -1083,6 +1083,10 @@ func getMakeFsLabel(bd *BlockDevice) []string {
 			labelArg = "-n"
 		}
 
+		if bd.FsType == "f2fs" {
+			labelArg = "-l"
+		}
+
 		if len(bd.Label) > maxLen {
 			shortLabel := string(bd.Label[0:(maxLen - 1)])
 			log.Warning("Truncating file system label '%s' to %d character label '%s'",
