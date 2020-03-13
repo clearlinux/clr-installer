@@ -1,28 +1,32 @@
-go test -cover github.com/clearlinux/clr-installer/...
-ok  	github.com/clearlinux/clr-installer/args	0.527s	coverage: 80.0% of statements
+ok  	github.com/clearlinux/clr-installer/args	0.272s	coverage: 85.6% of statements
 ?   	github.com/clearlinux/clr-installer/clr-installer	[no test files]
-?   	github.com/clearlinux/clr-installer/cmd	[no test files]
+ok  	github.com/clearlinux/clr-installer/cmd	0.012s	coverage: 0.0% of statements
 ?   	github.com/clearlinux/clr-installer/conf	[no test files]
 ?   	github.com/clearlinux/clr-installer/controller	[no test files]
-ok  	github.com/clearlinux/clr-installer/encrypt	0.026s	coverage: 85.0% of statements
-ok  	github.com/clearlinux/clr-installer/errors	0.014s	coverage: 100.0% of statements
+ok  	github.com/clearlinux/clr-installer/encrypt	0.055s	coverage: 85.0% of statements
+ok  	github.com/clearlinux/clr-installer/errors	0.007s	coverage: 100.0% of statements
 ?   	github.com/clearlinux/clr-installer/frontend	[no test files]
-ok  	github.com/clearlinux/clr-installer/hostname	0.033s	coverage: 100.0% of statements
+?   	github.com/clearlinux/clr-installer/gui	[no test files]
+?   	github.com/clearlinux/clr-installer/gui/common	[no test files]
+?   	github.com/clearlinux/clr-installer/gui/network	[no test files]
+?   	github.com/clearlinux/clr-installer/gui/pages	[no test files]
+ok  	github.com/clearlinux/clr-installer/hostname	0.010s	coverage: 100.0% of statements
 ?   	github.com/clearlinux/clr-installer/isoutils	[no test files]
 ?   	github.com/clearlinux/clr-installer/kernel	[no test files]
 ?   	github.com/clearlinux/clr-installer/keyboard	[no test files]
 ?   	github.com/clearlinux/clr-installer/language	[no test files]
 ?   	github.com/clearlinux/clr-installer/local-travis	[no test files]
-ok  	github.com/clearlinux/clr-installer/log	0.163s	coverage: 100.0% of statements
+ok  	github.com/clearlinux/clr-installer/log	0.104s	coverage: 100.0% of statements
 ?   	github.com/clearlinux/clr-installer/massinstall	[no test files]
-ok  	github.com/clearlinux/clr-installer/model	0.013s	coverage: 91.0% of statements
-ok  	github.com/clearlinux/clr-installer/network	0.734s	coverage: 23.0% of statements
+ok  	github.com/clearlinux/clr-installer/model	0.031s	coverage: 91.7% of statements
+ok  	github.com/clearlinux/clr-installer/network	4.525s	coverage: 26.9% of statements
 ?   	github.com/clearlinux/clr-installer/progress	[no test files]
-ok  	github.com/clearlinux/clr-installer/storage	0.026s	coverage: 26.0% of statements
-ok  	github.com/clearlinux/clr-installer/swupd	0.017s	coverage: 14.0% of statements
+?   	github.com/clearlinux/clr-installer/proxy	[no test files]
+ok  	github.com/clearlinux/clr-installer/storage	0.091s	coverage: 26.9% of statements
+ok  	github.com/clearlinux/clr-installer/swupd	0.012s	coverage: 21.8% of statements
 ?   	github.com/clearlinux/clr-installer/syscheck	[no test files]
-ok  	github.com/clearlinux/clr-installer/telemetry	0.317s	coverage: 35.6% of statements
+ok  	github.com/clearlinux/clr-installer/telemetry	0.758s	coverage: 41.9% of statements
 ?   	github.com/clearlinux/clr-installer/timezone	[no test files]
 ?   	github.com/clearlinux/clr-installer/tui	[no test files]
-?   	github.com/clearlinux/clr-installer/user	[no test files]
-ok  	github.com/clearlinux/clr-installer/utils	1.010s	coverage: 10.0% of statements
+ok  	github.com/clearlinux/clr-installer/user	0.032s	coverage: 25.5% of statements
+ok  	github.com/clearlinux/clr-installer/utils	0.005s	coverage: 10.8% of statements
