@@ -164,15 +164,19 @@ check: bundle-check
 	BEFORELS=`eval $$LSCMD`; \
 	BEFORESHA=`eval $$SHACMD`; \
 	go test ${CHECK_VERBOSE} -cover ${GO_PACKAGE_PREFIX}/...; \
-	AFTERSHA=`eval $$SHACMD`; \
-	AFTERLS=`eval $$LSCMD`; \
-	if [ "$$BEFORESHA" != "$$AFTERSHA" ] ; then \
-		echo "Test Failed: Temporary directory may not be clean!"; \
-		echo "Left-over files:"; \
-		echo "$$BEFORELS" > /tmp/beforels; \
-		echo "$$AFTERLS" > /tmp/afterls; \
-		diff -Nr /tmp/beforels /tmp/afterls; \
-		/bin/false ; \
+	if [ "$$?" != "0" ]; then \
+		/bin/false; \
+	else \
+		AFTERSHA=`eval $$SHACMD`; \
+		AFTERLS=`eval $$LSCMD`; \
+		if [ "$$BEFORESHA" != "$$AFTERSHA" ]; then \
+			echo "Test Failed: Temporary directory may not be clean!"; \
+			echo "Left-over files:"; \
+			echo "$$BEFORELS" > /tmp/beforels; \
+			echo "$$AFTERLS" > /tmp/afterls; \
+			diff -Nr /tmp/beforels /tmp/afterls; \
+			/bin/false ; \
+		fi; \
 	fi; \
 
 check-image: build-tui
