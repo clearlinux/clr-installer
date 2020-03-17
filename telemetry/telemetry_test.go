@@ -361,6 +361,19 @@ func TestCopyRecords(t *testing.T) {
 		_ = os.RemoveAll(dir)
 	}()
 
+	_, err = os.Stat(telemetrySpoolDir)
+	if err != nil {
+
+		defer func() {
+			_ = os.RemoveAll(telemetrySpoolDir)
+		}()
+
+		err = os.Mkdir(telemetrySpoolDir, 0755)
+		if err != nil {
+			t.Fatalf("Failed to create telemetry spool dir, %s ", err)
+		}
+	}
+
 	err = telem.CopyTelemetryRecords(dir)
 	if err != nil {
 		t.Fatalf("Should have succeeded to copy telemetry records, %s", err)
@@ -387,6 +400,20 @@ func TestLogRecord(t *testing.T) {
 	if !utils.IsRoot() {
 		t.Skip("Not running as 'root', skipping log record test")
 	}
+
+	_, err := os.Stat(telemetrySpoolDir)
+	if err != nil {
+
+		defer func() {
+			_ = os.RemoveAll(telemetrySpoolDir)
+		}()
+
+		err = os.Mkdir(telemetrySpoolDir, 0755)
+		if err != nil {
+			t.Fatalf("Failed to create telemetry spool dir, %s ", err)
+		}
+	}
+
 	if err := telem.LogRecord("success", 2, "Hello"); err != nil {
 		t.Logf("TestLogRecord failed with %s", err)
 	}
