@@ -195,6 +195,15 @@ func (args *Args) readKernelCmd() (string, error) {
 func (args *Args) setCommandLineArgs() (err error) {
 	flag := spflag.NewFlagSet(path.Base(os.Args[0]), spflag.ExitOnError)
 
+	makeFlagHidden := func(flag *spflag.FlagSet, flagnames ...string) {
+		for _, flagname := range flagnames {
+			fflag := flag.Lookup(flagname)
+			if fflag != nil {
+				fflag.Hidden = true
+			}
+		}
+	}
+
 	flag.BoolVarP(
 		&args.Version, "version", "v", false, "Version of the Installer",
 	)
@@ -218,6 +227,8 @@ func (args *Args) setCommandLineArgs() (err error) {
 	flag.BoolVar(
 		&args.ForceGUI, "gui", false, "Use GUI frontend",
 	)
+	// We do not want this flag to be shown as part of the standard help message
+	makeFlagHidden(flag, "gui")
 
 	flag.StringSliceVarP(
 		&args.Bundles, "bundles", "B", args.Bundles, "Comma-separated list of bundles to install",
@@ -338,10 +349,7 @@ func (args *Args) setCommandLineArgs() (err error) {
 		&args.DemoMode, "demo", args.DemoMode, "Demonstration mode for documentation generation",
 	)
 	// We do not want this flag to be shown as part of the standard help message
-	fflag := flag.Lookup("demo")
-	if fflag != nil {
-		fflag.Hidden = true
-	}
+	makeFlagHidden(flag, "demo")
 
 	usr, err := user.Current()
 	if err != nil {
@@ -387,10 +395,7 @@ func (args *Args) setCommandLineArgs() (err error) {
 		&args.CBMPath, "cbm-path", "", "", "Path to clr-boot-manager (default: the target systems /usr/bin/clr-boot-manager)",
 	)
 	// We do not want this flag to be shown as part of the standard help message
-	fflag = flag.Lookup("cbm-path")
-	if fflag != nil {
-		fflag.Hidden = true
-	}
+	makeFlagHidden(flag, "cbm-path")
 
 	spflag.ErrHelp = errors.New("Clear Linux Installer program")
 
