@@ -159,6 +159,7 @@ Item | Description | Default
 `isoPublisher` | Publisher string added to ISO metadata; 128 char max | `-UNDEFINED-`
 `isoApplicationId` | Publisher string added to ISO metadata; 128 char max | server|desktop determined by bundle list
 `keepImage` | Retain the raw image file?; true or false | true (false when iso is true)
+`skipValidationSize` | Skip the size requirement checks during partition validation; may be set/overridden with the --skip-validation-size command line option | false
 `telemetry` | Should telemetry be enabled by default; true or false | false
 `telemetryURL` | URL of where the telemetry records should publish | `-UNDEFINED-`
 `telemetryPolicy` | Policy string displayed to users during interactive installs | `-UNDEFINED-`

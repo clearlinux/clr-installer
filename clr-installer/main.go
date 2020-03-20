@@ -285,6 +285,13 @@ func execute(options args.Args) error {
 		md.KeepImage = true
 	}
 
+	if options.SkipValidationSizeSet {
+		md.SkipValidationSize = options.SkipValidationSize
+	}
+	if options.SkipValidationAllSet {
+		md.SkipValidationAll = options.SkipValidationAll
+	}
+
 	if len(options.Bundles) > 0 {
 		md.OverrideBundles(options.Bundles)
 		log.Info("Overriding bundle list from command line: %s", strings.Join(md.Bundles, ", "))

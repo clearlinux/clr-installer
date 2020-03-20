@@ -94,6 +94,10 @@ type Args struct {
 	CopySwupdSet            bool
 	HighContrast            bool
 	CBMPath                 string
+	SkipValidationSize      bool
+	SkipValidationSizeSet   bool
+	SkipValidationAll       bool
+	SkipValidationAllSet    bool
 }
 
 func (args *Args) setKernelArgs() (err error) {
@@ -397,6 +401,15 @@ func (args *Args) setCommandLineArgs() (err error) {
 	// We do not want this flag to be shown as part of the standard help message
 	makeFlagHidden(flag, "cbm-path")
 
+	flag.BoolVar(
+		&args.SkipValidationSize, "skip-validation-size", args.SkipValidationSize, "Skip the partition validation size check",
+	)
+	flag.BoolVar(
+		&args.SkipValidationAll, "skip-validation-all", args.SkipValidationAll, "Skip all of the partition validation checks",
+	)
+	// We do not want this flag to be shown as part of the standard help message
+	makeFlagHidden(flag, "skip-validation-all")
+
 	spflag.ErrHelp = errors.New("Clear Linux Installer program")
 
 	saveConfigFile := args.ConfigFile
@@ -507,6 +520,24 @@ func (args *Args) setBoolFlagCheck(flag *spflag.FlagSet) {
 	if fflag != nil {
 		if fflag.Changed {
 			args.CopySwupdSet = true
+		}
+	}
+
+	fflag = flag.Lookup("skip-validation-size")
+	if fflag != nil {
+		if fflag.Changed {
+			args.SkipValidationSizeSet = true
+		}
+	}
+
+	fflag = flag.Lookup("skip-validation-all")
+	if fflag != nil {
+		if fflag.Changed {
+			args.SkipValidationAllSet = true
+			if !args.SkipValidationSizeSet {
+				args.SkipValidationSizeSet = true
+				args.SkipValidationSize = args.SkipValidationAll
+			}
 		}
 	}
 }

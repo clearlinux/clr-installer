@@ -506,6 +506,7 @@ func TestCheckAllBooleans(t *testing.T) {
 		"--demo", "--telemetry", "--reboot",
 		"--iso", "--keep-image", "--allow-insecure-http", "--offline",
 		"--cfPurge", "--swupd-skip-optional", "--archive", "--copy-swupd", "--high-contrast",
+		"--skip-validation-size", "--skip-validation-all",
 	}
 	t.Logf("Current os.Args: %v", os.Args)
 
@@ -525,6 +526,7 @@ func TestCheckAllBooleansFalse(t *testing.T) {
 		"--demo=0", "--telemetry=0", "--reboot=0",
 		"--iso=0", "--keep-image=0", "--allow-insecure-http=0", "--offline=0",
 		"--cfPurge=0", "--swupd-skip-optional=0", "--archive=0", "--copy-swupd=0", "--high-contrast=0",
+		"--skip-validation-size=0", "--skip-validation-all=0",
 	}
 	t.Logf("Current os.Args: %v", os.Args)
 
@@ -610,5 +612,11 @@ func TestKernelAndCommandlineAllArgs(t *testing.T) {
 	}
 	if testArgs.SwupdURL == "" {
 		t.Errorf("Command Line 'swupd-url' is NOT set to value")
+	}
+	if testArgs.SkipValidationSize != false {
+		t.Errorf("Command Line '--skip-validation-size' is not defaulted to 'false'")
+	}
+	if testArgs.SkipValidationAll != false {
+		t.Errorf("Command Line '--skip-validation-all' is not defaulted to 'false'")
 	}
 }
