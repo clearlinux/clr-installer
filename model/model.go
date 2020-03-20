@@ -49,49 +49,51 @@ var testAlias = []string{}
 // SystemInstall represents the system install "configuration", the target
 // medias, bundles to install and whatever state a install may require
 type SystemInstall struct {
-	InstallSelected   map[string]storage.InstallTarget `yaml:"-"`
-	TargetMedias      []*storage.BlockDevice           `yaml:"targetMedia"`
-	NetworkInterfaces []*network.Interface             `yaml:"networkInterfaces,omitempty,flow"`
-	Keyboard          *keyboard.Keymap                 `yaml:"keyboard,omitempty,flow"`
-	Language          *language.Language               `yaml:"language,omitempty,flow"`
-	Bundles           []string                         `yaml:"bundles,omitempty,flow"`
-	TargetBundles     []string                         `yaml:"targetBundles,omitempty,flow"`
-	UserBundles       []string                         `yaml:"userBundles,omitempty,flow"`
-	Offline           bool                             `yaml:"offline,omitempty,flow"`
-	HTTPSProxy        string                           `yaml:"httpsProxy,omitempty,flow"`
-	Telemetry         *telemetry.Telemetry             `yaml:"telemetry,omitempty,flow"`
-	Timezone          *timezone.TimeZone               `yaml:"timezone,omitempty,flow"`
-	Users             []*user.User                     `yaml:"users,omitempty,flow"`
-	KernelArguments   *kernel.Arguments                `yaml:"kernel-arguments,omitempty,flow"`
-	Kernel            *kernel.Kernel                   `yaml:"kernel,omitempty,flow"`
-	PostReboot        bool                             `yaml:"postReboot,omitempty,flow"`
-	SwupdMirror       string                           `yaml:"swupdMirror,omitempty,flow"`
-	AllowInsecureHTTP bool                             `yaml:"AllowInsecureHTTP,omitempty,flow"`
-	SwupdSkipOptional bool                             `yaml:"swupdSkipOptional,omitempty,flow"`
-	PostArchive       bool                             `yaml:"postArchive,omitempty,flow"`
-	Hostname          string                           `yaml:"hostname,omitempty,flow"`
-	AutoUpdate        bool                             `yaml:"autoUpdate,flow"`
-	TelemetryURL      string                           `yaml:"telemetryURL,omitempty,flow"`
-	TelemetryTID      string                           `yaml:"telemetryTID,omitempty,flow"`
-	TelemetryPolicy   string                           `yaml:"telemetryPolicy,omitempty,flow"`
-	PreInstall        []*InstallHook                   `yaml:"pre-install,omitempty,flow"`
-	PostInstall       []*InstallHook                   `yaml:"post-install,omitempty,flow"`
-	PostImage         []*InstallHook                   `yaml:"post-image,omitempty,flow"`
-	SwupdFormat       string                           `yaml:"swupdFormat,omitempty,flow"`
-	Version           uint                             `yaml:"version,omitempty,flow"`
-	StorageAlias      []*StorageAlias                  `yaml:"block-devices,omitempty,flow"`
-	LegacyBios        bool                             `yaml:"legacyBios,omitempty,flow"`
-	CopyNetwork       bool                             `yaml:"copyNetwork,omitempty,flow"`
-	CopySwupd         bool                             `yaml:"copySwupd,omitempty,flow"`
-	Environment       map[string]string                `yaml:"env,omitempty,flow"`
-	CryptPass         string                           `yaml:"-"`
-	MakeISO           bool                             `yaml:"iso,omitempty,flow"`
-	ISOPublisher      string                           `yaml:"isoPublisher,omitempty,flow"`
-	ISOApplicationID  string                           `yaml:"isoApplicationId,omitempty,flow"`
-	KeepImage         bool                             `yaml:"keepImage,omitempty,flow"`
-	LockFile          string                           `yaml:"-"`
-	ClearCfFile       string                           `yaml:"-"`
-	PreCheckDone      bool                             `yaml:"preCheckDone,omitempty,flow"`
+	InstallSelected    map[string]storage.InstallTarget `yaml:"-"`
+	TargetMedias       []*storage.BlockDevice           `yaml:"targetMedia"`
+	NetworkInterfaces  []*network.Interface             `yaml:"networkInterfaces,omitempty,flow"`
+	Keyboard           *keyboard.Keymap                 `yaml:"keyboard,omitempty,flow"`
+	Language           *language.Language               `yaml:"language,omitempty,flow"`
+	Bundles            []string                         `yaml:"bundles,omitempty,flow"`
+	TargetBundles      []string                         `yaml:"targetBundles,omitempty,flow"`
+	UserBundles        []string                         `yaml:"userBundles,omitempty,flow"`
+	Offline            bool                             `yaml:"offline,omitempty,flow"`
+	HTTPSProxy         string                           `yaml:"httpsProxy,omitempty,flow"`
+	Telemetry          *telemetry.Telemetry             `yaml:"telemetry,omitempty,flow"`
+	Timezone           *timezone.TimeZone               `yaml:"timezone,omitempty,flow"`
+	Users              []*user.User                     `yaml:"users,omitempty,flow"`
+	KernelArguments    *kernel.Arguments                `yaml:"kernel-arguments,omitempty,flow"`
+	Kernel             *kernel.Kernel                   `yaml:"kernel,omitempty,flow"`
+	PostReboot         bool                             `yaml:"postReboot,omitempty,flow"`
+	SwupdMirror        string                           `yaml:"swupdMirror,omitempty,flow"`
+	AllowInsecureHTTP  bool                             `yaml:"AllowInsecureHTTP,omitempty,flow"`
+	SwupdSkipOptional  bool                             `yaml:"swupdSkipOptional,omitempty,flow"`
+	PostArchive        bool                             `yaml:"postArchive,omitempty,flow"`
+	Hostname           string                           `yaml:"hostname,omitempty,flow"`
+	AutoUpdate         bool                             `yaml:"autoUpdate,flow"`
+	TelemetryURL       string                           `yaml:"telemetryURL,omitempty,flow"`
+	TelemetryTID       string                           `yaml:"telemetryTID,omitempty,flow"`
+	TelemetryPolicy    string                           `yaml:"telemetryPolicy,omitempty,flow"`
+	PreInstall         []*InstallHook                   `yaml:"pre-install,omitempty,flow"`
+	PostInstall        []*InstallHook                   `yaml:"post-install,omitempty,flow"`
+	PostImage          []*InstallHook                   `yaml:"post-image,omitempty,flow"`
+	SwupdFormat        string                           `yaml:"swupdFormat,omitempty,flow"`
+	Version            uint                             `yaml:"version,omitempty,flow"`
+	StorageAlias       []*StorageAlias                  `yaml:"block-devices,omitempty,flow"`
+	LegacyBios         bool                             `yaml:"legacyBios,omitempty,flow"`
+	CopyNetwork        bool                             `yaml:"copyNetwork,omitempty,flow"`
+	CopySwupd          bool                             `yaml:"copySwupd,omitempty,flow"`
+	Environment        map[string]string                `yaml:"env,omitempty,flow"`
+	CryptPass          string                           `yaml:"-"`
+	MakeISO            bool                             `yaml:"iso,omitempty,flow"`
+	ISOPublisher       string                           `yaml:"isoPublisher,omitempty,flow"`
+	ISOApplicationID   string                           `yaml:"isoApplicationId,omitempty,flow"`
+	KeepImage          bool                             `yaml:"keepImage,omitempty,flow"`
+	LockFile           string                           `yaml:"-"`
+	ClearCfFile        string                           `yaml:"-"`
+	PreCheckDone       bool                             `yaml:"preCheckDone,omitempty,flow"`
+	SkipValidationSize bool                             `yaml:"skipValidationSize,omitempty,flow"`
+	SkipValidationAll  bool                             `yaml:"skipValidationAll,omitempty,flow"`
 }
 
 // SystemUsage is used to include additional information into the telemetry payload
@@ -567,6 +569,20 @@ func (si *SystemInstall) IsTelemetryInstalled() bool {
 
 // WriteFile writes a yaml formatted representation of si into the provided file path
 func (si *SystemInstall) WriteFile(path string) error {
+	// Sanitized the model to item which should never be written
+	var copyModel SystemInstall
+
+	// Marshal current into bytes
+	confBytes, bytesErr := yaml.Marshal(si)
+	if bytesErr != nil {
+		return errors.Wrap(bytesErr)
+	}
+
+	// Unmarshal into a copy
+	if yamlErr := yaml.Unmarshal(confBytes, &copyModel); yamlErr != nil {
+		return errors.Wrap(bytesErr)
+	}
+
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
@@ -576,7 +592,14 @@ func (si *SystemInstall) WriteFile(path string) error {
 		_ = f.Close()
 	}()
 
-	b, err := yaml.Marshal(si)
+	// Screen item we never want stored in a YAML
+	// SkipValidation flags are okay for ready, but we
+	// never want to store them -- force use to set them
+	// Setting to default means they are omitted
+	copyModel.SkipValidationAll = false
+	copyModel.SkipValidationSize = false
+
+	b, err := yaml.Marshal(copyModel)
 	if err != nil {
 		return err
 	}

@@ -119,6 +119,10 @@ func TestLoadFile(t *testing.T) {
 			t.Fatalf("%s is a valid tests and shouldn't return an error: %v", curr.file, err)
 		}
 
+		if model != nil {
+			model.SkipValidationSize = true
+			model.SkipValidationAll = true
+		}
 		err = model.Validate()
 		if curr.valid && err != nil {
 			t.Fatalf("%s is a valid tests and shouldn't return an error: %v", curr.file, err)
