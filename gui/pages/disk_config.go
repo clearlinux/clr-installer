@@ -918,8 +918,12 @@ func (disk *DiskConfig) buildMediaLists() error {
 		log.Error("Failed to find storage media for install during save: %s", err)
 	}
 
-	disk.safeTargets = storage.FindSafeInstallTargets(storage.MinimumDesktopInstallSize, disk.devs)
-	disk.destructiveTargets = storage.FindAllInstallTargets(storage.MinimumDesktopInstallSize, disk.devs)
+	minSize := storage.MinimumDesktopInstallSize
+	if disk.model.SkipValidationSize {
+		minSize = 0
+	}
+	disk.safeTargets = storage.FindSafeInstallTargets(minSize, disk.devs)
+	disk.destructiveTargets = storage.FindAllInstallTargets(minSize, disk.devs)
 
 	for _, curr := range storage.FindAdvancedInstallTargets(disk.devs) {
 		disk.model.AddTargetMedia(curr)

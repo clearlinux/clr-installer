@@ -622,10 +622,15 @@ func (page *MediaConfigPage) buildMediaLists() error {
 		page.Panic(err)
 	}
 
-	page.safeTargets = storage.FindSafeInstallTargets(storage.MinimumServerInstallSize, page.devs)
-	page.destructiveTargets = storage.FindAllInstallTargets(storage.MinimumServerInstallSize, page.devs)
-
 	model := page.getModel()
+
+	minSize := storage.MinimumServerInstallSize
+	if model.SkipValidationSize {
+		minSize = 0
+	}
+	page.safeTargets = storage.FindSafeInstallTargets(minSize, page.devs)
+	page.destructiveTargets = storage.FindAllInstallTargets(minSize, page.devs)
+
 	model.TargetMedias = nil
 	for _, curr := range storage.FindAdvancedInstallTargets(page.devs) {
 		model.AddTargetMedia(curr)
