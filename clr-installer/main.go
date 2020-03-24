@@ -319,7 +319,7 @@ func execute(options args.Args) error {
 	if errString := utils.VerifyRootUser(); errString != "" {
 		fmt.Println(errString)
 		log.Error("Not running as root: %v", errString)
-		return nil
+		os.Exit(126)
 	}
 
 	// Check for exclusive option
@@ -327,7 +327,7 @@ func execute(options args.Args) error {
 		exclusive := "Options --tui and --gui are mutually exclusive."
 		fmt.Println(exclusive)
 		log.Error("Command Line Error: %s", exclusive)
-		return nil
+		os.Exit(1)
 	}
 
 	if (options.ForceTUI || options.ForceGUI) &&
@@ -335,7 +335,7 @@ func execute(options args.Args) error {
 		exclusive := "Option --iso not compatible with --tui or --gui."
 		fmt.Println(exclusive)
 		log.Error("Command Line Error: %s", exclusive)
-		return nil
+		os.Exit(1)
 	}
 
 	lockFile = strings.TrimSuffix(options.LogFile, ".log") + ".lock"
