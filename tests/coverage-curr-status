@@ -22,7 +22,7 @@ ok  	github.com/clearlinux/clr-installer/model	0.031s	coverage: 91.7% of stateme
 ok  	github.com/clearlinux/clr-installer/network	4.525s	coverage: 26.9% of statements
 ?   	github.com/clearlinux/clr-installer/progress	[no test files]
 ?   	github.com/clearlinux/clr-installer/proxy	[no test files]
-ok  	github.com/clearlinux/clr-installer/storage	0.091s	coverage: 26.9% of statements
+ok  	github.com/clearlinux/clr-installer/storage	0.091s	coverage: 25.0% of statements
 ok  	github.com/clearlinux/clr-installer/swupd	0.012s	coverage: 21.8% of statements
 ?   	github.com/clearlinux/clr-installer/syscheck	[no test files]
 ok  	github.com/clearlinux/clr-installer/telemetry	0.758s	coverage: 41.9% of statements
