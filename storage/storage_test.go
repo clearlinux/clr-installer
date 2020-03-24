@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"sort"
 	"testing"
 	"text/template"
 	"time"
@@ -54,55 +55,6 @@ func (mi *FakeInstall) Success() { return }
 // unsuccessful progress completion of a task
 func (mi *FakeInstall) Failure() { return }
 
-func TestGetConfiguredStatus(t *testing.T) {
-	children := make([]*BlockDevice, 0)
-	bd := &BlockDevice{Name: "sda", Children: children}
-	expected := ConfiguredNone
-
-	df := bd.GetConfiguredStatus()
-	if df != expected {
-		t.Fatalf("GetConfiguredStatus() returned returned: %d, expected: %d",
-			df, expected)
-	}
-
-	part1 := &BlockDevice{FsType: "vfat", MountPoint: "/boot"}
-	part2 := &BlockDevice{FsType: "swap", MountPoint: ""}
-	part3 := &BlockDevice{FsType: "ext4", MountPoint: "/"}
-
-	children = append(children, part1)
-	bd = nil
-	bd = &BlockDevice{Name: "sda", Children: children}
-	expected = ConfiguredPartial
-
-	df = bd.GetConfiguredStatus()
-	if df != expected {
-		t.Fatalf("GetConfiguredStatus() returned returned: %d, expected: %d",
-			df, expected)
-	}
-
-	children = append(children, part2)
-	bd = nil
-	bd = &BlockDevice{Name: "sda", Children: children}
-	expected = ConfiguredPartial
-
-	df = bd.GetConfiguredStatus()
-	if df != expected {
-		t.Fatalf("GetConfiguredStatus() returned returned: %d, expected: %d",
-			df, expected)
-	}
-
-	children = append(children, part3)
-	bd = nil
-	bd = &BlockDevice{Name: "sda", Children: children}
-	expected = ConfiguredEntire
-
-	df = bd.GetConfiguredStatus()
-	if df != expected {
-		t.Fatalf("GetConfiguredStatus() returned returned: %d, expected: %d",
-			df, expected)
-	}
-}
-
 func TestGetDeviceFile(t *testing.T) {
 	bd := &BlockDevice{Name: "sda"}
 	expected := "/dev/sda"
@@ -116,8 +68,13 @@ func TestGetDeviceFile(t *testing.T) {
 
 func TestSupportedFileSystem(t *testing.T) {
 	expected := []string{"btrfs", "ext2", "ext3", "ext4", "swap", "vfat", "xfs", "f2fs"}
-	supported := SupportedFileSystems()
+	supported := []string{}
 	tot := 0
+
+	for key := range bdOps {
+		supported = append(supported, key)
+	}
+	sort.Strings(supported)
 
 	if len(expected) != len(supported) {
 		t.Fatal("supported file system list don't match the expected")
@@ -743,93 +700,6 @@ func TestInvalidDiskSize(t *testing.T) {
 			t.Fatalf("Disk %s Size should be invalid", bd.Name)
 		}
 		t.Logf("Disk %s is Size %d", bd.Name, size)
-	}
-}
-
-func TestValidLabels(t *testing.T) {
-	labelInfo := []struct {
-		fstype string
-		label  string
-	}{
-		{"ext2", "a"},
-		{"ext2", "root"},
-		{"ext2", "1234567890123456"},
-		{"ext3", "a"},
-		{"ext3", "Root"},
-		{"ext3", "1234567890123456"},
-		{"ext4", "a"},
-		{"ext4", "ROOT"},
-		{"ext4", "1234567890123456"},
-		{"swap", "SWAP"},
-		{"swap", "123456789012345"},
-		{"xfs", "home"},
-		{"xfs", "123456789012"},
-		{"f2fs", "home"},
-		{"f2fs", "123456789012345678901234567890123456789012345678901" +
-			"234567890123456789012345678901234567890123456789012" +
-			"345678901234567890123456789012345678901234567890123" +
-			"456789012345678901234567890123456789012345678901234" +
-			"567890123456789012345678901234567890123456789012345" +
-			"678901234567890123456789012345678901234567890123456" +
-			"789012345678901234567890123456789012345678901234567" +
-			"890123456789012345678901234567890123456789012345678" +
-			"901234567890123456789012345678901234567890123456789" +
-			"012345678901234567890123456789012345678901234567890" +
-			"12"},
-		{"btrfs", "home"},
-		{"btrfs", "12345678901234567890123456789012345678901234567890" +
-			"12345678901234567890123456789012345678901234567890" +
-			"12345678901234567890123456789012345678901234567890" +
-			"12345678901234567890123456789012345678901234567890" +
-			"12345678901234567890123456789012345678901234567890" +
-			"12345"},
-		{"vfat", "BOOT"},
-		{"vfat", "12345678901"},
-		{"unknown", "BOOT"},
-		{"unknown", "12345678901"},
-	}
-
-	for _, curr := range labelInfo {
-		if result := IsValidLabel(curr.label, curr.fstype); result != "" {
-			t.Fatalf("Label %q should be valid for fstype %q: %s", curr.label, curr.fstype, result)
-		}
-	}
-}
-
-func TestInvalidLabels(t *testing.T) {
-	labelInfo := []struct {
-		fstype string
-		label  string
-	}{
-		{"ext2", "!"},
-		{"ext2", "12345678901234567"},
-		{"ext3", "@"},
-		{"ext3", "12345678901234567890"},
-		{"ext4", "$"},
-		{"ext4", "1234567890123456789012345"},
-		{"swap", "	"},
-		{"swap", "1234567890123456"},
-		{"xfs", "*"},
-		{"xfs", "1234567890123"},
-		{"btrfs", "("},
-		{"btrfs", ")"},
-		{"btrfs", "="},
-		{"btrfs", "12345678901234567890123456789012345678901234567890" +
-			"12345678901234567890123456789012345678901234567890" +
-			"12345678901234567890123456789012345678901234567890" +
-			"12345678901234567890123456789012345678901234567890" +
-			"12345678901234567890123456789012345678901234567890" +
-			"123456"},
-		{"vfat", "#"},
-		{"vfat", "123456789012"},
-		{"unknown", "~"},
-		{"unknown", "123456789012"},
-	}
-
-	for _, curr := range labelInfo {
-		if result := IsValidLabel(curr.label, curr.fstype); result == "" {
-			t.Fatalf("Label %q should be INVALID for fstype %q", curr.label, curr.fstype)
-		}
 	}
 }
 

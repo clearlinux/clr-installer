@@ -12,7 +12,6 @@ import (
 	"math"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -200,8 +199,6 @@ var (
 	avBlockDevices      []*BlockDevice
 	lsblkBinary         = "lsblk"
 	storageExp          = regexp.MustCompile(`^([0-9]*(\.)?[0-9]*)([bkmgtp]{1}){0,1}$`)
-	labelExp            = regexp.MustCompile(`^([[:word:]-+_]+)$`)
-	mountExp            = regexp.MustCompile(`^(/|(/[[:word:]-+_]+)+)$`)
 	devNameSuffixExp    = regexp.MustCompile(`([0-9]*)$`)
 	blockDeviceStateMap = map[BlockDeviceState]string{
 		BlockDeviceStateRunning:   "running",
@@ -442,34 +439,6 @@ const (
 	// ConfiguredEntire indicates ALL of the required partition are configured
 	ConfiguredEntire
 )
-
-// GetConfiguredStatus check a block device for the required partitions
-// Returns either ConfiguredNone,ConfiguredPartial, or ConfiguredEntire
-func (bd *BlockDevice) GetConfiguredStatus() ConfigStatus {
-	status := ConfiguredNone
-
-	var root, boot, swap bool
-	for _, part := range bd.Children {
-
-		if part.FsType == "vfat" && part.MountPoint == "/boot" {
-			boot = true
-		}
-		if part.MountPoint == "/" {
-			root = true
-		}
-		if part.FsType == "swap" {
-			swap = true
-		}
-	}
-	if boot || root {
-		status = ConfiguredPartial
-	}
-	if boot && root && swap {
-		status = ConfiguredEntire
-	}
-
-	return status
-}
 
 // FsTypeNotSwap returns true if the file system type is not swap
 func (bd *BlockDevice) FsTypeNotSwap() bool {
@@ -967,60 +936,6 @@ func getNextBoolToken(dec *json.Decoder, name string) (bool, error) {
 	return false, errors.Errorf("Unknown ro value: %s", str)
 }
 
-// IsValidLabel returns empty string if label is valid
-func IsValidLabel(label string, fstype string) string {
-	if label == "" {
-		return ""
-	}
-
-	max := MaxLabelLength(fstype)
-	if len(label) > max {
-		return utils.Locale.Get("Label too long, max is %d", max)
-	}
-
-	if !labelExp.MatchString(label) {
-		return utils.Locale.Get("Invalid label characters")
-	}
-
-	return ""
-}
-
-// IsValidMount returns empty string if mount point is a valid directory for mounting
-func IsValidMount(str string) string {
-	if !mountExp.MatchString(str) {
-		return "Invalid mount point"
-	}
-
-	return ""
-}
-
-// IsValidSize returns an empty string if
-// -- size is suffixed with B, K, M, G, T, P
-// -- size is greater than MinimumPartitionSize
-// -- size is less than (or equal to) current size + free space
-func (bd *BlockDevice) IsValidSize(str string, maxPartSize uint64) string {
-	str = strings.ToLower(str)
-
-	if !storageExp.MatchString(str) {
-		return utils.Locale.Get("Invalid size, may only be suffixed by: B, K, M, G, T or P")
-	}
-
-	size, err := ParseVolumeHumanSize(str)
-	if err != nil {
-		return utils.Locale.Get("Invalid size")
-	} else if size < MinimumPartitionSize {
-		return utils.Locale.Get("Size too small")
-	}
-
-	if maxPartSize == 0 {
-		return utils.Locale.Get("Unknown free space")
-	} else if size > maxPartSize {
-		return utils.Locale.Get("Size too large")
-	}
-
-	return ""
-}
-
 // ParseVolumeSize will parse a string formatted (1M, 10G, 2T) size and return its representation
 // in bytes
 func ParseVolumeSize(str string) (uint64, error) {
@@ -1051,43 +966,6 @@ func ParseVolumeSize(str string) (uint64, error) {
 		fsize = fsize * (1 << 40)
 	case "p":
 		fsize = fsize * (1 << 50)
-	}
-
-	size = uint64(math.Round(fsize))
-
-	return size, nil
-}
-
-// ParseVolumeHumanSize will parse a string formatted (1M, 10G, 2T) size and
-// return its representation in human bytes; MB, not MiB
-func ParseVolumeHumanSize(str string) (uint64, error) {
-	var size uint64
-
-	str = strings.ToLower(str)
-
-	if !storageExp.MatchString(str) {
-		return strconv.ParseUint(str, 0, 64)
-	}
-
-	unit := storageExp.ReplaceAllString(str, `$3`)
-	fsize, err := strconv.ParseFloat(storageExp.ReplaceAllString(str, `$1`), 64)
-	if err != nil {
-		return 0, errors.Wrap(err)
-	}
-
-	switch unit {
-	case "b":
-		fsize = fsize * (1.0)
-	case "k":
-		fsize = fsize * (1.0 * 1000.0)
-	case "m":
-		fsize = fsize * (1.0 * 1000.0 * 1000.0)
-	case "g":
-		fsize = fsize * (1.0 * 1000.0 * 1000.0 * 1000.0)
-	case "t":
-		fsize = fsize * (1.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0)
-	case "p":
-		fsize = fsize * (1.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0 * 1000.0)
 	}
 
 	size = uint64(math.Round(fsize))
@@ -1353,32 +1231,6 @@ func (bd *BlockDevice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	return nil
-}
-
-// SupportedFileSystems exposes the currently supported file system
-func SupportedFileSystems() []string {
-	res := []string{}
-
-	for key := range bdOps {
-		res = append(res, key)
-	}
-
-	sort.Strings(res)
-	return res
-}
-
-// LargestFileSystemName returns the length of the largest supported file system name
-func LargestFileSystemName() int {
-	res := 0
-
-	for key := range bdOps {
-		fsl := len(key)
-		if fsl > res {
-			res = fsl
-		}
-	}
-
-	return res
 }
 
 // MaxLabelLength returns the maximum length of a label for
