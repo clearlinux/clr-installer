@@ -1725,19 +1725,34 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool,
 	rootFound := false
 	var rootBlockDevice *BlockDevice
 
+	logPartitionWarning := func(bd *BlockDevice, format string, vargs ...interface{}) string {
+		warning := utils.Locale.Get(format, vargs...)
+		if bd == nil {
+			log.Warning("validatePartitions: %s", warning)
+		} else {
+			log.Warning("validatePartitions: %s %v+", warning, bd)
+		}
+		return warning
+	}
+
+	logPartitionSizeWarning := func(bd *BlockDevice, partSize uint64, label string) string {
+		size, _ := HumanReadableSizeWithPrecision(partSize, 1)
+		return logPartitionWarning(bd, "%s must be %s", label, fmt.Sprintf(">= %s", size))
+	}
+
+	logMissingPartition := func(label string) string {
+		return logPartitionWarning(nil, "Missing %s partition", label)
+	}
+
 	for _, curr := range medias {
 		for _, ch := range curr.Children {
 			if ch.MountPoint == "/boot" {
 				if bootFound {
-					warning := utils.Locale.Get("Found multiple %s partitions", bootLabel)
-					results = append(results, warning)
-					log.Warning("validatePartitions: %s %+v", warning, ch)
+					results = append(results, logPartitionWarning(ch, "Found multiple %s partitions", bootLabel))
 				} else {
 					bootFound = true
 					if ch.FsType != "vfat" {
-						warning := utils.Locale.Get("%s must be %s", bootLabel, "vfat")
-						results = append(results, warning)
-						log.Warning("validatePartitions: %s %+v", warning, ch)
+						results = append(results, logPartitionWarning(ch, "%s must be %s", bootLabel, "vfat"))
 					}
 				}
 				if ch.Size == 0 {
@@ -1746,29 +1761,21 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool,
 					log.Warning("validatePartitions: Skipping %s size check due to skipSize", bootLabel)
 				} else {
 					if ch.Size < bootSize {
-						size, _ := HumanReadableSizeWithPrecision(bootSize, 1)
-						warning := utils.Locale.Get("%s must be %s", bootLabel,
-							fmt.Sprintf(">= %s", size))
-						results = append(results, warning)
-						log.Warning("validatePartitions: %s %+v", warning, ch)
+						results = append(results, logPartitionSizeWarning(ch, bootSize, bootLabel))
 					}
 				}
 			}
 
 			if ch.MountPoint == "/" {
 				if rootFound {
-					warning := utils.Locale.Get("Found multiple %s partitions", rootLabel)
-					results = append(results, warning)
-					log.Warning("validatePartitions: %s %+v", warning, ch)
+					results = append(results, logPartitionWarning(ch, "Found multiple %s partitions", rootLabel))
 				} else {
 					rootFound = true
 					rootBlockDevice = ch.Clone()
 					if !(ch.FsType == "ext2" || ch.FsType == "ext3" ||
 						ch.FsType == "ext4" || ch.FsType == "xfs" ||
 						ch.FsType == "f2fs") {
-						warning := utils.Locale.Get("%s must be %s", rootLabel, "ext*|xfs|f2fs")
-						results = append(results, warning)
-						log.Warning("validatePartitions: %s %+v", warning, ch)
+						results = append(results, logPartitionWarning(ch, "%s must be %s", rootLabel, "ext*|xfs|f2fs"))
 					}
 				}
 				if ch.Size == 0 {
@@ -1777,11 +1784,7 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool,
 					log.Warning("validatePartitions: Skipping %s size check due to skipSize", rootLabel)
 				} else {
 					if ch.Size < rootSize {
-						size, _ := HumanReadableSizeWithPrecision(rootSize, 1)
-						warning := utils.Locale.Get("%s must be %s", rootLabel,
-							fmt.Sprintf(">= %s", size))
-						results = append(results, warning)
-						log.Warning("validatePartitions: %s %+v", warning, ch)
+						results = append(results, logPartitionSizeWarning(ch, rootSize, rootLabel))
 					}
 				}
 			}
@@ -1793,11 +1796,7 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool,
 					log.Warning("validatePartitions: Skipping swap size check due to skipSize")
 				} else {
 					if ch.Size < swapSize {
-						size, _ := HumanReadableSizeWithPrecision(swapSize, 1)
-						warning := utils.Locale.Get("%s must be %s", swapLabel,
-							fmt.Sprintf(">= %s", size))
-						results = append(results, warning)
-						log.Warning("validatePartitions: %s %+v", warning, ch)
+						results = append(results, logPartitionSizeWarning(ch, swapSize, swapLabel))
 					}
 				}
 			}
@@ -1805,40 +1804,34 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool,
 	}
 
 	if !rootFound || rootBlockDevice == nil {
-		warning := utils.Locale.Get("Missing %s partition", rootLabel)
-		results = append(results, warning)
-		log.Warning("validatePartitions: %s", warning)
+		results = append(results, logMissingPartition(rootLabel))
 	}
 
 	if !bootFound {
-		if legacyBios && skipAll {
-			if rootBlockDevice != nil {
-				if !(rootBlockDevice.FsType == "ext2" || rootBlockDevice.FsType == "ext3" ||
-					rootBlockDevice.FsType == "ext4") {
-					// xfs currently not supported due to partition table of MBR requirement
-					warning := utils.Locale.Get("%s must be %s", rootLabel, "ext[234]")
-					results = append(results, warning)
-					log.Warning("validatePartitions: legacyMode, invalid fsType: %s %s %+v",
-						rootBlockDevice.FsType, warning, rootBlockDevice)
+		if skipAll {
+			if legacyBios {
+				if rootBlockDevice != nil {
+					if !(rootBlockDevice.FsType == "ext2" || rootBlockDevice.FsType == "ext3" ||
+						rootBlockDevice.FsType == "ext4") {
+						// xfs currently not supported due to partition table of MBR requirement
+						log.Warning("validatePartitions: legacyMode, invalid fsType: %s", rootBlockDevice.FsType)
+						results = append(results, logPartitionWarning(rootBlockDevice, "%s must be %s", rootLabel, "ext[234]"))
+					}
+					if rootBlockDevice.Type == BlockDeviceTypeCrypt {
+						log.Warning("validatePartitions: legacyMode without /boot can not be encrypted")
+						results = append(results, logPartitionWarning(rootBlockDevice, "Encryption of %s is not supported", rootLabel))
+					}
 				}
-				if rootBlockDevice.Type == BlockDeviceTypeCrypt {
-					warning := utils.Locale.Get("Encryption of %s is not supported", rootLabel)
-					results = append(results, warning)
-					log.Warning("validatePartitions: legacyMode without /boot, %s %+v",
-						warning, rootBlockDevice)
-				}
+			} else {
+				results = append(results, logMissingPartition(bootLabel))
 			}
 		} else {
-			warning := utils.Locale.Get("Missing %s partition", bootLabel)
-			results = append(results, warning)
-			log.Warning("validatePartitions: %s", warning)
+			results = append(results, logMissingPartition(bootLabel))
 		}
 	}
 
 	if !swapFound && !skipAll {
-		warning := utils.Locale.Get("Missing %s partition", swapLabel)
-		results = append(results, warning)
-		log.Warning("validatePartitions: %s", warning)
+		results = append(results, logMissingPartition(swapLabel))
 	}
 
 	return results
