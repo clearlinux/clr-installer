@@ -428,18 +428,6 @@ func (bd *BlockDevice) IsAvailable() bool {
 	return bd.available
 }
 
-// ConfigStatus is the status type for Configuration Status of the installation media
-type ConfigStatus int
-
-const (
-	// ConfiguredNone indicates no installation media has been configured
-	ConfiguredNone ConfigStatus = iota
-	// ConfiguredPartial indicates only some of the required partition are configured
-	ConfiguredPartial
-	// ConfiguredEntire indicates ALL of the required partition are configured
-	ConfiguredEntire
-)
-
 // FsTypeNotSwap returns true if the file system type is not swap
 func (bd *BlockDevice) FsTypeNotSwap() bool {
 	return bd.FsType != "swap"
