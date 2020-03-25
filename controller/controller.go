@@ -957,14 +957,15 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 		}
 	} else {
 		log.Info("Telemetry disabled, skipping record collection.")
-
-		log.Info("Running telemctl opt-out")
-		if err := md.Telemetry.OptOut(rootDir); err != nil {
-			log.Warning("Unable to opt-out, telemetry might not be present")
-			errMsgs = append(errMsgs, "Unable to opt-out, telemetry might not be present")
-		}
-		if len(errMsgs) > 0 {
-			return errors.Errorf("%s", strings.Join(errMsgs, ";"))
+		if md.Telemetry.Installed(rootDir) {
+			log.Info("Running telemctl opt-out")
+			if err := md.Telemetry.OptOut(rootDir); err != nil {
+				log.Warning("Unable to opt-out, telemetry might not be present")
+				errMsgs = append(errMsgs, "Unable to opt-out, telemetry might not be present")
+			}
+			if len(errMsgs) > 0 {
+				return errors.Errorf("%s", strings.Join(errMsgs, ";"))
+			}
 		}
 	}
 
