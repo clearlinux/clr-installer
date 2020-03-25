@@ -562,7 +562,7 @@ func (si *SystemInstall) IsTelemetryEnabled() bool {
 
 // IsTelemetryInstalled return true if telemetry tooling is present, false otherwise
 func (si *SystemInstall) IsTelemetryInstalled() bool {
-	return si.Telemetry.Installed()
+	return si.Telemetry.Installed("")
 }
 
 // WriteFile writes a yaml formatted representation of si into the provided file path

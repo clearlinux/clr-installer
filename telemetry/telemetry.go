@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -297,8 +297,9 @@ func (tl *Telemetry) CopyTelemetryRecords(rootDir string) error {
 }
 
 // Installed returns true if telemetry tooling is present, false otherwise
-func (tl *Telemetry) Installed() bool {
-	if _, err := os.Stat(recordGenCmdPath); err != nil {
+func (tl *Telemetry) Installed(rootDir string) bool {
+	bin := filepath.Join(rootDir, recordGenCmdPath)
+	if _, err := os.Stat(bin); err != nil {
 		if os.IsNotExist(err) {
 			return false
 		}
@@ -312,7 +313,7 @@ func (tl *Telemetry) LogRecord(class string, severity int, payload string) error
 
 	// Skip record generation if telemetry tooling is not present, and do not
 	// return an error since telemetry bundle is not a requirement.
-	if tl.Installed() == false {
+	if tl.Installed("") == false {
 		log.Warning("Telemetry is not present in the installer, skip record generation")
 		return nil
 	}
