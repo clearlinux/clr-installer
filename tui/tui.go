@@ -103,6 +103,12 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 		tui.model.CopySwupd = true
 	}
 
+	// Check if we can boot EFI
+	if !utils.HostHasEFI() {
+		log.Warning("Failed to find EFI firmware, falling back to legacy BIOS for installation.")
+		tui.model.LegacyBios = true
+	}
+
 	clui.SetThemePath(themeDir)
 
 	themeName := "clr-installer"
@@ -182,12 +188,6 @@ func (tui *Tui) Run(md *model.SystemInstall, rootDir string, options args.Args) 
 		} else {
 			log.Warning("Failed to create warning dialog: %s", err)
 		}
-	}
-
-	// Check if we can boot EFI
-	if !utils.HostHasEFI() {
-		log.Warning("Failed to find EFI firmware, falling back to legacy BIOS for installation.")
-		tui.model.LegacyBios = true
 	}
 
 	clui.MainLoop()
