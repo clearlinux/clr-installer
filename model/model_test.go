@@ -364,7 +364,7 @@ func TestAddTargetMedia(t *testing.T) {
 	clone.Name = clone.Name + "-cloned"
 
 	// Check for encryption passphrase needed; should not
-	if nm.EncryptionRequiresPassphrase() {
+	if nm.EncryptionRequiresPassphrase(false) {
 		t.Fatal("nm.EncryptionRequiresPassphrase() should NOT be true")
 	}
 
@@ -609,7 +609,7 @@ func TestAddEncryptedTargetMedia(t *testing.T) {
 	clone.Name = clone.Name + "-cloned"
 
 	// Check for encryption passphrase needed; should not
-	if !nm.EncryptionRequiresPassphrase() {
+	if !nm.EncryptionRequiresPassphrase(false) {
 		t.Fatal("nm.EncryptionRequiresPassphrase() must always be true")
 	}
 

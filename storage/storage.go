@@ -158,6 +158,10 @@ const (
 	// LegacyModeWarning specifies the warning message we are using legacy bios mode
 	LegacyModeWarning = "WARNING: Booting set for legacy BIOS mode."
 
+	// LegacyNoBootWarning specifies the warning message we are using legacy bios mode
+	// and there is not /boot partition; so will NOT be able to boot in EFI mode.
+	LegacyNoBootWarning = "WARNING: system can not boot EFI mode due to no /boot partition."
+
 	// PartitioningWarning specifies the warning message for writing partition table
 	PartitioningWarning = "WARNING: New Partition table will be created."
 
@@ -443,53 +447,6 @@ func (bd *BlockDevice) DeviceHasSwap() bool {
 		}
 	}
 	return hasSwap
-}
-
-// Validate checks if the minimal requirements for a installation is met
-func Validate(medias []*BlockDevice, legacyBios bool, cryptPass string) error {
-	bootPartition := false
-	rootPartition := false
-	encrypted := false
-
-	for _, bd := range medias {
-		for _, ch := range bd.Children {
-			//log.Debug("storage.Validate: bd: %+v, child: %+v", bd, ch)
-			if ch.FsType == "vfat" && ch.MountPoint == "/boot" {
-				bootPartition = true
-
-				if ch.Type == BlockDeviceTypeCrypt {
-					return errors.ValidationErrorf("Encryption of /boot is not supported")
-				}
-			}
-
-			if ch.MountPoint == "/" {
-				rootPartition = true
-			}
-
-			if ch.Type == BlockDeviceTypeCrypt && ch.FsTypeNotSwap() {
-				encrypted = true
-			}
-
-			if bd.Type != BlockDeviceTypeDisk && bd.Size == 0 && ch.Size == 0 {
-				return errors.ValidationErrorf("Both image size and partition size cannot be 0")
-			}
-		}
-
-	}
-
-	if !bootPartition && !legacyBios {
-		return errors.ValidationErrorf("Could not find a suitable EFI partition")
-	}
-
-	if !rootPartition {
-		return errors.ValidationErrorf("Could not find a root partition")
-	}
-
-	if encrypted && cryptPass == "" {
-		return errors.ValidationErrorf("Encrypted file system enabled, but missing passphase")
-	}
-
-	return nil
 }
 
 // RemoveChild removes a partition from disk block device
@@ -1395,4 +1352,19 @@ func (bd *BlockDevice) DiskSize() (uint64, error) {
 
 func (bd *BlockDevice) logDetails() {
 	log.Debug("%s: fsType=%s, mount=%s, size=%d, type=%s", bd.Name, bd.FsType, bd.MountPoint, bd.Size, bd.Type)
+}
+
+// IsAdvancedConfiguration checks all partition to see if advanced labeling was enabled
+func (bd *BlockDevice) IsAdvancedConfiguration() bool {
+	advanced := bd.LabeledAdvanced
+
+	for _, ch := range bd.Children {
+		if len(ch.Children) > 0 {
+			advanced = advanced || ch.IsAdvancedConfiguration()
+		} else {
+			advanced = advanced || ch.LabeledAdvanced
+		}
+	}
+
+	return advanced
 }

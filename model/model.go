@@ -322,11 +322,11 @@ func (si *SystemInstall) AddUser(usr *user.User) {
 }
 
 // EncryptionRequiresPassphrase checks all partition to see if encryption was enabled
-func (si *SystemInstall) EncryptionRequiresPassphrase() bool {
+func (si *SystemInstall) EncryptionRequiresPassphrase(isAdvanced bool) bool {
 	enabled := false
 
 	for _, curr := range si.TargetMedias {
-		enabled = enabled || curr.EncryptionRequiresPassphrase()
+		enabled = enabled || curr.EncryptionRequiresPassphrase(isAdvanced)
 	}
 
 	return enabled
@@ -344,8 +344,16 @@ func (si *SystemInstall) Validate() error {
 		return errors.ValidationErrorf("System Installation must provide a target media")
 	}
 
-	if err := storage.Validate(si.TargetMedias, si.LegacyBios, si.CryptPass); err != nil {
-		return err
+	var results []string
+	if si.IsDesktopInstall() {
+		results = storage.DesktopValidatePartitions(si.TargetMedias, si.LegacyBios,
+			si.SkipValidationSize)
+	} else {
+		results = storage.ServerValidatePartitions(si.TargetMedias, si.LegacyBios,
+			si.SkipValidationSize)
+	}
+	if len(results) > 0 && !si.SkipValidationAll {
+		return errors.ValidationErrorf(strings.Join(results, ", "))
 	}
 
 	if si.Timezone == nil {

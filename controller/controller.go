@@ -80,7 +80,12 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		log.Error("Failed to write pre-install YAML file (%v) %q", err, preConfFile)
 	}
 
-	if model.EncryptionRequiresPassphrase() && model.CryptPass == "" {
+	advanced := false
+	for _, tm := range model.TargetMedias {
+		advanced = advanced || tm.IsAdvancedConfiguration()
+	}
+
+	if model.EncryptionRequiresPassphrase(advanced) && model.CryptPass == "" {
 		model.CryptPass = storage.GetPassPhrase()
 		if model.CryptPass == "" {
 			return errors.Errorf("Can not create encrypted file system, no passphrase")

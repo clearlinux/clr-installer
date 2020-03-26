@@ -44,15 +44,17 @@ const (
 )
 
 // EncryptionRequiresPassphrase checks all partition to see if encryption was enabled
-func (bd *BlockDevice) EncryptionRequiresPassphrase() bool {
+func (bd *BlockDevice) EncryptionRequiresPassphrase(isAdvanced bool) bool {
 	enabled := (bd.Type == BlockDeviceTypeCrypt && bd.FsType != "swap")
 
 	for _, ch := range bd.Children {
 		if len(ch.Children) > 0 {
-			enabled = enabled || ch.EncryptionRequiresPassphrase()
+			enabled = enabled || ch.EncryptionRequiresPassphrase(isAdvanced)
 		} else {
-			enabled = enabled || (ch.Type == BlockDeviceTypeCrypt &&
-				ch.FsTypeNotSwap())
+			enabled = enabled ||
+				(ch.Type == BlockDeviceTypeCrypt &&
+					ch.LabeledAdvanced == isAdvanced &&
+					ch.FsTypeNotSwap())
 		}
 	}
 
