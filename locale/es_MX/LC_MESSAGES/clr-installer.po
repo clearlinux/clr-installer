@@ -662,15 +662,6 @@ msgstr "Kernel Linux de vanguardia adaptado a medida de metal"
 msgid "Run the latest Long Term Support (LTS) Linux Kernel"
 msgstr "Ejecute el último kernel de Linux de soporte a largo plazo (LTS)"
 
-msgid "Run the Long Term Support (LTS) 2019 Linux Kernel 5.4"
-msgstr "Ejecute el núcleo de soporte a largo plazo (LTS) 2019 Linux Kernel 5.4"
-
-msgid "Run the Long Term Support (LTS) 2018 Linux Kernel 4.19"
-msgstr "Ejecute el núcleo de soporte a largo plazo (LTS) 2018 Linux Kernel 4.19"
-
-msgid "Run the Long Term Support (LTS) 2017 Linux Kernel 4.14"
-msgstr "Ejecute el núcleo de soporte a largo plazo (LTS) 2017 Linux Kernel 4.14"
-
 #, c-format
 msgid "See %s for details."
 msgstr "Ver %s para más detalles."
