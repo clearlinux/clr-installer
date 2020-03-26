@@ -662,15 +662,6 @@ msgstr "针对裸机定制的尖端 Linux 内核"
 msgid "Run the latest Long Term Support (LTS) Linux Kernel"
 msgstr "运行最新的长期支持 (LTS) Linux 内核"
 
-msgid "Run the Long Term Support (LTS) 2019 Linux Kernel 5.4"
-msgstr "运行长期支持 (LTS) 2019 Linux 内核 5.4"
-
-msgid "Run the Long Term Support (LTS) 2018 Linux Kernel 4.19"
-msgstr "运行长期支持 (LTS) 2018 Linux 内核 4.19"
-
-msgid "Run the Long Term Support (LTS) 2017 Linux Kernel 4.14"
-msgstr "运行长期支持 (LTS) 2017 Linux 内核 4.14"
-
 #, c-format
 msgid "See %s for details."
 msgstr "请参阅 %s 了解详情。"

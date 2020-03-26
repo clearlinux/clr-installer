@@ -10,21 +10,6 @@
       "name": "LTS Latest",
       "desc": "Run the latest Long Term Support (LTS) Linux Kernel",
       "note": "THIS BUNDLE is auto-selected for VirtualBox in model.go"
-    },
-		{
-      "bundle": "kernel-lts2019",
-      "name": "LTS 5.4",
-      "desc": "Run the Long Term Support (LTS) 2019 Linux Kernel 5.4"
-    },
-		{
-      "bundle": "kernel-lts2018",
-      "name": "LTS 4.19",
-      "desc": "Run the Long Term Support (LTS) 2018 Linux Kernel 4.19"
-    },
-		{
-      "bundle": "kernel-lts2017",
-      "name": "LTS 4.14",
-      "desc": "Run the Long Term Support (LTS) 2017 Linux Kernel 4.14"
     }
   ]
 }
