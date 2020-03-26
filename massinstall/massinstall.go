@@ -124,6 +124,8 @@ func (mi *MassInstall) MustRun(args *args.Args) bool {
 // "mass installer" frontend
 func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args.Args) (bool, error) {
 	var instError error
+	var devs []*storage.BlockDevice
+	var results []string
 
 	// If there are no media defined, then we should look for
 	// Advanced Configuration labels
@@ -134,24 +136,46 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 			md.InstallSelected[curr.Name] = storage.InstallTarget{WholeDisk: true}
 			log.Debug("Mass installer using defined media in YAML")
 		}
+
+		if md.SkipValidationAll {
+			log.Warning("massinstall: Skipping all partition checks due to SkipValidationAll")
+		} else {
+			if md.IsDesktopInstall() {
+				results = storage.DesktopValidatePartitions(md.TargetMedias, md.LegacyBios, md.SkipValidationSize)
+			} else {
+				results = storage.ServerValidatePartitions(md.TargetMedias, md.LegacyBios, md.SkipValidationSize)
+			}
+		}
+		if len(results) > 0 {
+			for _, errStr := range results {
+				log.Error("Disk Partition: %q", errStr)
+				fmt.Printf("Disk Partition: %q\n", errStr)
+			}
+			return false, nil
+		}
 	} else {
 		// Check for Advance Partitioning labels
 		log.Debug("Mass installer found no media in YAML; checking for Advanced Disk Partition Labels.")
 		isAdvancedSelected := false
-		devs, err := storage.ListAvailableBlockDevices(md.TargetMedias)
+		var err error
+		devs, err = storage.ListAvailableBlockDevices(md.TargetMedias)
+		log.Debug("massinstall: results of ListAvailableBlockDevices: %+v", devs)
+
 		if err != nil {
 			log.Error("Error detecting advanced partitions: %q", err)
 			fmt.Printf("Error detecting advanced partitions: %q\n", err)
 			return false, err
 		}
 
-		for _, curr := range storage.FindAdvancedInstallTargets(devs) {
+		devs = storage.FindAdvancedInstallTargets(devs)
+		for _, curr := range devs {
 			md.AddTargetMedia(curr)
-			log.Debug("AddTargetMedia %+v", curr)
+			log.Debug("massinstall: AddTargetMedia %+v", curr)
 			md.InstallSelected[curr.Name] = storage.InstallTarget{Name: curr.Name, Friendly: curr.Model,
 				Removable: curr.RemovableDevice}
 			isAdvancedSelected = true
 		}
+
 		if isAdvancedSelected {
 			log.Debug("Mass installer operating in Advanced Disk Partition Mode.")
 			var results []string
