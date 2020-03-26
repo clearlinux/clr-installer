@@ -1406,5 +1406,5 @@ func (bd *BlockDevice) DiskSize() (uint64, error) {
 }
 
 func (bd *BlockDevice) logDetails() {
-	log.Debug(bd.Name, bd.FsType, bd.MountPoint, bd.Size, bd.Type)
+	log.Debug("%s: fsType=%s, mount=%s, size=%d, type=%s", bd.Name, bd.FsType, bd.MountPoint, bd.Size, bd.Type)
 }

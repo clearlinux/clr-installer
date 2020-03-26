@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/errors"
@@ -167,11 +168,17 @@ func LevelStr(level int) (string, error) {
 }
 
 func logTag(tag string, format string, a ...interface{}) {
-	f := fmt.Sprintf("[%s] %s\n", tag, format)
+	// If there are no variable to pass to the format,
+	// then we can escape any % signs.
+	if len(a) < 1 {
+		format = strings.ReplaceAll(format, "%", "%%")
+	}
+
+	f := "[" + tag + "] " + format + "\n"
 	output := fmt.Sprintf(f, a...)
 
 	if level >= LogLevelVerbose {
-		log.Printf(output)
+		log.Print(output)
 		return
 	}
 
@@ -184,10 +191,10 @@ func logTag(tag string, format string, a ...interface{}) {
 			}
 
 			repeat := fmt.Sprintf("[%s] [Previous line repeated %d time%s]\n", tag, lineCount, plural)
-			log.Printf(repeat)
+			log.Print(repeat)
 		}
 
-		log.Printf(output)
+		log.Print(output)
 
 		lineLast = output
 		lineCount = 0
