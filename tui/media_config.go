@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -67,7 +67,7 @@ func (page *MediaConfigPage) GetConfiguredValue() string {
 	page.done = page.getModel().TargetMedias != nil
 
 	if page.isAdvancedSelected {
-		results := storage.ServerValidateAdvancedPartitions(tm)
+		results := storage.ServerValidateAdvancedPartitions(tm, model.LegacyBios, model.SkipValidationSize)
 		if len(results) > 0 {
 			return fmt.Sprintf("Warning: %s", strings.Join(results, ", "))
 		}
@@ -110,14 +110,15 @@ func (page *MediaConfigPage) GetConfigDefinition() int {
 		}
 	}
 
-	tm := page.getModel().TargetMedias
+	si := page.getModel()
+	tm := si.TargetMedias
 
 	if tm == nil {
 		return ConfigNotDefined
 	}
 
 	if page.isAdvancedSelected {
-		results := storage.ServerValidateAdvancedPartitions(tm)
+		results := storage.ServerValidateAdvancedPartitions(tm, si.LegacyBios, si.SkipValidationSize)
 		if len(results) > 0 {
 			model := page.getModel()
 			model.ClearInstallSelected()
@@ -384,7 +385,7 @@ func (page *MediaConfigPage) advancedRadioOnChange(active bool) {
 		page.advancedCfgBtn.SetEnabled(false)
 	} else {
 		si := page.getModel()
-		results := storage.ServerValidateAdvancedPartitions(si.TargetMedias)
+		results := storage.ServerValidateAdvancedPartitions(si.TargetMedias, si.LegacyBios, si.SkipValidationSize)
 		warning := ""
 		if len(results) > 0 {
 			warning = strings.Join(results, ", ")

@@ -154,6 +154,19 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 		}
 		if isAdvancedSelected {
 			log.Debug("Mass installer operating in Advanced Disk Partition Mode.")
+			var results []string
+			if md.IsDesktopInstall() {
+				results = storage.DesktopValidateAdvancedPartitions(devs, md.LegacyBios, md.SkipValidationSize)
+			} else {
+				results = storage.ServerValidateAdvancedPartitions(devs, md.LegacyBios, md.SkipValidationSize)
+			}
+			if len(results) > 0 {
+				for _, errStr := range results {
+					log.Error("Advanced Disk Partition: %q", errStr)
+					fmt.Printf("Advanced Disk Partition: %q\n", errStr)
+				}
+				return false, nil
+			}
 		} else {
 			log.Error("Failed to detected advanced partition labels!")
 			fmt.Println("Failed to detected advanced partition labels!")

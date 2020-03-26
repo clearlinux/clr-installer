@@ -88,7 +88,8 @@ func (disk *DiskConfig) advancedButtonToggled() {
 	disk.encryptCheck.SetSensitive(storage.AdvancedPartitionsRequireEncryption(disk.model.TargetMedias))
 	disk.encryptCheck.SetActive(false) // Force off for Advance as not support yet
 
-	results := storage.DesktopValidateAdvancedPartitions(disk.model.TargetMedias)
+	results := storage.DesktopValidateAdvancedPartitions(disk.model.TargetMedias,
+		disk.model.LegacyBios, disk.model.SkipValidationSize)
 	if len(results) > 0 {
 		disk.model.ClearInstallSelected()
 
@@ -1174,7 +1175,7 @@ func (disk *DiskConfig) GetConfiguredValue() string {
 	tm := disk.model.TargetMedias
 
 	if disk.isAdvancedSelected {
-		results := storage.DesktopValidateAdvancedPartitions(tm)
+		results := storage.DesktopValidateAdvancedPartitions(tm, disk.model.LegacyBios, disk.model.SkipValidationSize)
 		if len(results) > 0 {
 			disk.model.ClearInstallSelected()
 			disk.model.TargetMedias = nil
