@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -28,6 +27,12 @@ type blockDeviceOps struct {
 	makeFsArgs      []string
 	makePartCommand func(bd *BlockDevice) (string, error)
 }
+
+// ByBDName implements sort.Interface for []*BlockDevice based on the Name field.
+type ByBDName []*BlockDevice
+
+func (a ByBDName) Len() int      { return len(a) }
+func (a ByBDName) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 
 var (
 	bdOps = map[string]*blockDeviceOps{
@@ -177,41 +182,6 @@ func (bd *BlockDevice) Mount(root string) error {
 	targetPath := filepath.Join(root, bd.MountPoint)
 
 	return mountFs(bd.GetMappedDeviceFile(), targetPath, bd.FsType, syscall.MS_RELATIME)
-}
-
-// UmountAll unmounts all previously mounted devices
-func UmountAll() error {
-	var mountError error
-	fails := make([]string, 0)
-
-	// Ensure the top level mount point is unmounted last
-	sort.Sort(sort.Reverse(sort.StringSlice(mountedPoints)))
-
-	for _, point := range mountedPoints {
-		if err := syscall.Unmount(point, syscall.MNT_FORCE|syscall.MNT_DETACH); err != nil {
-			err = fmt.Errorf("umount %s: %v", point, err)
-			log.ErrorError(err)
-			fails = append(fails, point)
-		} else {
-			log.Debug("Unmounted ok: %s", point)
-		}
-	}
-
-	for _, point := range mountedEncrypts {
-		if err := unMapEncrypted(point); err != nil {
-			err = fmt.Errorf("unmap encrypted %s: %v", point, err)
-			log.ErrorError(err)
-			fails = append(fails, "e-"+point)
-		} else {
-			log.Debug("Encrypted partition %q unmapped", point)
-		}
-	}
-
-	if len(fails) > 0 {
-		mountError = errors.Errorf("Failed to unmount: %v", fails)
-	}
-
-	return mountError
 }
 
 // When you specify a start (or end) position to the parted mkpart command,
@@ -1033,63 +1003,6 @@ func (bd *BlockDevice) setPartitionTable(partTable *bytes.Buffer) {
 	bd.PartTable = partitionList
 }
 
-// MountMetaFs mounts proc, sysfs and devfs in the target installation directory
-func MountMetaFs(rootDir string) error {
-	err := mountProcFs(rootDir)
-	if err != nil {
-		return err
-	}
-
-	err = mountSysFs(rootDir)
-	if err != nil {
-		return err
-	}
-
-	err = mountDevFs(rootDir)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func mountFs(device string, mPointPath string, fsType string, flags uintptr) error {
-	var err error
-
-	if _, err = os.Stat(mPointPath); os.IsNotExist(err) {
-		if err = os.MkdirAll(mPointPath, 0777); err != nil {
-			return errors.Errorf("mkdir %s: %v", mPointPath, err)
-		}
-	}
-
-	if err = syscall.Mount(device, mPointPath, fsType, flags, ""); err != nil {
-		return errors.Errorf("mount %s %s %s: %v", device, mPointPath, fsType, err)
-	}
-	log.Debug("Mounted ok: %s", mPointPath)
-	// Store the mount point for later unmounting
-	mountedPoints = append(mountedPoints, mPointPath)
-
-	return err
-}
-
-func mountDevFs(rootDir string) error {
-	mPointPath := filepath.Join(rootDir, "dev")
-
-	return mountFs("/dev", mPointPath, "devtmpfs", syscall.MS_BIND)
-}
-
-func mountSysFs(rootDir string) error {
-	mPointPath := filepath.Join(rootDir, "sys")
-
-	return mountFs("/sys", mPointPath, "sysfs", syscall.MS_BIND)
-}
-
-func mountProcFs(rootDir string) error {
-	mPointPath := filepath.Join(rootDir, "proc")
-
-	return mountFs("/proc", mPointPath, "proc", syscall.MS_BIND)
-}
-
 func getMakeFsLabel(bd *BlockDevice) []string {
 	label := []string{}
 	labelArg := "-L"
@@ -1613,15 +1526,6 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 						}
 					}
 					break
-					/*
-						case "e":
-							if ch.MountPoint == "/boot" {
-								log.Warning("FindAdvancedInstallTargets: /boot can no be encrypted, skipping")
-							} else {
-								ch.Type = BlockDeviceTypeCrypt
-								log.Debug("FindAdvancedInstallTargets: Encrypt partition %s", ch.Name)
-							}
-					*/
 				case "f":
 					ch.FormatPartition = true
 					log.Debug("FindAdvancedInstallTargets: Format partition %s enabled", ch.Name)
@@ -1664,12 +1568,6 @@ func FormatInstallPortion(target InstallTarget) string {
 
 	return portion
 }
-
-// ByBDName implements sort.Interface for []*BlockDevice based on the Name field.
-type ByBDName []*BlockDevice
-
-func (a ByBDName) Len() int      { return len(a) }
-func (a ByBDName) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 
 func (a ByBDName) Less(i, j int) bool {
 	iPartNum := devNameSuffixExp.FindString(a[i].Name)
@@ -1920,14 +1818,6 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice, legacyBi
 						results = append(results, warning)
 					}
 					break
-					/*
-						case "e":
-							if strings.HasPrefix(strings.ToLower(ch.PartitionLabel), "clr_boot") {
-								warning := utils.Locale.Get("Encryption of %s is not supported", "CLR_BOOT")
-								results = append(results, warning)
-								log.Warning("validateAdvancedPartitions: %s %+v", warning, ch)
-							}
-					*/
 				}
 			}
 		}
