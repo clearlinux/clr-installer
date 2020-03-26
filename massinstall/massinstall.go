@@ -130,6 +130,21 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 	// If there are no media defined, then we should look for
 	// Advanced Configuration labels
 	if len(md.TargetMedias) > 0 {
+		// If the partitions are defined from the configuration file,
+		// assume the user knows what they are doing and ignore validation checks
+		if !options.SkipValidationSizeSet && !options.SkipValidationAllSet {
+			md.SkipValidationSize = true
+			md.SkipValidationAll = true
+		} else {
+			if !options.SkipValidationSizeSet {
+				md.SkipValidationSize = true
+			} else {
+				if !options.SkipValidationAllSet {
+					md.SkipValidationAll = false
+				}
+			}
+		}
+
 		// Need to ensure the partitioner knows we are running from
 		// the command line and will be using the whole disk
 		for _, curr := range md.TargetMedias {
@@ -137,20 +152,19 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 			log.Debug("Mass installer using defined media in YAML")
 		}
 
-		if md.SkipValidationAll {
-			log.Warning("massinstall: Skipping all partition checks due to SkipValidationAll")
+		if md.IsDesktopInstall() {
+			results = storage.DesktopValidatePartitions(md.TargetMedias, md.LegacyBios,
+				md.SkipValidationSize, md.SkipValidationAll)
 		} else {
-			if md.IsDesktopInstall() {
-				results = storage.DesktopValidatePartitions(md.TargetMedias, md.LegacyBios, md.SkipValidationSize)
-			} else {
-				results = storage.ServerValidatePartitions(md.TargetMedias, md.LegacyBios, md.SkipValidationSize)
-			}
+			results = storage.ServerValidatePartitions(md.TargetMedias, md.LegacyBios,
+				md.SkipValidationSize, md.SkipValidationAll)
 		}
 		if len(results) > 0 {
 			for _, errStr := range results {
-				log.Error("Disk Partition: %q", errStr)
-				fmt.Printf("Disk Partition: %q\n", errStr)
+				log.Error("Disk Partition: Validation Error: %q", errStr)
+				fmt.Printf("Disk Partition: Validation Error: %q\n", errStr)
 			}
+
 			return false, nil
 		}
 	} else {
@@ -180,15 +194,18 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 			log.Debug("Mass installer operating in Advanced Disk Partition Mode.")
 			var results []string
 			if md.IsDesktopInstall() {
-				results = storage.DesktopValidateAdvancedPartitions(devs, md.LegacyBios, md.SkipValidationSize)
+				results = storage.DesktopValidateAdvancedPartitions(devs, md.LegacyBios,
+					md.SkipValidationSize, md.SkipValidationAll)
 			} else {
-				results = storage.ServerValidateAdvancedPartitions(devs, md.LegacyBios, md.SkipValidationSize)
+				results = storage.ServerValidateAdvancedPartitions(devs, md.LegacyBios,
+					md.SkipValidationSize, md.SkipValidationAll)
 			}
 			if len(results) > 0 {
 				for _, errStr := range results {
-					log.Error("Advanced Disk Partition: %q", errStr)
-					fmt.Printf("Advanced Disk Partition: %q\n", errStr)
+					log.Error("Advanced Disk Partition: Validation Error: %q", errStr)
+					fmt.Printf("Advanced Disk Partition: Validation Error: %q\n", errStr)
 				}
+
 				return false, nil
 			}
 		} else {
