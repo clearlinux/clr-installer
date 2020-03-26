@@ -1693,20 +1693,21 @@ func (a ByBDName) Less(i, j int) bool {
 
 // ServerValidatePartitions returns an array of validation error
 // strings for the partitions based on a Server installation.
-func ServerValidatePartitions(medias []*BlockDevice, legacyBios bool, skipSize bool) []string {
+func ServerValidatePartitions(medias []*BlockDevice, legacyBios bool, skipSize bool, skipAll bool) []string {
 	advancedMode := false
-	return validatePartitions(MinimumServerInstallSize, medias, legacyBios, skipSize, advancedMode)
+	return validatePartitions(MinimumServerInstallSize, medias, legacyBios, skipSize, skipAll, advancedMode)
 }
 
 // DesktopValidatePartitions returns an array of validation error
 // strings for the partitions based on a Desktop installation.
-func DesktopValidatePartitions(medias []*BlockDevice, legacyBios bool, skipSize bool) []string {
+func DesktopValidatePartitions(medias []*BlockDevice, legacyBios bool, skipSize bool, skipAll bool) []string {
 	advancedMode := false
-	return validatePartitions(MinimumDesktopInstallSize, medias, legacyBios, skipSize, advancedMode)
+	return validatePartitions(MinimumDesktopInstallSize, medias, legacyBios, skipSize, skipAll, advancedMode)
 }
 
 // validatePartitions returns an array of validation error strings
-func validatePartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool, skipSize bool, advancedMode bool) []string {
+func validatePartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool,
+	skipSize bool, skipAll bool, advancedMode bool) []string {
 	results := []string{}
 	rootLabel := "/ (root)"
 	bootLabel := "/boot"
@@ -1810,7 +1811,7 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool,
 	}
 
 	if !bootFound {
-		if legacyBios {
+		if legacyBios && skipAll {
 			if rootBlockDevice != nil {
 				if !(rootBlockDevice.FsType == "ext2" || rootBlockDevice.FsType == "ext3" ||
 					rootBlockDevice.FsType == "ext4") {
@@ -1834,7 +1835,7 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool,
 		}
 	}
 
-	if !swapFound {
+	if !swapFound && !skipAll {
 		warning := utils.Locale.Get("Missing %s partition", swapLabel)
 		results = append(results, warning)
 		log.Warning("validatePartitions: %s", warning)
@@ -1845,25 +1846,28 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool,
 
 // ServerValidateAdvancedPartitions returns an array of validation error
 // strings for the advanced partitions based on a Server installation.
-func ServerValidateAdvancedPartitions(medias []*BlockDevice, legacyBios bool, skipSize bool) []string {
-	return validateAdvancedPartitions(MinimumServerInstallSize, medias, legacyBios, skipSize)
+func ServerValidateAdvancedPartitions(medias []*BlockDevice, legacyBios bool,
+	skipSize bool, skipAll bool) []string {
+	return validateAdvancedPartitions(MinimumServerInstallSize, medias, legacyBios, skipSize, skipAll)
 }
 
 // DesktopValidateAdvancedPartitions returns an array of validation error
 // strings for the advanced partitions based on a Desktop installation.
-func DesktopValidateAdvancedPartitions(medias []*BlockDevice, legacyBios bool, skipSize bool) []string {
-	return validateAdvancedPartitions(MinimumDesktopInstallSize, medias, legacyBios, skipSize)
+func DesktopValidateAdvancedPartitions(medias []*BlockDevice, legacyBios bool,
+	skipSize bool, skipAll bool) []string {
+	return validateAdvancedPartitions(MinimumDesktopInstallSize, medias, legacyBios, skipSize, skipAll)
 }
 
 // validateAdvancedPartitions returns an array of validation error
 // strings for the advanced partitions
-func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool, skipSize bool) []string {
+func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool,
+	skipSize bool, skipAll bool) []string {
 	results := []string{}
 
 	labelMap := make(map[string]bool)
 
 	advancedMode := true // This is Advanced Mode
-	valResults := validatePartitions(rootSize, medias, legacyBios, skipSize, advancedMode)
+	valResults := validatePartitions(rootSize, medias, legacyBios, skipSize, skipAll, advancedMode)
 	results = append(results, valResults...)
 
 	for _, curr := range medias {

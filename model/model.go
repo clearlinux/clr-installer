@@ -347,10 +347,10 @@ func (si *SystemInstall) Validate() error {
 	var results []string
 	if si.IsDesktopInstall() {
 		results = storage.DesktopValidatePartitions(si.TargetMedias, si.LegacyBios,
-			si.SkipValidationSize)
+			si.SkipValidationSize, si.SkipValidationAll)
 	} else {
 		results = storage.ServerValidatePartitions(si.TargetMedias, si.LegacyBios,
-			si.SkipValidationSize)
+			si.SkipValidationSize, si.SkipValidationAll)
 	}
 	if len(results) > 0 && !si.SkipValidationAll {
 		return errors.ValidationErrorf(strings.Join(results, ", "))
