@@ -118,10 +118,10 @@ func (bd *BlockDevice) updatePartitionInfo() error {
 		if len(fields) == 2 {
 			if fields[0] == "LABEL" {
 				bd.Label = fields[1]
-				log.Debug("updatePartitionInfo: Updated %d LABEL: %s", devFile, bd.Label)
+				log.Debug("updatePartitionInfo: Updated %s LABEL: %s", devFile, bd.Label)
 			} else if fields[0] == "UUID" {
 				bd.UUID = fields[1]
-				log.Debug("updatePartitionInfo: Updated %d UUID: %s", devFile, bd.UUID)
+				log.Debug("updatePartitionInfo: Updated %s UUID: %s", devFile, bd.UUID)
 			}
 		} else {
 			log.Debug("updatePartitionInfo: Ignoring unknown line: %s", line)
@@ -488,7 +488,7 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 		retries := 3
 		for {
 			mkPartCmd := mkPart + " " + getStartEndMB(start, end)
-			log.Debug("WritePartitionTable: mkPartCmd: %s", mkPartCmd)
+			log.Debug("WritePartitionTable: mkPartCmd: " + mkPartCmd)
 
 			args := append(baseArgs, mkPartCmd)
 

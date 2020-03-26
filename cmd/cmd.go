@@ -148,7 +148,7 @@ func RunAndProcessOutput(printPrefix string, output Output, args ...string) erro
 	var exe string
 	var cmdArgs []string
 
-	log.Debug("%s", strings.Join(args, " "))
+	log.Debug(strings.Join(args, " "))
 
 	exe = args[0]
 	cmdArgs = args[1:]
