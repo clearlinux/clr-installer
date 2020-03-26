@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -392,6 +392,15 @@ func TestRandomString(t *testing.T) {
 	if str, _ := randomString(); len(str) == 0 {
 		t.Fatal("randomString should return more than 0 characters")
 	}
+}
+
+func TestInstalledFail(t *testing.T) {
+	telem := &Telemetry{}
+
+	if telem.Installed("/tmp/invalid-dir-name") {
+		t.Fatal("/tmp/invalid-dir-name should not have telemetry binary")
+	}
+
 }
 
 // Generating record
