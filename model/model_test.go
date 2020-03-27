@@ -400,7 +400,7 @@ func TestDesktopISOType(t *testing.T) {
 		t.Fatal("Failed to load a valid descriptor")
 	}
 
-	if !loaded.IsDesktopInstall() {
+	if !loaded.IsTargetDesktopInstall() {
 		t.Fatal("Failed to detect Desktop ISO install from model")
 	}
 }
@@ -417,7 +417,7 @@ func TestDesktopUserISOType(t *testing.T) {
 		t.Fatal("Failed to load a valid descriptor")
 	}
 
-	if !loaded.IsDesktopInstall() {
+	if !loaded.IsTargetDesktopInstall() {
 		t.Fatal("Failed to detect Desktop ISO install from model")
 	}
 }
@@ -433,7 +433,7 @@ func TestServerISOType(t *testing.T) {
 		t.Fatal("Failed to load a valid descriptor")
 	}
 
-	if loaded.IsDesktopInstall() {
+	if loaded.IsTargetDesktopInstall() {
 		t.Fatal("Detected Desktop ISO install, but should be Server from model")
 	}
 }

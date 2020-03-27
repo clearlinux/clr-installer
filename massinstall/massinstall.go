@@ -152,7 +152,7 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 			log.Debug("Mass installer using defined media in YAML")
 		}
 
-		if md.IsDesktopInstall() {
+		if md.IsTargetDesktopInstall() {
 			results = storage.DesktopValidatePartitions(md.TargetMedias, md.LegacyBios,
 				md.SkipValidationSize, md.SkipValidationAll)
 		} else {
@@ -193,7 +193,7 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 		if isAdvancedSelected {
 			log.Debug("Mass installer operating in Advanced Disk Partition Mode.")
 			var results []string
-			if md.IsDesktopInstall() {
+			if md.IsTargetDesktopInstall() {
 				results = storage.DesktopValidateAdvancedPartitions(devs, md.LegacyBios,
 					md.SkipValidationSize, md.SkipValidationAll)
 			} else {

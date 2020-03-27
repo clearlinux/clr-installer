@@ -279,9 +279,9 @@ func (si *SystemInstall) OverrideBundles(overrideBundles []string) {
 	}
 }
 
-// IsDesktopInstall determines if this installation is a Desktop
+// IsTargetDesktopInstall determines if this installation is a Desktop
 // installation by check all bundle lists for any desktop bundles.
-func (si *SystemInstall) IsDesktopInstall() bool {
+func (si *SystemInstall) IsTargetDesktopInstall() bool {
 	isDesktop := false
 
 	// Check the default bundle list
@@ -345,7 +345,7 @@ func (si *SystemInstall) Validate() error {
 	}
 
 	var results []string
-	if si.IsDesktopInstall() {
+	if si.IsTargetDesktopInstall() {
 		results = storage.DesktopValidatePartitions(si.TargetMedias, si.LegacyBios,
 			si.SkipValidationSize, si.SkipValidationAll)
 	} else {
