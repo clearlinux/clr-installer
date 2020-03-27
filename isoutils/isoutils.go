@@ -635,7 +635,7 @@ func MakeIso(rootDir string, imgName string, model *model.SystemInstall, options
 	appID := model.ISOApplicationID
 	if len(appID) == 0 {
 		appID = "server"
-		if model.IsDesktopInstall() {
+		if model.IsTargetDesktopInstall() {
 			appID = "desktop"
 		}
 	}
