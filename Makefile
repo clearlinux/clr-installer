@@ -136,7 +136,7 @@ build-tui:
 		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
 		-X github.com/clearlinux/clr-installer/model.BuildDate=${BUILDDATE}" \
 		${GO_PACKAGE_PREFIX}/clr-installer
-	mv ${GOPATH}/bin/clr-installer ${GOPATH}/bin/clr-installer-tui
+	mv -f ${GOPATH}/bin/clr-installer ${GOPATH}/bin/clr-installer-tui
 
 build-gui:
 	@echo "MAKEFLAGS=${MAKEFLAGS}"
@@ -144,7 +144,7 @@ build-gui:
 		-ldflags="-X github.com/clearlinux/clr-installer/model.Version=${VERSION} \
 		-X github.com/clearlinux/clr-installer/model.BuildDate=${BUILDDATE}" \
 		${GO_PACKAGE_PREFIX}/clr-installer
-	mv ${GOPATH}/bin/clr-installer ${GOPATH}/bin/clr-installer-gui
+	mv -f ${GOPATH}/bin/clr-installer ${GOPATH}/bin/clr-installer-gui
 
 build-local-travis: validate_version
 	@go install -p ${nproc} -v \
@@ -203,9 +203,44 @@ check-image: build-tui
 	fi
 	@echo "consider running 'sudo make clean' to remove the files built as root"
 
+PHONY += check-all-images-core
+check-all-images-core:
+	@if [ "${runuid}" != "0" ] ; then \
+		echo "check-image needs to be run as root; please use 'sudo'"; \
+		/bin/false; \
+	fi
+
+PHONY += check-all-images
+check-all-images: check-all-images-core
+	@echo "This process runs serially and take a long time and should not be aborted!"
+	@echo "Consider instead 'make check-all-images-screen'"
+	@echo "Waiting 10 seconds to start..."
+	@sleep 10
+	@${top_srcdir}/tests/check-all-images.sh .
+	@echo "consider running 'sudo make clean' to remove the files built as root"
+
+PHONY += check-all-images-screen
+check-all-images-screen: check-all-images-core
+	@echo "Lauching screen sessions..."; \
+	echo "Use <control>-a<controld>-d to detach and leave running."; \
+	echo "	sudo screen -R # to recover session"
+	@sleep 2
+	@screen_log="screen-check-all-images.log"; \
+	if [ -f $${screen_log} ] ; then \
+		mv -f $${screen_log} $${screen_log}.save; \
+	fi; \
+	screen -L -Logfile $${screen_log} ${top_srcdir}/tests/check-all-images.sh . ; \
+	echo "consider running 'sudo make clean' to remove the files built as root" ; \
+	echo "Review results in $${screen_log}" ; \
+	echo "Last 5 lines of $${screen_log}:" ; \
+	echo "" ; \
+	tail -5 $${screen_log}
+
+PHONY += check-clean
 check-clean:
 	@go clean -testcache
 
+PHONY += check-root
 check-root:
 	@sudo -E go test ${CHECK_VERBOSE} -cover ${GO_PACKAGE_PREFIX}/...
 
