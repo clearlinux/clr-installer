@@ -1603,13 +1603,113 @@ func DesktopValidatePartitions(medias []*BlockDevice, legacyBios bool, skipSize 
 	return validatePartitions(MinimumDesktopInstallSize, medias, legacyBios, skipSize, skipAll, advancedMode)
 }
 
+// Helper functions for validatePartitions
+func logPartitionWarning(bd *BlockDevice, format string, vargs ...interface{}) string {
+	warning := utils.Locale.Get(format, vargs...)
+	if bd == nil {
+		log.Warning("validatePartitions: %s", warning)
+	} else {
+		log.Warning("validatePartitions: %s %v+", warning, bd)
+	}
+	return warning
+}
+
+// Helper functions for validatePartitions
+func logPartitionSizeWarning(bd *BlockDevice, partSize uint64, label string) string {
+	size, _ := HumanReadableSizeWithPrecision(partSize, 1)
+	return logPartitionWarning(bd, "%s must be %s", label, fmt.Sprintf(">= %s", size))
+}
+
+// Helper functions for validatePartitions
+func logMissingPartition(label string) string {
+	return logPartitionWarning(nil, "Missing %s partition", label)
+}
+
+// Helper to validatePartitions for validating boot minimum size etc
+func validateBoot(found *bool, results []string, bd *BlockDevice, skipSize bool, bootLabel string) []string {
+
+	minBootSize := uint64(100) * (1000 * 1000) // 100MB recommend for 4-5 kernels
+
+	if bd.MountPoint == "/boot" {
+		if *found {
+			results = append(results, logPartitionWarning(bd, "Found multiple %s partitions", bootLabel))
+		} else {
+			*found = true
+			if bd.FsType != "vfat" {
+				results = append(results, logPartitionWarning(bd, "%s must be %s", bootLabel, "vfat"))
+			}
+		}
+		if bd.Size == 0 {
+			log.Warning("validatePartitions: Skipping %s size check due to zero size", bootLabel)
+		} else if skipSize {
+			log.Warning("validatePartitions: Skipping %s size check due to skipSize", bootLabel)
+		} else {
+			if bd.Size < minBootSize {
+				results = append(results, logPartitionSizeWarning(bd, bootSize, bootLabel))
+			}
+		}
+	}
+
+	return results
+}
+
+// Helper to validatePartitions for validating root minimum size etc
+func validateRoot(found *bool, results []string, bd *BlockDevice, minRootSize uint64, skipSize bool, rootLabel string) (*BlockDevice, []string) {
+
+	var rootBlockDevice *BlockDevice
+
+	if *found {
+		results = append(results, logPartitionWarning(bd, "Found multiple %s partitions", rootLabel))
+	} else {
+		*found = true
+		rootBlockDevice = bd.Clone()
+		if !(bd.FsType == "ext2" || bd.FsType == "ext3" ||
+			bd.FsType == "ext4" || bd.FsType == "xfs" ||
+			bd.FsType == "f2fs") {
+			results = append(results, logPartitionWarning(bd, "%s must be %s", rootLabel, "ext*|xfs|f2fs"))
+		}
+	}
+
+	if bd.Size == 0 {
+		log.Warning("validatePartitions: Skipping %s size check due to zero size", rootLabel)
+	} else if skipSize {
+		log.Warning("validatePartitions: Skipping %s size check due to skipSize", rootLabel)
+	} else {
+		if bd.Size < minRootSize {
+			results = append(results, logPartitionSizeWarning(bd, minRootSize, rootLabel))
+		}
+	}
+
+	return rootBlockDevice, results
+}
+
+// Helper to validatePartitions for validating Swap minimum size etc
+func validateSwap(found *bool, results []string, bd *BlockDevice, skipSize bool, swapLabel string) []string {
+
+	minSwapSize := uint64(32) * (1000 * 1000) // 32MB recommend smallest for memory crunch times
+
+	*found = true
+	if bd.Size == 0 {
+		log.Warning("validatePartitions: Skipping swap size check due to zero size")
+	} else if skipSize {
+		log.Warning("validatePartitions: Skipping swap size check due to skipSize")
+	} else {
+		if bd.Size < minSwapSize {
+			results = append(results, logPartitionSizeWarning(bd, swapSize, swapLabel))
+		}
+	}
+
+	return results
+}
+
 // validatePartitions returns an array of validation error strings
-func validatePartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool,
-	skipSize bool, skipAll bool, advancedMode bool) []string {
+func validatePartitions(rootSize uint64, medias []*BlockDevice,
+	legacyBios, skipSize, skipAll, advancedMode bool) []string {
 	results := []string{}
 	rootLabel := "/ (root)"
 	bootLabel := "/boot"
 	swapLabel := "[swap]"
+
 	if advancedMode {
 		rootLabel = "CLR_ROOT"
 		bootLabel = "CLR_BOOT"
@@ -1617,86 +1717,20 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool,
 	}
 
 	bootFound := false
-	bootSize := uint64(100) * (1000 * 1000) // 100MB recommend for 4-5 kernels
 	swapFound := false
-	swapSize := uint64(32) * (1000 * 1000) // 32MB recommend smallest for memory crunch times
 	rootFound := false
 	var rootBlockDevice *BlockDevice
-
-	logPartitionWarning := func(bd *BlockDevice, format string, vargs ...interface{}) string {
-		warning := utils.Locale.Get(format, vargs...)
-		if bd == nil {
-			log.Warning("validatePartitions: %s", warning)
-		} else {
-			log.Warning("validatePartitions: %s %v+", warning, bd)
-		}
-		return warning
-	}
-
-	logPartitionSizeWarning := func(bd *BlockDevice, partSize uint64, label string) string {
-		size, _ := HumanReadableSizeWithPrecision(partSize, 1)
-		return logPartitionWarning(bd, "%s must be %s", label, fmt.Sprintf(">= %s", size))
-	}
-
-	logMissingPartition := func(label string) string {
-		return logPartitionWarning(nil, "Missing %s partition", label)
-	}
 
 	for _, curr := range medias {
 		for _, ch := range curr.Children {
 			if ch.MountPoint == "/boot" {
-				if bootFound {
-					results = append(results, logPartitionWarning(ch, "Found multiple %s partitions", bootLabel))
-				} else {
-					bootFound = true
-					if ch.FsType != "vfat" {
-						results = append(results, logPartitionWarning(ch, "%s must be %s", bootLabel, "vfat"))
-					}
-				}
-				if ch.Size == 0 {
-					log.Warning("validatePartitions: Skipping %s size check due to zero size", bootLabel)
-				} else if skipSize {
-					log.Warning("validatePartitions: Skipping %s size check due to skipSize", bootLabel)
-				} else {
-					if ch.Size < bootSize {
-						results = append(results, logPartitionSizeWarning(ch, bootSize, bootLabel))
-					}
-				}
+				validateBoot(&bootFound, results, ch, skipSize, bootLabel)
 			}
-
 			if ch.MountPoint == "/" {
-				if rootFound {
-					results = append(results, logPartitionWarning(ch, "Found multiple %s partitions", rootLabel))
-				} else {
-					rootFound = true
-					rootBlockDevice = ch.Clone()
-					if !(ch.FsType == "ext2" || ch.FsType == "ext3" ||
-						ch.FsType == "ext4" || ch.FsType == "xfs" ||
-						ch.FsType == "f2fs") {
-						results = append(results, logPartitionWarning(ch, "%s must be %s", rootLabel, "ext*|xfs|f2fs"))
-					}
-				}
-				if ch.Size == 0 {
-					log.Warning("validatePartitions: Skipping %s size check due to zero size", rootLabel)
-				} else if skipSize {
-					log.Warning("validatePartitions: Skipping %s size check due to skipSize", rootLabel)
-				} else {
-					if ch.Size < rootSize {
-						results = append(results, logPartitionSizeWarning(ch, rootSize, rootLabel))
-					}
-				}
+				rootBlockDevice, _ = validateRoot(&rootFound, results, ch, rootSize, skipSize, rootLabel)
 			}
 			if ch.FsType == "swap" {
-				swapFound = true
-				if ch.Size == 0 {
-					log.Warning("validatePartitions: Skipping swap size check due to zero size")
-				} else if skipSize {
-					log.Warning("validatePartitions: Skipping swap size check due to skipSize")
-				} else {
-					if ch.Size < swapSize {
-						results = append(results, logPartitionSizeWarning(ch, swapSize, swapLabel))
-					}
-				}
+				validateSwap(&swapFound, results, ch, skipSize, swapLabel)
 			}
 		}
 	}
