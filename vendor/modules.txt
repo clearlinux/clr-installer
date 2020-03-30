@@ -1,4 +1,4 @@
-# github.com/GehirnInc/crypt v0.0.0-20190301055215-6c0105aabd46
+# github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962
 github.com/GehirnInc/crypt
 github.com/GehirnInc/crypt/common
 github.com/GehirnInc/crypt/internal
@@ -24,17 +24,17 @@ github.com/huandu/xstrings
 # github.com/leonelquinteros/gotext v1.4.0
 github.com/leonelquinteros/gotext
 github.com/leonelquinteros/gotext/plurals
-# github.com/mattn/go-runewidth v0.0.8
+# github.com/mattn/go-runewidth v0.0.9
 github.com/mattn/go-runewidth
-# github.com/nightlyone/lockfile v0.0.0-20200124072040-edb130adc195
+# github.com/nightlyone/lockfile v1.0.0
 github.com/nightlyone/lockfile
 # github.com/nsf/termbox-go v0.0.0-20200204031403-4d2b513ad8be
 github.com/nsf/termbox-go
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
-# golang.org/x/crypto v0.0.0-20200219234226-1ad67e1f0ef4
+# golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/sys v0.0.0-20200219091948-cb0a6d8edb6c
+# golang.org/x/sys v0.0.0-20200327173247-9dae0f8f5775
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.2
