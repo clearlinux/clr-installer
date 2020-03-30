@@ -480,9 +480,10 @@ PHONY += vendor-update
 vendor-update:
 	@for pkg in `go list -m all | cut -d" " -f1`; do \
 		if [ "$$pkg" != "github.com/clearlinux/clr-installer" ]; then \
-			go get -u $$pkg; \
+			GOFLAGS="" go get -u $$pkg; \
 		fi; \
 	done
+	@go mod vendor
 	@go mod tidy
 
 PHONY += vendor-check
