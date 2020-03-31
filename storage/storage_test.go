@@ -275,15 +275,6 @@ func TestParseBlockDevicesDescriptor(t *testing.T) {
                     "ro": "0",
                     "type": "part",
                     "mountpoint": null
-                },
-                {
-                    "name": "sda3",
-                    "maj:min": "8:4",
-                    "rm": true,
-                    "size": 524288000,
-                    "ro": false,
-                    "type": "part",
-                    "mountpoint": null
                 }
             ]
         }
@@ -329,8 +320,8 @@ func TestParseBlockDevicesDescriptor(t *testing.T) {
 		t.Fatalf("Block device 0, mpoint expected to be null, had: %s", bd0.MountPoint)
 	}
 
-	if len(bd0.Children) != 3 {
-		t.Fatal("Block device 0, should have 3 children partitions")
+	if len(bd0.Children) != 2 {
+		t.Fatal("Block device 0, should have 2 children partitions")
 	}
 
 	p0 := bd0.Children[0]
@@ -391,36 +382,6 @@ func TestParseBlockDevicesDescriptor(t *testing.T) {
 
 	if p1.MountPoint != "" {
 		t.Fatalf("Partition 1, mpoint expected to be null, had: %s", p1.MountPoint)
-	}
-
-	p2 := bd0.Children[2]
-	if p2.Name != "sda3" {
-		t.Fatalf("Partition 2, expected to be named: sda3 - had: %s", p2.Name)
-	}
-
-	if p2.MajorMinor != "8:4" {
-		t.Fatalf("Partition 2, expected maj:min to be named: 8:1 - had: %s",
-			p2.MajorMinor)
-	}
-
-	if p2.RemovableDevice != true {
-		t.Fatalf("Partition 2, expected removable flag: true - had: false")
-	}
-
-	if p2.Size != 524288000 {
-		t.Fatalf("Partition 2, expected size: 524288000 - had: %d", p2.Size)
-	}
-
-	if p2.ReadOnly != false {
-		t.Fatalf("Partition 2, expected read-only flag: false, had: true")
-	}
-
-	if p2.Type != BlockDeviceTypePart {
-		t.Fatalf("Partition 2, expected to be block device type: part, had: disk")
-	}
-
-	if p2.MountPoint != "" {
-		t.Fatalf("Partition 2, mpoint expected to be null, had: %s", p2.MountPoint)
 	}
 }
 
