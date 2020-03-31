@@ -878,66 +878,6 @@ func (bd *BlockDevice) consolidateFree() {
 	bd.PartTable = newPartTable
 }
 
-// RemovePartition remove a child from the disk and updates
-// frees the space in the partition table
-func (bd *BlockDevice) RemovePartition(child *BlockDevice) *PartedPartition {
-	var removedPartition *PartedPartition
-	devFile := bd.GetDeviceFile()
-
-	if !utils.IntSliceContains([]int{BlockDeviceTypeDisk, BlockDeviceTypeLoop}, int(bd.Type)) {
-		log.Warning("RemovePartition() called on non-disk %q", devFile)
-		return removedPartition
-	}
-
-	deleteIndex := -1
-	for idx, curr := range bd.Children {
-		if curr.Name == child.Name {
-			deleteIndex = idx
-			break
-		}
-	}
-	if deleteIndex < 0 {
-		log.Warning("RemovePartition() fail to find (and remove) child: %v", child)
-		return removedPartition
-	}
-	log.Debug("RemovePartition() found child partition index to delete %d", deleteIndex)
-	// keep a reference to the child
-	delelteChild := bd.Children[deleteIndex].Clone()
-	// Remove the child for the block devices
-	bd.Children = append(bd.Children[:deleteIndex], bd.Children[deleteIndex+1:]...)
-
-	partString := devNameSuffixExp.FindString(delelteChild.Name)
-	partNumber, err := strconv.ParseUint(partString, 10, 64)
-	if err != nil {
-		log.Warning("RemovePartition() fail to find child partition number: %v", child)
-		return removedPartition
-	}
-	log.Debug("RemovePartition() Need to add partition %d to the remove list", partNumber)
-
-	for _, partition := range bd.PartTable {
-		// Find the partition to free/remove
-		if partition.Number == partNumber {
-			log.Debug("Found the partition to free partition: %v", partition)
-			partition.Number = 0
-			partition.FileSystem = "free"
-			partition.Name = ""
-			partition.Flags = ""
-			removedPartition = partition.Clone()
-			break
-		}
-	}
-
-	// Consolidate neighboring free partitions
-	bd.consolidateFree()
-
-	if !delelteChild.MakePartition {
-		bd.addRemovePartition(partNumber)
-		log.Debug("RemovePartition() Add partition to be removed %d", partNumber)
-	}
-
-	return removedPartition
-}
-
 // Populate the current partition table for a disk device
 func (bd *BlockDevice) setPartitionTable(partTable *bytes.Buffer) {
 	var partitionList []*PartedPartition
