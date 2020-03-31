@@ -283,7 +283,13 @@ func (bd *BlockDevice) removeAllLogicalVolumes(dryRun *[]string) error {
 
 // WritePartitionLabel make a device a 'gpt' partition type
 // Only call when we are wiping and reusing the entire disk
-func (bd *BlockDevice) WritePartitionLabel() error {
+func (bd *BlockDevice) writePartitionLabel(wholeDisk bool) error {
+
+	if !wholeDisk {
+		log.Debug("WritePartitionTable: partial disk, skipping mklabel for %s", bd.Name)
+		return nil
+	}
+
 	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop {
 		return errors.Errorf("Type is partition, disk required")
 	}
@@ -310,20 +316,9 @@ func (bd *BlockDevice) WritePartitionLabel() error {
 	return nil
 }
 
-// WritePartitionTable writes the defined partitions to the actual block device
-func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryRun *[]string) error {
-	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop {
-		return errors.Errorf("Type is partition, disk required")
-	}
-
-	if wholeDisk {
-		if err := bd.removeAllLogicalVolumes(dryRun); err != nil {
-			return err
-		}
-	}
-
-	var prg progress.Progress
-
+// handlerPartitionLabelWrite is a helper function to WritePartitionTable
+// prepares performs a few checks before updating the label for the partition
+func (bd *BlockDevice) handlerPartitionLabelWrite(legacyBios bool, wholeDisk bool, dryRun *[]string) error {
 	//write the partition label
 	if dryRun != nil {
 		if legacyBios {
@@ -344,51 +339,123 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(PartitioningWarning))
 		}
 	} else {
-		if wholeDisk {
-			if err := bd.WritePartitionLabel(); err != nil {
-				return err
-			}
-		} else {
-			log.Debug("WritePartitionTable: partial disk, skipping mklabel for %s", bd.Name)
+
+		if err := bd.writePartitionLabel(wholeDisk); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// adjustFileSystems is a helper function to WritePartitionTable takes a prepared
+// guid map of GUIDS->device names and uses sgdisk to update the
+// guid partition table for the disk
+func (bd *BlockDevice) adjustFileSystems(legacyBios bool,
+	guids map[int]string, bootPartition uint64, bootStyle string) error {
+	var err error
+
+	msg := utils.Locale.Get("Adjusting filesystem configurations")
+	prg := progress.MultiStep(len(guids), msg)
+	log.Info(msg)
+	cnt := 1
+	for idx, guid := range guids {
+		if guid == "none" {
+			continue
 		}
 
-		mesg := utils.Locale.Get("Updating partition table for: %s", bd.Name)
-		prg = progress.NewLoop(mesg)
-		log.Info(mesg)
+		args := []string{
+			"sgdisk",
+			bd.GetDeviceFile(),
+			fmt.Sprintf("--typecode=%d:%s", idx, guid),
+		}
+
+		err = cmd.RunAndLog(args...)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		prg.Partial(cnt)
+		cnt = cnt + 1
 	}
+
+	// In case we didn't have a /boot partition, we
+	// need to set / as boot
+	for _, curr := range bd.Children {
+		// Only check for / in new or advanced partitions
+		if !curr.MakePartition && !curr.LabeledAdvanced {
+			continue
+		}
+
+		if curr.MountPoint == "/" {
+			// If legacyBios mode and we do not have a boot, use root
+			if legacyBios && bootPartition == 0 {
+				bootPartition = curr.partition
+				bootStyle = "legacy_boot"
+				// Need to disable the ext 64bit mode
+				// https://wiki.syslinux.org/wiki/index.php?title=Filesystem#ext
+				if curr.FsType == "ext2" || curr.FsType == "ext3" || curr.FsType == "ext4" {
+					legacyExtFsOpt := "-O ^64bit"
+					curr.Options = strings.Join([]string{curr.Options, legacyExtFsOpt}, " ")
+					log.Warning("WritePartitionTable: legacy_boot on / requires option: %s", legacyExtFsOpt)
+				}
+			}
+		}
+	}
+
+	if bootPartition != 0 {
+		args := []string{
+			"parted",
+			bd.GetDeviceFile(),
+			fmt.Sprintf("set %d %s on", bootPartition, bootStyle),
+		}
+
+		err = cmd.RunAndLog(args...)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	}
+
+	if err = bd.PartProbe(); err != nil {
+		prg.Failure()
+		return err
+	}
+
+	time.Sleep(time.Duration(4) * time.Second)
+
+	prg.Success()
+
+	return nil
+
+}
+
+// WritePartitionTable writes the defined partitions to the actual block device
+func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryRun *[]string) error {
+	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop {
+		return errors.Errorf("Type is partition, disk required")
+	}
+
+	if wholeDisk {
+		if err := bd.removeAllLogicalVolumes(dryRun); err != nil {
+			return err
+		}
+	}
+
+	var prg progress.Progress
 
 	var err error
 	var start uint64
 	maxFound := false
 
-	// First remove any user removed partitions
-	if len(bd.removedParts) > 0 {
-		rmArgs := []string{
-			"parted",
-			"-a",
-			"optimal",
-			bd.GetDeviceFile(),
-			"unit", "MB",
-			"--script",
-			"--",
-		}
-		for _, curr := range bd.removedParts {
-			if dryRun == nil {
-				rmArgs = append(rmArgs, fmt.Sprintf("rm %d", curr))
-			} else {
-				*dryRun = append(*dryRun, fmt.Sprintf("%s: %s",
-					bd.GetNewPartitionName(curr),
-					utils.Locale.Get(RemoveParitionWarning)))
-			}
-		}
+	// Handle write to Partition's Label
+	if err := bd.handlerPartitionLabelWrite(legacyBios, wholeDisk, dryRun); err != nil {
+		return err
+	}
 
-		if dryRun == nil {
-			log.Debug("WritePartitionTable: remove partitions : %v", bd.removedParts)
-			err = cmd.RunAndLog(rmArgs...)
-			if err != nil {
-				log.Warning("Failed to remove existing partition: %v (%s)", bd.removedParts, err)
-			}
-		}
+	if dryRun == nil {
+		mesg := utils.Locale.Get("Updating partition table for: %s", bd.Name)
+		prg = progress.NewLoop(mesg)
+		log.Info(mesg)
 	}
 
 	// Initialize the partition list before we add new ones
@@ -527,76 +594,10 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 		}
 
 		prg.Success()
-
-		msg := utils.Locale.Get("Adjusting filesystem configurations")
-		prg = progress.MultiStep(len(guids), msg)
-		log.Info(msg)
-		cnt := 1
-		for idx, guid := range guids {
-			if guid == "none" {
-				continue
-			}
-
-			args := []string{
-				"sgdisk",
-				bd.GetDeviceFile(),
-				fmt.Sprintf("--typecode=%d:%s", idx, guid),
-			}
-
-			err = cmd.RunAndLog(args...)
-			if err != nil {
-				return errors.Wrap(err)
-			}
-
-			prg.Partial(cnt)
-			cnt = cnt + 1
-		}
-
-		// In case we didn't have a /boot partition, we
-		// need to set / as boot
-		for _, curr := range bd.Children {
-			// Only check for / in new or advanced partitions
-			if !curr.MakePartition && !curr.LabeledAdvanced {
-				continue
-			}
-
-			if curr.MountPoint == "/" {
-				// If legacyBios mode and we do not have a boot, use root
-				if legacyBios && bootPartition == 0 {
-					bootPartition = curr.partition
-					bootStyle = "legacy_boot"
-					// Need to disable the ext 64bit mode
-					// https://wiki.syslinux.org/wiki/index.php?title=Filesystem#ext
-					if curr.FsType == "ext2" || curr.FsType == "ext3" || curr.FsType == "ext4" {
-						legacyExtFsOpt := "-O ^64bit"
-						curr.Options = strings.Join([]string{curr.Options, legacyExtFsOpt}, " ")
-						log.Warning("WritePartitionTable: legacy_boot on / requires option: %s", legacyExtFsOpt)
-					}
-				}
-			}
-		}
-
-		if bootPartition != 0 {
-			args := []string{
-				"parted",
-				bd.GetDeviceFile(),
-				fmt.Sprintf("set %d %s on", bootPartition, bootStyle),
-			}
-
-			err = cmd.RunAndLog(args...)
-			if err != nil {
-				return errors.Wrap(err)
-			}
-		}
-
-		if err = bd.PartProbe(); err != nil {
-			prg.Failure()
+		// Remaining steps are performed inside adjustFileSystems
+		if err = bd.adjustFileSystems(legacyBios, guids, bootPartition, bootStyle); err != nil {
 			return err
 		}
-
-		time.Sleep(time.Duration(4) * time.Second)
-
-		prg.Success()
 	}
 
 	return nil
