@@ -351,8 +351,7 @@ lint-gocyclo: lint-core
 	--disable-all \
 	--enable=gocyclo \
 	--skip-files clr-installer/main.go,controller/controller.go \
-	--skip-files storage/ops.go,storage/storage.go,storage/storage_test.go \
-	--skip-files gui/pages/disk_config.go,model/model_ister.go \
+	--skip-files model/model_ister.go \
 	./...
 
 PHONY += lint-gofmt
