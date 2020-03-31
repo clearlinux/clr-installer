@@ -46,7 +46,6 @@ type BlockDevice struct {
 	available       bool               // was it mounted the moment we loaded?
 	partition       uint64             // Assigned partition for media - can't set until after mkpart
 	PartTable       []*PartedPartition // Existing Disk partition table from parted
-	removedParts    []uint64           // List of manually removed partitions
 }
 
 // BlockDeviceState is the representation of a block device state (live, running, etc)
@@ -358,7 +357,6 @@ func (bd *BlockDevice) Clone() *BlockDevice {
 		available:       bd.available,
 		partition:       bd.partition,
 		PartTable:       bd.PartTable,
-		removedParts:    bd.removedParts,
 	}
 
 	clone.Children = []*BlockDevice{}
@@ -414,11 +412,6 @@ func (bd *BlockDevice) RemoveChild(child *BlockDevice) {
 		curr.Name = ""
 		bd.AddChild(curr)
 	}
-}
-
-// addRemovePartition adds a partition to the list to be removed
-func (bd *BlockDevice) addRemovePartition(part uint64) {
-	bd.removedParts = append(bd.removedParts, part)
 }
 
 func (bd *BlockDevice) getBasePartitionName() string {
