@@ -468,7 +468,7 @@ func (bd *BlockDevice) HumanReadableSize() (string, error) {
 	return bd.HumanReadableSizeWithUnitAndPrecision("", -1)
 }
 
-func listBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
+func listBlockDevices(userDefined []*BlockDevice, filters ...BlockDevFilterFunc) ([]*BlockDevice, error) {
 	w := bytes.NewBuffer(nil)
 
 	args := []string{"partprobe", "-s"}
@@ -495,18 +495,21 @@ func listBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, error) {
 		return nil, err
 	}
 
-	for _, bd := range bds {
+	// run all filters here before proceeding
+	filterDevices := FilterBlockDevices(bds, filters...)
+
+	for _, bd := range filterDevices {
 		// Read the partition table for the device
 		partTable := bd.getPartitionTable()
 		bd.setPartitionTable(partTable)
 	}
 
 	if userDefined == nil || len(userDefined) == 0 {
-		return bds, nil
+		return filterDevices, nil
 	}
 
 	merged := []*BlockDevice{}
-	for _, loaded := range bds {
+	for _, loaded := range filterDevices {
 		added := false
 
 		for _, udef := range userDefined {
@@ -576,22 +579,14 @@ func ListAvailableBlockDevices(userDefined []*BlockDevice) ([]*BlockDevice, erro
 		return avBlockDevices, nil
 	}
 
-	bds, err := listBlockDevices(userDefined)
+	// pass a filter function to list only available devices
+	bds, err := listBlockDevices(userDefined, IsBlockDevAvailable)
 	if err != nil {
 		return nil, err
 	}
 
-	result := []*BlockDevice{}
-	for _, curr := range bds {
-		if !curr.IsAvailable() {
-			continue
-		}
-
-		result = append(result, curr)
-	}
-
-	avBlockDevices = result
-	return result, nil
+	avBlockDevices = bds
+	return bds, nil
 }
 
 // ListBlockDevices Lists all block devices
@@ -609,7 +604,7 @@ func (bd *BlockDevice) Equals(cmp *BlockDevice) bool {
 	return bd.Name == cmp.Name && bd.Model == cmp.Model && bd.MajorMinor == cmp.MajorMinor
 }
 
-func isBlockDeviceAvailable(blockDevices []*BlockDevice) bool {
+func isBlockDeviceAvailableDeep(blockDevices []*BlockDevice) bool {
 	available := true
 
 	for _, bd := range blockDevices {
@@ -625,7 +620,7 @@ func isBlockDeviceAvailable(blockDevices []*BlockDevice) bool {
 		}
 
 		if bd.Children != nil {
-			if available = isBlockDeviceAvailable(bd.Children); !available {
+			if available = isBlockDeviceAvailableDeep(bd.Children); !available {
 				break
 			}
 		}
@@ -645,7 +640,7 @@ func parseBlockDevicesDescriptor(data []byte) ([]*BlockDevice, error) {
 	}
 
 	for _, bd := range root.BlockDevices {
-		bd.available = isBlockDeviceAvailable(bd.Children)
+		bd.available = isBlockDeviceAvailableDeep(bd.Children)
 
 		// We ignore devices if the filesystem is squashfs
 		if strings.Contains(bd.FsType, "squashfs") {
