@@ -126,6 +126,7 @@ func main() {
 }
 
 // execute is called by main to begin execution of the installer
+//nolint: gocyclo  // TODO: Refactor this
 func execute(options args.Args) error {
 	var err error
 
