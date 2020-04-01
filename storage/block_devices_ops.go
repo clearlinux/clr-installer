@@ -1280,20 +1280,30 @@ func FindSafeInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTar
 	// Add the default boot and swap to the passed root size
 	minSize := rootSize + bootSize + swapSize
 
+	FilterBlockDevices(medias,
+		// Firstly, we filter out non-gpt partitions
+		func(curr *BlockDevice) bool {
+			if curr.PtType != "gpt" && curr.PtType != "" {
+				log.Debug("FindSafeInstallTargets(): ignoring disk %s with partition table type %s",
+					curr.Name, curr.PtType)
+				return false
+			}
+			return true
+		},
+		// Secondly, we filter out Block Devices with more than 125 existing partitions
+		func(curr *BlockDevice) bool {
+			if curr.Children != nil && len(curr.Children) > 125 {
+				log.Debug("FindSafeInstallTargets(): ignoring disk %s with too many partitions (%d)",
+					curr.Name, len(curr.Children))
+				return false
+			}
+			return true
+		})
+
 	for _, curr := range medias {
-		// Either 'gpt' or no partition table type
-		if curr.PtType != "gpt" && curr.PtType != "" {
-			log.Debug("FindSafeInstallTargets(): ignoring disk %s with partition table type %s",
-				curr.Name, curr.PtType)
-			continue
-		}
-
-		if curr.Children != nil && len(curr.Children) > 125 {
-			log.Debug("FindSafeInstallTargets(): ignoring disk %s with too many partitions (%d)",
-				curr.Name, len(curr.Children))
-			continue
-		}
-
+		// Thirdly, we want to select Block Devices which can support
+		// the minSize required for installation If it satisfies,
+		// it is a potential install target
 		if (curr.Children == nil || len(curr.Children) == 0) && curr.Size >= minSize {
 			// No partition type and no children we write the whole disk
 			installTargets = append(installTargets,
@@ -1304,6 +1314,8 @@ func FindSafeInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTar
 			continue
 		}
 
+		// Fourthly, we want to select Block Devices whose
+		// largest contingous space satisfies the minSize required for installation
 		if start, end := curr.LargestContiguousFreeSpace(minSize); start != 0 && end != 0 {
 			installTargets = append(installTargets,
 				InstallTarget{Name: curr.Name, Friendly: curr.Model,
@@ -1325,20 +1337,24 @@ func FindAllInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTarg
 	minSize := rootSize + bootSize + swapSize
 
 	// All Disk are possible destructive installs
-	for _, curr := range medias {
-		if curr.Size >= minSize {
-			target := InstallTarget{Name: curr.Name, Friendly: curr.Model,
-				WholeDisk: true, Removable: curr.RemovableDevice, EraseDisk: true,
-				FreeStart: 0, FreeEnd: curr.Size}
+	FilterBlockDevices(medias,
+		func(curr *BlockDevice) bool {
+			if curr.Size >= minSize {
+				target := InstallTarget{Name: curr.Name, Friendly: curr.Model,
+					WholeDisk: true, Removable: curr.RemovableDevice, EraseDisk: true,
+					FreeStart: 0, FreeEnd: curr.Size}
 
-			installTargets = append(installTargets, target)
-		} else {
+				installTargets = append(installTargets, target)
+				return true
+			}
+
 			currSizeStr, _ := HumanReadableSizeWithPrecision(curr.Size, 1)
 			minSizeStr, _ := HumanReadableSizeWithPrecision(minSize, 1)
 			log.Debug("FindAllInstallTargets: Media %s %s smaller than minSize %s", curr.Name,
 				currSizeStr, minSizeStr)
-		}
-	}
+			return false
+
+		})
 
 	return sortInstallTargets(installTargets)
 }
