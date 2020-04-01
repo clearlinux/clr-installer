@@ -59,6 +59,7 @@ func sortMountPoint(bds []*storage.BlockDevice) []*storage.BlockDevice {
 
 // Install is the main install controller, this is the entry point for a full
 // installation
+// nolint: gocyclo
 func Install(rootDir string, model *model.SystemInstall, options args.Args) error {
 	var err error
 	var version string
