@@ -350,8 +350,6 @@ lint-gocyclo: lint-core
 	--skip-dirs-use-default \
 	--disable-all \
 	--enable=gocyclo \
-	--skip-files clr-installer/main.go,controller/controller.go \
-	--skip-files model/model_ister.go \
 	./...
 
 PHONY += lint-gofmt
