@@ -468,6 +468,40 @@ func (bd *BlockDevice) HumanReadableSize() (string, error) {
 	return bd.HumanReadableSizeWithUnitAndPrecision("", -1)
 }
 
+// UpdateBlockDevices updates the Label and UUID information only
+// for existing available block devices
+func UpdateBlockDevices(medias []*BlockDevice) error {
+
+	bds, err := listBlockDevices(nil)
+	if err != nil {
+		return err
+	}
+
+	// Loop though all used media devices and update
+	// the labels and uuid
+	for _, media := range medias {
+		updateBlockDevices(media, bds)
+	}
+
+	return nil
+}
+
+func updateBlockDevices(toBeUpdated *BlockDevice, updates []*BlockDevice) {
+	for _, update := range updates {
+		if toBeUpdated.Name == update.Name {
+			if toBeUpdated.Children == nil {
+				toBeUpdated.Label = update.Label
+				toBeUpdated.UUID = update.UUID
+				return
+			}
+
+			for _, child := range toBeUpdated.Children {
+				updateBlockDevices(child, update.Children)
+			}
+		}
+	}
+}
+
 func listBlockDevices(userDefined []*BlockDevice, filters ...BlockDevFilterFunc) ([]*BlockDevice, error) {
 	w := bytes.NewBuffer(nil)
 
@@ -528,40 +562,6 @@ func listBlockDevices(userDefined []*BlockDevice, filters ...BlockDevFilterFunc)
 	}
 
 	return merged, nil
-}
-
-// UpdateBlockDevices updates the Label and UUID information only
-// for existing available block devices
-func UpdateBlockDevices(medias []*BlockDevice) error {
-
-	bds, err := listBlockDevices(nil)
-	if err != nil {
-		return err
-	}
-
-	// Loop though all used media devices and update
-	// the labels and uuid
-	for _, media := range medias {
-		updateBlockDevices(media, bds)
-	}
-
-	return nil
-}
-
-func updateBlockDevices(toBeUpdated *BlockDevice, updates []*BlockDevice) {
-	for _, update := range updates {
-		if toBeUpdated.Name == update.Name {
-			if toBeUpdated.Children == nil {
-				toBeUpdated.Label = update.Label
-				toBeUpdated.UUID = update.UUID
-				return
-			}
-
-			for _, child := range toBeUpdated.Children {
-				updateBlockDevices(child, update.Children)
-			}
-		}
-	}
 }
 
 // RescanBlockDevices clears current list available block devices and rescans

@@ -1359,28 +1359,6 @@ func FindAllInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTarg
 	return sortInstallTargets(installTargets)
 }
 
-// FindModifyInstallTargets creates an order list of possible installation targets
-// Only Disk with a 'gpt' partition table are candidates for modification
-func FindModifyInstallTargets(medias []*BlockDevice) []InstallTarget {
-	var installTargets []InstallTarget
-
-	for _, curr := range medias {
-		if curr.PtType != "gpt" {
-			log.Debug("FindModifyInstallTargets(): ignoring disk %s with partition table type %s",
-				curr.Name, curr.PtType)
-			continue
-		}
-
-		target := InstallTarget{Name: curr.Name, Friendly: curr.Model,
-			WholeDisk: true, Removable: curr.RemovableDevice, EraseDisk: true,
-			FreeStart: 0, FreeEnd: curr.Size}
-
-		installTargets = append(installTargets, target)
-	}
-
-	return sortInstallTargets(installTargets)
-}
-
 // FindAdvancedInstallTargets creates a list of advanced installation targets
 // We use Partition Labels to tag and convey which partitions should be used
 // for an advanced installations.
