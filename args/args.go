@@ -98,6 +98,7 @@ type Args struct {
 	SkipValidationSizeSet   bool
 	SkipValidationAll       bool
 	SkipValidationAllSet    bool
+	SwapFileSize            string
 }
 
 func (args *Args) setKernelArgs() (err error) {
@@ -418,6 +419,10 @@ func (args *Args) setCommandLineArgs() (err error) {
 	)
 	// We do not want this flag to be shown as part of the standard help message
 	makeFlagHidden(flag, "skip-validation-all")
+
+	flag.StringVar(
+		&args.SwapFileSize, "swap-file-size", args.SwapFileSize, "Size of the swapfile; <size>[B|K|M|G]",
+	)
 
 	spflag.ErrHelp = errors.New("Clear Linux Installer program")
 

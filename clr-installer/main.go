@@ -268,6 +268,9 @@ func execute(options args.Args) error {
 	if options.AllowInsecureHTTPSet {
 		md.AllowInsecureHTTP = options.AllowInsecureHTTP
 	}
+	if options.SwapFileSize != "" {
+		md.SwapFileSize = options.SwapFileSize
+	}
 
 	// Command line overrides the configuration file
 	if options.MakeISOSet {

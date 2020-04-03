@@ -41,7 +41,7 @@ Item | Description | Required?
 `name:` | Block-device alias and partition number or the physical partition name| Yes
 `type:` | Partition type should be `part` for a standard partition or `crypt` for encrypted partitions | Yes
 `fstype:` | Type of the partition can be one of: `swap`, or `ext2`, `ext3`, `ext4`, `xfs`, `f2fs`, `btrfs`, or `vfat` | Yes
-`size:` | Size of the partition. Set to `0` to use the remaining free space for this partition; there can only be one partition of size `0`.The suffixes `B` for bytes, `K` for kilobytes, `M` for megabytes, `G` for gigabytes, `T` for terabytes, or `P` for petabytes can be used. | Yes
+`size:` | Size of the partition. Set to `0` to use the remaining free space for this partition; there can only be one partition of size `0`. The suffixes `B` for bytes, `K` or `KB` for kilobytes, `M` or `MB` for megabytes, `G` or `GB` for gigabytes, `T` or `TB` for terabytes, `P` or `PB` for petabytes, `KiB` for kibibyte, `MiB` for mebibyte, `GiB` for gibibyte, `TiB` for tebibyte, `PiB` for pebibyte can be used.  | Yes
 `mountpoint:` | The file system path where the partition should be mounted. | No
 `options:` | Additional file system options to be used when creating the fs | No
 `label:` | Short string labeling the partition | No
@@ -58,18 +58,23 @@ targetMedia:
   - name: ${installer}1
     fstype: vfat
     mountpoint: /boot
-    size: "150M"
+    size: "150MiB"
     type: part
   - name: ${installer}2
-    fstype: swap
-    size: "256M"
-    type: part
-  - name: ${installer}3
     fstype: ext4
     mountpoint: /
-    size: "2.6G"
+    size: "2.6GiB"
     type: part
 ```
+
+### Swap
+The default, as of release `2.5.0`, is to create a swapfile `/var/swapfile` during an interactive installation or if no swap partition is defined when Advanced Installation Media Targets are defined. The default swapfile size can be overridden by setting it in the YAML configuration file, which in turn can be overridden by using the `--swap-file-size=<size>` on the command line.
+
+```yaml
+swapFileSize: "64MiB"
+```
+
+If a swap partition is defined and the swapFileSize or `--swap-file-size=<size>` are set, both types of swap will be configured in the target system.
 
 ### Advanced Installation Media Targets
 
@@ -81,8 +86,8 @@ installation.
 Partition Label | Description | Required?
 ------------ | ------------- | ------------- 
 `CLR_BOOT` | The /boot partition; must be vfat | Yes
-`CLR_SWAP` | A swap partition to use; can be more than one | Yes
 `CLR_ROOT` | The / root partition; must be ext[234], xfs, or f2fs due to clr-boot-manager requirement | Yes
+`CLR_SWAP` | A optional swap partition; can be more than one or used in place of a swapfile | No
 `CLR_MNT_<mount_point>` | Any additional partitions that should be included in the install like /srv, /home, ... | No
 
 #### NOTE:
@@ -140,6 +145,7 @@ Item | Description | Default
 `keyboard:` | Name of the keyboard type. Valid value can be found using `localectl list-keymaps`; may require installing the `kbd` bundle first. | us
 `language:` | Name of the system language. Valid values can be found using `locale -a`; may require installing the `glibc-locale` bundle first. | en_US.UTF-8
 `timezone:` | Name of the system timezone. Valid values can be found using `timedatectl list-timezones`; may require installing the `tzdata` bundle first. | UTC
+`swapFileSize:` | Size of the swapfile. If set to `0` no swapfile will be created. The suffixes `B` for bytes, `K` or `KB` for kilobytes, `M` or `MB` for megabytes, `G` or `GB` for gigabytes, `KiB` for kibibyte, `MiB` for mebibyte, `GiB` for gibibyte. | `-UNDEFINED-`
 `kernel` | Kernel bundle to be used | kernel-native
 `httpsProxy` | HTTPS Proxy as a string | `-UNDEFINED-`
 `allowInsecureHttp` | Allow installation and downloads over insecure connections | false
