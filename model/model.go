@@ -94,6 +94,7 @@ type SystemInstall struct {
 	PreCheckDone       bool                             `yaml:"preCheckDone,omitempty,flow"`
 	SkipValidationSize bool                             `yaml:"skipValidationSize,omitempty,flow"`
 	SkipValidationAll  bool                             `yaml:"skipValidationAll,omitempty,flow"`
+	SwapFileSize       string                           `yaml:"swapFileSize,omitempty,flow"`
 }
 
 // SystemUsage is used to include additional information into the telemetry payload
