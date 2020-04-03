@@ -402,6 +402,17 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		return err
 	}
 
+	if model.SwapFileSize != "" {
+		msg := utils.Locale.Get("Creating %s", storage.SwapfileName)
+		prg = progress.NewLoop(msg)
+		log.Info(msg)
+		if err = storage.CreateSwapFile(rootDir, model.SwapFileSize); err != nil {
+			prg.Failure()
+			return err
+		}
+		prg.Success()
+	}
+
 	if err = configureTimezone(rootDir, model); err != nil {
 		// Just log the error, not setting the timezone is not reason to fail the install
 		log.Error("Error setting timezone: %v", err)
