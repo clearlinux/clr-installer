@@ -1393,7 +1393,6 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 		for _, ch := range installBlockDevice.Children {
 			clrFound := false
 			label := ch.PartitionLabel
-			labelUpper := ""
 
 			if label != "" {
 				log.Debug("FindAdvancedInstallTargets: Found partition %s with name %s", ch.Name, label)
@@ -1401,14 +1400,12 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 
 			for _, part := range strings.Split(label, "_") {
 				lowerPart := strings.ToLower(part)
-				if labelUpper != "" {
-					labelUpper = labelUpper + "_"
-				}
-				labelUpper = labelUpper + strings.ToUpper(part)
 
+				// Filter out parts which dont start with CLR which
+				// mean they are not meany for advanced Installation
 				if !clrFound {
 					if lowerPart == "clr" {
-						log.Debug("FindAdvancedInstallTargets: Partition label contains clr %s", ch.Name)
+						log.Debug("FindAdvanceInstallTargets: Partition label contains clr %s", ch.Name)
 						clrFound = true
 					}
 					continue
@@ -1416,13 +1413,12 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 
 				switch lowerPart {
 				case "boot":
-					ch.LabeledAdvanced = true
 					if ch.Type == BlockDeviceTypeCrypt {
 						log.Warning("FindAdvancedInstallTargets: /boot can not be encrypted, skipping")
 						ch.Type = BlockDeviceTypePart
 					}
 					log.Debug("FindAdvancedInstallTargets: Boot is %s", ch.Name)
-					ch.MountPoint = "/boot"
+					ch.LabeledAdvanced = true
 					if ch.FsType == "" {
 						log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s", ch.Name, defaultBootFsType)
 						ch.FsType = defaultBootFsType
@@ -1430,10 +1426,10 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 						ch.FormatPartition = true
 					}
 					clrAdded = true
+					ch.MountPoint = "/boot"
 				case "root":
 					log.Debug("FindAdvancedInstallTargets: Root is %s", ch.Name)
 					ch.LabeledAdvanced = true
-					ch.MountPoint = "/"
 					if ch.FsType == "" {
 						log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s", ch.Name, defaultFsType)
 						ch.FsType = defaultFsType
@@ -1441,16 +1437,17 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 						ch.FormatPartition = true
 					}
 					clrAdded = true
+					ch.MountPoint = "/"
 				case "swap":
 					log.Debug("FindAdvancedInstallTargets: Swap on %s", ch.Name)
 					ch.LabeledAdvanced = true
-					clrAdded = true
 					if ch.FsType == "" {
 						log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s", ch.Name, "swap")
 						ch.FsType = "swap"
 						log.Debug("FindAdvancedInstallTargets: Forcing Format partition %s enabled", ch.Name)
 						ch.FormatPartition = true
 					}
+					clrAdded = true
 				case "mnt":
 					mntParts := strings.Split(label, "MNT_")
 					if len(mntParts) == 2 {
