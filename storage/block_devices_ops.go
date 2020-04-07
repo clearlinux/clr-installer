@@ -429,52 +429,12 @@ func (bd *BlockDevice) adjustFileSystems(legacyBios bool,
 
 }
 
-// WritePartitionTable writes the defined partitions to the actual block device
-func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryRun *[]string) error {
-	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop {
-		return errors.Errorf("Type is partition, disk required")
-	}
-
-	if wholeDisk {
-		if err := bd.removeAllLogicalVolumes(dryRun); err != nil {
-			return err
-		}
-	}
-
-	var prg progress.Progress
-
-	var err error
+func partitionUsingParted(bd *BlockDevice, dryRun *[]string, wholeDisk bool) error {
 	var start uint64
 	maxFound := false
 
-	// Handle write to Partition's Label
-	if err := bd.handlerPartitionLabelWrite(legacyBios, wholeDisk, dryRun); err != nil {
-		return err
-	}
-
-	if dryRun == nil {
-		mesg := utils.Locale.Get("Updating partition table for: %s", bd.Name)
-		prg = progress.NewLoop(mesg)
-		log.Info(mesg)
-	}
-
 	// Initialize the partition list before we add new ones
 	currentPartitions := bd.getPartitionList()
-
-	// Sort the partitions by name before writing the partition table
-	log.Debug("Partitions before sorting:")
-	for _, part := range bd.Children {
-		part.logDetails()
-	}
-
-	sort.Sort(ByBDName(bd.Children))
-
-	log.Debug("Partitions after sorting:")
-	for _, part := range bd.Children {
-		part.logDetails()
-		// Make sure each partition has a number set
-		part.SetPartitionNumber(part.GetPartitionNumber())
-	}
 
 	// Make the needed new partitions
 	for _, curr := range bd.Children {
@@ -511,7 +471,7 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 				curr.FsType)
 		}
 
-		mkPart, err = op.makePartCommand(curr)
+		mkPart, err := op.makePartCommand(curr)
 		if err != nil {
 			return err
 		}
@@ -563,6 +523,55 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 
 		start = end
 		currentPartitions = newPartitions
+	}
+
+	return nil
+}
+
+// WritePartitionTable writes the defined partitions to the actual block device
+func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryRun *[]string) error {
+	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop {
+		return errors.Errorf("Type is partition, disk required")
+	}
+
+	if wholeDisk {
+		if err := bd.removeAllLogicalVolumes(dryRun); err != nil {
+			return err
+		}
+	}
+
+	var prg progress.Progress
+	var err error
+
+	// Handle write to Partition's Label
+	if err := bd.handlerPartitionLabelWrite(legacyBios, wholeDisk, dryRun); err != nil {
+		return err
+	}
+
+	if dryRun == nil {
+		mesg := utils.Locale.Get("Updating partition table for: %s", bd.Name)
+		prg = progress.NewLoop(mesg)
+		log.Info(mesg)
+	}
+
+	// Sort the partitions by name before writing the partition table
+	log.Debug("Partitions before sorting:")
+	for _, part := range bd.Children {
+		part.logDetails()
+	}
+
+	sort.Sort(ByBDName(bd.Children))
+
+	log.Debug("Partitions after sorting:")
+	for _, part := range bd.Children {
+		part.logDetails()
+		// Make sure each partition has a number set
+		part.SetPartitionNumber(part.GetPartitionNumber())
+	}
+
+	// Make the needed new partitions
+	if err := partitionUsingParted(bd, dryRun, wholeDisk); err != nil {
+		return err
 	}
 
 	if dryRun == nil {
