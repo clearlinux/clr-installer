@@ -829,3 +829,11 @@ msgstr "密码短语基于字典中的单词"
 
 msgid "Passphrase is based on a (reversed) dictionary word"
 msgstr "密码短语基于反向词典词"
+
+#, c-format
+msgid "Could not interrupt %s"
+msgstr "无法中断 %s"
+
+#, c-format
+msgid "Creating %s"
+msgstr "创建 %s"

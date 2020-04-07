@@ -829,3 +829,11 @@ msgstr "La frase de contraseña se basa en una palabra del diccionario"
 
 msgid "Passphrase is based on a (reversed) dictionary word"
 msgstr "La frase de contraseña se basa en una palabra del diccionario invertida"
+
+#, c-format
+msgid "Could not interrupt %s"
+msgstr "No se ha podido interrumpir %s"
+
+#, c-format
+msgid "Creating %s"
+msgstr "Crear %s"
