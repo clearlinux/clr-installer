@@ -141,7 +141,7 @@ func HumanReadableSizeWithUnitAndPrecision(size uint64, unit string, precision i
 
 		// No unit request, use default based on size
 		if unit == "" {
-			if csize < 1 {
+			if csize < 1.0 {
 				continue
 			}
 		} else if unit != curr.unit {
@@ -184,6 +184,79 @@ func HumanReadableSizeWithUnit(size uint64, unit string) (string, error) {
 // human readable format i.e 10M, 1G, 2T etc
 func HumanReadableSize(size uint64) (string, error) {
 	return HumanReadableSizeWithUnitAndPrecision(size, "", -1)
+}
+
+// HumanReadableSizeXiBWithUnitAndPrecision converts the size representation in bytes to the
+// closest human readable format i.e 10M, 1G, 2T etc with a forced unit and precision
+func HumanReadableSizeXiBWithUnitAndPrecision(size uint64, unit string, precision int) (string, error) {
+	unit = strings.ToUpper(unit)
+
+	if size == 0 {
+		return fmt.Sprintf("0"), nil
+	}
+
+	sizes := []struct {
+		unit      string
+		mask      float64
+		precision int
+	}{
+		{"P", 1.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0, 5},
+		{"T", 1.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0, 4},
+		{"G", 1.0 * 1024.0 * 1024.0 * 1024.0, 3},
+		{"M", 1.0 * 1024.0 * 1024.0, 2},
+		{"K", 1.0 * 1024.0, 1},
+		{"B", 1.0, 0},
+	}
+
+	value := float64(size)
+	for _, curr := range sizes {
+		csize := value / curr.mask
+
+		// No unit request, use default based on size
+		if unit == "" {
+			if csize < 1.0 {
+				continue
+			}
+		} else if unit != curr.unit {
+			continue
+		}
+
+		unit = curr.unit
+
+		// No precision request, use default based on size
+		if precision < 0 {
+			precision = curr.precision
+		}
+
+		formatted := strconv.FormatFloat(csize, 'f', precision, 64)
+		// Remove trailing zeroes (and unused decimal)
+		formatted = strings.TrimRight(strings.TrimRight(formatted, "0"), ".")
+		if unit != "" && unit != "B" {
+			formatted += unit
+		}
+
+		return formatted, nil
+	}
+
+	return "", errors.ValidationErrorf("Could not format disk/partition size")
+}
+
+// HumanReadableSizeXiBWithPrecision converts the size representation in bytes to the
+// closest human readable format i.e 10M, 1G, 2T etc with a forced precision
+func HumanReadableSizeXiBWithPrecision(size uint64, precision int) (string, error) {
+	return HumanReadableSizeXiBWithUnitAndPrecision(size, "", precision)
+}
+
+// HumanReadableSizeXiBWithUnit converts the size representation in bytes to the
+// closest human readable format i.e 10M, 1G, 2T etc with a forced unit
+func HumanReadableSizeXiBWithUnit(size uint64, unit string) (string, error) {
+	return HumanReadableSizeXiBWithUnitAndPrecision(size, unit, -1)
+}
+
+// HumanReadableSizeXiB converts the size representation in bytes to the closest
+// human readable format i.e 10M, 1G, 2T etc
+func HumanReadableSizeXiB(size uint64) (string, error) {
+	return HumanReadableSizeXiBWithUnitAndPrecision(size, "", -1)
 }
 
 // MaxLabelLength returns the maximum length of a label for
@@ -242,6 +315,44 @@ func ParseVolumeSize(str string) (uint64, error) {
 		fsize = fsize * (1 << 40)
 	case "p":
 		fsize = fsize * (1 << 50)
+	}
+
+	size = uint64(math.Round(fsize))
+
+	return size, nil
+}
+
+// ParseVolumeSizeXiB will parse a string formatted (1M, 10G, 2T) size and
+// return its representation in power of 2 bytes
+// M = MiB, G = GiB, T = TiB, ..
+func ParseVolumeSizeXiB(str string) (uint64, error) {
+	var size uint64
+
+	str = strings.ToLower(str)
+
+	if !storageExp.MatchString(str) {
+		return strconv.ParseUint(str, 0, 64)
+	}
+
+	unit := storageExp.ReplaceAllString(str, `$3`)
+	fsize, err := strconv.ParseFloat(storageExp.ReplaceAllString(str, `$1`), 64)
+	if err != nil {
+		return 0, errors.Wrap(err)
+	}
+
+	switch unit {
+	// case "b":
+	//	fsize = fsize * math.Exp2(0)
+	case "k":
+		fsize = fsize * math.Exp2(10)
+	case "m":
+		fsize = fsize * math.Exp2(20)
+	case "g":
+		fsize = fsize * math.Exp2(30)
+	case "t":
+		fsize = fsize * math.Exp2(40)
+	case "p":
+		fsize = fsize * math.Exp2(50)
 	}
 
 	size = uint64(math.Round(fsize))
