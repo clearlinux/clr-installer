@@ -1401,11 +1401,11 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 			for _, part := range strings.Split(label, "_") {
 				lowerPart := strings.ToLower(part)
 
-				// Filter out parts which dont start with CLR which
-				// mean they are not meany for advanced Installation
+				// Filter out parts which don't start with CLR which
+				// mean they are not meant for advanced Installation
 				if !clrFound {
 					if lowerPart == "clr" {
-						log.Debug("FindAdvanceInstallTargets: Partition label contains clr %s", ch.Name)
+						log.Debug("FindAdvancedInstallTargets: Partition label contains clr %s", ch.Name)
 						clrFound = true
 					}
 					continue
