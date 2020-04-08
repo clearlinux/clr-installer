@@ -47,12 +47,29 @@ var mockpasswords = []struct {
 	expectedreturn      bool
 }{
 	// bad passwords
-	{"testlogin", "testusername", "a", "Password must be at least 8 characters long", false},                                           //Fails Minimum Length
-	{"testlogin", "testusername", generateRandomString(MaxPasswordLength, "9!"), "Password may be at most 255 characters long", false}, //Fails Maximum Length
-	{"login", "username", "Remember3!", "Password is based on a dictionary word", false},                                               //Fails cracklib dictionary word
-	{"testlogin", "testusername", "Rebmemer8!", "Password is based on a (reversed) dictionary word", false},                            //Fails cracklib reverse dictionary word
-	{"testlogin", "testusername", "Abcdefl1234567!", "Password is too simplistic/systematic", false},                                   //Fails cracklib simplistic/systematic
-	{"testlogin", "testusername", "Aaaaaaaaaaaa8!", "Password does not contain enough DIFFERENT characters", false},                    //Fails cracklib enough DIFFERENT characters
+	//Fails Minimum Length
+	{"testlogin", "testusername", "a", "Password must be at least 8 characters long", false},
+
+	//Fails Maximum Length
+	{"testlogin", "testusername",
+		generateRandomString(MaxPasswordLength, "9!"),
+		"Password may be at most 255 characters long", false},
+
+	//Fails cracklib dictionary word
+	{"login", "username", "Remember3!", "Password is based on a dictionary word", false},
+
+	//Fails cracklib reverse dictionary word
+	{"testlogin", "testusername", "Rebmemer8!",
+		"Password is based on a (reversed) dictionary word", false},
+
+	//Fails cracklib simplistic/systematic
+	{"testlogin", "testusername", "Abcdefl1234567!",
+		"Password is too simplistic/systematic", false},
+
+	//Fails cracklib enough DIFFERENT characters
+	{"testlogin", "testusername", "Aaaaaaaaaaaa8!",
+		"Password does not contain enough DIFFERENT characters", false},
+
 	// good passwords
 	{"testlogin", "testusername", "Mfgatcsc5!", "", true},
 	{"testlogin", "testusername", "84A562548463!", "", true},
@@ -68,9 +85,12 @@ var mockusernames = []struct {
 	expectedreturn      bool
 }{
 	//bad usernames
-	{"", generateRandomString(MaxUsernameLength-offset, "9"), "", "Username must contain only numbers, letters, commas, - or _", false},
-	{"", generateRandomString(MaxUsernameLength-offset, "_"), "", "Username must contain only numbers, letters, commas, - or _", false},
-	{"", generateRandomString(MaxUsernameLength+1, ""), "", "UserName maximum length is 64", false},
+	{"", generateRandomString(MaxUsernameLength-offset, "9"), "",
+		"Username must contain only numbers, letters, commas, - or _", false},
+	{"", generateRandomString(MaxUsernameLength-offset, "_"), "",
+		"Username must contain only numbers, letters, commas, - or _", false},
+	{"", generateRandomString(MaxUsernameLength+1, ""), "",
+		"UserName maximum length is 64", false},
 	// good usernames
 	{"", generateRandomString(MaxUsernameLength-offset, "a-_ ,'."), "", "", true},
 	{"", generateRandomString(MaxUsernameLength, ""), "", "", true},
@@ -86,7 +106,8 @@ var mocklogins = []struct {
 }{
 	//bad logins
 	{"", "", "", "Login is required", false},
-	{generateRandomString(MaxLoginLength-offset, "9!"), "", "", "Login must contain only numbers, letters, -, . or _", false},
+	{generateRandomString(MaxLoginLength-offset, "9!"), "", "",
+		"Login must contain only numbers, letters, -, . or _", false},
 	{generateRandomString(MaxLoginLength+1, ""), "", "", "Login maximum length is 31", false},
 	//good logins
 	{generateRandomString(MaxLoginLength-offset, "a9-_."), "", "", "", true},
@@ -107,7 +128,8 @@ func TestPasswordValidation(t *testing.T) {
 		t.Run(testsuffixfunc(curruser.password), func(t *testing.T) {
 			observedreturn, observedstring := IsValidPassword(curruser.password)
 			if curruser.expectedreturnError != observedstring || curruser.expectedreturn != observedreturn {
-				t.Errorf("Test assertion failed: got (%v,%s), want (%v,%s)", observedreturn, observedstring, curruser.expectedreturn, curruser.expectedreturnError)
+				t.Errorf("Test assertion failed: got (%v,%s), want (%v,%s)",
+					observedreturn, observedstring, curruser.expectedreturn, curruser.expectedreturnError)
 			}
 		})
 	}
@@ -127,7 +149,8 @@ func TestUsernameValidation(t *testing.T) {
 		t.Run(testsuffixfunc(curruser.username), func(t *testing.T) {
 			observedreturn, observedstring := IsValidUsername(curruser.username)
 			if curruser.expectedreturnError != observedstring || curruser.expectedreturn != observedreturn {
-				t.Errorf("Test assertion failed: got (%v,%s), want (%v,%s)", observedreturn, observedstring, curruser.expectedreturn, curruser.expectedreturnError)
+				t.Errorf("Test assertion failed: got (%v,%s), want (%v,%s)",
+					observedreturn, observedstring, curruser.expectedreturn, curruser.expectedreturnError)
 			}
 		})
 	}
@@ -147,7 +170,8 @@ func TestLoginValidation(t *testing.T) {
 		t.Run(testsuffixfunc(curruser.login), func(t *testing.T) {
 			observedreturn, observedstring := IsValidLogin(curruser.login)
 			if curruser.expectedreturnError != observedstring || curruser.expectedreturn != observedreturn {
-				t.Errorf("Test assertion failed: got (%v,%s), want (%v,%s)", observedreturn, observedstring, curruser.expectedreturn, curruser.expectedreturnError)
+				t.Errorf("Test assertion failed: got (%v,%s), want (%v,%s)",
+					observedreturn, observedstring, curruser.expectedreturn, curruser.expectedreturnError)
 			}
 		})
 	}

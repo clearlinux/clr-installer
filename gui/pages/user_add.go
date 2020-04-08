@@ -73,7 +73,8 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 
 	// Name
 	page.name, page.nameWarning, err = page.setSimilarWidgets(utils.Locale.Get("User Name"),
-		utils.Locale.Get("Must start with letter. Can use numbers, commas, - and _. Max %d characters.", user.MaxUsernameLength),
+		utils.Locale.Get(
+			"Must start with letter. Can use numbers, commas, - and _. Max %d characters.", user.MaxUsernameLength),
 		user.MaxUsernameLength)
 	if err != nil {
 		return nil, err
@@ -81,7 +82,9 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 
 	// Login
 	page.login, page.loginWarning, err = page.setSimilarWidgets(utils.Locale.Get("Login")+" *",
-		utils.Locale.Get("Must begin with a letter. You can use letters, numbers, hyphens, underscores, and periods. Up to %d characters.", user.MaxLoginLength),
+		utils.Locale.Get(
+			"Must begin with a letter. You can use letters, numbers, hyphens, underscores, and periods. Up to %d characters.",
+			user.MaxLoginLength),
 		user.MaxLoginLength)
 	if err != nil {
 		return nil, err
@@ -89,7 +92,8 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 
 	// Password
 	page.password, page.passwordConfirm, page.passwordWarning, err =
-		page.setPasswordWidgets(utils.Locale.Get("Min %d and Max %d characters.", user.MinPasswordLength, user.MaxPasswordLength),
+		page.setPasswordWidgets(
+			utils.Locale.Get("Min %d and Max %d characters.", user.MinPasswordLength, user.MaxPasswordLength),
 			user.MaxPasswordLength)
 	if err != nil {
 		return nil, err

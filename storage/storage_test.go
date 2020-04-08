@@ -386,6 +386,7 @@ func TestParseBlockDevicesDescriptor(t *testing.T) {
 }
 
 func TestNullRemovable(t *testing.T) {
+	//nolint: lll // WONTFIX
 	lsblkOutput := `{
    "blockdevices": [
       {"name": "sda", "maj:min": "8:0", "rm": "0", "size": "223.6G", "ro": "0", "type": "disk", "mountpoint": null,
@@ -419,6 +420,7 @@ func TestNullRemovable(t *testing.T) {
 }
 
 func TestRAID(t *testing.T) {
+	//nolint: lll // WONTFIX
 	lsblkOutput := `{
    "blockdevices": [
       {"name":"sdb", "kname":"sdb", "path":"/dev/sdb", "maj:min":"8:16", "fsavail":null, "fssize":null, "fstype":null, "fsused":null, "fsuse%":null, "mountpoint":null, "label":null, "pttype":"gpt", "parttype":null, "partlabel":null, "ra":1024, "ro":false, "rm":false, "hotplug":false, "size":1000204886016, "state":"running", "owner":"root", "group":"disk", "mode":"brw-rw----", "alignment":0, "min-io":4096, "opt-io":0, "phy-sec":4096, "log-sec":512, "rota":false, "sched":"bfq", "rq-size":1024, "type":"disk", "disc-aln":0, "disc-gran":4096, "disc-max":2147450880, "disc-zero":false, "wsame":0, "wwn":"0x500a0751e1eda080", "rand":true, "pkname":null, "hctl":"7:0:0:0", "tran":"sata", "subsystems":"block:scsi:pci", "rev":"023 ", "vendor":"ATA     ", "zoned":"none",
@@ -508,10 +510,41 @@ func TestWritePartition(t *testing.T) {
 			}
 		}()
 		bd.Name = path.Base(file)
-		part1 := &BlockDevice{Name: bd.Name + "p1", FsType: "vfat", Size: 157286400, PartitionLabel: "CLR_BOOT", Type: BlockDeviceTypePart, MountPoint: "/boot", MakePartition: true}
-		part2 := &BlockDevice{Name: bd.Name + "p2", FsType: "swap", Size: 125829120, PartitionLabel: "CLR_SWAP", Type: BlockDeviceTypePart, MountPoint: "", MakePartition: true}
-		part3 := &BlockDevice{Name: bd.Name + "p3", FsType: "ext4", Size: 502267904, PartitionLabel: "CLR_ROOT_F", Type: BlockDeviceTypePart, MountPoint: "/", MakePartition: true}
-		part4 := &BlockDevice{Name: bd.Name + "p4", FsType: "ext4", Size: 502267904, PartitionLabel: "CLR_MNT_/home", Type: BlockDeviceTypeCrypt, MountPoint: "/home", MakePartition: true}
+
+		part1 :=
+			&BlockDevice{Name: bd.Name + "p1",
+				FsType: "vfat", Size: 157286400,
+				PartitionLabel: "CLR_BOOT",
+				Type:           BlockDeviceTypePart,
+				MountPoint:     "/boot",
+				MakePartition:  true}
+
+		part2 :=
+			&BlockDevice{Name: bd.Name + "p2",
+				FsType:         "swap",
+				Size:           125829120,
+				PartitionLabel: "CLR_SWAP",
+				Type:           BlockDeviceTypePart,
+				MountPoint:     "",
+				MakePartition:  true}
+
+		part3 :=
+			&BlockDevice{Name: bd.Name + "p3",
+				FsType:         "ext4",
+				Size:           502267904,
+				PartitionLabel: "CLR_ROOT_F",
+				Type:           BlockDeviceTypePart,
+				MountPoint:     "/",
+				MakePartition:  true}
+
+		part4 :=
+			&BlockDevice{Name: bd.Name + "p4",
+				FsType:         "ext4",
+				Size:           502267904,
+				PartitionLabel: "CLR_MNT_/home",
+				Type:           BlockDeviceTypeCrypt,
+				MountPoint:     "/home",
+				MakePartition:  true}
 
 		children = append(children, part1)
 		children = append(children, part2)
@@ -570,6 +603,7 @@ func TestWritePartition(t *testing.T) {
 }
 
 func TestValidDiskSize(t *testing.T) {
+	//nolint: lll // WONTFIX
 	lsblkOutput := `{
    "blockdevices": [
       {"name": "sda", "maj:min": "8:0", "rm": "0", "size": "223.6G", "ro": "0", "type": "disk", "mountpoint": null,
@@ -636,6 +670,7 @@ func TestValidDiskSize(t *testing.T) {
 }
 
 func TestInvalidDiskSize(t *testing.T) {
+	//nolint: lll // WONTFIX
 	lsblkOutput := `{
    "blockdevices": [
       {"name": "sdb", "maj:min": "8:16", "rm": "0", "size": "1.8T", "ro": "0", "type": "disk", "mountpoint": null,
@@ -701,6 +736,7 @@ func TestInvalidPassphrase(t *testing.T) {
 }
 
 func TestValidMakeFsCommand(t *testing.T) {
+	//nolint: lll // WONTFIX
 	lsblkOutput := `{
    "blockdevices": [
       {"name": "sde", "maj:min": "8:128", "rm": "0", "size": "2.0T", "rw": "0", "type": "disk", "mountpoint": null,
@@ -740,6 +776,7 @@ func TestValidMakeFsCommand(t *testing.T) {
 }
 
 func TestWriteConfigFiles(t *testing.T) {
+	//nolint: lll // WONTFIX
 	lsblkOutput := `{
    "blockdevices": [
       {"name": "sde", "maj:min": "8:128", "rm": "0", "size": "2.0T", "rw": "0", "type": "disk", "mountpoint": null,

@@ -520,7 +520,8 @@ func runInstallHook(vars map[string]string, hook *model.InstallHook) error {
 // latest one and start adding new bundles
 // for the bootstrap we use the hosts's swupd and the following operations are
 // executed using the target swupd
-func contentInstall(rootDir string, version string, md *model.SystemInstall, options args.Args) (progress.Progress, error) {
+func contentInstall(rootDir string, version string,
+	md *model.SystemInstall, options args.Args) (progress.Progress, error) {
 
 	var prg progress.Progress
 
@@ -985,7 +986,8 @@ func generateISO(rootDir string, md *model.SystemInstall, options args.Args) err
 
 	if !md.LegacyBios {
 		for _, alias := range md.StorageAlias {
-			if err = isoutils.MakeIso(rootDir, strings.TrimSuffix(alias.File, filepath.Ext(alias.File)), md, options); err != nil {
+			if err = isoutils.MakeIso(rootDir, strings.TrimSuffix(alias.File,
+				filepath.Ext(alias.File)), md, options); err != nil {
 				md.KeepImage = true
 				return err
 			}

@@ -205,7 +205,8 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	// Build Destructive Install Section
 	destructiveBox, _ := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	destructiveBox.SetMarginStart(common.StartEndMargin)
-	disk.destructiveButton, err = gtk.RadioButtonNewWithLabelFromWidget(disk.safeButton, utils.Locale.Get("Destructive Installation"))
+	disk.destructiveButton, err = gtk.RadioButtonNewWithLabelFromWidget(disk.safeButton,
+		utils.Locale.Get("Destructive Installation"))
 	if err != nil {
 		return nil, err
 	}
@@ -410,7 +411,8 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	if err != nil {
 		return nil, err
 	}
-	disk.partitionButton.SetTooltipText(utils.Locale.Get("Launch the external partitioning tool to name the partitions to be used for the installation."))
+	disk.partitionButton.SetTooltipText(
+		utils.Locale.Get("Launch the external partitioning tool to name the partitions to be used for the installation."))
 
 	if _, err = disk.partitionButton.Connect("clicked", disk.runDiskPartitionTool); err != nil {
 		return nil, err
@@ -450,7 +452,8 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 }
 
 func newListStoreMedia() (*gtk.ListStore, error) {
-	store, err := gtk.ListStoreNew(glib.TYPE_OBJECT, glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
+	store, err := gtk.ListStoreNew(glib.TYPE_OBJECT,
+		glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING, glib.TYPE_STRING)
 	return store, err
 }
 
@@ -817,7 +820,8 @@ func (disk *DiskConfig) populateComboBoxes() error {
 	if len(disk.devs) < 1 {
 		warning := utils.Locale.Get("No media found for installation")
 		log.Warning(warning)
-		warning = fmt.Sprintf("<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
+		warning = fmt.Sprintf(
+			"<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
 		disk.errorMessage.SetMarkup(warning)
 		disk.chooserCombo.SetModel(emptyStore)
 		disk.controller.SetButtonState(ButtonConfirm, false)
@@ -861,7 +865,11 @@ func (disk *DiskConfig) populateComboBoxes() error {
 			disk.chooserCombo.SetModel(safeStore)
 			warning := utils.Locale.Get("No safe media found for installation")
 			log.Warning(warning)
-			warning = fmt.Sprintf("<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
+
+			warning =
+				fmt.Sprintf(
+					"<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
+
 			disk.errorMessage.SetMarkup(warning)
 			disk.controller.SetButtonState(ButtonConfirm, false)
 		}
@@ -896,7 +904,10 @@ func (disk *DiskConfig) populateComboBoxes() error {
 			disk.chooserCombo.SetModel(destructiveStore)
 			warning := utils.Locale.Get("No media found for installation")
 			log.Warning(warning)
-			warning = fmt.Sprintf("<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
+
+			warning = fmt.Sprintf(
+				"<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
+
 			disk.errorMessage.SetMarkup(warning)
 			disk.controller.SetButtonState(ButtonConfirm, false)
 		}

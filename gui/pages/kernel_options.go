@@ -5,14 +5,14 @@
 package pages
 
 import (
-	"github.com/clearlinux/clr-installer/gui/common"
+	"strings"
 
+	"github.com/clearlinux/clr-installer/gui/common"
 	"github.com/clearlinux/clr-installer/kernel"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/utils"
 	"github.com/gotk3/gotk3/gtk"
-	"strings"
 )
 
 // ConfigKernelPage is a page to change kernel installation configuration
@@ -35,10 +35,13 @@ type ConfigKernelPage struct {
 func NewConfigKernelPage(controller Controller, model *model.SystemInstall) (Page, error) {
 	kernelArgsHelp :=
 		utils.Locale.Get("Note: The boot manager tool will first include the \"Add Extra Arguments\" items.")
+
 	kernelArgsHelp = kernelArgsHelp + "\n" +
 		utils.Locale.Get("Then, the \"Remove Arguments\" items are removed.")
+
 	kernelArgsHelp = kernelArgsHelp + "\n" +
-		utils.Locale.Get("The final argument list contains the kernel bundle's configured arguments and the ones configured by the user.")
+		utils.Locale.Get(
+			"The final argument list contains the kernel bundle's configured arguments and the ones configured by the user.")
 
 	data, err := kernel.LoadKernelList()
 	if err != nil {

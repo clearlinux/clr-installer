@@ -101,9 +101,10 @@ var (
 
 	numericOnlyExp = regexp.MustCompile(`^[0-9]+[0-9]*$`)
 
-	validIPExp = regexp.MustCompile(`^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.{1})){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?){1}$`)
-	dnsExp     = regexp.MustCompile(`Current DNS Server:(.*)`)
-	domainExp  = regexp.MustCompile(`DNS Domain:(.*)`)
+	validIPExp = regexp.MustCompile(`^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)` +
+		`(\.{1})){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?){1}$`)
+	dnsExp    = regexp.MustCompile(`Current DNS Server:(.*)`)
+	domainExp = regexp.MustCompile(`DNS Domain:(.*)`)
 
 	needPacDiscover = false
 

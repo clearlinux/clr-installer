@@ -117,7 +117,14 @@ func TestKernelCmdDemoTrue(t *testing.T) {
 	var err error
 
 	// Check for Demo mode set true
-	kernelCmd = "root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0 console=ttyS0,115200n8 init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" + " " + kernelCmdlineDemo
+	kernelCmd =
+		"root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet" +
+			" " + "modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0" +
+			" " + "console=ttyS0,115200n8 init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable" +
+			" " + "no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs" +
+			" " + "intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" +
+			" " + kernelCmdlineDemo
+
 	kernelCmdlineFile, err = makeTestKernelCmd(kernelCmd)
 	defer func() {
 		_ = os.Remove(kernelCmdlineFile)
@@ -148,7 +155,13 @@ func TestKernelCmdDemoFalse(t *testing.T) {
 	var err error
 
 	// Check for Demo mode set false
-	kernelCmd = "root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0 console=ttyS0,115200n8 init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw .demo"
+	kernelCmd =
+		"root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet" +
+			" " + "modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0" +
+			" " + "console=ttyS0,115200n8 init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable" +
+			" " + "no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs" +
+			" " + "intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 i915.fastboot=1" +
+			" " + "rcu_nocbs=0-64 rw .demo"
 	kernelCmdlineFile, err = makeTestKernelCmd(kernelCmd)
 	defer func() {
 		_ = os.Remove(kernelCmdlineFile)
@@ -179,8 +192,13 @@ func TestKernelCmdConfPresent(t *testing.T) {
 	var err error
 
 	// Check for configuration file present
-	kernelCmd = "root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0 console=ttyS0,115200n8 init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" +
-		" " + kernelCmdlineConf + "=http://google.com"
+	kernelCmd =
+		"root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet" +
+			" " + "modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0" +
+			" " + "console=ttyS0,115200n8 init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable" +
+			" " + "no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs" +
+			" " + "intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" +
+			" " + kernelCmdlineConf + "=http://google.com"
 	kernelCmdlineFile, err = makeTestKernelCmd(kernelCmd)
 	defer func() {
 		_ = os.Remove(kernelCmdlineFile)
@@ -213,8 +231,12 @@ func TestKernelCmdLogPresent(t *testing.T) {
 	forcedLogLevel := "1"
 
 	// Check for configuration file present
-	kernelCmd = "root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0 console=ttyS0,115200n8 init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" +
-		" " + kernelCmdlineLog + "=" + forcedLogLevel
+	kernelCmd = "root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet" +
+		" " + "modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0 console=ttyS0,115200n8" +
+		" " + "init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable no_timer_check noreplace-smp" +
+		" " + "kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs intel_iommu=igfx_off cryptomgr.notests" +
+		" " + "rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" + " " + kernelCmdlineLog +
+		"=" + forcedLogLevel
 	kernelCmdlineFile, err = makeTestKernelCmd(kernelCmd)
 	defer func() {
 		_ = os.Remove(kernelCmdlineFile)
@@ -251,7 +273,11 @@ func TestKernelCmdLogError(t *testing.T) {
 	forcedLogLevel := "a"
 
 	// Check for configuration file present
-	kernelCmd = "root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0 console=ttyS0,115200n8 init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" +
+	kernelCmd = "root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet" +
+		" " + "modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0 console=ttyS0,115200n8" +
+		" " + "init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable no_timer_check noreplace-smp" +
+		" " + "kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs intel_iommu=igfx_off cryptomgr.notests" +
+		" " + "rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" +
 		" " + kernelCmdlineLog + "=" + forcedLogLevel
 	kernelCmdlineFile, err = makeTestKernelCmd(kernelCmd)
 	defer func() {
@@ -351,8 +377,12 @@ func TestKernelCmdConfEmpty(t *testing.T) {
 	var err error
 
 	// Check for configuration file missing
-	kernelCmd = "root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0 console=ttyS0,115200n8 init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" +
-		" " + "nothere"
+	kernelCmd = "root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet" +
+		" " + "modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0 console=ttyS0,115200n8" +
+		" " + "init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable no_timer_check noreplace-smp" +
+		" " + "kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs intel_iommu=igfx_off cryptomgr.notests" +
+		" " + "rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" + " " + "nothere"
+
 	kernelCmdlineFile, err = makeTestKernelCmd(kernelCmd)
 	defer func() {
 		_ = os.Remove(kernelCmdlineFile)
@@ -551,7 +581,11 @@ func TestKernelAndCommandlineAllArgs(t *testing.T) {
 	fmt.Println(os.Args)
 
 	// Check for configuration file missing
-	kernelCmd = "root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0 console=ttyS0,115200n8 init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable no_timer_check noreplace-smp kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs intel_iommu=igfx_off cryptomgr.notests rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" +
+	kernelCmd = "root=PARTUUID=694da991-29f6-4cbd-ab72-6da064a799c0 quiet" +
+		" " + "modprobe.blacklist=ccipciedrv,aalbus,aalrms,aalrmc console=tty0 console=ttyS0,115200n8" +
+		" " + "init=/usr/lib/systemd/systemd-bootchart initcall_debug tsc=reliable no_timer_check noreplace-smp" +
+		" " + "kvm-intel.nested=1 rootfstype=ext4,btrfs,xfs,f2fs intel_iommu=igfx_off cryptomgr.notests" +
+		" " + "rcupdate.rcu_expedited=1 i915.fastboot=1 rcu_nocbs=0-64 rw" +
 		" " + kernelCmdlineConf + "=http://google.com"
 	kernelCmdlineFile, err = makeTestKernelCmd(kernelCmd)
 	defer func() {

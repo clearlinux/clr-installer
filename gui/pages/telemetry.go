@@ -119,9 +119,11 @@ func (page *Telemetry) GetConfiguredValue() string {
 // GetTelemetryMessage gets the telemetry message
 func GetTelemetryMessage(model *model.SystemInstall) string {
 	text := "<big>"
-	text += utils.Locale.Get("Allow Clear Linux* OS to collect anonymized system data and usage statistics for continuous improvement?")
+	text += utils.Locale.Get(
+		"Allow Clear Linux* OS to collect anonymized system data and usage statistics for continuous improvement?")
 	text += "</big>\n\n"
-	text += utils.Locale.Get("These reports only relate to operating system details. No personally identifiable information is collected.")
+	text += utils.Locale.Get(
+		"These reports only relate to operating system details. No personally identifiable information is collected.")
 	text += "\n\n"
 	text += utils.Locale.Get("See %s for more information.", telemetry.TelemetryAboutURL)
 	text += "\n\n"
