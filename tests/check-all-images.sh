@@ -8,7 +8,13 @@ then
     SRCDIR="$(realpath "${SRCDIR}")"
 fi
 
-IMAGESURL="https://download.clearlinux.org/current/config/image/"
+if [ -n "${CONTENT_MIRROR_BASE_URL}" ]
+then
+    IMAGESURL="${CONTENT_MIRROR_BASE_URL}/current/config/image/"
+    CLRINST_ARGS="${CLRINST_ARGS} --swupd-url ${CONTENT_MIRROR_BASE_URL}/update/"
+else
+    IMAGESURL="https://download.clearlinux.org/current/config/image/"
+fi
 
 SAVEDIR=$(pwd)
 TMPDIR=$(mktemp -d)
@@ -105,7 +111,7 @@ echo "For a detailed log see ${OUTPUT}."
 echo ""
 
 echo "Downloading latest image YAML files ..." |& tee -a "${OUTPUT}"
-wget -xnH --cut-dirs=1 -r --no-parent \
+wget -nd --cut-dirs=1 -r --no-parent \
     --reject "index.html*" -e robots=off --wait 0.5 "${IMAGESURL}" \
     |& tee -a "${OUTPUT}" | grep -E "${IMAGESURL}"
 if [ "${PIPESTATUS[0]}" -ne 0 ]
@@ -115,11 +121,11 @@ then
 fi
 
 # Fix execute permission on hook scripts
-chmod -R +x config/image/*.{pl,py,sh,bash} 1>>"${OUTPUT}" 2>>"${OUTPUT}"
+chmod -R +x ./*.{pl,py,sh,bash} 1>>"${OUTPUT}" 2>>"${OUTPUT}"
 
-ls "${TMPDIR}"/config/image/ 1>>"${OUTPUT}" 2>>"${OUTPUT}"
+ls "${TMPDIR}"/ 1>>"${OUTPUT}" 2>>"${OUTPUT}"
 
-for y in config/image/*.yaml
+for y in ./*.yaml
 do
     log="$(basename "${y}" | sed -e 's/.yaml$/.log/')"
 
@@ -133,7 +139,7 @@ do
 
     # ignore control-c during image builds
     trap "" SIGINT
-    "${CLRINST}" -c "${TMPDIR}/${y}" --log-file "${log}" |& tee -a "${OUTPUT}"
+    "${CLRINST}" -c "${TMPDIR}/${y}" --log-file "${log}" "${CLRINST_ARGS}" |& tee -a "${OUTPUT}"
     if [ "${PIPESTATUS[0]}" -ne 0 ]
     then
         echo "Failed to build ${y}!" |& tee -a "${OUTPUT}"
