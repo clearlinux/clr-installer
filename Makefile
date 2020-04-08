@@ -303,125 +303,17 @@ PHONY += lint
 lint: lint-release
 
 PHONY += lint-release
-lint-release: lint-checkers
+lint-release: lint-all
 	@echo "Linters complete"
 
 PHONY += lint-core
 lint-core: build install-linters
 	@echo "Running linters"
 
-PHONY += lint-checkers
-lint-checkers: lint-mispell lint-vet lint-ineffassign lint-gocyclo lint-gofmt \
-lint-golint lint-deadcode lint-varcheck lint-structcheck \
-lint-unused lint-vetshadow lint-errcheck
-
-PHONY += lint-mispell
-lint-mispell: lint-core
-	@echo "Running linter lint-mispell"
-	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
-	--skip-dirs-use-default \
-	--disable-all \
-	--enable=misspell \
-	./...
-
-PHONY += lint-vet
-lint-vet: lint-core
-	@echo "Running linter lint-vet"
-	@${orig_go_path}/bin/golangci-lint run --deadline=20m --tests \
-	--skip-dirs-use-default \
-	--disable-all \
-	--enable=govet \
-	./...
-
-PHONY += lint-ineffassign
-lint-ineffassign: lint-core
-	@echo "Running linter lint-ineffassign"
-	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
-	--skip-dirs-use-default \
-	--disable-all \
-	--enable=ineffassign \
-	./...
-
-# TODO: Resolve gocyclo errors for skipped files
-PHONY += lint-gocyclo
-lint-gocyclo: lint-core
-	@echo "Running linter lint-gocyclo"
-	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
-	--skip-dirs-use-default \
-	--disable-all \
-	--enable=gocyclo \
-	./...
-
-PHONY += lint-gofmt
-lint-gofmt: lint-core
-	@echo "Running linter lint-gofmt"
-	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
-	--skip-dirs-use-default \
-	--disable-all \
-	--enable=gofmt \
-	./...
-
-PHONY += lint-golint
-lint-golint: lint-core
-	@echo "Running linter lint-golint"
-	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
-	--skip-dirs-use-default \
-	--disable-all \
-	--enable=golint \
-	./...
-
-PHONY += lint-deadcode
-lint-deadcode: lint-core
-	@echo "Running linter lint-deadcode"
-	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
-	--skip-dirs-use-default \
-	--disable-all \
-	--enable=deadcode \
-	./...
-
-PHONY += lint-varcheck
-lint-varcheck: lint-core
-	@echo "Running linter lint-varcheck"
-	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
-	--skip-dirs-use-default \
-	--disable-all \
-	--enable=varcheck \
-	./...
-
-PHONY += lint-structcheck
-lint-structcheck: lint-core
-	@echo "Running linter lint-structcheck"
-	@${orig_go_path}/bin/golangci-lint run --deadline=20m --tests \
-	--skip-dirs-use-default \
-	--disable-all \
-	--enable=structcheck \
-	./...
-
-PHONY += lint-unused
-lint-unused: lint-core
-	@echo "Running linter lint-unused"
-	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
-	--skip-dirs-use-default \
-	--disable-all \
-	--enable=unused \
-	./...
-
-PHONY += lint-vetshadow
-lint-vetshadow: lint-core
-	@echo "Running linter lint-vetshadow"
-	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
-	--skip-dirs-use-default \
-	--disable-all \
-	--enable=vetshadow \
-	./...
-
-PHONY += lint-errcheck
-lint-errcheck: lint-core
-	@echo "Running linter lint-errcheck"
-	@${orig_go_path}/bin/golangci-lint run --deadline=10m --tests \
-	--skip-dirs-use-default \
-	--disable-all \
-	--enable=errcheck \
+PHONY += lint-all
+lint-all: lint-core
+	@echo "Running all linters using config file for default"
+	@${orig_go_path}/bin/golangci-lint run --config $(top_srcdir)/.golangci.yml \
 	./...
 
 PHONY += tag

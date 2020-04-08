@@ -1,0 +1,19 @@
+run:
+  timeout: 10m
+
+linters:
+  disable-all: true
+  enable:
+    - misspell
+    - govet
+    - ineffassign
+    - gocyclo
+    - gofmt
+    - golint
+    - deadcode
+    - varcheck
+    - structcheck
+    - unused
+    - vetshadow
+    - errcheck
+    - lll
