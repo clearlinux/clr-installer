@@ -305,11 +305,13 @@ func (args *Args) setCommandLineArgs() (err error) {
 	)
 
 	flag.StringVarP(
-		&args.ConvertConfigFile, "json-yaml", "j", args.ConvertConfigFile, "Converts ister JSON config to clr-installer YAML config",
+		&args.ConvertConfigFile, "json-yaml", "j", args.ConvertConfigFile,
+		"Converts ister JSON config to clr-installer YAML config",
 	)
 
 	flag.StringVarP(
-		&args.TemplateConfigFile, "template", "T", args.TemplateConfigFile, "Generates a template clr-installer YAML config file",
+		&args.TemplateConfigFile, "template", "T", args.TemplateConfigFile,
+		"Generates a template clr-installer YAML config file",
 	)
 
 	flag.StringVar(
@@ -338,11 +340,13 @@ func (args *Args) setCommandLineArgs() (err error) {
 	)
 
 	flag.BoolVar(
-		&args.AllowInsecureHTTP, "allow-insecure-http", false, "Allow installation over insecure connections",
+		&args.AllowInsecureHTTP, "allow-insecure-http", false,
+		"Allow installation over insecure connections",
 	)
 
 	flag.BoolVar(
-		&args.SwupdSkipOptional, "swupd-skip-optional", false, "Swupd --skip-optional; don't install optionally included bundles",
+		&args.SwupdSkipOptional, "swupd-skip-optional", false,
+		"Swupd --skip-optional; don't install optionally included bundles",
 	)
 
 	flag.BoolVar(

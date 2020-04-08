@@ -1595,7 +1595,8 @@ func validateBoot(found *bool, results []string, bd *BlockDevice, skipSize bool,
 }
 
 // Helper to validatePartitions for validating root minimum size etc
-func validateRoot(found *bool, results []string, bd *BlockDevice, minRootSize uint64, skipSize bool, rootLabel string) (*BlockDevice, []string) {
+func validateRoot(found *bool, results []string, bd *BlockDevice,
+	minRootSize uint64, skipSize bool, rootLabel string) (*BlockDevice, []string) {
 
 	var rootBlockDevice *BlockDevice
 

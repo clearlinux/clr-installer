@@ -123,12 +123,14 @@ func JSONtoYAMLConfig(cf string) (*SystemInstall, error) {
 			case "virtual":
 				bd.Name = curr.Disk
 				bd.Type = storage.BlockDeviceTypeLoop
-				sa.Name = strings.TrimSuffix(curr.Disk, filepath.Ext(curr.Disk)) // remove any extensions from alias name
+				// remove any extensions from alias name
+				sa.Name = strings.TrimSuffix(curr.Disk, filepath.Ext(curr.Disk))
 				sa.File = curr.Disk
 			case "physical":
 				bd.Name = curr.Disk
 				bd.Type = storage.BlockDeviceTypeDisk
-				sa.Name = strings.TrimSuffix(curr.Disk, filepath.Ext(curr.Disk)) // remove any extensions from alias name
+				// remove any extensions from alias name
+				sa.Name = strings.TrimSuffix(curr.Disk, filepath.Ext(curr.Disk))
 				sa.File = "/dev/" + curr.Disk
 			default:
 				return nil, errors.Errorf("invalid DestinationType in config file %s", cf)
@@ -145,7 +147,9 @@ func JSONtoYAMLConfig(cf string) (*SystemInstall, error) {
 		} else {
 			_, ok := partitions[curr.Partition]
 			if ok {
-				return nil, fmt.Errorf("partition %d already defined for disk %s in config file %s", curr.Partition, curr.Disk, cf)
+				return nil,
+					fmt.Errorf("partition %d already defined for disk %s in config file %s",
+						curr.Partition, curr.Disk, cf)
 			}
 			partitions[curr.Partition], err = setStorageValues(curr.Disk, curr.Partition, curr.Size)
 			if err != nil {
@@ -164,7 +168,9 @@ func JSONtoYAMLConfig(cf string) (*SystemInstall, error) {
 
 		part, ok := partitions[curr.Partition]
 		if !ok {
-			return nil, errors.Errorf("partition %d not defined for disk %s in config file %s", curr.Partition, curr.Disk, cf)
+			return nil,
+				errors.Errorf("partition %d not defined for disk %s in config file %s",
+					curr.Partition, curr.Disk, cf)
 		}
 		part.FsType = curr.Type
 		part.Options = curr.Options
@@ -177,12 +183,16 @@ func JSONtoYAMLConfig(cf string) (*SystemInstall, error) {
 	for _, curr := range ic.PartitionMountPoints {
 		partitions, ok := disks[curr.Disk]
 		if !ok {
-			return nil, errors.Errorf("disk %s not defined in config file %s", curr.Disk, cf)
+			return nil,
+				errors.Errorf(
+					"disk %s not defined in config file %s", curr.Disk, cf)
 		}
 
 		part, ok := partitions[curr.Partition]
 		if !ok {
-			return nil, errors.Errorf("partition %d not defined for partitions %s in config file %s", curr.Partition, curr.Disk, cf)
+			return nil,
+				errors.Errorf(
+					"partition %d not defined for partitions %s in config file %s", curr.Partition, curr.Disk, cf)
 		}
 		part.MountPoint = curr.Mount
 

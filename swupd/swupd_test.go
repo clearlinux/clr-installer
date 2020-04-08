@@ -169,6 +169,7 @@ func TestProcess(t *testing.T) {
 	}
 
 	// "progress" messages should be processed correctly
+	//nolint: lll // WONTFIX
 	jsonMsg = "{ \"type\" : \"progress\", \"currentStep\" : 5, \"stepCompletion\" : 80, \"stepDescription\" : \"download_packs\" },"
 	msg.Process("", jsonMsg)
 	if mp.description != "Downloading required packs" {
@@ -180,10 +181,13 @@ func TestProcess(t *testing.T) {
 	if mp.output != "" {
 		t.Fatal("Message processed incorrectly. Expected: '', Actual:", mp.output)
 	}
+	//nolint: lll // WONTFIX
 	jsonMsg = "{ \"type\" : \"progress\", \"currentStep\" : 8, \"stepCompletion\" : 100, \"stepDescription\" : \"add_missing_files\" },"
 	msg.Process("", jsonMsg)
 	if mp.description != "Installing base OS and configured bundles" {
-		t.Fatal("Message processed incorrectly. Expected: 'Installing base OS and configured bundles', Actual:", mp.description)
+		t.Fatal(
+			"Message processed incorrectly. Expected: 'Installing base OS and configured bundles', Actual:",
+			mp.description)
 	}
 	if mp.percentage != 100 {
 		t.Fatal("Message processed incorrectly. Expected: 100, Actual:", mp.percentage)

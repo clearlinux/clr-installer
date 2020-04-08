@@ -45,7 +45,8 @@ const (
 	AutoUpdateDesc1 = "Allow Clear Linux* OS to continuously update as new versions are released."
 
 	// AutoUpdateDesc2 specifies line 2 of auto updates desc
-	AutoUpdateDesc2 = "This is the default, preferred behavior for Clear Linux* OS to ensure that the latest security concerns are always addressed."
+	AutoUpdateDesc2 = "This is the default, preferred behavior for Clear Linux* OS to ensure that the latest" +
+		" " + "security concerns are always addressed."
 
 	// AutoUpdateDesc3 specifies line 3 of auto updates desc
 	AutoUpdateDesc3 = "To enable this post installation use:"
