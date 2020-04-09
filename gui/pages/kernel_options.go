@@ -41,7 +41,8 @@ func NewConfigKernelPage(controller Controller, model *model.SystemInstall) (Pag
 
 	kernelArgsHelp = kernelArgsHelp + "\n" +
 		utils.Locale.Get(
-			"The final argument list contains the kernel bundle's configured arguments and the ones configured by the user.")
+			"The final argument list contains the kernel bundle's configured arguments and the ones configured"+
+				" "+"by the user.")
 
 	data, err := kernel.LoadKernelList()
 	if err != nil {

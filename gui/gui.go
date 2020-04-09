@@ -31,7 +31,8 @@ const (
 // Gui is the main gui data struct and holds data about the higher level data for this
 // front end, it also implements the Frontend interface
 type Gui struct {
-	window *Window // TODO: Technically there need NOT be a separate Window struct. Its contents can be in this Gui struct.
+	// TODO: Technically there need NOT be a separate Window struct. Its contents can be in this Gui struct.
+	window *Window
 }
 
 // New creates a new Gui frontend instance

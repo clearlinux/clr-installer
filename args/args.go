@@ -301,7 +301,8 @@ func (args *Args) setCommandLineArgs() (err error) {
 	)
 
 	flag.BoolVarP(
-		&args.StubImage, "stub-image", "S", args.StubImage, "Creates the filesystems only - dont perform an actual install",
+		&args.StubImage, "stub-image", "S",
+		args.StubImage, "Creates the filesystems only - dont perform an actual install",
 	)
 
 	flag.StringVarP(
@@ -327,7 +328,8 @@ func (args *Args) setCommandLineArgs() (err error) {
 	)
 
 	flag.StringVar(
-		&args.PamSalt, "genpass", "", "Generates a PAM compatible password hash based on the provided salt string",
+		&args.PamSalt, "genpass", "",
+		"Generates a PAM compatible password hash based on the provided salt string",
 	)
 
 	flag.IntVarP(
@@ -400,16 +402,19 @@ func (args *Args) setCommandLineArgs() (err error) {
 	)
 
 	flag.StringVarP(
-		&args.CBMPath, "cbm-path", "", "", "Path to clr-boot-manager (default: the target systems /usr/bin/clr-boot-manager)",
+		&args.CBMPath, "cbm-path", "", "",
+		"Path to clr-boot-manager (default: the target systems /usr/bin/clr-boot-manager)",
 	)
 	// We do not want this flag to be shown as part of the standard help message
 	makeFlagHidden(flag, "cbm-path")
 
 	flag.BoolVar(
-		&args.SkipValidationSize, "skip-validation-size", args.SkipValidationSize, "Skip the partition validation size check",
+		&args.SkipValidationSize, "skip-validation-size",
+		args.SkipValidationSize, "Skip the partition validation size check",
 	)
 	flag.BoolVar(
-		&args.SkipValidationAll, "skip-validation-all", args.SkipValidationAll, "Skip all of the partition validation checks",
+		&args.SkipValidationAll, "skip-validation-all",
+		args.SkipValidationAll, "Skip all of the partition validation checks",
 	)
 	// We do not want this flag to be shown as part of the standard help message
 	makeFlagHidden(flag, "skip-validation-all")

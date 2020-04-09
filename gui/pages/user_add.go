@@ -83,7 +83,8 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 	// Login
 	page.login, page.loginWarning, err = page.setSimilarWidgets(utils.Locale.Get("Login")+" *",
 		utils.Locale.Get(
-			"Must begin with a letter. You can use letters, numbers, hyphens, underscores, and periods. Up to %d characters.",
+			"Must begin with a letter. You can use letters, numbers, hyphens, underscores, and periods."+
+				" "+"Up to %d characters.",
 			user.MaxLoginLength),
 		user.MaxLoginLength)
 	if err != nil {

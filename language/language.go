@@ -190,7 +190,8 @@ func Load() ([]*Language, error) {
 	// Create a sorted order list of keys
 	sortedKeys := make([]string, 0, len(uniqLang))
 	for k := range uniqLang {
-		if _, found := localizedLanguages[k]; found { // TODO: Remove this when localization is applied for all languages
+		// TODO: Remove this when localization is applied for all languages
+		if _, found := localizedLanguages[k]; found {
 			sortedKeys = append(sortedKeys, k)
 		}
 	}

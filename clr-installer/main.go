@@ -75,7 +75,8 @@ func validateTelemetry(options args.Args, md *model.SystemInstall) error {
 	}
 	// Validate the specified telemetry server
 	if md.TelemetryURL != "" {
-		if telErr := md.Telemetry.SetTelemetryServer(md.TelemetryURL, md.TelemetryTID, md.TelemetryPolicy); telErr != nil {
+		if telErr := md.Telemetry.SetTelemetryServer(md.TelemetryURL,
+			md.TelemetryTID, md.TelemetryPolicy); telErr != nil {
 			return telErr
 		}
 
@@ -309,8 +310,10 @@ func execute(options args.Args) error {
 
 	if options.TemplateConfigFile != "" {
 		if filepath.Ext(options.TemplateConfigFile) == ".yaml" {
-			md.StorageAlias = append(md.StorageAlias, &model.StorageAlias{Name: "release", File: "release.img"})
-			bd := &storage.BlockDevice{Size: storage.MinimumServerInstallSize, MappedName: "${release}", Name: "${release}"}
+			md.StorageAlias = append(md.StorageAlias,
+				&model.StorageAlias{Name: "release", File: "release.img"})
+			bd := &storage.BlockDevice{Size: storage.MinimumServerInstallSize,
+				MappedName: "${release}", Name: "${release}"}
 			storage.NewStandardPartitions(bd)
 			md.AddTargetMedia(bd)
 			if err := md.WriteFile(options.TemplateConfigFile); err != nil {
