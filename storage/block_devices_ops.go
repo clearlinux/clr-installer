@@ -1420,7 +1420,8 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 					log.Debug("FindAdvancedInstallTargets: Boot is %s", ch.Name)
 					ch.LabeledAdvanced = true
 					if ch.FsType == "" {
-						log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s", ch.Name, defaultBootFsType)
+						log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s",
+							ch.Name, defaultBootFsType)
 						ch.FsType = defaultBootFsType
 						log.Debug("FindAdvancedInstallTargets: Forcing Format partition %s enabled", ch.Name)
 						ch.FormatPartition = true
@@ -1431,7 +1432,8 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 					log.Debug("FindAdvancedInstallTargets: Root is %s", ch.Name)
 					ch.LabeledAdvanced = true
 					if ch.FsType == "" {
-						log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s", ch.Name, defaultFsType)
+						log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s",
+							ch.Name, defaultFsType)
 						ch.FsType = defaultFsType
 						log.Debug("FindAdvancedInstallTargets: Forcing Format partition %s enabled", ch.Name)
 						ch.FormatPartition = true
@@ -1442,7 +1444,8 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 					log.Debug("FindAdvancedInstallTargets: Swap on %s", ch.Name)
 					ch.LabeledAdvanced = true
 					if ch.FsType == "" {
-						log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s", ch.Name, "swap")
+						log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s",
+							ch.Name, "swap")
 						ch.FsType = "swap"
 						log.Debug("FindAdvancedInstallTargets: Forcing Format partition %s enabled", ch.Name)
 						ch.FormatPartition = true
@@ -1458,7 +1461,8 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 							ch.MountPoint = path
 							ch.LabeledAdvanced = true
 							if ch.FsType == "" {
-								log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s", ch.Name, defaultFsType)
+								log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s",
+									ch.Name, defaultFsType)
 								ch.FsType = defaultFsType
 								log.Debug("FindAdvancedInstallTargets: Forcing Format partition %s enabled", ch.Name)
 								ch.FormatPartition = true
@@ -1689,11 +1693,13 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice,
 						rootBlockDevice.FsType == "ext4") {
 						// xfs currently not supported due to partition table of MBR requirement
 						log.Warning("validatePartitions: legacyMode, invalid fsType: %s", rootBlockDevice.FsType)
-						results = append(results, logPartitionWarning(rootBlockDevice, "%s must be %s", rootLabel, "ext[234]"))
+						results = append(results,
+							logPartitionWarning(rootBlockDevice, "%s must be %s", rootLabel, "ext[234]"))
 					}
 					if rootBlockDevice.Type == BlockDeviceTypeCrypt {
 						log.Warning("validatePartitions: legacyMode without /boot can not be encrypted")
-						results = append(results, logPartitionWarning(rootBlockDevice, "Encryption of %s is not supported", rootLabel))
+						results = append(results,
+							logPartitionWarning(rootBlockDevice, "Encryption of %s is not supported", rootLabel))
 					}
 				}
 			} else {
@@ -1785,7 +1791,8 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice, legacyBi
 
 					if labelMap[labelUpper] {
 						failed = true
-						log.Warning("validateAdvancedPartitions: %s %+v (%s)", warning, ch, "found duplicate partition label")
+						log.Warning("validateAdvancedPartitions: %s %+v (%s)",
+							warning, ch, "found duplicate partition label")
 					} else {
 						labelMap[labelUpper] = true
 					}

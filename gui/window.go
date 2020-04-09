@@ -839,7 +839,8 @@ func (window *Window) confirmInstall() {
 	scroll.Add(textArea)
 	contentBox.PackStart(scroll, false, true, 0)
 
-	dialog, err := common.CreateDialogOkCancel(contentBox, title, utils.Locale.Get("CONFIRM"), utils.Locale.Get("CANCEL"))
+	dialog, err := common.CreateDialogOkCancel(contentBox, title,
+		utils.Locale.Get("CONFIRM"), utils.Locale.Get("CANCEL"))
 	if err != nil {
 		log.Error("Error creating dialog", err)
 		return
@@ -950,7 +951,8 @@ func (window *Window) Panic(err error) {
 
 // GetWelcomeMessage gets the welcome message
 func GetWelcomeMessage() string {
-	text := "<span font-size='xx-large'>" + utils.Locale.Get("Welcome to Clear Linux* OS Desktop Installation") + "</span>"
+	text := "<span font-size='xx-large'>" +
+		utils.Locale.Get("Welcome to Clear Linux* OS Desktop Installation") + "</span>"
 	if model.Version != model.DemoVersion {
 		text += "\n\n<small>" + utils.Locale.Get("VERSION %s", model.Version) + "</small>"
 	}
@@ -960,7 +962,8 @@ func GetWelcomeMessage() string {
 
 // GetThankYouMessage gets the thank you message
 func GetThankYouMessage() string {
-	text := "<span font-size='xx-large'>" + utils.Locale.Get("Thank you for choosing Clear Linux* OS") + "</span>"
+	text := "<span font-size='xx-large'>" +
+		utils.Locale.Get("Thank you for choosing Clear Linux* OS") + "</span>"
 	if model.Version != model.DemoVersion {
 		text += "\n\n<small>" + utils.Locale.Get("VERSION %s", model.Version) + "</small>"
 	}

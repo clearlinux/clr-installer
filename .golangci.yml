@@ -1,6 +1,11 @@
 run:
   timeout: 10m
 
+linters-settings:
+  lll:
+    tab-width: 4
+    line-length: 120 # we use the default value in lll
+
 linters:
   disable-all: true
   enable:

@@ -412,7 +412,8 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		return nil, err
 	}
 	disk.partitionButton.SetTooltipText(
-		utils.Locale.Get("Launch the external partitioning tool to name the partitions to be used for the installation."))
+		utils.Locale.Get(
+			"Launch the external partitioning tool to name the partitions to be used for the installation."))
 
 	if _, err = disk.partitionButton.Connect("clicked", disk.runDiskPartitionTool); err != nil {
 		return nil, err
@@ -868,7 +869,8 @@ func (disk *DiskConfig) populateComboBoxes() error {
 
 			warning =
 				fmt.Sprintf(
-					"<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
+					"<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) +
+						"</span></b></big>")
 
 			disk.errorMessage.SetMarkup(warning)
 			disk.controller.SetButtonState(ButtonConfirm, false)
@@ -906,7 +908,8 @@ func (disk *DiskConfig) populateComboBoxes() error {
 			log.Warning(warning)
 
 			warning = fmt.Sprintf(
-				"<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) + "</span></b></big>")
+				"<big><b><span foreground=\"#FDB814\">" + utils.Locale.Get("Warning: %s", warning) +
+					"</span></b></big>")
 
 			disk.errorMessage.SetMarkup(warning)
 			disk.controller.SetButtonState(ButtonConfirm, false)
