@@ -107,6 +107,9 @@ func main() {
 
 	// Configure logger
 	f, err := log.SetOutputFilename(options.LogFile)
+
+	defer func() { _ = f.Close() }()
+
 	if err != nil {
 		fmt.Println("Set Log Error: " + err.Error())
 		os.Exit(1)
@@ -120,125 +123,92 @@ func main() {
 		fmt.Println(err.Error())
 		log.Error("%s", err)
 		_ = f.Close()
-
 		os.Exit(1)
 	}
-	_ = f.Close()
 }
 
-// execute is called by main to begin execution of the installer
-//nolint: gocyclo  // TODO: Refactor this
-func execute(options args.Args) error {
+func callFrontEnd(options args.Args, md *model.SystemInstall, installReboot *bool,
+	rootDir string, errChan chan error, done chan bool) {
+
+	var err error
+	for _, fe := range frontEndImpls {
+		if !fe.MustRun(&options) {
+			continue
+		}
+
+		*installReboot, err = fe.Run(md, rootDir, options)
+		if err != nil {
+			feName := classExp.FindString(reflect.TypeOf(fe).String())
+			if feName == "" {
+				feName = "unknown"
+			}
+			if errLog := md.Telemetry.LogRecord(feName, 3, err.Error()); errLog != nil {
+				log.Error("Failed to log Telemetry fail record: %s", feName)
+			}
+
+			if errors.IsValidationError(err) {
+				fmt.Println("Error: Invalid configuration:")
+				errChan <- err
+			} else {
+				log.RequestCrashInfo()
+				errChan <- err
+			}
+		}
+
+		break
+	}
+
+	done <- true
+}
+
+func handleSignals(md *model.SystemInstall, done chan bool, sigs chan os.Signal) {
+	s := <-sigs
+	fmt.Println("Leaving...")
+	if errLog := md.Telemetry.LogRecord("signaled", 2, "Interrupted by signal: "+s.String()); errLog != nil {
+		log.Error("Failed to log Telemetry signal handler for: %s", s.String())
+	}
+
+	done <- true
+}
+
+func checkAndLoadConfigFile(options args.Args, md **model.SystemInstall) (string, error) {
 	var err error
 
-	if options.DemoMode {
-		model.Version = model.DemoVersion
-	}
-	// Make the Version of the program visible to telemetry
-	telemetry.ProgVersion = model.Version
-
-	log.Info(path.Base(os.Args[0]) + ": " + model.Version +
-		", built on " + model.BuildDate)
-
-	if options.PamSalt != "" {
-		if status, err := user.IsValidPassword(options.PamSalt); !status {
-			return fmt.Errorf(err)
-		}
-
-		hashed, errHash := encrypt.Crypt(options.PamSalt)
-		if errHash != nil {
-			return errHash
-		}
-
-		fmt.Println(hashed)
-		return nil
-	}
-
-	if options.Version {
-		fmt.Println(path.Base(os.Args[0]) + ": " + model.Version)
-		return nil
-	}
-
-	var md *model.SystemInstall
 	cf := options.ConfigFile
-
 	if options.ConfigFile == "" {
 		if cf, err = conf.LookupDefaultConfig(); err != nil {
-			return err
+			return "", err
 		}
 	} else if network.IsValidURI(options.ConfigFile, options.AllowInsecureHTTP) {
 		if cf, err = network.FetchRemoteConfigFile(options.ConfigFile); err != nil {
 			fmt.Printf("Cannot access configuration file %q: %s\n", options.ConfigFile, err)
-			return err
+			return "", err
 		}
 		options.CfDownloaded = true
 	} else if ok, err := utils.FileExists(options.ConfigFile); !ok || err != nil {
-		return errors.Errorf("Cannot access configuration file %q", options.ConfigFile)
-	}
-
-	if options.CfDownloaded {
-		defer func() { _ = os.Remove(cf) }()
+		return "", errors.Errorf("Cannot access configuration file %q", options.ConfigFile)
 	}
 
 	if filepath.Ext(cf) == ".json" {
 		_, err = model.JSONtoYAMLConfig(cf)
 		if err != nil {
-			return err
+			return "", err
 		}
-		cf, err = md.WriteYAMLConfig(cf)
+		cf, err = (*md).WriteYAMLConfig(cf)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
 	log.Debug("Loading config file: %s", cf)
-	if md, err = model.LoadFile(cf, options); err != nil {
-		return err
-	}
-	md.ClearInstallSelected()
-
-	if options.ConvertConfigFile != "" && options.TemplateConfigFile != "" {
-		return errors.Errorf("Options --json-yaml and --template are mutually exclusive.")
+	if *md, err = model.LoadFile(cf, options); err != nil {
+		return "", err
 	}
 
-	if options.ConvertConfigFile != "" {
-		var err error
-		if filepath.Ext(options.ConvertConfigFile) == ".json" {
-			md, err = model.JSONtoYAMLConfig(options.ConvertConfigFile)
-			if err != nil {
-				return err
-			}
-		} else {
-			return errors.Errorf("Config file '%s' must end in '.json'", options.ConvertConfigFile)
-		}
-	}
+	return cf, nil
+}
 
-	if options.CfPurgeSet && options.CfPurge {
-		defer func() { _ = os.Remove(cf) }()
-		md.ClearCfFile = cf
-	}
-
-	if options.CryptPassFile != "" {
-		content, cryptErr := ioutil.ReadFile(options.CryptPassFile)
-		if cryptErr != nil {
-			log.Warning("Could not read --crypt-file: %v", cryptErr)
-		} else {
-			md.CryptPass = strings.TrimSpace(string(content))
-		}
-	}
-
-	if options.RebootSet {
-		md.PostReboot = options.Reboot
-	}
-
-	if options.OfflineSet {
-		md.Offline = options.Offline
-	}
-
-	if options.ArchiveSet {
-		md.PostArchive = options.Archive
-	}
-
+func processSwupdOptions(options args.Args, md *model.SystemInstall) {
 	// Command line overrides the configuration file
 	if options.SwupdMirror != "" {
 		md.SwupdMirror = options.SwupdMirror
@@ -268,11 +238,45 @@ func execute(options args.Args) error {
 	if options.AllowInsecureHTTPSet {
 		md.AllowInsecureHTTP = options.AllowInsecureHTTP
 	}
-	if options.SwapFileSize != "" {
-		md.MediaOpts.SwapFileSize = options.SwapFileSize
-		md.MediaOpts.SwapFileSet = true
+
+}
+
+func processPamSaltOption(options args.Args) error {
+	if status, err := user.IsValidPassword(options.PamSalt); !status {
+		return fmt.Errorf(err)
 	}
 
+	hashed, errHash := encrypt.Crypt(options.PamSalt)
+	if errHash != nil {
+		return errHash
+	}
+
+	fmt.Println(hashed)
+	return nil
+}
+
+func processNotStubImageOption(options args.Args, md *model.SystemInstall) error {
+	var err error
+	if !options.StubImage {
+		// Now validate the mirror from the config or command line
+		if md.SwupdMirror != "" {
+			var url string
+			url, err = swupd.SetHostMirror(md.SwupdMirror, md.AllowInsecureHTTP)
+			if err != nil {
+				return err
+			}
+			log.Info("Using Swupd Mirror value: %q", url)
+		}
+
+		if err = validateTelemetry(options, md); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func processISOSetOption(options args.Args, md *model.SystemInstall) {
 	// Command line overrides the configuration file
 	if options.MakeISOSet {
 		md.MakeISO = options.MakeISO
@@ -290,45 +294,75 @@ func execute(options args.Args) error {
 	if !md.MakeISO {
 		md.KeepImage = true
 	}
+}
 
-	if options.SkipValidationSizeSet {
-		md.MediaOpts.SkipValidationSize = options.SkipValidationSize
-	}
-	if options.SkipValidationAllSet {
-		md.MediaOpts.SkipValidationAll = options.SkipValidationAll
+func processTemplateConfigFileOption(options args.Args, md *model.SystemInstall) error {
+
+	if filepath.Ext(options.TemplateConfigFile) == ".yaml" {
+		md.StorageAlias = append(md.StorageAlias,
+			&model.StorageAlias{Name: "release", File: "release.img"})
+		bd := &storage.BlockDevice{Size: storage.MinimumServerInstallSize,
+			MappedName: "${release}", Name: "${release}"}
+		storage.NewStandardPartitions(bd)
+		md.AddTargetMedia(bd)
+		if err := md.WriteFile(options.TemplateConfigFile); err != nil {
+			return errors.Errorf("Failed to write YAML file (%v) %q", err, options.TemplateConfigFile)
+		}
+	} else {
+		return errors.Errorf("Template file '%s' must end in '.yaml'", options.TemplateConfigFile)
 	}
 
-	if len(options.Bundles) > 0 {
-		md.OverrideBundles(options.Bundles)
-		log.Info("Overriding bundle list from command line: %s", strings.Join(md.Bundles, ", "))
+	return nil
+}
+
+func createAndAcquireLock(options args.Args, md *model.SystemInstall) (lockfile.Lockfile, error) {
+	lockFile = strings.TrimSuffix(options.LogFile, ".log") + ".lock"
+	lock, err := lockfile.New(lockFile)
+	if err != nil {
+		fmt.Printf("Cannot initialize lock. reason: %v\n", err)
+		return "", err
 	}
 
-	if options.ConvertConfigFile != "" {
-		_, err := md.WriteYAMLConfig(options.ConvertConfigFile)
-		if err != nil {
+	err = lock.TryLock()
+	if err != nil {
+		fmt.Printf("Cannot lock %q, reason: %v\n", lock, err)
+		return "", err
+	}
+
+	// Store the name of the LockFile which is needed during
+	// interactive installs when launch the external partitioning tool
+	md.LockFile = lockFile
+
+	return lock, nil
+}
+
+func processCryptPassFileOption(options args.Args, md *model.SystemInstall) {
+	if options.CryptPassFile != "" {
+		content, cryptErr := ioutil.ReadFile(options.CryptPassFile)
+		if cryptErr != nil {
+			log.Warning("Could not read --crypt-file: %v", cryptErr)
+		} else {
+			md.CryptPass = strings.TrimSpace(string(content))
+		}
+	}
+}
+
+func processRebootOption(options args.Args, installReboot bool, md *model.SystemInstall) error {
+	if options.Reboot && installReboot {
+		_ = lock.Unlock()
+		if err := cmd.RunAndLog("reboot"); err != nil {
+			if errLog := md.Telemetry.LogRecord("reboot", 1, err.Error()); errLog != nil {
+				log.Error("Failed to log Telemetry fail record: reboot")
+			}
 			return err
 		}
-
-		return nil
+		log.RequestCrashInfo()
 	}
 
-	if options.TemplateConfigFile != "" {
-		if filepath.Ext(options.TemplateConfigFile) == ".yaml" {
-			md.StorageAlias = append(md.StorageAlias,
-				&model.StorageAlias{Name: "release", File: "release.img"})
-			bd := &storage.BlockDevice{Size: storage.MinimumServerInstallSize,
-				MappedName: "${release}", Name: "${release}"}
-			storage.NewStandardPartitions(bd)
-			md.AddTargetMedia(bd)
-			if err := md.WriteFile(options.TemplateConfigFile); err != nil {
-				return errors.Errorf("Failed to write YAML file (%v) %q", err, options.TemplateConfigFile)
-			}
-		} else {
-			return errors.Errorf("Template file '%s' must end in '.yaml'", options.TemplateConfigFile)
-		}
-		return nil
-	}
+	return nil
+}
 
+func osExitForOptions(options args.Args) {
 	// First verify we are running as 'root' user which is required
 	// for most of the Installation commands
 	if errString := utils.VerifyRootUser(); errString != "" {
@@ -352,17 +386,148 @@ func execute(options args.Args) error {
 		log.Error("Command Line Error: %s", exclusive)
 		os.Exit(1)
 	}
+}
 
-	lockFile = strings.TrimSuffix(options.LogFile, ".log") + ".lock"
-	lock, err = lockfile.New(lockFile)
-	if err != nil {
-		fmt.Printf("Cannot initialize lock. reason: %v\n", err)
+// Check if Keyboard, timezone and Language option settings are correctly set
+func checkKybdTzoneLangOptions(md *model.SystemInstall) error {
+	if md.Keyboard != nil && !keyboard.IsValidKeyboard(md.Keyboard) {
+		return fmt.Errorf("Invalid Keyboard '%s'", md.Keyboard.Code)
+	}
+
+	if md.Timezone != nil && !timezone.IsValidTimezone(md.Timezone) {
+		return fmt.Errorf("Invalid Time Zone '%s'", md.Timezone.Code)
+	}
+
+	if md.Language != nil && !language.IsValidLanguage(md.Language) {
+		return fmt.Errorf("Invalid Language '%s'", md.Language.Code)
+	}
+
+	return nil
+}
+
+// Try to parse to the ConvertFile and generate new Model and if that fails, return old copy of model back
+func processConvertConfigFileOption(options args.Args, md *model.SystemInstall) (*model.SystemInstall, error) {
+	copyModel := md
+	var err error
+	if options.ConvertConfigFile != "" && options.TemplateConfigFile != "" {
+		return copyModel, errors.Errorf("Options --json-yaml and --template are mutually exclusive.")
+	}
+
+	if options.ConvertConfigFile != "" {
+		if filepath.Ext(options.ConvertConfigFile) == ".json" {
+			copyModel, err = model.JSONtoYAMLConfig(options.ConvertConfigFile)
+		} else {
+			err = errors.Errorf("Config file '%s' must end in '.json'", options.ConvertConfigFile)
+		}
+	}
+
+	return copyModel, err
+}
+
+func processOptionsSaveIfSet(options args.Args, md *model.SystemInstall) {
+	if options.RebootSet {
+		md.PostReboot = options.Reboot
+	}
+
+	if options.OfflineSet {
+		md.Offline = options.Offline
+	}
+
+	if options.ArchiveSet {
+		md.PostArchive = options.Archive
+	}
+
+	if options.SkipValidationSizeSet {
+		md.MediaOpts.SkipValidationSize = options.SkipValidationSize
+	}
+	if options.SkipValidationAllSet {
+		md.MediaOpts.SkipValidationAll = options.SkipValidationAll
+	}
+
+	if options.SwapFileSize != "" {
+		md.MediaOpts.SwapFileSize = options.SwapFileSize
+		md.MediaOpts.SwapFileSet = true
+	}
+}
+
+func processOptionsToModel(options args.Args, md *model.SystemInstall) {
+	processCryptPassFileOption(options, md)
+
+	processOptionsSaveIfSet(options, md)
+
+	processSwupdOptions(options, md)
+
+	processISOSetOption(options, md)
+}
+
+// execute is called by main to begin execution of the installer
+func execute(options args.Args) error {
+	var err error
+
+	if options.DemoMode {
+		model.Version = model.DemoVersion
+	}
+	// Make the Version of the program visible to telemetry
+	telemetry.ProgVersion = model.Version
+
+	log.Info(path.Base(os.Args[0]) + ": " + model.Version +
+		", built on " + model.BuildDate)
+
+	if options.PamSalt != "" {
+		return processPamSaltOption(options)
+	}
+
+	if options.Version {
+		fmt.Println(path.Base(os.Args[0]) + ": " + model.Version)
+		return nil
+	}
+
+	var md *model.SystemInstall
+
+	cf := options.ConfigFile
+	// Load config values from file to model
+	if cf, err = checkAndLoadConfigFile(options, &md); err != nil {
+		return err
+	}
+	if options.CfDownloaded {
+		defer func() { _ = os.Remove(cf) }()
+	}
+
+	md.ClearInstallSelected()
+
+	if md, err = processConvertConfigFileOption(options, md); err != nil {
 		return err
 	}
 
-	err = lock.TryLock()
-	if err != nil {
-		fmt.Printf("Cannot lock %q, reason: %v\n", lock, err)
+	if options.CfPurgeSet && options.CfPurge {
+		defer func() { _ = os.Remove(cf) }()
+		md.ClearCfFile = cf
+	}
+
+	processOptionsToModel(options, md)
+
+	if len(options.Bundles) > 0 {
+		md.OverrideBundles(options.Bundles)
+		log.Info("Overriding bundle list from command line: %s", strings.Join(md.Bundles, ", "))
+	}
+
+	if options.ConvertConfigFile != "" {
+		_, err := md.WriteYAMLConfig(options.ConvertConfigFile)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if options.TemplateConfigFile != "" {
+		return processTemplateConfigFileOption(options, md)
+	}
+
+	// exit if certain conditions fail for certain options
+	osExitForOptions(options)
+
+	if lock, err = createAndAcquireLock(options, md); err != nil {
 		return err
 	}
 
@@ -393,36 +558,13 @@ func execute(options args.Args) error {
 		return errors.Errorf("swupd-contenturl %s must use HTTPS or FILE protocol", options.SwupdContentURL)
 	}
 
-	// Store the name of the LockFile which is needed during
-	// interactive installs when launch the external partitioning tool
-	md.LockFile = lockFile
-
-	if !options.StubImage {
-		// Now validate the mirror from the config or command line
-		if md.SwupdMirror != "" {
-			var url string
-			url, err = swupd.SetHostMirror(md.SwupdMirror, md.AllowInsecureHTTP)
-			if err != nil {
-				return err
-			}
-			log.Info("Using Swupd Mirror value: %q", url)
-		}
-
-		if err = validateTelemetry(options, md); err != nil {
-			return err
-		}
+	if err = processNotStubImageOption(options, md); err != nil {
+		return err
 	}
 
-	if md.Keyboard != nil && !keyboard.IsValidKeyboard(md.Keyboard) {
-		return fmt.Errorf("Invalid Keyboard '%s'", md.Keyboard.Code)
-	}
-
-	if md.Timezone != nil && !timezone.IsValidTimezone(md.Timezone) {
-		return fmt.Errorf("Invalid Time Zone '%s'", md.Timezone.Code)
-	}
-
-	if md.Language != nil && !language.IsValidLanguage(md.Language) {
-		return fmt.Errorf("Invalid Language '%s'", md.Language.Code)
+	// check if Keyboard, timezone and Language options are correctly set
+	if err = checkKybdTzoneLangOptions(md); err != nil {
+		return err
 	}
 
 	// Set locale
@@ -435,45 +577,11 @@ func execute(options args.Args) error {
 
 	installReboot := false
 
-	go func() {
-		for _, fe := range frontEndImpls {
-			if !fe.MustRun(&options) {
-				continue
-			}
+	// Figure out which FrontEnd's run to invoke and call it async
+	go callFrontEnd(options, md, &installReboot, rootDir, errChan, done)
 
-			installReboot, err = fe.Run(md, rootDir, options)
-			if err != nil {
-				feName := classExp.FindString(reflect.TypeOf(fe).String())
-				if feName == "" {
-					feName = "unknown"
-				}
-				if errLog := md.Telemetry.LogRecord(feName, 3, err.Error()); errLog != nil {
-					log.Error("Failed to log Telemetry fail record: %s", feName)
-				}
-
-				if errors.IsValidationError(err) {
-					fmt.Println("Error: Invalid configuration:")
-					errChan <- err
-				} else {
-					log.RequestCrashInfo()
-					errChan <- err
-				}
-			}
-
-			break
-		}
-
-		done <- true
-	}()
-
-	go func() {
-		s := <-sigs
-		fmt.Println("Leaving...")
-		if errLog := md.Telemetry.LogRecord("signaled", 2, "Interrupted by signal: "+s.String()); errLog != nil {
-			log.Error("Failed to log Telemetry signal handler for: %s", s.String())
-		}
-		done <- true
-	}()
+	// Run Telemetry terminate, run it async
+	go handleSignals(md, done, sigs)
 
 	select {
 	case <-done:
@@ -486,15 +594,5 @@ func execute(options args.Args) error {
 	// or we get a SIGTERM from reboot
 	signal.Reset()
 
-	if options.Reboot && installReboot {
-		_ = lock.Unlock()
-		if err := cmd.RunAndLog("reboot"); err != nil {
-			if errLog := md.Telemetry.LogRecord("reboot", 1, err.Error()); errLog != nil {
-				log.Error("Failed to log Telemetry fail record: reboot")
-			}
-			return err
-		}
-		log.RequestCrashInfo()
-	}
-	return nil
+	return processRebootOption(options, installReboot, md)
 }
