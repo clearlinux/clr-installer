@@ -11,7 +11,7 @@ fi
 if [ -n "${CONTENT_MIRROR_BASE_URL}" ]
 then
     IMAGESURL="${CONTENT_MIRROR_BASE_URL}/current/config/image/"
-    CLRINST_ARGS="${CLRINST_ARGS} --swupd-url ${CONTENT_MIRROR_BASE_URL}/update/"
+    CLRINST_ARGS="${CLRINST_ARGS:=""} --swupd-url=${CONTENT_MIRROR_BASE_URL}/update/"
 else
     IMAGESURL="https://download.clearlinux.org/current/config/image/"
 fi
@@ -43,7 +43,7 @@ exit_with_cleanup() {
 
     cd "${SAVEDIR}" || change_dir_error "Can not change directory to ${SAVEDIR}: $?"
 
-    if [ "${code}" -eq 0 ]
+    if [ "${code}" -eq 0 ] && [ ! -f "${SAVEDIR}/.no_cleanup" ]
     then
         /bin/rm -rf "${TMPDIR}"
     else
@@ -138,8 +138,9 @@ do
     echo "Test build image ${y} with log $log ..." |& tee -a "${OUTPUT}"
 
     # ignore control-c during image builds
+    echo "Running "${CLRINST}" -c "${TMPDIR}/${y}" --log-file="${log}" "${CLRINST_ARGS}"" |& tee -a "${OUTPUT}"
     trap "" SIGINT
-    "${CLRINST}" -c "${TMPDIR}/${y}" --log-file "${log}" "${CLRINST_ARGS}" |& tee -a "${OUTPUT}"
+    "${CLRINST}" -c "${TMPDIR}/${y}" --log-file="${log}" "${CLRINST_ARGS}" |& tee -a "${OUTPUT}"
     if [ "${PIPESTATUS[0]}" -ne 0 ]
     then
         echo "Failed to build ${y}!" |& tee -a "${OUTPUT}"
