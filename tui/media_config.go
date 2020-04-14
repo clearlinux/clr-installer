@@ -322,6 +322,8 @@ func (page *MediaConfigPage) safeRadioOnChange(active bool) {
 		log.Warning(warning)
 		warning = fmt.Sprintf("Warning: %s", warning)
 		page.labelWarning.SetTitle(warning)
+		page.labelWarning.SetBackColor(errorLabelBg)
+		page.labelWarning.SetTextColor(errorLabelFg)
 	}
 }
 
@@ -350,6 +352,8 @@ func (page *MediaConfigPage) destructiveRadioOnChange(active bool) {
 		log.Warning(warning)
 		warning = fmt.Sprintf("Warning: %s", warning)
 		page.labelWarning.SetTitle(warning)
+		page.labelWarning.SetBackColor(errorLabelBg)
+		page.labelWarning.SetTextColor(errorLabelFg)
 	} else {
 		page.labelDestructive.SetTitle(storage.DestructiveWarning)
 	}
@@ -384,6 +388,8 @@ func (page *MediaConfigPage) advancedRadioOnChange(active bool) {
 		log.Warning(warning)
 		warning = fmt.Sprintf("Warning: %s", warning)
 		page.labelWarning.SetTitle(warning)
+		page.labelWarning.SetBackColor(errorLabelBg)
+		page.labelWarning.SetTextColor(errorLabelFg)
 		page.advancedCfgBtn.SetEnabled(false)
 	} else {
 		si := page.getModel()
