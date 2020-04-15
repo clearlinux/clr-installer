@@ -544,7 +544,9 @@ func partitionUsingParted(bd *BlockDevice, dryRun *[]string, wholeDisk bool) err
 
 // WritePartitionTable writes the defined partitions to the actual block device
 func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryRun *[]string) error {
-	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop {
+	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop &&
+		bd.Type != BlockDeviceTypeRAID0 && bd.Type != BlockDeviceTypeRAID1 && bd.Type != BlockDeviceTypeRAID4 &&
+		bd.Type != BlockDeviceTypeRAID5 && bd.Type != BlockDeviceTypeRAID6 && bd.Type != BlockDeviceTypeRAID10 {
 		return errors.Errorf("Type is partition, disk required")
 	}
 
@@ -1438,6 +1440,16 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 
 				switch lowerPart {
 				case "boot":
+					if curr.Type == BlockDeviceTypeRAID1 ||
+						curr.Type == BlockDeviceTypeRAID0 ||
+						curr.Type == BlockDeviceTypeRAID4 ||
+						curr.Type == BlockDeviceTypeRAID5 ||
+						curr.Type == BlockDeviceTypeRAID6 ||
+						curr.Type == BlockDeviceTypeRAID10 ||
+						curr.Type == BlockDeviceTypeLVM2Volume {
+						break
+					}
+
 					if ch.Type == BlockDeviceTypeCrypt {
 						log.Warning("FindAdvancedInstallTargets: /boot can not be encrypted, skipping")
 						ch.Type = BlockDeviceTypePart
@@ -1501,6 +1513,11 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 					log.Debug("FindAdvancedInstallTargets: Format partition %s enabled", ch.Name)
 				}
 			}
+
+			if len(ch.Children) > 0 {
+				targetMedias = append(targetMedias, FindAdvancedInstallTargets(ch.Children)...)
+			}
+
 		}
 
 		if clrAdded {
