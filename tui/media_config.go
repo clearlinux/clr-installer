@@ -67,8 +67,7 @@ func (page *MediaConfigPage) GetConfiguredValue() string {
 	page.done = page.getModel().TargetMedias != nil
 
 	if page.isAdvancedSelected {
-		results := storage.ServerValidateAdvancedPartitions(tm, model.LegacyBios,
-			model.SkipValidationSize, model.SkipValidationAll)
+		results := storage.ServerValidateAdvancedPartitions(tm, model.MediaOpts)
 		if len(results) > 0 {
 			return fmt.Sprintf("Warning: %s", strings.Join(results, ", "))
 		}
@@ -76,6 +75,17 @@ func (page *MediaConfigPage) GetConfiguredValue() string {
 			return fmt.Sprintf("Warning: %s", "Encryption passphrase required")
 		}
 		return fmt.Sprintf("Advanced: %s", strings.Join(storage.GetAdvancedPartitions(tm), ", "))
+	}
+
+	var results []string
+
+	if model.IsTargetDesktopInstall() {
+		results = storage.DesktopValidatePartitions(model.TargetMedias, model.MediaOpts)
+	} else {
+		results = storage.ServerValidatePartitions(model.TargetMedias, model.MediaOpts)
+	}
+	if len(results) > 0 {
+		return fmt.Sprintf("Warning: %s", strings.Join(results, ", "))
 	}
 
 	if len(tm) == 0 {
@@ -90,7 +100,7 @@ func (page *MediaConfigPage) GetConfiguredValue() string {
 	portion := storage.FormatInstallPortion(target)
 
 	// Size string
-	size, _ := storage.HumanReadableSizeWithPrecision(target.FreeEnd-target.FreeStart, 1)
+	size, _ := storage.HumanReadableSizeXiBWithPrecision(target.FreeEnd-target.FreeStart, 1)
 
 	encrypted := ""
 	for _, ch := range bd.Children {
@@ -119,8 +129,7 @@ func (page *MediaConfigPage) GetConfigDefinition() int {
 	}
 
 	if page.isAdvancedSelected {
-		results := storage.ServerValidateAdvancedPartitions(tm, si.LegacyBios,
-			si.SkipValidationSize, si.SkipValidationAll)
+		results := storage.ServerValidateAdvancedPartitions(tm, si.MediaOpts)
 		if len(results) > 0 {
 			model := page.getModel()
 			model.ClearInstallSelected()
@@ -185,9 +194,6 @@ func (page *MediaConfigPage) SetDone(done bool) bool {
 						// Partial Disk, Add our partitions
 						size := selected.FreeEnd - selected.FreeStart
 						size = size - storage.AddBootStandardPartition(installBlockDevice)
-						if !installBlockDevice.DeviceHasSwap() {
-							size = size - storage.AddSwapStandardPartition(installBlockDevice)
-						}
 						storage.AddRootStandardPartition(installBlockDevice, size)
 					}
 					page.getModel().AddTargetMedia(installBlockDevice)
@@ -269,7 +275,7 @@ func (page *MediaConfigPage) DeActivate() {
 
 	log.Debug("DeActivate: page.action: %+v", page.action)
 
-	// The starting start is not the selected state
+	// The starting state is not the selected state
 	// We changed the active button, but then canceled
 	if page.saveRadio != nil && !page.saveRadio.Selected() {
 		si := page.getModel()
@@ -280,6 +286,11 @@ func (page *MediaConfigPage) DeActivate() {
 		si.TargetMedias = append([]*storage.BlockDevice{}, page.saveMedias...)
 
 		log.Debug("media choice toggle, but we canceled")
+		if page.saveRadio == page.advancedRadio {
+			page.isAdvancedSelected = true
+		} else {
+			page.isAdvancedSelected = false
+		}
 		page.group.SelectItem(page.saveRadio)
 	}
 }
@@ -393,8 +404,7 @@ func (page *MediaConfigPage) advancedRadioOnChange(active bool) {
 		page.advancedCfgBtn.SetEnabled(false)
 	} else {
 		si := page.getModel()
-		results := storage.ServerValidateAdvancedPartitions(si.TargetMedias, si.LegacyBios,
-			si.SkipValidationSize, si.SkipValidationAll)
+		results := storage.ServerValidateAdvancedPartitions(si.TargetMedias, si.MediaOpts)
 		warning := ""
 		if len(results) > 0 {
 			warning = strings.Join(results, ", ")
@@ -630,8 +640,16 @@ func (page *MediaConfigPage) buildMediaLists() error {
 
 	model := page.getModel()
 
-	minSize := storage.MinimumServerInstallSize
-	if model.SkipValidationSize {
+	// Set the swapfile to default size
+	page.getModel().SetDefaultSwapFileSize()
+	log.Debug("buildMediaLists: Set DefaultSwapFileSize: %v", page.getModel().MediaOpts.SwapFileSize)
+
+	checkSwapSize := storage.SwapFileSizeDefault
+	if model.MediaOpts.SwapFileSet {
+		checkSwapSize, _ = storage.ParseVolumeSize(model.MediaOpts.SwapFileSize)
+	}
+	minSize := storage.MinimumServerInstallSize + checkSwapSize
+	if model.MediaOpts.SkipValidationSize {
 		minSize = 0
 	}
 	page.safeTargets = storage.FindSafeInstallTargets(minSize, page.devs)
@@ -647,6 +665,12 @@ func (page *MediaConfigPage) buildMediaLists() error {
 	}
 
 	if page.isAdvancedSelected {
+		// If Advanced has a swap partition, clear the default
+		if storage.HasAdvancedSwap(page.getModel().TargetMedias) {
+			page.getModel().ResetDefaultSwapFileSize()
+			log.Debug("buildMediaLists: Reset DefaultSwapFileSize: %v", page.getModel().MediaOpts.SwapFileSize)
+		}
+
 		if !page.group.SelectItem(page.advancedRadio) {
 			log.Warning("Could not select the advanced install radio button")
 		}
@@ -742,7 +766,7 @@ func fmtInstallTarget(target storage.InstallTarget) string {
 	portion := storage.FormatInstallPortion(target)
 
 	// Size string
-	size, _ := storage.HumanReadableSizeWithPrecision(target.FreeEnd-target.FreeStart, 1)
+	size, _ := storage.HumanReadableSizeXiBWithPrecision(target.FreeEnd-target.FreeStart, 1)
 
 	return fmt.Sprintf("%-32s  %10s  %-14s  %8s", target.Friendly, target.Name, portion, size)
 }

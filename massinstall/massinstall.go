@@ -133,14 +133,14 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 		// If the partitions are defined from the configuration file,
 		// assume the user knows what they are doing and ignore validation checks
 		if !options.SkipValidationSizeSet && !options.SkipValidationAllSet {
-			md.SkipValidationSize = true
-			md.SkipValidationAll = true
+			md.MediaOpts.SkipValidationSize = true
+			md.MediaOpts.SkipValidationAll = true
 		} else {
 			if !options.SkipValidationSizeSet {
-				md.SkipValidationSize = true
+				md.MediaOpts.SkipValidationSize = true
 			} else {
 				if !options.SkipValidationAllSet {
-					md.SkipValidationAll = false
+					md.MediaOpts.SkipValidationAll = false
 				}
 			}
 		}
@@ -153,12 +153,11 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 		}
 
 		if md.IsTargetDesktopInstall() {
-			results = storage.DesktopValidatePartitions(md.TargetMedias, md.LegacyBios,
-				md.SkipValidationSize, md.SkipValidationAll)
+			results = storage.DesktopValidatePartitions(md.TargetMedias, md.MediaOpts)
 		} else {
-			results = storage.ServerValidatePartitions(md.TargetMedias, md.LegacyBios,
-				md.SkipValidationSize, md.SkipValidationAll)
+			results = storage.ServerValidatePartitions(md.TargetMedias, md.MediaOpts)
 		}
+
 		if len(results) > 0 {
 			for _, errStr := range results {
 				log.Error("Disk Partition: Validation Error: %q", errStr)
@@ -194,11 +193,9 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 			log.Debug("Mass installer operating in Advanced Disk Partition Mode.")
 			var results []string
 			if md.IsTargetDesktopInstall() {
-				results = storage.DesktopValidateAdvancedPartitions(devs, md.LegacyBios,
-					md.SkipValidationSize, md.SkipValidationAll)
+				results = storage.DesktopValidateAdvancedPartitions(devs, md.MediaOpts)
 			} else {
-				results = storage.ServerValidateAdvancedPartitions(devs, md.LegacyBios,
-					md.SkipValidationSize, md.SkipValidationAll)
+				results = storage.ServerValidateAdvancedPartitions(devs, md.MediaOpts)
 			}
 			if len(results) > 0 {
 				for _, errStr := range results {

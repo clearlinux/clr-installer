@@ -194,7 +194,7 @@ func NewWindow(model *model.SystemInstall, rootDir string, options args.Args) (*
 	// Check if we can boot EFI
 	if !utils.HostHasEFI() {
 		log.Warning("Failed to find EFI firmware, falling back to legacy BIOS for installation.")
-		model.LegacyBios = true
+		model.MediaOpts.LegacyBios = true
 	}
 
 	// Create welcome page
@@ -885,8 +885,8 @@ func (window *Window) confirmInstall() {
 		}
 	}
 
-	medias := storage.GetPlannedMediaChanges(window.model.InstallSelected,
-		window.model.TargetMedias, window.model.LegacyBios)
+	medias := storage.GetPlannedMediaChanges(window.model.InstallSelected, window.model.TargetMedias,
+		window.model.MediaOpts)
 	for _, media := range medias {
 		log.Debug("MediaChange: %s", media)
 		buffer.Insert(buffer.GetEndIter(), media+"\n")

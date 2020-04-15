@@ -269,7 +269,8 @@ func execute(options args.Args) error {
 		md.AllowInsecureHTTP = options.AllowInsecureHTTP
 	}
 	if options.SwapFileSize != "" {
-		md.SwapFileSize = options.SwapFileSize
+		md.MediaOpts.SwapFileSize = options.SwapFileSize
+		md.MediaOpts.SwapFileSet = true
 	}
 
 	// Command line overrides the configuration file
@@ -291,10 +292,10 @@ func execute(options args.Args) error {
 	}
 
 	if options.SkipValidationSizeSet {
-		md.SkipValidationSize = options.SkipValidationSize
+		md.MediaOpts.SkipValidationSize = options.SkipValidationSize
 	}
 	if options.SkipValidationAllSet {
-		md.SkipValidationAll = options.SkipValidationAll
+		md.MediaOpts.SkipValidationAll = options.SkipValidationAll
 	}
 
 	if len(options.Bundles) > 0 {

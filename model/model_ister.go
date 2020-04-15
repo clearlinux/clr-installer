@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -275,8 +275,8 @@ func JSONtoYAMLConfig(cf string) (*SystemInstall, error) {
 		si.PostInstall = append(si.PostInstall, &pi)
 	}
 
-	si.LegacyBios = ic.LegacyBios // Set LegacyBios
-	si.SwupdMirror = ic.MirrorURL // Set SwupdMirror
+	si.MediaOpts.LegacyBios = ic.LegacyBios // Set LegacyBios
+	si.SwupdMirror = ic.MirrorURL           // Set SwupdMirror
 
 	si.HTTPSProxy = ic.HTTPSProxy // Set HTTPSProxy
 	if si.HTTPSProxy == "" {

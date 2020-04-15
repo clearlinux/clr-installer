@@ -88,8 +88,7 @@ func (disk *DiskConfig) advancedButtonToggled() {
 	disk.encryptCheck.SetSensitive(storage.AdvancedPartitionsRequireEncryption(disk.model.TargetMedias))
 	disk.encryptCheck.SetActive(false) // Force off for Advance as not support yet
 
-	results := storage.DesktopValidateAdvancedPartitions(disk.model.TargetMedias,
-		disk.model.LegacyBios, disk.model.SkipValidationSize, disk.model.SkipValidationAll)
+	results := storage.DesktopValidateAdvancedPartitions(disk.model.TargetMedias, disk.model.MediaOpts)
 	if len(results) > 0 {
 		disk.model.ClearInstallSelected()
 
@@ -526,7 +525,7 @@ func addListStoreMediaRow(store *gtk.ListStore, installMedia storage.InstallTarg
 	}
 
 	// Size string
-	sizeString, _ := storage.HumanReadableSizeWithPrecision(installMedia.FreeEnd-installMedia.FreeStart, 1)
+	sizeString, _ := storage.HumanReadableSizeXiBWithPrecision(installMedia.FreeEnd-installMedia.FreeStart, 1)
 
 	err = store.SetValue(iter, 4, sizeString)
 	if err != nil {
@@ -933,8 +932,16 @@ func (disk *DiskConfig) buildMediaLists() error {
 		log.Error("Failed to find storage media for install during save: %s", err)
 	}
 
-	minSize := storage.MinimumDesktopInstallSize
-	if disk.model.SkipValidationSize {
+	// Set the swapfile to default size
+	disk.model.SetDefaultSwapFileSize()
+	log.Debug("buildMediaLists: Set DefaultSwapFileSize: %v", disk.model.MediaOpts.SwapFileSize)
+
+	checkSwapSize := storage.SwapFileSizeDefault
+	if disk.model.MediaOpts.SwapFileSet {
+		checkSwapSize, _ = storage.ParseVolumeSize(disk.model.MediaOpts.SwapFileSize)
+	}
+	minSize := storage.MinimumDesktopInstallSize + checkSwapSize
+	if disk.model.MediaOpts.SkipValidationSize {
 		minSize = 0
 	}
 	disk.safeTargets = storage.FindSafeInstallTargets(minSize, disk.devs)
@@ -949,6 +956,12 @@ func (disk *DiskConfig) buildMediaLists() error {
 	}
 
 	if disk.isAdvancedSelected {
+		// If Advanced has a swap partition, clear the default
+		if storage.HasAdvancedSwap(disk.model.TargetMedias) {
+			disk.model.ResetDefaultSwapFileSize()
+			log.Debug("buildMediaLists: Reset DefaultSwapFileSize: %v", disk.model.MediaOpts.SwapFileSize)
+		}
+
 		disk.advancedButton.SetActive(true)
 	} else {
 		if len(disk.safeTargets) > 0 {
@@ -1060,9 +1073,6 @@ func (disk *DiskConfig) StoreChanges() {
 					// Partial Disk, Add our partitions
 					size := selected.FreeEnd - selected.FreeStart
 					size = size - storage.AddBootStandardPartition(installBlockDevice)
-					if !installBlockDevice.DeviceHasSwap() {
-						size = size - storage.AddSwapStandardPartition(installBlockDevice)
-					}
 					storage.AddRootStandardPartition(installBlockDevice, size)
 				}
 				// Give the active disk to the model
@@ -1194,8 +1204,7 @@ func (disk *DiskConfig) GetConfiguredValue() string {
 	tm := disk.model.TargetMedias
 
 	if disk.isAdvancedSelected {
-		results := storage.DesktopValidateAdvancedPartitions(tm, disk.model.LegacyBios,
-			disk.model.SkipValidationSize, disk.model.SkipValidationAll)
+		results := storage.DesktopValidateAdvancedPartitions(tm, disk.model.MediaOpts)
 		if len(results) > 0 {
 			disk.model.ClearInstallSelected()
 			disk.model.TargetMedias = nil
@@ -1205,6 +1214,19 @@ func (disk *DiskConfig) GetConfiguredValue() string {
 			return utils.Locale.Get("Warning: %s", utils.Locale.Get("Encryption passphrase required"))
 		}
 		return utils.Locale.Get("Advanced") + ": " + strings.Join(storage.GetAdvancedPartitions(tm), ", ")
+	}
+
+	var results []string
+
+	if disk.model.IsTargetDesktopInstall() {
+		results = storage.DesktopValidatePartitions(disk.model.TargetMedias, disk.model.MediaOpts)
+	} else {
+		results = storage.ServerValidatePartitions(disk.model.TargetMedias, disk.model.MediaOpts)
+	}
+	if len(results) > 0 {
+		disk.model.ClearInstallSelected()
+		disk.model.TargetMedias = nil
+		return utils.Locale.Get("Warning: %s", strings.Join(results, ", "))
 	}
 
 	if len(tm) == 0 {
@@ -1219,7 +1241,7 @@ func (disk *DiskConfig) GetConfiguredValue() string {
 	portion := storage.FormatInstallPortion(target)
 
 	// Size string
-	size, _ := storage.HumanReadableSizeWithPrecision(target.FreeEnd-target.FreeStart, 1)
+	size, _ := storage.HumanReadableSizeXiBWithPrecision(target.FreeEnd-target.FreeStart, 1)
 
 	encrypted := ""
 	for _, ch := range bd.Children {

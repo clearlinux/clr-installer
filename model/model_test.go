@@ -120,8 +120,8 @@ func TestLoadFile(t *testing.T) {
 		}
 
 		if model != nil {
-			model.SkipValidationSize = true
-			model.SkipValidationAll = true
+			model.MediaOpts.SkipValidationSize = true
+			model.MediaOpts.SkipValidationAll = true
 		}
 		err = model.Validate()
 		if curr.valid && err != nil {
@@ -716,5 +716,37 @@ func TestInterActivePass(t *testing.T) {
 
 	if err := si.InteractiveOptionsValid(); err != nil {
 		t.Fatalf("Interactive should pass: %v", err)
+	}
+}
+
+func TestSetDefaultSwapFilePass(t *testing.T) {
+	si := &SystemInstall{}
+	if si.MediaOpts.SwapFileSize != "" {
+		t.Fatalf("Default SwapFileSize should be empty: %q", si.MediaOpts.SwapFileSize)
+	}
+
+	si.SetDefaultSwapFileSize()
+	if si.MediaOpts.SwapFileSize == "" {
+		t.Fatalf("SwapFileSize should be string version of %d", storage.SwapFileSizeDefault)
+	}
+
+	testValue := "invalid-but-legal"
+	si.MediaOpts.SwapFileSize = testValue
+	si.SetDefaultSwapFileSize()
+	if si.MediaOpts.SwapFileSize != testValue {
+		t.Fatalf("SwapFileSize should be string %q", testValue)
+	}
+
+	si.ResetDefaultSwapFileSize()
+	if si.MediaOpts.SwapFileSize != "" {
+		t.Fatalf("SwapFileSize should be clear to empty string, not %q", si.MediaOpts.SwapFileSize)
+	}
+
+	testValue = "4G"
+	si.MediaOpts.SwapFileSize = testValue
+	si.MediaOpts.SwapFileSet = true
+	si.ResetDefaultSwapFileSize()
+	if si.MediaOpts.SwapFileSize == "" {
+		t.Fatalf("SwapFileSize should be set to %q, but it is empty", testValue)
 	}
 }

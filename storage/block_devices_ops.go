@@ -22,6 +22,15 @@ import (
 	"github.com/clearlinux/clr-installer/utils"
 )
 
+// MediaOpts group the set of media related options
+type MediaOpts struct {
+	LegacyBios         bool   `yaml:"legacyBios,omitempty,flow"`
+	SkipValidationSize bool   `yaml:"skipValidationSize,omitempty,flow"`
+	SkipValidationAll  bool   `yaml:"skipValidationAll,omitempty,flow"`
+	SwapFileSize       string `yaml:"swapFileSize,omitempty,flow"`
+	SwapFileSet        bool   `yaml:"-"`
+}
+
 type blockDeviceOps struct {
 	makeFsCommand   func(bd *BlockDevice, args []string) ([]string, error)
 	makeFsArgs      []string
@@ -56,6 +65,11 @@ var (
 
 	mountedPoints   []string
 	mountedEncrypts []string
+
+	minBootSize = uint64(100) * (1000 * 1000) // 100MB recommend for 4-5 kernels
+
+	minSwapSize = uint64(32) * (1024 * 1024)       // 32MiB recommend smallest for memory crunch times
+	maxSwapSize = uint64(8) * (1024 * 1024 * 1024) // 8GiB recommend maximum for memory crunch times
 )
 
 // MakeFs runs mkfs.* commands for a BlockDevice definition
@@ -440,7 +454,7 @@ func partitionUsingParted(bd *BlockDevice, dryRun *[]string, wholeDisk bool) err
 	for _, curr := range bd.Children {
 		if dryRun != nil {
 			if curr.MakePartition {
-				size, _ := HumanReadableSizeWithPrecision(curr.Size, 1)
+				size, _ := HumanReadableSizeXiBWithPrecision(curr.Size, 1)
 				*dryRun = append(*dryRun, fmt.Sprintf("%s: %s [%s]",
 					bd.Name, utils.Locale.Get(AddPartitionInfo), size))
 			}
@@ -1244,10 +1258,10 @@ type InstallTarget struct {
 
 const (
 	// MinimumServerInstallSize is the smallest installation size in bytes for a Server
-	MinimumServerInstallSize = uint64(4) * (1000 * 1000 * 1000) // 4GiB
+	MinimumServerInstallSize = uint64(4) * (1000 * 1000 * 1000) // 4GB
 
 	// MinimumDesktopInstallSize is the smallest installation size in bytes for a Desktop
-	MinimumDesktopInstallSize = uint64(20) * (1000 * 1000 * 1000) // 20GiB
+	MinimumDesktopInstallSize = uint64(20) * (1000 * 1000 * 1000) // 20GB
 )
 
 func sortInstallTargets(targets []InstallTarget) []InstallTarget {
@@ -1287,13 +1301,14 @@ func FindSafeInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTar
 	var installTargets []InstallTarget
 
 	// Add the default boot and swap to the passed root size
-	minSize := rootSize + bootSize + swapSize
+	minSize := rootSize + bootSizeDefault
+	minSizeStr, _ := HumanReadableSizeXiBWithPrecision(minSize, 1)
 
 	FilterBlockDevices(medias,
 		// Firstly, we filter out non-gpt partitions
 		func(curr *BlockDevice) bool {
 			if curr.PtType != "gpt" && curr.PtType != "" {
-				log.Debug("FindSafeInstallTargets(): ignoring disk %s with partition table type %s",
+				log.Debug("FindSafeInstallTargets: ignoring disk %s with partition table type %s",
 					curr.Name, curr.PtType)
 				return false
 			}
@@ -1302,7 +1317,7 @@ func FindSafeInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTar
 		// Secondly, we filter out Block Devices with more than 125 existing partitions
 		func(curr *BlockDevice) bool {
 			if curr.Children != nil && len(curr.Children) > 125 {
-				log.Debug("FindSafeInstallTargets(): ignoring disk %s with too many partitions (%d)",
+				log.Debug("FindSafeInstallTargets: ignoring disk %s with too many partitions (%d)",
 					curr.Name, len(curr.Children))
 				return false
 			}
@@ -1313,13 +1328,20 @@ func FindSafeInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTar
 		// Thirdly, we want to select Block Devices which can support
 		// the minSize required for installation If it satisfies,
 		// it is a potential install target
-		if (curr.Children == nil || len(curr.Children) == 0) && curr.Size >= minSize {
+		if curr.Size < minSize {
+			currSizeStr, _ := HumanReadableSizeXiBWithPrecision(curr.Size, 1)
+			log.Debug("FindSafeInstallTargets: Media %s (%s) smaller than minSize %s", curr.Name,
+				currSizeStr, minSizeStr)
+			continue
+		}
+
+		if curr.Children == nil || len(curr.Children) == 0 {
 			// No partition type and no children we write the whole disk
 			installTargets = append(installTargets,
 				InstallTarget{Name: curr.Name, Friendly: curr.Model,
 					WholeDisk: true, Removable: curr.RemovableDevice,
 					FreeStart: 0, FreeEnd: curr.Size})
-			log.Debug("FindSafeInstallTargets(): found whole disk %s", curr.Name)
+			log.Debug("FindSafeInstallTargets: found whole disk %s", curr.Name)
 			continue
 		}
 
@@ -1329,9 +1351,12 @@ func FindSafeInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTar
 			installTargets = append(installTargets,
 				InstallTarget{Name: curr.Name, Friendly: curr.Model,
 					Removable: curr.RemovableDevice, FreeStart: start, FreeEnd: end})
-			log.Debug("FindSafeInstallTargets(): Room on disk %s: %d to %d", curr.Name, start, end)
+			log.Debug("FindSafeInstallTargets: Room on disk %s: %d to %d", curr.Name, start, end)
 			continue
 		}
+
+		log.Debug("FindSafeInstallTargets: Media %s does not have enough unallocated space minSize %s",
+			curr.Name, minSizeStr)
 	}
 
 	return sortInstallTargets(installTargets)
@@ -1343,7 +1368,7 @@ func FindAllInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTarg
 	var installTargets []InstallTarget
 
 	// Add the default boot and swap to the passed root size
-	minSize := rootSize + bootSize + swapSize
+	minSize := rootSize + bootSizeDefault
 
 	// All Disk are possible destructive installs
 	FilterBlockDevices(medias,
@@ -1354,15 +1379,15 @@ func FindAllInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTarg
 					FreeStart: 0, FreeEnd: curr.Size}
 
 				installTargets = append(installTargets, target)
+				log.Debug("FindAllInstallTargets: found whole disk %s", curr.Name)
 				return true
 			}
 
-			currSizeStr, _ := HumanReadableSizeWithPrecision(curr.Size, 1)
-			minSizeStr, _ := HumanReadableSizeWithPrecision(minSize, 1)
-			log.Debug("FindAllInstallTargets: Media %s %s smaller than minSize %s", curr.Name,
+			currSizeStr, _ := HumanReadableSizeXiBWithPrecision(curr.Size, 1)
+			minSizeStr, _ := HumanReadableSizeXiBWithPrecision(minSize, 1)
+			log.Debug("FindAllInstallTargets: Media %s (%s) smaller than minSize %s", curr.Name,
 				currSizeStr, minSizeStr)
 			return false
-
 		})
 
 	return sortInstallTargets(installTargets)
@@ -1492,6 +1517,23 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 	return targetMedias
 }
 
+// HasAdvancedSwap check if the advanced media contain a swap partition
+func HasAdvancedSwap(medias []*BlockDevice) bool {
+	hasSwap := false
+
+	for _, curr := range medias {
+		for _, ch := range curr.Children {
+			if ch.LabeledAdvanced && ch.PartitionLabel == "CLR_SWAP" {
+				hasSwap = true
+			}
+		}
+	}
+
+	log.Debug("HasAdvancedSwap: %v", hasSwap)
+
+	return hasSwap
+}
+
 // FormatInstallPortion is the common code for describing
 // the amount of disk used
 func FormatInstallPortion(target InstallTarget) string {
@@ -1536,16 +1578,16 @@ func (a ByBDName) Less(i, j int) bool {
 
 // ServerValidatePartitions returns an array of validation error
 // strings for the partitions based on a Server installation.
-func ServerValidatePartitions(medias []*BlockDevice, legacyBios bool, skipSize bool, skipAll bool) []string {
+func ServerValidatePartitions(medias []*BlockDevice, mediaOpts MediaOpts) []string {
 	advancedMode := false
-	return validatePartitions(MinimumServerInstallSize, medias, legacyBios, skipSize, skipAll, advancedMode)
+	return validatePartitions(MinimumServerInstallSize, medias, mediaOpts, advancedMode)
 }
 
 // DesktopValidatePartitions returns an array of validation error
 // strings for the partitions based on a Desktop installation.
-func DesktopValidatePartitions(medias []*BlockDevice, legacyBios bool, skipSize bool, skipAll bool) []string {
+func DesktopValidatePartitions(medias []*BlockDevice, mediaOpts MediaOpts) []string {
 	advancedMode := false
-	return validatePartitions(MinimumDesktopInstallSize, medias, legacyBios, skipSize, skipAll, advancedMode)
+	return validatePartitions(MinimumDesktopInstallSize, medias, mediaOpts, advancedMode)
 }
 
 // Helper functions for validatePartitions
@@ -1561,8 +1603,13 @@ func logPartitionWarning(bd *BlockDevice, format string, vargs ...interface{}) s
 
 // Helper functions for validatePartitions
 func logPartitionSizeWarning(bd *BlockDevice, partSize uint64, label string) string {
-	size, _ := HumanReadableSizeWithPrecision(partSize, 1)
-	return logPartitionWarning(bd, "%s must be %s", label, fmt.Sprintf(">= %s", size))
+	size, _ := HumanReadableSizeXiBWithPrecision(partSize, 1)
+	return logPartitionMustBeWarning(bd, label, fmt.Sprintf(">= %s", size))
+}
+
+// Helper functions for validatePartitions
+func logPartitionMustBeWarning(bd *BlockDevice, before, after string) string {
+	return logPartitionWarning(bd, "%s must be %s", before, after)
 }
 
 // Helper functions for validatePartitions
@@ -1571,9 +1618,8 @@ func logMissingPartition(label string) string {
 }
 
 // Helper to validatePartitions for validating boot minimum size etc
-func validateBoot(found *bool, results []string, bd *BlockDevice, skipSize bool, bootLabel string) []string {
-
-	minBootSize := uint64(100) * (1000 * 1000) // 100MB recommend for 4-5 kernels
+func validateBoot(found *bool, bd *BlockDevice, skipSize bool, bootLabel string) []string {
+	var results []string
 
 	if bd.MountPoint == "/boot" {
 		if *found {
@@ -1581,7 +1627,7 @@ func validateBoot(found *bool, results []string, bd *BlockDevice, skipSize bool,
 		} else {
 			*found = true
 			if bd.FsType != "vfat" {
-				results = append(results, logPartitionWarning(bd, "%s must be %s", bootLabel, "vfat"))
+				results = append(results, logPartitionMustBeWarning(bd, bootLabel, "vfat"))
 			}
 		}
 		if bd.Size == 0 {
@@ -1590,7 +1636,7 @@ func validateBoot(found *bool, results []string, bd *BlockDevice, skipSize bool,
 			log.Warning("validatePartitions: Skipping %s size check due to skipSize", bootLabel)
 		} else {
 			if bd.Size < minBootSize {
-				results = append(results, logPartitionSizeWarning(bd, bootSize, bootLabel))
+				results = append(results, logPartitionSizeWarning(bd, minBootSize, bootLabel))
 			}
 		}
 	}
@@ -1599,10 +1645,11 @@ func validateBoot(found *bool, results []string, bd *BlockDevice, skipSize bool,
 }
 
 // Helper to validatePartitions for validating root minimum size etc
-func validateRoot(found *bool, results []string, bd *BlockDevice,
+func validateRoot(found *bool, bd *BlockDevice,
 	minRootSize uint64, skipSize bool, rootLabel string) (*BlockDevice, []string) {
 
 	var rootBlockDevice *BlockDevice
+	var results []string
 
 	if *found {
 		results = append(results, logPartitionWarning(bd, "Found multiple %s partitions", rootLabel))
@@ -1612,7 +1659,7 @@ func validateRoot(found *bool, results []string, bd *BlockDevice,
 		if !(bd.FsType == "ext2" || bd.FsType == "ext3" ||
 			bd.FsType == "ext4" || bd.FsType == "xfs" ||
 			bd.FsType == "f2fs") {
-			results = append(results, logPartitionWarning(bd, "%s must be %s", rootLabel, "ext*|xfs|f2fs"))
+			results = append(results, logPartitionMustBeWarning(bd, rootLabel, "ext*|xfs|f2fs"))
 		}
 	}
 
@@ -1630,9 +1677,8 @@ func validateRoot(found *bool, results []string, bd *BlockDevice,
 }
 
 // Helper to validatePartitions for validating Swap minimum size etc
-func validateSwap(found *bool, results []string, bd *BlockDevice, skipSize bool, swapLabel string) []string {
-
-	minSwapSize := uint64(32) * (1000 * 1000) // 32MB recommend smallest for memory crunch times
+func validateSwap(found *bool, bd *BlockDevice, skipSize bool, swapLabel string) []string {
+	var results []string
 
 	*found = true
 	if bd.Size == 0 {
@@ -1641,7 +1687,129 @@ func validateSwap(found *bool, results []string, bd *BlockDevice, skipSize bool,
 		log.Warning("validatePartitions: Skipping swap size check due to skipSize")
 	} else {
 		if bd.Size < minSwapSize {
-			results = append(results, logPartitionSizeWarning(bd, swapSize, swapLabel))
+			results = append(results, logPartitionSizeWarning(bd, minSwapSize, swapLabel))
+		} else if bd.Size > maxSwapSize {
+			size, _ := HumanReadableSizeXiBWithPrecision(maxSwapSize, 1)
+			results = append(results, logPartitionMustBeWarning(bd, swapLabel, fmt.Sprintf("<= %s", size)))
+		}
+	}
+
+	return results
+}
+
+// Helper to validatePartitions for validating /var
+func validateBootLegacy(rootBlockDevice *BlockDevice, rootLabel, bootLabel string, mediaOpts MediaOpts) []string {
+	var results []string
+
+	if mediaOpts.SkipValidationAll {
+		if mediaOpts.LegacyBios {
+			if rootBlockDevice != nil {
+				if !(rootBlockDevice.FsType == "ext2" || rootBlockDevice.FsType == "ext3" ||
+					rootBlockDevice.FsType == "ext4") {
+					// xfs currently not supported due to partition table of MBR requirement
+					log.Warning("validatePartitions: legacyMode, invalid fsType: %s", rootBlockDevice.FsType)
+					results = append(results,
+						logPartitionMustBeWarning(rootBlockDevice, rootLabel, "ext[234]"))
+				}
+				if rootBlockDevice.Type == BlockDeviceTypeCrypt {
+					log.Warning("validatePartitions: legacyMode without /boot can not be encrypted")
+					results = append(results,
+						logPartitionWarning(rootBlockDevice, "Encryption of %s is not supported", rootLabel))
+				}
+			}
+		} else {
+			results = append(results, logMissingPartition(bootLabel))
+		}
+	} else {
+		results = append(results, logMissingPartition(bootLabel))
+	}
+	return results
+}
+
+// Helper to validatePartitions for validating /var
+func validateVarPartition(rootBlockDevice *BlockDevice, skipSize bool, varSize uint64) []string {
+	var results []string
+
+	// Independent /var is discouraged for Clear Linux OS because
+	// /var needs to be at nearly as large as / (root) due to
+	// swupd stashing content in /var. About 70% of the / (root),
+	// really /usr, is normally hard linked under /var.
+	log.Warning("validatePartitions: Use for independent /var is discouraged" +
+		" under Clear Linux OS due to swupd caching methods.")
+
+	if !skipSize && rootBlockDevice != nil {
+		// Enough Room /var
+		root70 := uint64(float64(rootBlockDevice.Size) * 0.7)
+		if varSize < root70 {
+			vSize, _ := HumanReadableSizeXiBWithPrecision(varSize, 1)
+			rSize, _ := HumanReadableSizeXiBWithPrecision(root70, 1)
+			results = append(results, logPartitionMustBeWarning(nil,
+				fmt.Sprintf("/var (%s)", vSize),
+				fmt.Sprintf(">= 70%% / (%s)", rSize)))
+		}
+	}
+
+	return results
+}
+
+// Helper to validatePartitions for validating Swap minimum size etc
+func validateSwapFile(swapFileSize string, rootBlockDevice *BlockDevice,
+	skipSize bool, varFound bool, varSize uint64) []string {
+
+	var results []string
+	var checkSwapSize uint64
+	var err error
+
+	if swapFileSize == "" {
+		checkSwapSize = SwapFileSizeDefault
+	} else {
+		checkSwapSize, err = ParseVolumeSize(swapFileSize)
+		if err != nil {
+			results = append(results, logPartitionWarning(nil, "Could not interrupt %s", swapFileSize))
+			return results
+		}
+	}
+	checkSizeString, _ := HumanReadableSizeXiBWithPrecision(checkSwapSize, 1)
+
+	if rootBlockDevice != nil {
+		// Sanity check that there is enough room in the partition
+		// for the creation of the swapfile
+		swapFilePartition := "/"
+		swapFilePartSize := rootBlockDevice.Size
+		if varFound {
+			swapFilePartition = "/var"
+			swapFilePartSize = varSize
+		}
+		if checkSwapSize >= swapFilePartSize {
+			size, _ := HumanReadableSizeXiBWithPrecision(swapFilePartSize, 1)
+			results = append(results, logPartitionMustBeWarning(nil,
+				fmt.Sprintf("swapfile (%s)", checkSizeString),
+				fmt.Sprintf("< %s (%s)", swapFilePartition, size)))
+		}
+
+		if !skipSize {
+			if checkSwapSize < minSwapSize {
+				size, _ := HumanReadableSizeXiBWithPrecision(minSwapSize, 1)
+				results = append(results, logPartitionMustBeWarning(nil,
+					fmt.Sprintf("swapfile (%s)", checkSizeString),
+					fmt.Sprintf(">= %s", size)))
+			} else if checkSwapSize > maxSwapSize {
+				size, _ := HumanReadableSizeXiBWithPrecision(maxSwapSize, 3)
+				results = append(results, logPartitionMustBeWarning(nil,
+					fmt.Sprintf("swapfile (%s)", checkSizeString),
+					fmt.Sprintf("<= %s", size)))
+			}
+
+			// Room for swapfile in partition?
+			// TODO: Do we need/want this?
+			// Check if the swapfile is larger than 50% of storing partition
+			fiftyPercent := swapFilePartSize / 2
+			if checkSwapSize > fiftyPercent {
+				size, _ := HumanReadableSizeXiBWithPrecision(fiftyPercent, 1)
+				results = append(results, logPartitionMustBeWarning(nil,
+					fmt.Sprintf("swapfile (%s)", checkSizeString),
+					fmt.Sprintf("<= 50%% %s (%s)", swapFilePartition, size)))
+			}
 		}
 	}
 
@@ -1649,34 +1817,50 @@ func validateSwap(found *bool, results []string, bd *BlockDevice, skipSize bool,
 }
 
 // validatePartitions returns an array of validation error strings
-func validatePartitions(rootSize uint64, medias []*BlockDevice,
-	legacyBios, skipSize, skipAll, advancedMode bool) []string {
+func validatePartitions(rootSize uint64, medias []*BlockDevice, mediaOpts MediaOpts, advancedMode bool) []string {
 	results := []string{}
 	rootLabel := "/ (root)"
 	bootLabel := "/boot"
 	swapLabel := "[swap]"
+	varLabel := "/var"
 
 	if advancedMode {
 		rootLabel = "CLR_ROOT"
 		bootLabel = "CLR_BOOT"
 		swapLabel = "CLR_SWAP"
+		varLabel = "CLR_MNT_/var"
 	}
 
 	bootFound := false
 	swapFound := false
 	rootFound := false
+	varFound := false
+	var varSize uint64
 	var rootBlockDevice *BlockDevice
+
+	// If we are validating without media, special case results
+	if medias == nil || len(medias) == 0 {
+		results = append(results, utils.Locale.Get("No Media Selected"))
+		return results
+	}
 
 	for _, curr := range medias {
 		for _, ch := range curr.Children {
-			if ch.MountPoint == "/boot" {
-				validateBoot(&bootFound, results, ch, skipSize, bootLabel)
+			if ch.MountPoint == "/boot" || (advancedMode && ch.Label == bootLabel) {
+				results = append(results, validateBoot(&bootFound, ch, mediaOpts.SkipValidationSize, bootLabel)...)
 			}
-			if ch.MountPoint == "/" {
-				rootBlockDevice, _ = validateRoot(&rootFound, results, ch, rootSize, skipSize, rootLabel)
+			if ch.MountPoint == "/" || (advancedMode && ch.Label == rootLabel) {
+				var newResults []string
+				rootBlockDevice, newResults = validateRoot(&rootFound, ch, rootSize,
+					mediaOpts.SkipValidationSize, rootLabel)
+				results = append(results, newResults...)
 			}
-			if ch.FsType == "swap" {
-				validateSwap(&swapFound, results, ch, skipSize, swapLabel)
+			if ch.FsType == "swap" || (advancedMode && ch.Label == swapLabel) {
+				results = append(results, validateSwap(&swapFound, ch, mediaOpts.SkipValidationSize, swapLabel)...)
+			}
+			if ch.MountPoint == "/var" || (advancedMode && ch.Label == varLabel) {
+				varFound = true
+				varSize = ch.Size
 			}
 		}
 	}
@@ -1686,32 +1870,18 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice,
 	}
 
 	if !bootFound {
-		if skipAll {
-			if legacyBios {
-				if rootBlockDevice != nil {
-					if !(rootBlockDevice.FsType == "ext2" || rootBlockDevice.FsType == "ext3" ||
-						rootBlockDevice.FsType == "ext4") {
-						// xfs currently not supported due to partition table of MBR requirement
-						log.Warning("validatePartitions: legacyMode, invalid fsType: %s", rootBlockDevice.FsType)
-						results = append(results,
-							logPartitionWarning(rootBlockDevice, "%s must be %s", rootLabel, "ext[234]"))
-					}
-					if rootBlockDevice.Type == BlockDeviceTypeCrypt {
-						log.Warning("validatePartitions: legacyMode without /boot can not be encrypted")
-						results = append(results,
-							logPartitionWarning(rootBlockDevice, "Encryption of %s is not supported", rootLabel))
-					}
-				}
-			} else {
-				results = append(results, logMissingPartition(bootLabel))
-			}
-		} else {
-			results = append(results, logMissingPartition(bootLabel))
-		}
+		results = append(results, validateBootLegacy(rootBlockDevice, rootLabel, bootLabel, mediaOpts)...)
 	}
 
-	if !swapFound && !skipAll {
-		results = append(results, logMissingPartition(swapLabel))
+	if varFound {
+		results = append(results, validateVarPartition(rootBlockDevice,
+			mediaOpts.SkipValidationSize, varSize)...)
+	}
+
+	// If no swap partition found or the swapfile size was manually set
+	if !swapFound || mediaOpts.SwapFileSet {
+		results = append(results, validateSwapFile(mediaOpts.SwapFileSize, rootBlockDevice,
+			mediaOpts.SkipValidationSize, varFound, varSize)...)
 	}
 
 	return results
@@ -1719,28 +1889,25 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice,
 
 // ServerValidateAdvancedPartitions returns an array of validation error
 // strings for the advanced partitions based on a Server installation.
-func ServerValidateAdvancedPartitions(medias []*BlockDevice, legacyBios bool,
-	skipSize bool, skipAll bool) []string {
-	return validateAdvancedPartitions(MinimumServerInstallSize, medias, legacyBios, skipSize, skipAll)
+func ServerValidateAdvancedPartitions(medias []*BlockDevice, mediaOpts MediaOpts) []string {
+	return validateAdvancedPartitions(MinimumServerInstallSize, medias, mediaOpts)
 }
 
 // DesktopValidateAdvancedPartitions returns an array of validation error
 // strings for the advanced partitions based on a Desktop installation.
-func DesktopValidateAdvancedPartitions(medias []*BlockDevice, legacyBios bool,
-	skipSize bool, skipAll bool) []string {
-	return validateAdvancedPartitions(MinimumDesktopInstallSize, medias, legacyBios, skipSize, skipAll)
+func DesktopValidateAdvancedPartitions(medias []*BlockDevice, mediaOpts MediaOpts) []string {
+	return validateAdvancedPartitions(MinimumDesktopInstallSize, medias, mediaOpts)
 }
 
 // validateAdvancedPartitions returns an array of validation error
 // strings for the advanced partitions
-func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice, legacyBios bool,
-	skipSize bool, skipAll bool) []string {
+func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice, mediaOpts MediaOpts) []string {
 	results := []string{}
 
 	labelMap := make(map[string]bool)
 
 	advancedMode := true // This is Advanced Mode
-	valResults := validatePartitions(rootSize, medias, legacyBios, skipSize, skipAll, advancedMode)
+	valResults := validatePartitions(rootSize, medias, mediaOpts, advancedMode)
 	results = append(results, valResults...)
 
 	for _, curr := range medias {
@@ -1853,20 +2020,44 @@ func AdvancedPartitionsRequireEncryption(medias []*BlockDevice) bool {
 func GetAdvancedPartitions(medias []*BlockDevice) []string {
 	results := []string{}
 
+	formatter := func(child *BlockDevice) string {
+		var name string
+		if child.MountPoint != "" {
+			name = child.Name + ":" + child.MountPoint
+		} else {
+			name = child.Name + ":" + child.FsType
+		}
+		if child.Type == BlockDeviceTypeCrypt {
+			name = name + "*"
+		}
+
+		return name
+	}
+
 	for _, curr := range medias {
 		for _, ch := range curr.Children {
-			if strings.HasPrefix(ch.PartitionLabel, "CLR_") {
-				var name string
-				if ch.MountPoint != "" {
-					name = ch.Name + ":" + ch.MountPoint
-				} else {
-					name = ch.Name + ":" + ch.FsType
+			var found bool
+			if strings.HasPrefix(ch.PartitionLabel, "CLR_BOOT") &&
+				len(validateBoot(&found, ch, false, "CLR_BOOT")) == 0 {
+				if found {
+					results = append(results, formatter(ch))
 				}
-				if ch.Type == BlockDeviceTypeCrypt {
-					name = name + "*"
+			}
+			if strings.HasPrefix(ch.PartitionLabel, "CLR_SWAP") &&
+				len(validateSwap(&found, ch, false, "CLR_SWAP")) == 0 {
+				if found {
+					ch.FsType = "swap"
+					results = append(results, formatter(ch))
 				}
-
-				results = append(results, name)
+			}
+			if strings.HasPrefix(ch.PartitionLabel, "CLR_ROOT") {
+				_, rootResults := validateRoot(&found, ch, 0, false, "CLR_ROOT")
+				if len(rootResults) == 0 && found {
+					results = append(results, formatter(ch))
+				}
+			}
+			if strings.HasPrefix(ch.PartitionLabel, "CLR_MNT_/") {
+				results = append(results, formatter(ch))
 			}
 		}
 	}
@@ -1902,7 +2093,6 @@ func getPlannedPartitionChanges(media *BlockDevice) []string {
 			if partName == "" {
 				partName = ch.GetNewPartitionName(ch.partition)
 			}
-
 			part := fmt.Sprintf("%s: %s", partName, utils.Locale.Get(UsePartitionInfo))
 
 			if ch.MountPoint != "" {
@@ -1923,7 +2113,7 @@ func getPlannedPartitionChanges(media *BlockDevice) []string {
 
 // GetPlannedMediaChanges returns an array of strings with all of
 // disk and partition planned changes to advise the user before start
-func GetPlannedMediaChanges(targets map[string]InstallTarget, medias []*BlockDevice, legacyBios bool) []string {
+func GetPlannedMediaChanges(targets map[string]InstallTarget, medias []*BlockDevice, mediaOpts MediaOpts) []string {
 	results := []string{}
 
 	if len(targets) != len(medias) {
@@ -1951,7 +2141,7 @@ func GetPlannedMediaChanges(targets map[string]InstallTarget, medias []*BlockDev
 
 		for _, curr := range medias {
 			if target.Name == curr.Name {
-				if err := curr.WritePartitionTable(legacyBios, target.WholeDisk, &results); err != nil {
+				if err := curr.WritePartitionTable(mediaOpts.LegacyBios, target.WholeDisk, &results); err != nil {
 					results = append(results, FailedPartitionWarning)
 				}
 				if partChanges := getPlannedPartitionChanges(curr); len(partChanges) > 0 {
@@ -1959,6 +2149,10 @@ func GetPlannedMediaChanges(targets map[string]InstallTarget, medias []*BlockDev
 				}
 			}
 		}
+	}
+
+	if mediaOpts.SwapFileSize != "" {
+		results = append(results, fmt.Sprintf("%s (%s)", SwapfileName, mediaOpts.SwapFileSize))
 	}
 
 	return results
