@@ -49,52 +49,49 @@ var testAlias = []string{}
 // SystemInstall represents the system install "configuration", the target
 // medias, bundles to install and whatever state a install may require
 type SystemInstall struct {
-	InstallSelected    map[string]storage.InstallTarget `yaml:"-"`
-	TargetMedias       []*storage.BlockDevice           `yaml:"targetMedia"`
-	NetworkInterfaces  []*network.Interface             `yaml:"networkInterfaces,omitempty,flow"`
-	Keyboard           *keyboard.Keymap                 `yaml:"keyboard,omitempty,flow"`
-	Language           *language.Language               `yaml:"language,omitempty,flow"`
-	Bundles            []string                         `yaml:"bundles,omitempty,flow"`
-	TargetBundles      []string                         `yaml:"targetBundles,omitempty,flow"`
-	UserBundles        []string                         `yaml:"userBundles,omitempty,flow"`
-	Offline            bool                             `yaml:"offline,omitempty,flow"`
-	HTTPSProxy         string                           `yaml:"httpsProxy,omitempty,flow"`
-	Telemetry          *telemetry.Telemetry             `yaml:"telemetry,omitempty,flow"`
-	Timezone           *timezone.TimeZone               `yaml:"timezone,omitempty,flow"`
-	Users              []*user.User                     `yaml:"users,omitempty,flow"`
-	KernelArguments    *kernel.Arguments                `yaml:"kernel-arguments,omitempty,flow"`
-	Kernel             *kernel.Kernel                   `yaml:"kernel,omitempty,flow"`
-	PostReboot         bool                             `yaml:"postReboot,omitempty,flow"`
-	SwupdMirror        string                           `yaml:"swupdMirror,omitempty,flow"`
-	AllowInsecureHTTP  bool                             `yaml:"AllowInsecureHTTP,omitempty,flow"`
-	SwupdSkipOptional  bool                             `yaml:"swupdSkipOptional,omitempty,flow"`
-	PostArchive        bool                             `yaml:"postArchive,omitempty,flow"`
-	Hostname           string                           `yaml:"hostname,omitempty,flow"`
-	AutoUpdate         bool                             `yaml:"autoUpdate,flow"`
-	TelemetryURL       string                           `yaml:"telemetryURL,omitempty,flow"`
-	TelemetryTID       string                           `yaml:"telemetryTID,omitempty,flow"`
-	TelemetryPolicy    string                           `yaml:"telemetryPolicy,omitempty,flow"`
-	PreInstall         []*InstallHook                   `yaml:"pre-install,omitempty,flow"`
-	PostInstall        []*InstallHook                   `yaml:"post-install,omitempty,flow"`
-	PostImage          []*InstallHook                   `yaml:"post-image,omitempty,flow"`
-	SwupdFormat        string                           `yaml:"swupdFormat,omitempty,flow"`
-	Version            uint                             `yaml:"version,omitempty,flow"`
-	StorageAlias       []*StorageAlias                  `yaml:"block-devices,omitempty,flow"`
-	LegacyBios         bool                             `yaml:"legacyBios,omitempty,flow"`
-	CopyNetwork        bool                             `yaml:"copyNetwork,omitempty,flow"`
-	CopySwupd          bool                             `yaml:"copySwupd,omitempty,flow"`
-	Environment        map[string]string                `yaml:"env,omitempty,flow"`
-	CryptPass          string                           `yaml:"-"`
-	MakeISO            bool                             `yaml:"iso,omitempty,flow"`
-	ISOPublisher       string                           `yaml:"isoPublisher,omitempty,flow"`
-	ISOApplicationID   string                           `yaml:"isoApplicationId,omitempty,flow"`
-	KeepImage          bool                             `yaml:"keepImage,omitempty,flow"`
-	LockFile           string                           `yaml:"-"`
-	ClearCfFile        string                           `yaml:"-"`
-	PreCheckDone       bool                             `yaml:"preCheckDone,omitempty,flow"`
-	SkipValidationSize bool                             `yaml:"skipValidationSize,omitempty,flow"`
-	SkipValidationAll  bool                             `yaml:"skipValidationAll,omitempty,flow"`
-	SwapFileSize       string                           `yaml:"swapFileSize,omitempty,flow"`
+	InstallSelected   map[string]storage.InstallTarget `yaml:"-"`
+	TargetMedias      []*storage.BlockDevice           `yaml:"targetMedia"`
+	NetworkInterfaces []*network.Interface             `yaml:"networkInterfaces,omitempty,flow"`
+	Keyboard          *keyboard.Keymap                 `yaml:"keyboard,omitempty,flow"`
+	Language          *language.Language               `yaml:"language,omitempty,flow"`
+	Bundles           []string                         `yaml:"bundles,omitempty,flow"`
+	TargetBundles     []string                         `yaml:"targetBundles,omitempty,flow"`
+	UserBundles       []string                         `yaml:"userBundles,omitempty,flow"`
+	Offline           bool                             `yaml:"offline,omitempty,flow"`
+	HTTPSProxy        string                           `yaml:"httpsProxy,omitempty,flow"`
+	Telemetry         *telemetry.Telemetry             `yaml:"telemetry,omitempty,flow"`
+	Timezone          *timezone.TimeZone               `yaml:"timezone,omitempty,flow"`
+	Users             []*user.User                     `yaml:"users,omitempty,flow"`
+	KernelArguments   *kernel.Arguments                `yaml:"kernel-arguments,omitempty,flow"`
+	Kernel            *kernel.Kernel                   `yaml:"kernel,omitempty,flow"`
+	PostReboot        bool                             `yaml:"postReboot,omitempty,flow"`
+	SwupdMirror       string                           `yaml:"swupdMirror,omitempty,flow"`
+	AllowInsecureHTTP bool                             `yaml:"AllowInsecureHTTP,omitempty,flow"`
+	SwupdSkipOptional bool                             `yaml:"swupdSkipOptional,omitempty,flow"`
+	PostArchive       bool                             `yaml:"postArchive,omitempty,flow"`
+	Hostname          string                           `yaml:"hostname,omitempty,flow"`
+	AutoUpdate        bool                             `yaml:"autoUpdate,flow"`
+	TelemetryURL      string                           `yaml:"telemetryURL,omitempty,flow"`
+	TelemetryTID      string                           `yaml:"telemetryTID,omitempty,flow"`
+	TelemetryPolicy   string                           `yaml:"telemetryPolicy,omitempty,flow"`
+	PreInstall        []*InstallHook                   `yaml:"pre-install,omitempty,flow"`
+	PostInstall       []*InstallHook                   `yaml:"post-install,omitempty,flow"`
+	PostImage         []*InstallHook                   `yaml:"post-image,omitempty,flow"`
+	SwupdFormat       string                           `yaml:"swupdFormat,omitempty,flow"`
+	Version           uint                             `yaml:"version,omitempty,flow"`
+	StorageAlias      []*StorageAlias                  `yaml:"block-devices,omitempty,flow"`
+	CopyNetwork       bool                             `yaml:"copyNetwork,omitempty,flow"`
+	CopySwupd         bool                             `yaml:"copySwupd,omitempty,flow"`
+	Environment       map[string]string                `yaml:"env,omitempty,flow"`
+	CryptPass         string                           `yaml:"-"`
+	MakeISO           bool                             `yaml:"iso,omitempty,flow"`
+	ISOPublisher      string                           `yaml:"isoPublisher,omitempty,flow"`
+	ISOApplicationID  string                           `yaml:"isoApplicationId,omitempty,flow"`
+	KeepImage         bool                             `yaml:"keepImage,omitempty,flow"`
+	LockFile          string                           `yaml:"-"`
+	ClearCfFile       string                           `yaml:"-"`
+	PreCheckDone      bool                             `yaml:"preCheckDone,omitempty,flow"`
+	MediaOpts         storage.MediaOpts                `yaml:",inline"`
 }
 
 // SystemUsage is used to include additional information into the telemetry payload
@@ -347,13 +344,11 @@ func (si *SystemInstall) Validate() error {
 
 	var results []string
 	if si.IsTargetDesktopInstall() {
-		results = storage.DesktopValidatePartitions(si.TargetMedias, si.LegacyBios,
-			si.SkipValidationSize, si.SkipValidationAll)
+		results = storage.DesktopValidatePartitions(si.TargetMedias, si.MediaOpts)
 	} else {
-		results = storage.ServerValidatePartitions(si.TargetMedias, si.LegacyBios,
-			si.SkipValidationSize, si.SkipValidationAll)
+		results = storage.ServerValidatePartitions(si.TargetMedias, si.MediaOpts)
 	}
-	if len(results) > 0 && !si.SkipValidationAll {
+	if len(results) > 0 && !si.MediaOpts.SkipValidationAll {
 		return errors.ValidationErrorf(strings.Join(results, ", "))
 	}
 
@@ -521,6 +516,10 @@ func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 		}
 	}
 
+	if result.MediaOpts.SwapFileSize != "" {
+		result.MediaOpts.SwapFileSet = true
+	}
+
 	if result.Version > 0 {
 		result.AutoUpdate = false
 	}
@@ -605,8 +604,8 @@ func (si *SystemInstall) WriteFile(path string) error {
 	// SkipValidation flags are okay for ready, but we
 	// never want to store them -- force use to set them
 	// Setting to default means they are omitted
-	copyModel.SkipValidationAll = false
-	copyModel.SkipValidationSize = false
+	copyModel.MediaOpts.SkipValidationAll = false
+	copyModel.MediaOpts.SkipValidationSize = false
 
 	b, err := yaml.Marshal(copyModel)
 	if err != nil {
@@ -661,6 +660,9 @@ func (si *SystemInstall) WriteScrubModelTargetMedias() (string, error) {
 	// Remove the target media
 	cleanModel.TargetMedias = nil
 
+	// Remove the Media swapfile if set as we might return with a swap partition
+	cleanModel.MediaOpts.SwapFileSize = ""
+
 	tmpYaml, err := ioutil.TempFile("", "clr-installer-noMedia-*.yaml")
 	if err != nil {
 		return "", errors.Errorf("Could not make YAML tempfile: %v", err)
@@ -684,4 +686,20 @@ func (si *SystemInstall) InteractiveOptionsValid() error {
 	}
 
 	return nil
+}
+
+// SetDefaultSwapFileSize defines the swapfile sized based on
+// the storage default swapfile size
+func (si *SystemInstall) SetDefaultSwapFileSize() {
+	if si.MediaOpts.SwapFileSize == "" {
+		si.MediaOpts.SwapFileSize, _ = storage.HumanReadableSizeXiBWithPrecision(storage.SwapFileSizeDefault, 1)
+	}
+}
+
+// ResetDefaultSwapFileSize clears the swapfile size unless it
+// has been explicitly set by the YAML or command line
+func (si *SystemInstall) ResetDefaultSwapFileSize() {
+	if !si.MediaOpts.SwapFileSet {
+		si.MediaOpts.SwapFileSize = ""
+	}
 }

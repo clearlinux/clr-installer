@@ -197,8 +197,8 @@ var (
 		"/dev/mmcblk": "p",
 	}
 
-	bootSize = uint64(150 * (1000 * 1000))
-	swapSize = uint64(256 * (1000 * 1000))
+	bootSizeDefault     = uint64(150 * (1024 * 1024))
+	SwapFileSizeDefault = uint64(64 * (1024 * 1024))
 )
 
 func getAliasSuffix(file string) string {
@@ -386,18 +386,6 @@ func (bd *BlockDevice) FsTypeNotSwap() bool {
 	return bd.FsType != "swap"
 }
 
-// DeviceHasSwap returns true if the block device has a swap partition
-func (bd *BlockDevice) DeviceHasSwap() bool {
-	hasSwap := false
-
-	for _, part := range bd.Children {
-		if part.FsType == "swap" {
-			hasSwap = true
-		}
-	}
-	return hasSwap
-}
-
 // RemoveChild removes a partition from disk block device
 func (bd *BlockDevice) RemoveChild(child *BlockDevice) {
 	copyBd := bd.Clone()
@@ -444,28 +432,28 @@ func (bd *BlockDevice) AddChild(child *BlockDevice) {
 	log.Debug("AddChild: child.Name is %q", child.Name)
 }
 
-// HumanReadableSizeWithUnitAndPrecision converts the size representation in bytes to the
-// closest human readable format i.e 10M, 1G, 2T etc with a forced unit and precision
-func (bd *BlockDevice) HumanReadableSizeWithUnitAndPrecision(unit string, precision int) (string, error) {
-	return HumanReadableSizeWithUnitAndPrecision(bd.Size, unit, precision)
+// HumanReadableSizeXiBWithUnitAndPrecision converts the size representation in bytes to the
+// closest human readable format i.e 10MiB, 1GiB, 2TiB etc with a forced unit and precision
+func (bd *BlockDevice) HumanReadableSizeXiBWithUnitAndPrecision(unit string, precision int) (string, error) {
+	return HumanReadableSizeXiBWithUnitAndPrecision(bd.Size, unit, precision)
 }
 
-// HumanReadableSizeWithPrecision converts the size representation in bytes to the
-// closest human readable format i.e 10M, 1G, 2T etc with a forced precision
-func (bd *BlockDevice) HumanReadableSizeWithPrecision(precision int) (string, error) {
-	return bd.HumanReadableSizeWithUnitAndPrecision("", precision)
+// HumanReadableSizeXiBWithPrecision converts the size representation in bytes to the
+// closest human readable format i.e 10MiB, 1GiB, 2TiB etc with a forced precision
+func (bd *BlockDevice) HumanReadableSizeXiBWithPrecision(precision int) (string, error) {
+	return bd.HumanReadableSizeXiBWithUnitAndPrecision("", precision)
 }
 
-// HumanReadableSizeWithUnit converts the size representation in bytes to the
-// closest human readable format i.e 10M, 1G, 2T etc with a forced unit
-func (bd *BlockDevice) HumanReadableSizeWithUnit(unit string) (string, error) {
-	return bd.HumanReadableSizeWithUnitAndPrecision(unit, -1)
+// HumanReadableSizeXiBWithUnit converts the size representation in bytes to the
+// closest human readable format i.e 10MiB, 1GiB, 2TiB etc with a forced unit
+func (bd *BlockDevice) HumanReadableSizeXiBWithUnit(unit string) (string, error) {
+	return bd.HumanReadableSizeXiBWithUnitAndPrecision(unit, -1)
 }
 
-// HumanReadableSize converts the size representation in bytes to the closest
-// human readable format i.e 10M, 1G, 2T etc
-func (bd *BlockDevice) HumanReadableSize() (string, error) {
-	return bd.HumanReadableSizeWithUnitAndPrecision("", -1)
+// HumanReadableSizeXiB converts the size representation in bytes to the closest
+// human readable format i.e 10MiB, 1GiB, 2TiB etc
+func (bd *BlockDevice) HumanReadableSizeXiB() (string, error) {
+	return bd.HumanReadableSizeXiBWithUnitAndPrecision("", -1)
 }
 
 // UpdateBlockDevices updates the Label and UUID information only

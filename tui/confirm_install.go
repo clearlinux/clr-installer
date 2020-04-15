@@ -136,8 +136,8 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 	dialog.mediaDetail.SetWordWrap(true)
 	dialog.mediaDetail.SetStyle("AltEdit")
 
-	medias := storage.GetPlannedMediaChanges(dialog.modelSI.InstallSelected,
-		dialog.modelSI.TargetMedias, dialog.modelSI.LegacyBios)
+	medias := storage.GetPlannedMediaChanges(dialog.modelSI.InstallSelected, dialog.modelSI.TargetMedias,
+		dialog.modelSI.MediaOpts)
 	for _, media := range medias {
 		log.Debug("MediaChange: %s", media)
 	}

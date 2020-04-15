@@ -902,48 +902,440 @@ BYT;
 	t.Logf("getPartNotEnoughFree3Output: start: %d, end: %d", start, end)
 }
 
-func TestSetPartitition(t *testing.T) {
-	bd := &BlockDevice{Size: MinimumServerInstallSize}
-	NewStandardPartitions(bd)
-
-	for _, ch := range bd.Children {
-		if ch.FsType == "swap" {
-			ch.SetPartitionNumber(2)
-		}
-	}
-
-	if !bd.DeviceHasSwap() {
-	}
-}
-
-func TestSwapCheck(t *testing.T) {
-	bd := &BlockDevice{Size: MinimumServerInstallSize}
-	NewStandardPartitions(bd)
-
-	if !bd.DeviceHasSwap() {
-		t.Fatalf("Device should have swap, but does not: %v", bd)
-	}
-
-	bd = &BlockDevice{Size: MinimumServerInstallSize}
-	_ = AddBootStandardPartition(bd)
-	if bd.DeviceHasSwap() {
-		t.Fatalf("Device should NOT have swap, but does: %v", bd)
-	}
-
-}
-
 func TestAddPartititions(t *testing.T) {
 	bd := &BlockDevice{Size: MinimumServerInstallSize}
 
 	size := AddBootStandardPartition(bd)
-	if size != bootSize {
-		t.Fatalf("Boot partition should be %d, but was %d", bootSize, size)
-	}
-	size = AddSwapStandardPartition(bd)
-	if size != swapSize {
-		t.Fatalf("Swap partition should be %d, but was %d", swapSize, size)
+	if size != bootSizeDefault {
+		t.Fatalf("Boot partition should be %d, but was %d", bootSizeDefault, size)
 	}
 
-	rootSize := uint64(bd.Size - bootSize - swapSize)
+	rootSize := uint64(bd.Size - bootSizeDefault)
 	AddRootStandardPartition(bd, rootSize)
+}
+
+//nolint: lll // WONTFIX
+var lsblkOutput string = `{
+   "blockdevices": [
+	  {"name": "sde", "path": "/dev/sde", "size": "2.0T", "type": "disk", "mountpoint": null,
+         "children": [
+			{"name": "sde1", "path": "/dev/sde1", "size": "512M",  "type": "part", "fstype": "vfat", "mountpoint": "/boot"},
+            {"name": "sde2", "path": "/dev/sde2", "size": "256M",  "type": "part", "fstype": "swap", "mountpoint": null},
+            {"name": "sde3", "path": "/dev/sde3", "size": "8G",    "type": "part", "fstype": "ext4", "mountpoint": "/"},
+            {"name": "sde4", "path": "/dev/sde4", "size": "8G",    "type": "part", "fstype": "ext4", "mountpoint": "/home"}
+         ]
+      },
+	  {"name": "sdf", "path": "/dev/sdf", "size": "2.0T", "type": "disk", "mountpoint": null,
+         "children": [
+			{"name": "sdf1", "path": "/dev/sdf1", "size": "512M",  "type": "part", "fstype": "vfat", "mountpoint": "/boot"},
+            {"name": "sdf3", "path": "/dev/sdf3", "size": "8G",    "type": "part", "fstype": "ext4", "mountpoint": "/"},
+            {"name": "sdf4", "path": "/dev/sdf4", "size": "8G",    "type": "part", "fstype": "ext4", "mountpoint": "/var"}
+         ]
+      },
+	  {"name": "sdg", "path": "/dev/sdg", "size": "2.0T", "type": "disk", "mountpoint": null,
+         "children": [
+			{"name": "sdg1", "path": "/dev/sdg1", "size": "512M",  "type": "part", "fstype": "vfat", "partlabel": "CLR_BOOT", "mountpoint": "/boot"},
+            {"name": "sdg2", "path": "/dev/sdg2", "size": "256M",  "type": "part", "fstype": "swap", "partlabel": "CLR_SWAP", "mountpoint": null},
+            {"name": "sdg3", "path": "/dev/sdg3", "size": "8G",    "type": "part", "fstype": "ext4", "partlabel": "CLR_ROOT", "mountpoint": "/"},
+            {"name": "sdg4", "path": "/dev/sdg4", "size": "8G",    "type": "part", "fstype": "ext4", "partlabel": "CLR_MNT_/home", "mountpoint": "/home"}
+         ]
+      },
+	  {"name": "sda", "path": "/dev/sda", "size": "2.0T", "type": "disk", "mountpoint": null,
+         "children": [
+			{"name": "sda1", "path": "/dev/sda1", "size": "512M",  "type": "part", "fstype": "vfat", "mountpoint": "/boot"},
+            {"name": "sda2", "path": "/dev/sda2", "size": "256M",  "type": "part", "fstype": "swap", "mountpoint": null},
+            {"name": "sda3", "path": "/dev/sda3", "size": "20G",   "type": "part", "fstype": "ext4", "mountpoint": "/"},
+            {"name": "sda4", "path": "/dev/sda4", "size": "20G",   "type": "part", "fstype": "ext4", "mountpoint": "/home"}
+         ]
+      },
+	  {"name": "sdb", "path": "/dev/sdb", "size": "2.0T", "type": "disk", "mountpoint": null,
+         "children": [
+			{"name": "sdb1", "path": "/dev/sdb1", "size": "512M",  "type": "part", "fstype": "vfat", "mountpoint": "/boot"},
+            {"name": "sdb3", "path": "/dev/sdb3", "size": "20G",   "type": "part", "fstype": "ext4", "mountpoint": "/"},
+            {"name": "sdb4", "path": "/dev/sdb4", "size": "20G",   "type": "part", "fstype": "ext4", "mountpoint": "/var"}
+         ]
+      },
+	  {"name": "sdc", "path": "/dev/sdc", "size": "2.0T", "type": "disk", "mountpoint": null,
+         "children": [
+			{"name": "sdc1", "path": "/dev/sdc1", "size": "512M",  "type": "part", "fstype": "vfat", "partlabel": "CLR_BOOT", "mountpoint": "/boot"},
+            {"name": "sdc2", "path": "/dev/sdc2", "size": "256M",  "type": "part", "fstype": "swap", "partlabel": "CLR_SWAP", "mountpoint": null},
+            {"name": "sdc3", "path": "/dev/sdc3", "size": "20G",   "type": "part", "fstype": "ext4", "partlabel": "CLR_ROOT", "mountpoint": "/"},
+            {"name": "sdc4", "path": "/dev/sdc4", "size": "20G",   "type": "part", "fstype": "ext4", "partlabel": "CLR_MNT_/home", "mountpoint": "/home"}
+         ]
+      },
+	  {"name": "sdd", "path": "/dev/sdd", "size": "2.0T", "type": "disk", "mountpoint": null,
+         "children": [
+			{"name": "sdd1", "path": "/dev/sdd1", "size": "512M",  "type": "part", "fstype": "vfat", "partlabel": "CLR_BOOT", "mountpoint": "/boot"},
+            {"name": "sdd2", "path": "/dev/sdd2", "size": "20G",   "type": "part", "fstype": "ext4", "partlabel": "CLR_ROOT", "mountpoint": "/"},
+            {"name": "sdd3", "path": "/dev/sdd3", "size": "20G",   "type": "part", "fstype": "ext4", "partlabel": "CLR_MNT_/home", "mountpoint": "/home"}
+         ]
+      }
+   ]
+}`
+
+func TestPartitionValidation(t *testing.T) {
+	medias, err := parseBlockDevicesDescriptor([]byte(lsblkOutput))
+	if err != nil {
+		t.Fatalf("Could not parser block device descriptor: %s", err)
+	}
+
+	var targets []*BlockDevice
+	var mediaOpts MediaOpts
+
+	resetWith := func(name string) {
+		mediaOpts.SwapFileSize = ""
+		mediaOpts.SwapFileSet = false
+		mediaOpts.LegacyBios = false
+		mediaOpts.SkipValidationSize = false
+		mediaOpts.SkipValidationAll = false
+		targets = []*BlockDevice{}
+
+		for _, bd := range medias {
+			if bd.Name == name {
+				t.Logf("Found media %s", name)
+				clone := bd.Clone()
+				targets = append(targets, clone)
+			}
+		}
+	}
+
+	resetWith("sde")
+	results := ServerValidatePartitions(targets, mediaOpts)
+	if len(results) > 0 {
+		for _, err := range results {
+			t.Fatalf("ServerValidatePartitions returned error %q", err)
+		}
+	}
+
+	resetWith("sdf")
+	results = ServerValidatePartitions(targets, mediaOpts)
+	if len(results) > 0 {
+		for _, err := range results {
+			t.Fatalf("ServerValidatePartitions returned error %q", err)
+		}
+	}
+
+	resetWith("sdg")
+	results = ServerValidateAdvancedPartitions(targets, mediaOpts)
+	if len(results) > 0 {
+		for _, err := range results {
+			t.Fatalf("ServerValidatePartitions returned error %q", err)
+		}
+	}
+
+	resetWith("sde")
+	mediaOpts.SwapFileSize = "4G"
+	mediaOpts.SwapFileSet = true
+	results = ServerValidatePartitions(targets, mediaOpts)
+	if len(results) > 0 {
+		for _, err := range results {
+			t.Fatalf("ServerValidatePartitions returned error %q", err)
+		}
+	}
+
+	resetWith("sde")
+	mediaOpts.SwapFileSize = "4.1G"
+	mediaOpts.SwapFileSet = true
+	mediaOpts.SkipValidationSize = true
+	results = ServerValidatePartitions(targets, mediaOpts)
+	if len(results) > 0 {
+		for _, err := range results {
+			t.Fatalf("ServerValidatePartitions returned error %q", err)
+		}
+	}
+
+	resetWith("sde")
+	mediaOpts.SwapFileSize = "8.1G"
+	mediaOpts.SwapFileSet = true
+	mediaOpts.SkipValidationSize = true
+	results = ServerValidatePartitions(targets, mediaOpts)
+	if cnt := len(results); cnt != 1 {
+		t.Fatalf("ServerValidatePartitions returned %d errors, but should be 1", cnt)
+	}
+
+	resetWith("sde")
+	mediaOpts.SwapFileSize = "8.1G"
+	mediaOpts.SwapFileSet = true
+	results = ServerValidatePartitions(targets, mediaOpts)
+	if cnt := len(results); cnt != 3 {
+		t.Fatalf("ServerValidatePartitions returned %d errors, but should be 3", cnt)
+	}
+
+	resetWith("sda")
+	results = DesktopValidatePartitions(targets, mediaOpts)
+	if len(results) > 0 {
+		for _, err := range results {
+			t.Fatalf("DesktopValidatePartitions returned error %q", err)
+		}
+	}
+
+	resetWith("sdf")
+	results = DesktopValidatePartitions(targets, mediaOpts)
+	if cnt := len(results); cnt != 1 {
+		t.Fatalf("DesktopValidatePartitions returned %d errors, but should be 1", cnt)
+		if len(results) > 0 {
+			for _, err := range results {
+				t.Fatalf("DesktopValidatePartitions returned error %q", err)
+			}
+		}
+	}
+
+	resetWith("sdg")
+	results = DesktopValidateAdvancedPartitions(targets, mediaOpts)
+	if cnt := len(results); cnt != 1 {
+		t.Fatalf("DesktopValidatePartitions returned %d errors, but should be 1", cnt)
+		if len(results) > 0 {
+			for _, err := range results {
+				t.Fatalf("DesktopValidatePartitions returned error %q", err)
+			}
+		}
+	}
+
+	resetWith("sda")
+	mediaOpts.SwapFileSize = "4G"
+	mediaOpts.SwapFileSet = true
+	results = DesktopValidatePartitions(targets, mediaOpts)
+	if len(results) > 0 {
+		for _, err := range results {
+			t.Fatalf("DesktopValidatePartitions returned error %q", err)
+		}
+	}
+
+	resetWith("sda")
+	mediaOpts.SwapFileSize = "4.1G"
+	mediaOpts.SwapFileSet = true
+	mediaOpts.SkipValidationSize = true
+	results = DesktopValidatePartitions(targets, mediaOpts)
+	if len(results) > 0 {
+		for _, err := range results {
+			t.Fatalf("DesktopValidatePartitions returned error %q", err)
+		}
+	}
+
+	resetWith("sda")
+	mediaOpts.SwapFileSize = "20.1G"
+	mediaOpts.SwapFileSet = true
+	mediaOpts.SkipValidationSize = true
+	results = DesktopValidatePartitions(targets, mediaOpts)
+	if cnt := len(results); cnt != 1 {
+		t.Fatalf("DesktopValidatePartitions returned %d errors, but should be 1", cnt)
+	}
+
+	resetWith("sda")
+	mediaOpts.SwapFileSize = "20.1G"
+	mediaOpts.SwapFileSet = true
+	results = DesktopValidatePartitions(targets, mediaOpts)
+	if cnt := len(results); cnt != 3 {
+		t.Fatalf("DesktopValidatePartitions returned %d errors, but should be 3", cnt)
+	}
+}
+
+func TestAdvancedPartitionValidation(t *testing.T) {
+	medias, err := parseBlockDevicesDescriptor([]byte(lsblkOutput))
+	if err != nil {
+		t.Fatalf("Could not parser block device descriptor: %s", err)
+	}
+
+	var targets []*BlockDevice
+	var mediaOpts MediaOpts
+
+	resetWith := func(name string) {
+		mediaOpts.SwapFileSize = ""
+		mediaOpts.SwapFileSet = false
+		mediaOpts.LegacyBios = false
+		mediaOpts.SkipValidationSize = false
+		mediaOpts.SkipValidationAll = false
+		targets = []*BlockDevice{}
+
+		for _, bd := range medias {
+			if bd.Name == name {
+				t.Logf("Found media %s", name)
+				clone := bd.Clone()
+				targets = append(targets, clone)
+			}
+		}
+	}
+
+	resetWith("sda")
+	mediaOpts.SwapFileSize = "20.1G"
+	mediaOpts.SwapFileSet = true
+	results := DesktopValidatePartitions(targets, mediaOpts)
+	if cnt := len(results); cnt != 3 {
+		t.Fatalf("DesktopValidatePartitions returned %d errors, but should be 3", cnt)
+	}
+
+	resetWith("sdc")
+	t.Logf("targets: %v", targets)
+	advTargets := FindAdvancedInstallTargets(targets)
+	t.Logf("advTargets: %v", advTargets)
+	if !HasAdvancedSwap(advTargets) {
+		t.Fatalf("HasAdvancedSwap should be true for device %q", "sdc")
+	}
+	resetWith("sdd")
+	advTargets = FindAdvancedInstallTargets(targets)
+	if HasAdvancedSwap(advTargets) {
+		t.Fatalf("HasAdvancedSwap should be false for device %q", "sdd")
+	}
+}
+
+func TestHumanReadableSize(t *testing.T) {
+	tests := []struct {
+		size      uint64
+		unit      string
+		precision int
+		result    string
+		err       error
+	}{
+		{102, "", -1, "102", nil},
+		{1024, "", -1, "1KB", nil},
+		{1854, "", -1, "1.9KB", nil},
+		{1000000, "KB", -1, "1000KB", nil},
+		{1000000, "KB", -1, "1000KB", nil},
+		{1000000, "", -1, "1MB", nil},
+		{1854, "MB", -1, "0MB", nil},
+		{1000000000, "MB", -1, "1000MB", nil},
+		{1000000000, "", -1, "1GB", nil},
+		{1500000000, "", -1, "1.5GB", nil},
+		{1570000000, "", -1, "1.57GB", nil},
+		{1570000000, "", 2, "1.57GB", nil},
+		{1570000000, "", 1, "1.6GB", nil},
+		{1510000000, "", 1, "1.5GB", nil},
+		{1000000000000, "", -1, "1TB", nil},
+		{1400000000000, "", -1, "1.4TB", nil},
+		{1450000000000, "", -1, "1.45TB", nil},
+		{1459000000000, "", -1, "1.459TB", nil},
+		{1459000000000, "TB", -1, "1.459TB", nil},
+		{1400500000000, "", 3, "1.401TB", nil},
+		{1400500000000, "", 2, "1.4TB", nil},
+		{1451000000000, "", 1, "1.5TB", nil},
+		{1440000000000, "", 1, "1.4TB", nil},
+		{1459000000000, "", 2, "1.46TB", nil},
+		{1459000000000, "GB", 2, "1459GB", nil},
+		{1459470000000, "GB", 2, "1459.47GB", nil},
+		{1000000000000000, "", -1, "1PB", nil},
+		{1000000000000000, "PB", -1, "1PB", nil},
+		{1080000000000000, "", -1, "1.08PB", nil},
+		{1080000000000000, "", 1, "1.1PB", nil},
+		{1081000000000000, "TB", 1, "1081TB", nil},
+		{1081000000000000, "GB", 1, "1081000GB", nil},
+	}
+
+	for i, curr := range tests {
+		value, err := HumanReadableSizeXBWithUnitAndPrecision(curr.size, curr.unit, curr.precision)
+		if err != curr.err {
+			t.Fatalf("TestHumanReadableSize-All %d: error %v did not match %v", i, err, curr.err)
+		}
+		if value != curr.result {
+			t.Fatalf("TestHumanReadableSize-All %d: conversion %q did not match %q", i, value, curr.result)
+		}
+
+		if curr.unit == "" {
+			value, err := HumanReadableSizeXBWithPrecision(curr.size, curr.precision)
+			if err != curr.err {
+				t.Fatalf("TestHumanReadableSize-Precision %d: error %v did not match %v", i, err, curr.err)
+			}
+			if value != curr.result {
+				t.Fatalf("TestHumanReadableSize-Precision %d: conversion %q did not match %q", i, value, curr.result)
+			}
+		}
+
+		if curr.precision == -1 {
+			value, err := HumanReadableSizeXBWithUnit(curr.size, curr.unit)
+			if err != curr.err {
+				t.Fatalf("TestHumanReadableSize-Unit %d: error %v did not match %v", i, err, curr.err)
+			}
+			if value != curr.result {
+				t.Fatalf("TestHumanReadableSize-Unit %d: conversion %q did not match %q", i, value, curr.result)
+			}
+		}
+
+		if curr.unit == "" && curr.precision == -1 {
+			value, err := HumanReadableSizeXB(curr.size)
+			if err != curr.err {
+				t.Fatalf("TestHumanReadableSize %d: error %v did not match %v", i, err, curr.err)
+			}
+			if value != curr.result {
+				t.Fatalf("TestHumanReadableSize %d: conversion %q did not match %q", i, value, curr.result)
+			}
+		}
+	}
+}
+
+func TestHumanReadableSizeXiB(t *testing.T) {
+	tests := []struct {
+		size      uint64
+		unit      string
+		precision int
+		result    string
+		err       error
+	}{
+		{102, "", -1, "102", nil},
+		{999, "B", -1, "999", nil},
+		{1000, "KiB", -1, "1KiB", nil},
+		{1024, "", -1, "1KiB", nil},
+		{1854, "", -1, "1.8KiB", nil},
+		{1000000, "KiB", -1, "976.6KiB", nil},
+		{1024000, "KiB", -1, "1000KiB", nil},
+		{1048576, "", -1, "1MiB", nil},
+		{1854, "MiB", -1, "0MiB", nil},
+		{1048576000, "MiB", -1, "1000MiB", nil},
+		{1073741824, "", -1, "1GiB", nil},
+		{1610612736, "", -1, "1.5GiB", nil},
+		{1685774664, "", -1, "1.57GiB", nil},
+		{1685774664, "", 2, "1.57GiB", nil},
+		{1685774664, "", 1, "1.6GiB", nil},
+		{1612612736, "", 1, "1.5GiB", nil},
+		{1099511627776, "", -1, "1TiB", nil},
+		{1539316278886, "", -1, "1.4TiB", nil},
+		{1594291860275, "", -1, "1.45TiB", nil},
+		{1604187464925, "", -1, "1.459TiB", nil},
+		{1604187464925, "TiB", -1, "1.459TiB", nil},
+		{1540415790514, "", 3, "1.401TiB", nil},
+		{1540415790514, "", 2, "1.4TiB", nil},
+		{1604187464925, "GiB", 2, "1494.02GiB", nil},
+		{1125899906842624, "", -1, "1PiB", nil},
+		{1125899906842624, "PiB", -1, "1PiB", nil},
+		{1215971899390034, "", -1, "1.08PiB", nil},
+		{1215971899390034, "", 1, "1.1PiB", nil},
+	}
+
+	for i, curr := range tests {
+		value, err := HumanReadableSizeXiBWithUnitAndPrecision(curr.size, curr.unit, curr.precision)
+		if err != curr.err {
+			t.Fatalf("TestHumanReadableSizeXiB-All %d: error %v did not match %v", i, err, curr.err)
+		}
+		if value != curr.result {
+			t.Fatalf("TestHumanReadableSizeXiB-All %d: conversion %q did not match %q", i, value, curr.result)
+		}
+
+		if curr.unit == "" {
+			value, err := HumanReadableSizeXiBWithPrecision(curr.size, curr.precision)
+			if err != curr.err {
+				t.Fatalf("TestHumanReadableSizeXiB-Precision %d: error %v did not match %v", i, err, curr.err)
+			}
+			if value != curr.result {
+				t.Fatalf("TestHumanReadableSizeXiB-Precision %d: conversion %q did not match %q", i, value, curr.result)
+			}
+		}
+
+		if curr.precision == -1 {
+			value, err := HumanReadableSizeXiBWithUnit(curr.size, curr.unit)
+			if err != curr.err {
+				t.Fatalf("TestHumanReadableSizeXiB-Unit %d: error %v did not match %v", i, err, curr.err)
+			}
+			if value != curr.result {
+				t.Fatalf("TestHumanReadableSizeXiB-Unit %d: conversion %q did not match %q", i, value, curr.result)
+			}
+		}
+
+		if curr.unit == "" && curr.precision == -1 {
+			value, err := HumanReadableSizeXiB(curr.size)
+			if err != curr.err {
+				t.Fatalf("TestHumanReadableSizeXiB %d: error %v did not match %v", i, err, curr.err)
+			}
+			if value != curr.result {
+				t.Fatalf("TestHumanReadableSizeXiB %d: conversion %q did not match %q", i, value, curr.result)
+			}
+		}
+	}
 }

@@ -33,9 +33,9 @@ func (part *PartedPartition) Clone() *PartedPartition {
 
 // AddBootStandardPartition will add to disk a new standard Boot partition
 func AddBootStandardPartition(disk *BlockDevice) uint64 {
-	freePart := disk.findFree(bootSize)
+	freePart := disk.findFree(bootSizeDefault)
 	disk.AddFromFreePartition(freePart, &BlockDevice{
-		Size:            bootSize,
+		Size:            bootSizeDefault,
 		Type:            BlockDeviceTypePart,
 		FsType:          "vfat",
 		MountPoint:      "/boot",
@@ -45,23 +45,7 @@ func AddBootStandardPartition(disk *BlockDevice) uint64 {
 		FormatPartition: true,
 	})
 
-	return bootSize
-}
-
-// AddSwapStandardPartition will add to disk a new standard Swap partition
-func AddSwapStandardPartition(disk *BlockDevice) uint64 {
-	freePart := disk.findFree(swapSize)
-	disk.AddFromFreePartition(freePart, &BlockDevice{
-		Size:            swapSize,
-		Type:            BlockDeviceTypePart,
-		FsType:          "swap",
-		Label:           "swap",
-		UserDefined:     true,
-		MakePartition:   true,
-		FormatPartition: true,
-	})
-
-	return swapSize
+	return bootSizeDefault
 }
 
 // AddRootStandardPartition will add to disk a new standard Root partition
@@ -93,26 +77,15 @@ func NewStandardPartitions(disk *BlockDevice) {
 	disk.PartTable = nil
 	disk.PartTable = append(disk.PartTable, newFreePart)
 
-	rootSize := uint64(disk.Size - bootSize - swapSize)
+	rootSize := uint64(disk.Size - bootSizeDefault)
 
-	freePart := disk.findFree(bootSize)
+	freePart := disk.findFree(bootSizeDefault)
 	disk.AddFromFreePartition(freePart, &BlockDevice{
-		Size:            bootSize,
+		Size:            bootSizeDefault,
 		Type:            BlockDeviceTypePart,
 		FsType:          "vfat",
 		MountPoint:      "/boot",
 		Label:           "boot",
-		UserDefined:     true,
-		MakePartition:   true,
-		FormatPartition: true,
-	})
-
-	freePart = disk.findFree(swapSize)
-	disk.AddFromFreePartition(freePart, &BlockDevice{
-		Size:            swapSize,
-		Type:            BlockDeviceTypePart,
-		FsType:          "swap",
-		Label:           "swap",
 		UserDefined:     true,
 		MakePartition:   true,
 		FormatPartition: true,

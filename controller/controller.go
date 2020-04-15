@@ -241,7 +241,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 			wholeDisk = val.WholeDisk
 		}
 		// based on the description given, write the partition table
-		if err = curr.WritePartitionTable(model.LegacyBios, wholeDisk, nil); err != nil {
+		if err = curr.WritePartitionTable(model.MediaOpts.LegacyBios, wholeDisk, nil); err != nil {
 			return err
 		}
 
@@ -402,11 +402,11 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		return err
 	}
 
-	if model.SwapFileSize != "" {
+	if model.MediaOpts.SwapFileSize != "" {
 		msg := utils.Locale.Get("Creating %s", storage.SwapfileName)
 		prg = progress.NewLoop(msg)
 		log.Info(msg)
-		if err = storage.CreateSwapFile(rootDir, model.SwapFileSize); err != nil {
+		if err = storage.CreateSwapFile(rootDir, model.MediaOpts.SwapFileSize); err != nil {
 			prg.Failure()
 			return err
 		}
@@ -679,7 +679,7 @@ func contentInstall(rootDir string, version string,
 		"CBM_DEBUG": "1",
 	}
 
-	if md.LegacyBios {
+	if md.MediaOpts.LegacyBios {
 		envVars["CBM_FORCE_LEGACY"] = "1"
 	}
 
@@ -995,7 +995,7 @@ func generateISO(rootDir string, md *model.SystemInstall, options args.Args) err
 	var err error
 	log.Info("Building ISO image")
 
-	if !md.LegacyBios {
+	if !md.MediaOpts.LegacyBios {
 		for _, alias := range md.StorageAlias {
 			if err = isoutils.MakeIso(rootDir, strings.TrimSuffix(alias.File,
 				filepath.Ext(alias.File)), md, options); err != nil {
