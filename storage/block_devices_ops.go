@@ -72,6 +72,41 @@ var (
 	maxSwapSize = uint64(8) * (1024 * 1024 * 1024) // 8GiB recommend maximum for memory crunch times
 )
 
+type blockDeviceDestroyOps struct {
+	RundestroyCommand func(bd *BlockDevice, disk string, dryRun *[]string) error
+}
+
+var bdDestroyOps = map[BlockDeviceType]*blockDeviceDestroyOps{
+	BlockDeviceTypePart:       {removePart},
+	BlockDeviceTypeLVM2Group:  {removeLogicalVolume},
+	BlockDeviceTypeLVM2Volume: {removeLogicalVolume},
+	BlockDeviceTypeRAID0:      {removeRaidType},
+	BlockDeviceTypeRAID1:      {removeRaidType},
+	BlockDeviceTypeRAID4:      {removeRaidType},
+	BlockDeviceTypeRAID5:      {removeRaidType},
+	BlockDeviceTypeRAID6:      {removeRaidType},
+	BlockDeviceTypeRAID10:     {removeRaidType},
+}
+
+func getBlockDevicesLsblkJSON(opts ...string) ([]*BlockDevice, error) {
+	w := bytes.NewBuffer(nil)
+	args := []string{lsblkBinary, "--exclude", "1,2,11", "-J", "-b", "-O"}
+
+	args = append(args, opts...)
+
+	err := cmd.Run(w, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	bds, err := parseBlockDevicesDescriptor(w.Bytes())
+	if err == nil {
+		return bds, nil
+	}
+
+	return []*BlockDevice{}, nil
+}
+
 // MakeFs runs mkfs.* commands for a BlockDevice definition
 func (bd *BlockDevice) MakeFs() error {
 	if bd.Type == BlockDeviceTypeDisk {
@@ -221,7 +256,7 @@ func getStartEndMB(start uint64, end uint64) string {
 	return strStart + " " + strEnd
 }
 
-func (bd *BlockDevice) removeLogicalVolume() error {
+func removeLogicalVolume(bd *BlockDevice, disk string, dryRun *[]string) error {
 	if bd.Type != BlockDeviceTypeLVM2Volume {
 		return errors.Errorf("Block Type is not logical volume")
 	}
@@ -249,7 +284,7 @@ func (bd *BlockDevice) removeLogicalVolume() error {
 // findLogicalVolumes finds lvm2 volumes defined on this block device
 // called by WritePartitionTable to ensure we properly remove logical volumes
 // prior to wiping the disk partition table.
-func findLogicalVolumes(dryRun *[]string, blockDevices []*BlockDevice) error {
+func findLogicalVolumes(dryRun *[]string, blockDevices []*BlockDevice, disk string) error {
 	var err error
 
 	for _, bd := range blockDevices {
@@ -257,14 +292,14 @@ func findLogicalVolumes(dryRun *[]string, blockDevices []*BlockDevice) error {
 			if dryRun != nil {
 				*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(LogicalVolumeWarning))
 			} else {
-				if err = bd.removeLogicalVolume(); err != nil {
+				if err = removeLogicalVolume(bd, disk, dryRun); err != nil {
 					break
 				}
 			}
 		}
 
 		if bd.Children != nil {
-			if err = findLogicalVolumes(dryRun, bd.Children); err != nil {
+			if err = findLogicalVolumes(dryRun, bd.Children, disk); err != nil {
 				break
 			}
 		}
@@ -273,7 +308,7 @@ func findLogicalVolumes(dryRun *[]string, blockDevices []*BlockDevice) error {
 	return err
 }
 
-func (bd *BlockDevice) removeAllLogicalVolumes(dryRun *[]string) error {
+func (bd *BlockDevice) removeAllLogicalVolumes(dryRun *[]string, disk string) error {
 	var err error
 	w := bytes.NewBuffer(nil)
 
@@ -287,7 +322,7 @@ func (bd *BlockDevice) removeAllLogicalVolumes(dryRun *[]string) error {
 		return err
 	}
 
-	if err := findLogicalVolumes(dryRun, bds); err != nil {
+	if err := findLogicalVolumes(dryRun, bds, disk); err != nil {
 		return err
 	}
 
@@ -460,6 +495,156 @@ func partitionUsingParted(bd *BlockDevice, dryRun *[]string, wholeDisk bool) err
 	return nil
 }
 
+func reverseLookParent(raidChild *BlockDevice, disk string, filterFunc BlockDevFilterFunc) (*BlockDevice, error) {
+	bds, err := getBlockDevicesLsblkJSON(disk)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, bd := range bds {
+		found, parent := FindBlockDeviceDepthFirst(bd, filterFunc)
+
+		if found && parent != nil {
+			return parent, nil
+		}
+	}
+
+	return nil, errors.Errorf("Could not find parent")
+}
+
+func removeRaidType(bd *BlockDevice, disk string, dryRun *[]string) error {
+	raidParentFinder := func(b *BlockDevice) bool {
+		if b.FsType == "linux_raid_member" {
+			for _, ch := range b.Children {
+				if ch.Name == bd.Name {
+					return true
+				}
+			}
+		}
+		return false
+	}
+
+	parent, err := reverseLookParent(bd, disk, raidParentFinder)
+	if dryRun == nil {
+		log.Debug("removeRaidType: Found parent: %s for child: %s", parent.GetDeviceFile(), bd.GetDeviceFile())
+	}
+
+	if parent == nil {
+		return err
+	}
+
+	if dryRun == nil {
+		log.Warning("Strategy 1: Failing the RAID part: %s failed for RAID: %s", parent.GetDeviceFile(), bd.Name)
+		args := []string{"mdadm", "--fail", bd.GetDeviceFile(), parent.GetDeviceFile()}
+
+		err = cmd.RunAndLog(args...)
+		if err != nil {
+			goto strategy2
+		}
+
+		log.Warning("Removing the RAID part: %s from RAID: %s", bd.GetDeviceFile(), bd.Name)
+		args = []string{"mdadm", "--remove", bd.GetDeviceFile(), parent.GetDeviceFile()}
+
+		err = cmd.RunAndLog(args...)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		log.Warning("Zeroing RAID part super-block: %s", parent.GetDeviceFile())
+		args = []string{"mdadm", "--zero-superblock", parent.GetDeviceFile()}
+
+		err = cmd.RunAndLog(args...)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		return nil
+
+	strategy2:
+		log.Warning("Strategy 2: Stopping RAID: %s", bd.GetDeviceFile())
+		args = []string{"mdadm", "--stop", bd.GetDeviceFile()}
+
+		err = cmd.RunAndLog(args...)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+
+		log.Warning("Zeroing RAID part super-block: %s", parent.GetDeviceFile())
+		args = []string{"mdadm", "--zero-superblock", parent.GetDeviceFile()}
+
+		err = cmd.RunAndLog(args...)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	} else {
+		*dryRun = append(*dryRun, utils.Locale.Get("This will degrade RAID: %s", bd.Name))
+		*dryRun = append(*dryRun, parent.Name+": "+utils.Locale.Get("Remove partition from RAID %s", bd.Name))
+	}
+
+	return nil
+}
+
+func removePart(bd *BlockDevice, disk string, dryRun *[]string) error {
+	if bd.Type != BlockDeviceTypePart {
+		return errors.Errorf("Type is not a partition")
+	}
+
+	partNum := bd.GetPartitionNumber()
+
+	if partNum == 0 {
+		return errors.Errorf("Could not find partition number")
+	}
+
+	partParentFinder := func(b *BlockDevice) bool {
+		if b.Type == BlockDeviceTypeDisk || b.Type == BlockDeviceTypeLoop ||
+			b.isRaidType() || b.Type == BlockDeviceTypeLVM2Volume {
+			for _, ch := range b.Children {
+				if ch.Name == bd.Name {
+					return true
+				}
+			}
+		}
+		return false
+	}
+
+	parent, err := reverseLookParent(bd, disk, partParentFinder)
+	if dryRun == nil {
+		log.Debug("removePart: Found parent: %s for child: %s", parent.GetDeviceFile(), bd.GetDeviceFile())
+	}
+
+	if parent == nil {
+		return err
+	}
+
+	args := []string{"parted", parent.GetDeviceFile(), "--script", "--", "rm", strconv.FormatUint(partNum, 10)}
+
+	if dryRun == nil {
+		log.Warning("Deleting part: %s from disk: %s", bd.Name, parent.Name)
+		err = cmd.RunAndLog(args...)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	}
+
+	return nil
+}
+
+func (bd *BlockDevice) cleanUpDisk(disk string, dryRun *[]string) error {
+	var err error = nil
+
+	for _, ch := range bd.Children {
+		if err = ch.cleanUpDisk(disk, dryRun); err != nil {
+			return err
+		}
+		if destroyOp, okay := bdDestroyOps[ch.Type]; okay {
+			err = destroyOp.RundestroyCommand(ch, disk, dryRun)
+		}
+	}
+
+	return err
+}
+
 // WritePartitionTable writes the defined partitions to the actual block device
 func (bd *BlockDevice) WritePartitionTable(wholeDisk bool, dryRun *[]string) error {
 	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop &&
@@ -469,7 +654,18 @@ func (bd *BlockDevice) WritePartitionTable(wholeDisk bool, dryRun *[]string) err
 	}
 
 	if wholeDisk {
-		if err := bd.removeAllLogicalVolumes(dryRun); err != nil {
+		disk := bd.GetDeviceFile()
+		bds, err := getBlockDevicesLsblkJSON(disk)
+
+		if err != nil {
+			return err
+		}
+
+		if len(bds) != 1 {
+			return errors.Errorf("List length has to exactly length 1")
+		}
+
+		if err = bds[0].cleanUpDisk(disk, dryRun); err != nil {
 			return err
 		}
 	}
