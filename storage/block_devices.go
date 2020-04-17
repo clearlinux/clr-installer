@@ -721,3 +721,15 @@ func (bd *BlockDevice) IsAdvancedConfiguration() bool {
 
 	return advanced
 }
+
+func (bd *BlockDevice) isRaidType() bool {
+	if bd.Type == BlockDeviceTypeRAID0 ||
+		bd.Type == BlockDeviceTypeRAID1 ||
+		bd.Type == BlockDeviceTypeRAID4 ||
+		bd.Type == BlockDeviceTypeRAID5 ||
+		bd.Type == BlockDeviceTypeRAID6 ||
+		bd.Type == BlockDeviceTypeRAID10 {
+		return true
+	}
+	return false
+}
