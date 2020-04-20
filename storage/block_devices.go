@@ -199,6 +199,9 @@ var (
 
 	bootSizeDefault     = uint64(150 * (1024 * 1024))
 	SwapFileSizeDefault = uint64(64 * (1024 * 1024))
+
+	// BlockDeviceTypeLVM2GroupString is a string version for LVM2 member type
+	BlockDeviceTypeLVM2GroupString, _ = blockDeviceTypeMap[BlockDeviceTypeLVM2Group]
 )
 
 func getAliasSuffix(file string) string {
