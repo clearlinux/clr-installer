@@ -78,8 +78,7 @@ type blockDeviceDestroyOps struct {
 
 var bdDestroyOps = map[BlockDeviceType]*blockDeviceDestroyOps{
 	BlockDeviceTypePart:       {removePart},
-	BlockDeviceTypeLVM2Group:  {removeLogicalVolume},
-	BlockDeviceTypeLVM2Volume: {removeLogicalVolume},
+	BlockDeviceTypeLVM2Volume: {removeLogicalVolumeNoop},
 	BlockDeviceTypeRAID0:      {removeRaidType},
 	BlockDeviceTypeRAID1:      {removeRaidType},
 	BlockDeviceTypeRAID4:      {removeRaidType},
@@ -256,79 +255,6 @@ func getStartEndMB(start uint64, end uint64) string {
 	return strStart + " " + strEnd
 }
 
-func removeLogicalVolume(bd *BlockDevice, disk string, dryRun *[]string) error {
-	if bd.Type != BlockDeviceTypeLVM2Volume {
-		return errors.Errorf("Block Type is not logical volume")
-	}
-
-	mesg := utils.Locale.Get("Removing logical disk volume: %s", bd.Name)
-	prg := progress.NewLoop(mesg)
-	log.Info(mesg)
-	args := []string{
-		"dmsetup",
-		"remove",
-		bd.Name,
-	}
-
-	err := cmd.RunAndLog(args...)
-	if err != nil {
-		prg.Failure()
-		return errors.Wrap(err)
-	}
-
-	prg.Success()
-
-	return nil
-}
-
-// findLogicalVolumes finds lvm2 volumes defined on this block device
-// called by WritePartitionTable to ensure we properly remove logical volumes
-// prior to wiping the disk partition table.
-func findLogicalVolumes(dryRun *[]string, blockDevices []*BlockDevice, disk string) error {
-	var err error
-
-	for _, bd := range blockDevices {
-		if bd.Type == BlockDeviceTypeLVM2Volume {
-			if dryRun != nil {
-				*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(LogicalVolumeWarning))
-			} else {
-				if err = removeLogicalVolume(bd, disk, dryRun); err != nil {
-					break
-				}
-			}
-		}
-
-		if bd.Children != nil {
-			if err = findLogicalVolumes(dryRun, bd.Children, disk); err != nil {
-				break
-			}
-		}
-	}
-
-	return err
-}
-
-func (bd *BlockDevice) removeAllLogicalVolumes(dryRun *[]string, disk string) error {
-	var err error
-	w := bytes.NewBuffer(nil)
-
-	err = cmd.Run(w, lsblkBinary, "-J", "-b", "-O", bd.GetDeviceFile())
-	if err != nil {
-		return fmt.Errorf("%s", w.String())
-	}
-
-	bds, err := parseBlockDevicesDescriptor(w.Bytes())
-	if err != nil {
-		return err
-	}
-
-	if err := findLogicalVolumes(dryRun, bds, disk); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // WritePartitionLabel make a device a 'gpt' partition type
 // Only call when we are wiping and reusing the entire disk
 func (bd *BlockDevice) writePartitionLabel(wholeDisk bool) error {
@@ -495,6 +421,211 @@ func partitionUsingParted(bd *BlockDevice, dryRun *[]string, wholeDisk bool) err
 	return nil
 }
 
+// removePhysicalvolume actually performs the operation of removal of a physical volume
+func removePhysicalvolume(bd *BlockDevice, dryRun *[]string) error {
+	if bd.FsType != BlockDeviceTypeLVM2GroupString {
+		return errors.Errorf("Block Type is not physical volume")
+	}
+
+	args := []string{
+		"pvremove",
+		bd.GetMappedDeviceFile(),
+	}
+
+	if dryRun != nil {
+		*dryRun = append(*dryRun, utils.Locale.Get("Remove physical volume: %s", bd.Name))
+	} else {
+		log.Info("Proceeding to remove physical volume: %s", bd.GetMappedDeviceFile())
+		err := cmd.RunAndLog(args...)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	}
+
+	return nil
+}
+
+/*
+processPhysicalVolume actually performs a series of checks in steps and call
+removePhysicalvolume to actuallt remove the PV
+Steps:
+------
+1) List all the physical volume in system with their Volume groups
+Filter all VG where our PV is a part. If no VG found, remove our PV else move on
+2) Find volumes associated in VG and remove them
+Query how many PVs associated with VG, if there is only one we remove PV, VG
+else if more than 1, we only reduce that PV from the VG
+3) Remove only that PV finally which is what the function was meant to do
+*/
+func processPhysicalVolume(bd *BlockDevice, dryRun *[]string) error {
+	if bd.FsType != BlockDeviceTypeLVM2GroupString {
+		return errors.Errorf("Block Type is not physical volume")
+	}
+
+	// Step 1: Get the volume group associated with physical volume
+	args := []string{
+		"pvdisplay",
+		"--colon",
+	}
+	pvDisplayOutput := bytes.NewBuffer(nil)
+
+	err := cmd.Run(pvDisplayOutput, args...)
+
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	volumeGroup := ""
+
+	for _, line := range strings.Split(pvDisplayOutput.String(), "\n") {
+		fields := strings.Split(line, ":")
+		if len(fields) == 12 {
+			if strings.TrimSpace(fields[0]) == bd.GetMappedDeviceFile() {
+				volumeGroup = fields[1]
+			}
+		}
+	}
+
+	// If the above query tells no volume group assocated with Physical volume
+	// then we only delete the physical volume
+	if volumeGroup == "" {
+		log.Warning("Could not find volume group for the Physical Volume: %s", bd.GetMappedDeviceFile())
+		return removePhysicalvolume(bd, dryRun)
+	}
+
+	// Step 2: Get all volumes associated with volume group
+	volGrpMapperName := filepath.Join("/dev/mapper/", volumeGroup)
+	args = []string{
+		"lvdisplay",
+		volGrpMapperName,
+		"--colon",
+	}
+	lvDisplayOutput := bytes.NewBuffer(nil)
+
+	err = cmd.Run(lvDisplayOutput, args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	// We assume initially there are no lvs associated with Volume groups
+	lvs := []string{}
+
+	for _, line := range strings.Split(lvDisplayOutput.String(), "\n") {
+		fields := strings.Split(line, ":")
+		if len(fields) == 13 {
+			lvs = append(lvs, strings.TrimSpace(fields[0]))
+		}
+	}
+
+	if dryRun != nil {
+		if len(lvs) > 0 {
+			*dryRun = append(*dryRun, utils.Locale.Get("Remove volumes : [%s]", strings.Join(lvs, ",")))
+		}
+	} else {
+		if err := removeLogicalVolume(lvs...); err != nil {
+			return err
+		}
+	}
+
+	// Step 3: Query how many Physical volumes are associated with volume_group.
+	args = []string{
+		"vgdisplay",
+		"--colon",
+	}
+	vgDisplayOutput := bytes.NewBuffer(nil)
+
+	err = cmd.Run(vgDisplayOutput, args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	// It atleast needs to have the one..the physical volume we just queried
+	pvCount := uint64(1)
+
+	for _, line := range strings.Split(vgDisplayOutput.String(), "\n") {
+		fields := strings.Split(line, ":")
+		if len(fields) == 17 {
+			if strings.TrimSpace(fields[0]) == volumeGroup {
+				if pvCount, err = strconv.ParseUint(fields[9], 10, 64); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	// This means we can delete the volume group as thats the only PV associated with it
+	if pvCount == 1 {
+		args = []string{
+			"vgremove",
+			volumeGroup,
+		}
+
+		if dryRun != nil {
+			*dryRun = append(*dryRun, utils.Locale.Get("Remove volume group: %s", volumeGroup))
+		} else {
+			log.Info("Volume Group: %s has only one Physical volume: %s associated with it",
+				volumeGroup, bd.GetMappedDeviceFile())
+			log.Info("Proceeding to deleting volume group: %s", volumeGroup)
+			err := cmd.RunAndLog(args...)
+			if err != nil {
+				return errors.Wrap(err)
+			}
+		}
+	} else {
+		args = []string{
+			"vgreduce",
+			volumeGroup,
+			bd.GetMappedDeviceFile(),
+		}
+
+		if dryRun != nil {
+			*dryRun = append(*dryRun, utils.Locale.Get("Remove physical volume:%s from volume group: %s", volumeGroup))
+		} else {
+			log.Info("Volume Group: %s has other Physical volumes associated with it", volumeGroup)
+			log.Info("Proceeding to instead reducing volume group: %s by physical volume: %s",
+				volumeGroup, bd.GetMappedDeviceFile())
+			err := cmd.RunAndLog(args...)
+			if err != nil {
+				return errors.Wrap(err)
+			}
+		}
+	}
+
+	// Step 3: once volume group has been take care of, we delete physical volume
+	if err = removePhysicalvolume(bd, dryRun); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// We delete LVs while iterating their physical volumes
+// removeLogicalVolumeNoop needs to be a No-op
+func removeLogicalVolumeNoop(bd *BlockDevice, disk string, dryRun *[]string) error {
+	return nil
+}
+
+// removeLogicalVolume actually runs commmands to remove list of
+// volumes passed to it. We usually pass all volumes from a VG
+func removeLogicalVolume(mappedDeviceName ...string) error {
+	for num, lvmappedname := range mappedDeviceName {
+		log.Debug("Removing logical volume %d", num+1)
+
+		args := []string{
+			"lvremove",
+			lvmappedname,
+			"-y",
+		}
+
+		err := cmd.RunAndLog(args...)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	}
+
+	return nil
+}
+
 func reverseLookParent(raidChild *BlockDevice, disk string, filterFunc BlockDevFilterFunc) (*BlockDevice, error) {
 	bds, err := getBlockDevicesLsblkJSON(disk)
 
@@ -617,6 +748,10 @@ func removePart(bd *BlockDevice, disk string, dryRun *[]string) error {
 		return err
 	}
 
+	if bd.FsType == BlockDeviceTypeLVM2GroupString {
+		return processPhysicalVolume(bd, dryRun)
+	}
+
 	args := []string{"parted", parent.GetDeviceFile(), "--script", "--", "rm", strconv.FormatUint(partNum, 10)}
 
 	if dryRun == nil {
@@ -654,6 +789,10 @@ func (bd *BlockDevice) WritePartitionTable(wholeDisk bool, dryRun *[]string) err
 	}
 
 	if wholeDisk {
+		if dryRun == nil {
+			log.Info("Cleaning disk %s", bd.GetDeviceFile())
+		}
+
 		disk := bd.GetDeviceFile()
 		bds, err := getBlockDevicesLsblkJSON(disk)
 
@@ -662,7 +801,7 @@ func (bd *BlockDevice) WritePartitionTable(wholeDisk bool, dryRun *[]string) err
 		}
 
 		if len(bds) != 1 {
-			return errors.Errorf("List length has to exactly length 1")
+			return errors.Errorf("Multiple entries found for same device: %s", disk)
 		}
 
 		if err = bds[0].cleanUpDisk(disk, dryRun); err != nil {
