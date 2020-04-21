@@ -64,7 +64,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	var err error
 	var version string
 	var prg progress.Progress
-	var encryptedUsed bool
+	var encryptedUsed, softRaidUsed bool
 
 	vars := map[string]string{
 		"chrootDir": rootDir,
@@ -245,6 +245,9 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 			return err
 		}
 
+		// Are we using software RAID
+		softRaidUsed = softRaidUsed || curr.UsesRaid()
+
 		// prepare the blockdevice's partitions filesystem
 		for _, ch := range curr.Children {
 			if ch.Type == storage.BlockDeviceTypeCrypt {
@@ -354,8 +357,10 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		model.AddBundle(language.RequiredBundle)
 	}
 
-	if encryptedUsed {
+	if encryptedUsed || softRaidUsed {
 		model.AddBundle(storage.RequiredBundle)
+	}
+	if encryptedUsed {
 		kernelArgs := []string{storage.KernelArgument}
 		model.AddExtraKernelArguments(kernelArgs)
 	}

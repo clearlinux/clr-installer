@@ -386,6 +386,27 @@ func (bd *BlockDevice) FsTypeNotSwap() bool {
 	return bd.FsType != "swap"
 }
 
+// UsesRaid returns true if the file system type is any known RAID type
+func (bd *BlockDevice) UsesRaid() bool {
+
+	if bd.Type == BlockDeviceTypeRAID0 ||
+		bd.Type == BlockDeviceTypeRAID1 ||
+		bd.Type == BlockDeviceTypeRAID4 ||
+		bd.Type == BlockDeviceTypeRAID5 ||
+		bd.Type == BlockDeviceTypeRAID6 ||
+		bd.Type == BlockDeviceTypeRAID10 {
+		return true
+	}
+
+	for _, curr := range bd.Children {
+		if curr.UsesRaid() {
+			return true
+		}
+	}
+
+	return false
+}
+
 // RemoveChild removes a partition from disk block device
 func (bd *BlockDevice) RemoveChild(child *BlockDevice) {
 	copyBd := bd.Clone()
