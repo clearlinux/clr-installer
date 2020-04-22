@@ -844,24 +844,22 @@ msgstr "Creating %s"
 #, c-format
 msgid "Setting boot partition: %s"
 msgstr "Setting boot partition: %s"
-<<<<<<< HEAD
-=======
 
 #, c-format
 msgid "Cleaning disk %s"
 msgstr "Cleaning disk %s"
 
 #, c-format
-msgid "This will degrade RAID: %s"
-msgstr "This will degrade RAID: %s"
+msgid "Degrading RAID: %s"
+msgstr "Degrading RAID: %s"
 
 #, c-format
 msgid "Remove partition from RAID %s"
 msgstr "Remove partition from RAID %s"
 
 #, c-format
-msgid "Raid [%s]: has parts from other disks: [%s]"
-msgstr "Raid [%s]: has parts from other disks: [%s]"
+msgid "RAID %s: has parts from other disks: [%s]"
+msgstr "RAID %s: has parts from other disks: [%s]"
 
 #, c-format
 msgid "Remove physical volume: %s from volume group: %s"
@@ -889,4 +887,5 @@ msgstr "Effect on Other Disks:"
 msgid "Resolve above issues or use --force-destructive option"
 msgstr "Resolve above issues or use --force-destructive option"
 
->>>>>>> c32484f... storage: All Misc fixes
+msgid "CAUTION: You are using --force-destructive option; Above Issues will be resolved automatically"
+msgstr "CAUTION: You are using --force-destructive option; Above Issues will be resolved automatically"

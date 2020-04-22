@@ -844,3 +844,48 @@ msgstr "Crear %s"
 #, c-format
 msgid "Setting boot partition: %s"
 msgstr "Estableciendo partición de arranque: %s"
+
+#, c-format
+msgid "Cleaning disk %s"
+msgstr "Disco de limpieza %s"
+
+#, c-format
+msgid "Degrading RAID: %s"
+msgstr "Degradante RAID: %s"
+
+#, c-format
+msgid "Remove partition from RAID %s"
+msgstr "Eliminar partición de RAID %s"
+
+#, c-format
+msgid "RAID %s: has parts from other disks: [%s]"
+msgstr "RAID %s: tiene partes de otros discos: [%s]"
+
+#, c-format
+msgid "Remove physical volume: %s from volume group: %s"
+msgstr "Eliminar physical volume: %s from volume group: %s"
+
+#, c-format
+msgid "Volume group: %s has physical volumes from other disks: [%s]"
+msgstr "Volumen grupo: %s tiene volúmenes físicos de otros discos: [%s]"
+
+#, c-format
+msgid "Remove volume group: %s"
+msgstr "Eliminar Volumen grupo: %s"
+
+#, c-format
+msgid "Remove physical volume: %s"
+msgstr "Eliminar Volumen fisico: %s"
+
+#, c-format
+msgid "Remove volumes: [%s]"
+msgstr "Eliminar Volúmenes: [%s]"
+
+msgid "Effect on Other Disks:"
+msgstr "Efecto en otros discos:"
+
+msgid "Resolve above issues or use --force-destructive option"
+msgstr "Resolver problemas anteriores o opción de uso --force-destructive"
+
+msgid "CAUTION: You are using --force-destructive option; Above Issues will be resolved automatically"
+msgstr "Precaución: Tu estas usando --force-destructive opción; Los problemas anteriores se resolverán automáticamente"

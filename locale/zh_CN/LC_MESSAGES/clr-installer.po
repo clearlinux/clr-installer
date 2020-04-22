@@ -844,3 +844,48 @@ msgstr "创建 %s"
 #, c-format
 msgid "Setting boot partition: %s"
 msgstr "设置启动分区：%s"
+
+#, c-format
+msgid "Cleaning disk %s"
+msgstr "清洁盘 %s"
+
+#, c-format
+msgid "Degrading RAID: %s"
+msgstr "降级 RAID: %s"
+
+#, c-format
+msgid "Remove partition from RAID %s"
+msgstr "从中删除分区 RAID %s"
+
+#, c-format
+msgid "RAID %s: has parts from other disks: [%s]"
+msgstr "RAID %s: 带有其他磁盘的零件： [%s]"
+
+#, c-format
+msgid "Remove physical volume: %s from volume group: %s"
+msgstr "移除物理体积: %s 来自卷组: %s"
+
+#, c-format
+msgid "Volume group: %s has physical volumes from other disks: [%s]"
+msgstr "卷组: %s 在其他磁盘上有物理卷: [%s]"
+
+#, c-format
+msgid "Remove volume group: %s"
+msgstr "删除卷组: %s"
+
+#, c-format
+msgid "Remove physical volume: %s"
+msgstr "移除物理体积: %s"
+
+#, c-format
+msgid "Remove volumes: [%s]"
+msgstr "删除卷: [%s]"
+
+msgid "Effect on Other Disks:"
+msgstr "对其他磁盘的影响:"
+
+msgid "Resolve above issues or use --force-destructive option"
+msgstr "解决以上问题 或使用 --force-destructive 选项"
+
+msgid "CAUTION: You are using --force-destructive option; Above Issues will be resolved automatically"
+msgstr "警告: 您正在使用 --force-destructive 选项 以上问题将自动解决"
