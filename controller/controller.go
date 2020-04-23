@@ -538,7 +538,6 @@ func runInstallHook(vars map[string]string, hook *model.InstallHook) error {
 // executed using the target swupd
 func contentInstall(rootDir string, version string,
 	md *model.SystemInstall, options args.Args) (progress.Progress, error) {
-
 	var prg progress.Progress
 
 	sw := swupd.New(rootDir, options, md)
@@ -955,7 +954,6 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 		if err := log.ArchiveLogFile(logFile); err != nil {
 			errMsgs = append(errMsgs, "Failed to archive log file")
 		}
-
 	} else {
 		log.Info("Skipping archiving of Installation results")
 	}

@@ -114,7 +114,6 @@ func JSONtoYAMLConfig(cf string) (*SystemInstall, error) {
 
 	// For each partition, set the Size
 	for _, curr := range ic.PartitionLayouts {
-
 		partitions, ok := disks[curr.Disk]
 		if !ok {
 			sa := StorageAlias{}

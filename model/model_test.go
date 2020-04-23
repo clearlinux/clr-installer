@@ -468,7 +468,6 @@ func TestUser(t *testing.T) {
 	if len(si.Users) != 0 {
 		t.Fatal("User list should be empty")
 	}
-
 }
 
 func TestWriteFile(t *testing.T) {

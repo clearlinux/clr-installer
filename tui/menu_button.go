@@ -105,7 +105,6 @@ func CreateMenuButton(parent clui.Control, status int, title string, sWidth int)
 
 // Draw paints the button in the screen and adjust colors depending on the button state
 func (mb *MenuButton) Draw() {
-
 	clui.PushAttributes()
 	defer clui.PopAttributes()
 

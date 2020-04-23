@@ -21,7 +21,6 @@ const (
 // CreateSwapFile is responsible for generating a valid swapfile
 // on the installation target
 func CreateSwapFile(rootDir string, sizeString string) error {
-
 	size, err := ParseVolumeSize(sizeString)
 	if err != nil {
 		return err

@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -259,7 +259,6 @@ func (page *ConfigKernelPage) StoreChanges() {
 
 // ResetChanges will reset this page to match the model
 func (page *ConfigKernelPage) ResetChanges() {
-
 	// Reset active row to match the model
 	kern := page.getKern()
 	if kern != nil {

@@ -363,7 +363,6 @@ func TestCopyRecords(t *testing.T) {
 
 	_, err = os.Stat(telemetrySpoolDir)
 	if err != nil {
-
 		defer func() {
 			_ = os.RemoveAll(telemetrySpoolDir)
 		}()
@@ -400,7 +399,6 @@ func TestInstalledFail(t *testing.T) {
 	if telem.Installed("/tmp/invalid-dir-name") {
 		t.Fatal("/tmp/invalid-dir-name should not have telemetry binary")
 	}
-
 }
 
 // Generating record
@@ -412,7 +410,6 @@ func TestLogRecord(t *testing.T) {
 
 	_, err := os.Stat(telemetrySpoolDir)
 	if err != nil {
-
 		defer func() {
 			_ = os.RemoveAll(telemetrySpoolDir)
 		}()

@@ -144,7 +144,6 @@ func Run(writer io.Writer, args ...string) error {
 // Stdout and Stderr according to the implementor
 // args are the actual command and its arguments
 func RunAndProcessOutput(printPrefix string, output Output, args ...string) error {
-
 	var exe string
 	var cmdArgs []string
 
@@ -176,10 +175,8 @@ func RunAndProcessOutput(printPrefix string, output Output, args ...string) erro
 	// start scanning stdout for messages
 	scannerOut := bufio.NewScanner(stdout)
 	for scannerOut.Scan() {
-
 		// specific processing implementation
 		output.Process(printPrefix, scannerOut.Text())
-
 	}
 
 	if err := scannerOut.Err(); err != nil {

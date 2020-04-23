@@ -56,7 +56,6 @@ func (dialog *ConfirmInstallDialog) Close() {
 }
 
 func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
-
 	const wBuff = 5
 	const hBuff = 5
 	const dWidth = 55

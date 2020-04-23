@@ -35,7 +35,6 @@ func generateRandomString(n int, startwithchars string) string {
 	}
 
 	return random.String()
-
 }
 
 // Mock passwords
@@ -115,7 +114,6 @@ var mocklogins = []struct {
 }
 
 func TestPasswordValidation(t *testing.T) {
-
 	// Created a helper function to mask some long userpasswords
 	testsuffixfunc := func(testfeed string) string {
 		if len(testfeed) > 25 {
@@ -136,7 +134,6 @@ func TestPasswordValidation(t *testing.T) {
 }
 
 func TestUsernameValidation(t *testing.T) {
-
 	// Created a helper function to mask some long userpasswords
 	testsuffixfunc := func(testfeed string) string {
 		if len(testfeed) > 25 {
@@ -157,7 +154,6 @@ func TestUsernameValidation(t *testing.T) {
 }
 
 func TestLoginValidation(t *testing.T) {
-
 	// Created a helper function to mask some long userpasswords
 	testsuffixfunc := func(testfeed string) string {
 		if len(testfeed) > 31 {

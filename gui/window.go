@@ -114,7 +114,6 @@ func (window *Window) CreateHeaderBar() error {
 // FitToMonitorSize sets a proper size for the installer if it does
 // not fit to the monitor size
 func FitToMonitorSize(win *Window, w float32, h float32) error {
-
 	screen, err := gdk.ScreenGetDefault()
 	if err != nil {
 		return err

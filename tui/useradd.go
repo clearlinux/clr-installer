@@ -84,7 +84,6 @@ func (page *UseraddPage) Activate() {
 
 // SetDone copies the edited user data into the cache and sets the page as done
 func (page *UseraddPage) SetDone(done bool) bool {
-
 	// SetDone can only be called if the Confirm Button is enable;
 	// hence we know the data is valid
 	page.user.UserName = page.usernameEdit.Title()

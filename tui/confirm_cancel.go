@@ -46,7 +46,6 @@ func (dialog *ConfirmCancelDialog) Close() {
 }
 
 func initCancelDiaglogWindow(dialog *ConfirmCancelDialog, title string) error {
-
 	const wBuff = 5
 	const hBuff = 5
 	const dWidth = 50

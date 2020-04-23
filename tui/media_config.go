@@ -184,7 +184,6 @@ func (page *MediaConfigPage) SetDone(done bool) bool {
 
 		for _, selected := range page.getModel().InstallSelected {
 			for _, curr := range bds {
-
 				if curr.Name == selected.Name {
 					installBlockDevice = curr.Clone()
 					// Using the whole disk
@@ -701,7 +700,6 @@ func (page *MediaConfigPage) buildMediaLists() error {
 }
 
 func (page *MediaConfigPage) runDiskPartitionTool(disk string) {
-
 	stdMsg := "Could not launch " + diskUtil + ". Check " + log.GetLogFileName()
 	msg := ""
 

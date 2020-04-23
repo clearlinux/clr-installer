@@ -408,7 +408,6 @@ func writeSSHKey(rootDir string, u *User) error {
 
 // IsValidUsername checks the username restrictions
 func IsValidUsername(username string) (bool, string) {
-
 	validator := NewValidator("", username, "")
 
 	if err := validator.usernameRegexCheck(); err != nil {
@@ -424,7 +423,6 @@ func IsValidUsername(username string) (bool, string) {
 
 // IsValidLogin checks the minimum login requirements
 func IsValidLogin(login string) (bool, string) {
-
 	validator := NewValidator(login, "", "")
 
 	if err := validator.loginEmptyCheck(); err != nil {
@@ -440,12 +438,10 @@ func IsValidLogin(login string) (bool, string) {
 	}
 
 	return true, ""
-
 }
 
 // IsValidPassword checks the minimum password requirements
 func IsValidPassword(pwd string) (bool, string) {
-
 	validator := NewValidator("", "", pwd)
 
 	if err := validator.passwordMaximumLengthCheck(); err != nil {

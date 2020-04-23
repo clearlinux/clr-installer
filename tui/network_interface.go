@@ -107,14 +107,12 @@ func (page *NetworkInterfacePage) setConfirmButton() {
 }
 
 func (page *NetworkInterfacePage) validateIPField(editField *clui.EditField, warnLabel *clui.Label) {
-
 	warnLabel.SetTitle(network.IsValidIP(editField.Title()))
 
 	page.setConfirmButton()
 }
 
 func (page *NetworkInterfacePage) validateIPOrHostField(editField *clui.EditField, warnLabel *clui.Label) {
-
 	warning := network.IsValidIP(editField.Title())
 
 	if warning != "" {
@@ -131,7 +129,6 @@ func (page *NetworkInterfacePage) validateIPOrHostField(editField *clui.EditFiel
 }
 
 func (page *NetworkInterfacePage) validateDomainField(editField *clui.EditField, warnLabel *clui.Label) {
-
 	warnLabel.SetTitle(network.IsValidDomainName(editField.Title()))
 
 	page.setConfirmButton()
@@ -300,7 +297,6 @@ func newNetworkInterfacePage(tui *Tui) (Page, error) {
 
 	page.confirmBtn = CreateSimpleButton(btnFrm, AutoSize, AutoSize, "Confirm", Fixed)
 	page.confirmBtn.OnClick(func(ev clui.Event) {
-
 		IP := page.IPEdit.Title()
 		NetMask := page.NetMaskEdit.Title()
 		DHCP := page.getDHCP()

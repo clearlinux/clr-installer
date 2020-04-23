@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -83,7 +83,6 @@ func (page *HostnamePage) onChange(entry *gtk.Entry) {
 	if host != "" && warning != "" {
 		page.warning.SetLabel(warning)
 		page.controller.SetButtonState(ButtonConfirm, false)
-
 	} else {
 		page.warning.SetLabel("")
 		page.controller.SetButtonState(ButtonConfirm, true)

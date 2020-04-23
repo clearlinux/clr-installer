@@ -448,7 +448,6 @@ func (page *BasePage) getModel() *model.SystemInstall {
 func newEditField(frame *clui.Frame,
 	validation bool,
 	cb func(k term.Key, ch rune) bool, labelHeight int) (*clui.EditField, *clui.Label) {
-
 	var label *clui.Label
 
 	frameheight := 2

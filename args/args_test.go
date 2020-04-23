@@ -57,7 +57,6 @@ func serveHTTPDescFile(t *testing.T) (*http.Server, error) {
 }
 
 func TestKernelCmdInvalidFile(t *testing.T) {
-
 	var testArgs Args
 	var err error
 
@@ -111,7 +110,6 @@ func TestTelemetry(t *testing.T) {
 }
 
 func TestKernelCmdDemoTrue(t *testing.T) {
-
 	var testArgs Args
 	var kernelCmd string
 	var err error
@@ -149,7 +147,6 @@ func TestKernelCmdDemoTrue(t *testing.T) {
 }
 
 func TestKernelCmdDemoFalse(t *testing.T) {
-
 	var testArgs Args
 	var kernelCmd string
 	var err error
@@ -186,7 +183,6 @@ func TestKernelCmdDemoFalse(t *testing.T) {
 }
 
 func TestKernelCmdConfPresent(t *testing.T) {
-
 	var testArgs Args
 	var kernelCmd string
 	var err error
@@ -223,7 +219,6 @@ func TestKernelCmdConfPresent(t *testing.T) {
 }
 
 func TestKernelCmdLogPresent(t *testing.T) {
-
 	var testArgs Args
 	var kernelCmd string
 	var err error
@@ -265,7 +260,6 @@ func TestKernelCmdLogPresent(t *testing.T) {
 }
 
 func TestKernelCmdLogError(t *testing.T) {
-
 	var testArgs Args
 	var kernelCmd string
 	var err error
@@ -329,7 +323,6 @@ func TestKernelCmdFileProtocol(t *testing.T) {
 }
 
 func TestKernelCmdValidFetch(t *testing.T) {
-
 	var testArgs Args
 	var kernelCmd string
 	var err error
@@ -371,7 +364,6 @@ func TestKernelCmdValidFetch(t *testing.T) {
 }
 
 func TestKernelCmdConfEmpty(t *testing.T) {
-
 	var testArgs Args
 	var kernelCmd string
 	var err error
@@ -568,7 +560,6 @@ func TestCheckAllBooleansFalse(t *testing.T) {
 }
 
 func TestKernelAndCommandlineAllArgs(t *testing.T) {
-
 	var testArgs Args
 	var kernelCmd string
 	var err error

@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -114,7 +114,6 @@ func (dialog *NetworkTestDialog) Close() {
 }
 
 func initDiaglogWindow(dialog *NetworkTestDialog) error {
-
 	const title = "Testing Networking..."
 	const wBuff = 5
 	const hBuff = 5

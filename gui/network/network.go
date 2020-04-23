@@ -138,7 +138,6 @@ func RunNetworkTest(md *model.SystemInstall) (NetTestReturnCode, error) {
 	}
 
 	return NetTestFailure, nil
-
 }
 
 // Desc will push a description box into the view for later marking
