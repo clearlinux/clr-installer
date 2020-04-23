@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -7,12 +7,12 @@ package tui
 import (
 	"fmt"
 	"strings"
+	"sync/atomic"
+	"time"
 
 	"github.com/VladimirMarkelov/clui"
 	xs "github.com/huandu/xstrings"
 	term "github.com/nsf/termbox-go"
-	"sync/atomic"
-	"time"
 )
 
 // MenuButton is the implementation of a clui button with simpler

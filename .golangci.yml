@@ -14,6 +14,7 @@ linters:
     - ineffassign
     - gocyclo
     - gofmt
+    - goimports
     - golint
     - deadcode
     - varcheck
