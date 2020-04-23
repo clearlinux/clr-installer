@@ -1,17 +1,17 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package pages
 
 import (
-	"github.com/clearlinux/clr-installer/utils"
 	"strings"
 
 	"github.com/gotk3/gotk3/gtk"
 
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/timezone"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 // TimezonePage is a simple page to help with TimezonePage settings
