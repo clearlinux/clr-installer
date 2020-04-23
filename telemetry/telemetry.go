@@ -231,7 +231,6 @@ func (tl *Telemetry) IsUsingPrivateIP() bool {
 // CreateTelemetryConf create a custom Telemetry configuration file
 // using the customer server and ID
 func (tl *Telemetry) CreateTelemetryConf(rootDir string) error {
-
 	// Ensure the customer configuration file directory exists
 	targetConfFile := filepath.Join(rootDir, customTelemetryConf)
 	targetConfDir := filepath.Dir(targetConfFile)
@@ -310,7 +309,6 @@ func (tl *Telemetry) Installed(rootDir string) bool {
 
 // LogRecord generates and saves a Telemetry record
 func (tl *Telemetry) LogRecord(class string, severity int, payload string) error {
-
 	// Skip record generation if telemetry tooling is not present, and do not
 	// return an error since telemetry bundle is not a requirement.
 	if tl.Installed("") == false {
@@ -407,7 +405,6 @@ func (tl *Telemetry) OptOut(rootDir string) error {
 // RunningEnvironment returns the name of the hypervisor if running in a
 // virtual machine, otherwise none
 func (tl *Telemetry) RunningEnvironment() string {
-
 	out, err := exec.Command(envCmd).Output()
 	if err == nil {
 		return strings.TrimRight(string(out), "\n")

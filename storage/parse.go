@@ -36,7 +36,6 @@ type blockDeviceYAMLMarshal struct {
 // decoding framework
 //nolint: gocyclo  // TODO: Refactor this
 func (bd *BlockDevice) UnmarshalJSON(b []byte) error {
-
 	dec := json.NewDecoder(bytes.NewReader(b))
 
 	for {
@@ -266,7 +265,6 @@ func getNextBoolToken(dec *json.Decoder, name string) (bool, error) {
 
 // MarshalYAML is the yaml Marshaller implementation
 func (bd *BlockDevice) MarshalYAML() (interface{}, error) {
-
 	var bdm blockDeviceYAMLMarshal
 
 	bdm.Name = bd.Name

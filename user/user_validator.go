@@ -59,7 +59,6 @@ var (
 // NewValidator creates/allocates a new user validation
 func NewValidator(login string,
 	username string, password string) *Validator {
-
 	return &Validator{
 		Login:    login,
 		UserName: username,
@@ -69,7 +68,6 @@ func NewValidator(login string,
 
 // loginEmptyCheck checks if to see if login is non-empty
 func (uservalidator *Validator) loginEmptyCheck() error {
-
 	if uservalidator.Login == "" {
 		return fmt.Errorf(utils.Locale.Get(LoginNonEmptyRequirementMessage))
 	}
@@ -79,7 +77,6 @@ func (uservalidator *Validator) loginEmptyCheck() error {
 
 // loginMaxLengthCheck checks if login is less than or equal to MaxLoginLength
 func (uservalidator *Validator) loginMaxLengthCheck() error {
-
 	if len(uservalidator.Login) > MaxLoginLength {
 		return fmt.Errorf(utils.Locale.Get(LoginMaxRequirementMessage, MaxLoginLength))
 	}
@@ -89,7 +86,6 @@ func (uservalidator *Validator) loginMaxLengthCheck() error {
 
 // loginRegexCheck checks if login meets regular expression loginExp
 func (uservalidator *Validator) loginRegexCheck() error {
-
 	if !loginExp.MatchString(uservalidator.Login) {
 		return fmt.Errorf(utils.Locale.Get(LoginRegexRequirementMessage))
 	}
@@ -104,12 +100,10 @@ func (uservalidator *Validator) usernameRegexCheck() error {
 	}
 
 	return nil
-
 }
 
 // usernameMaxLengthCheck checks if the username is less than or equal to MaxUsernameLength
 func (uservalidator *Validator) usernameMaxLengthCheck() error {
-
 	if len(uservalidator.UserName) > MaxUsernameLength {
 		return fmt.Errorf(utils.Locale.Get(UsernameMaxRequirementMessage, MaxUsernameLength))
 	}
@@ -138,11 +132,9 @@ func (uservalidator *Validator) passwordMinimumLengthCheck() error {
 // passwordCracklibCheck runs the cracklib-check executable piping password to stdin of cmd
 // and writing stdoutput to byte buffer
 func (uservalidator *Validator) passwordCracklibCheck() error {
-
 	if status, errstring := cmd.CracklibCheck(uservalidator.Password, "Password"); !status {
 		return fmt.Errorf(errstring)
 	}
 
 	return nil
-
 }

@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -130,7 +130,6 @@ type Message struct {
 
 // Process parses the output received from swupd and process it according to its type
 func (m Message) Process(printPrefix, line string) {
-
 	var description string
 	const total = 100
 
@@ -650,7 +649,6 @@ func LoadBundleList(model *model.SystemInstall) ([]*Bundle, error) {
 
 // CleanUpState removes the swupd state content directory
 func (s *SoftwareUpdater) CleanUpState() error {
-
 	log.Debug("Removing swupd state directory: %s", s.stateDir)
 
 	err := os.RemoveAll(s.stateDir)

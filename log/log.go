@@ -133,7 +133,6 @@ func ArchiveLogFile(archiveFile string) error {
 
 		// Jump back to the end of the log file
 		_, _ = filehandle.Seek(0, 2)
-
 	}()
 
 	_ = filehandle.Sync()

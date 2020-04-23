@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -223,7 +223,6 @@ func IsValidLanguage(l *Language) bool {
 
 // SetTargetLanguage creates a locale locale.conf on the target
 func SetTargetLanguage(rootDir string, language string) error {
-
 	targetLocaleFile := filepath.Join(rootDir, "/etc/locale.conf")
 
 	filehandle, err := os.OpenFile(targetLocaleFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)

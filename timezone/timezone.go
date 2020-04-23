@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -115,7 +115,6 @@ func IsValidTimezone(t *TimeZone) bool {
 
 // SetTargetTimezone uses creates a symlink to set the timezone on the target
 func SetTargetTimezone(rootDir string, timezone string) error {
-
 	tzFile := filepath.Join("/usr/share/zoneinfo", timezone)
 	targetTzFile := filepath.Join(rootDir, tzFile)
 

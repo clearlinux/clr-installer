@@ -205,7 +205,6 @@ func (bd *BlockDevice) Mount(root string) error {
 // not auto align.
 // We choose M to provide a 1M wide window for a possible optimal value.
 func getStartEndMB(start uint64, end uint64) string {
-
 	startMB := (start / (1000 * 1000))
 	endMB := (end / (1000 * 1000))
 
@@ -298,7 +297,6 @@ func (bd *BlockDevice) removeAllLogicalVolumes(dryRun *[]string) error {
 // WritePartitionLabel make a device a 'gpt' partition type
 // Only call when we are wiping and reusing the entire disk
 func (bd *BlockDevice) writePartitionLabel(wholeDisk bool) error {
-
 	if !wholeDisk {
 		log.Debug("WritePartitionTable: partial disk, skipping mklabel for %s", bd.Name)
 		return nil
@@ -338,6 +336,7 @@ func (bd *BlockDevice) handlerPartitionLabelWrite(legacyBios bool, wholeDisk boo
 		if legacyBios {
 			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(LegacyModeWarning))
 		}
+
 		// Check if there is a boot partition
 		bootFound := false
 		for _, curr := range bd.Children {
@@ -346,14 +345,15 @@ func (bd *BlockDevice) handlerPartitionLabelWrite(legacyBios bool, wholeDisk boo
 				bootFound = true
 			}
 		}
+
 		if !bootFound && legacyBios {
 			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(LegacyNoBootWarning))
 		}
+
 		if wholeDisk {
 			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(PartitioningWarning))
 		}
 	} else {
-
 		if err := bd.writePartitionLabel(wholeDisk); err != nil {
 			return err
 		}
@@ -440,7 +440,6 @@ func (bd *BlockDevice) adjustFileSystems(legacyBios bool,
 	prg.Success()
 
 	return nil
-
 }
 
 func partitionUsingParted(bd *BlockDevice, dryRun *[]string, wholeDisk bool) error {
@@ -1022,7 +1021,6 @@ func commonMakePartCommand(bd *BlockDevice) (string, error) {
 }
 
 func makeEncryptedSwap(bd *BlockDevice) error {
-
 	args := []string{
 		"wipefs",
 		bd.GetDeviceFile(),
@@ -1103,7 +1101,6 @@ func vfatMakePartCommand(bd *BlockDevice) (string, error) {
 
 // MakeImage create an image file considering the total block device size
 func MakeImage(bd *BlockDevice, file string) error {
-
 	size, err := bd.DiskSize()
 	if err != nil {
 		return errors.Wrap(err)
@@ -1517,7 +1514,6 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 			if len(ch.Children) > 0 {
 				targetMedias = append(targetMedias, FindAdvancedInstallTargets(ch.Children)...)
 			}
-
 		}
 
 		if clrAdded {
@@ -1664,7 +1660,6 @@ func validateBoot(found *bool, bd *BlockDevice, skipSize bool, bootLabel string)
 // Helper to validatePartitions for validating root minimum size etc
 func validateRoot(found *bool, bd *BlockDevice,
 	minRootSize uint64, skipSize bool, rootLabel string) (*BlockDevice, []string) {
-
 	var rootBlockDevice *BlockDevice
 	var results []string
 
@@ -1772,7 +1767,6 @@ func validateVarPartition(rootBlockDevice *BlockDevice, skipSize bool, varSize u
 // Helper to validatePartitions for validating Swap minimum size etc
 func validateSwapFile(swapFileSize string, rootBlockDevice *BlockDevice,
 	skipSize bool, varFound bool, varSize uint64) []string {
-
 	var results []string
 	var checkSwapSize uint64
 	var err error
@@ -2104,7 +2098,6 @@ func getPlannedPartitionChanges(media *BlockDevice) []string {
 			}
 
 			results = append(results, part)
-
 		} else if ch.MountPoint != "" || !ch.FsTypeNotSwap() {
 			partName := ch.Name
 			if partName == "" {

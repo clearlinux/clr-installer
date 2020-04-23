@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -216,7 +216,6 @@ func (page *InstallPage) ResetChanges() {
 
 		page.controller.SetButtonState(ButtonQuit, true)
 	}()
-
 }
 
 // Following methods are for the progress.Client API

@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -118,7 +118,6 @@ func IsValidKeyboard(k *Keymap) bool {
 
 // SetTargetKeyboard creates a keyboard vconsole.conf on the target
 func SetTargetKeyboard(rootDir string, keyboard string) error {
-
 	targetKeyboardFile := filepath.Join(rootDir, "/etc/vconsole.conf")
 
 	filehandle, err := os.OpenFile(targetKeyboardFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)

@@ -129,7 +129,6 @@ func main() {
 
 func callFrontEnd(options args.Args, md *model.SystemInstall, installReboot *bool,
 	rootDir string, errChan chan error, done chan bool) {
-
 	var err error
 	for _, fe := range frontEndImpls {
 		if !fe.MustRun(&options) {
@@ -238,7 +237,6 @@ func processSwupdOptions(options args.Args, md *model.SystemInstall) {
 	if options.AllowInsecureHTTPSet {
 		md.AllowInsecureHTTP = options.AllowInsecureHTTP
 	}
-
 }
 
 func processPamSaltOption(options args.Args) error {
@@ -297,7 +295,6 @@ func processISOSetOption(options args.Args, md *model.SystemInstall) {
 }
 
 func processTemplateConfigFileOption(options args.Args, md *model.SystemInstall) error {
-
 	if filepath.Ext(options.TemplateConfigFile) == ".yaml" {
 		md.StorageAlias = append(md.StorageAlias,
 			&model.StorageAlias{Name: "release", File: "release.img"})

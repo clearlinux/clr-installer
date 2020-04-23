@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -211,7 +211,6 @@ func newMenuPage(tui *Tui) (Page, error) {
 		} else {
 			page.launchConfirmInstallDialogBox()
 		}
-
 	})
 
 	return page, nil

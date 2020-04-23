@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -18,7 +18,6 @@ func init() {
 }
 
 func TestEmptyHostname(t *testing.T) {
-
 	var host string
 	var err string
 
@@ -29,7 +28,6 @@ func TestEmptyHostname(t *testing.T) {
 }
 
 func TestInvalidHostnames(t *testing.T) {
-
 	var host string
 	var err string
 
@@ -45,7 +43,6 @@ func TestInvalidHostnames(t *testing.T) {
 }
 
 func TestTooLongHostname(t *testing.T) {
-
 	var host string
 	var err string
 
@@ -56,7 +53,6 @@ func TestTooLongHostname(t *testing.T) {
 }
 
 func TestGoodHostnames(t *testing.T) {
-
 	var host string
 	var err string
 
@@ -82,7 +78,6 @@ func TestGoodHostnames(t *testing.T) {
 }
 
 func TestSaveHostname(t *testing.T) {
-
 	rootDir, err := ioutil.TempDir("", "testhost-")
 	if err != nil {
 		t.Fatalf("Could not make temp dir for testing hostname: %q", err)

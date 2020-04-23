@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -55,7 +55,6 @@ func GetProxyValues() []string {
 
 	var value string
 	for _, prefix := range proxyPrefixes {
-
 		if prefix == "https" && httpsProxy != "" {
 			value = httpsProxy
 		} else {

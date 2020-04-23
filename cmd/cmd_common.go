@@ -19,7 +19,6 @@ const crackLibPath = "/usr/bin/cracklib-check"
 // and writing stdoutput to byte buffer
 // stringtype is used to inform kind of information we are checking: password or passphrase
 func CracklibCheck(texttoinpsect string, stringtype string) (bool, string) {
-
 	defaultprefix := "Password"
 	if stringtype != "" {
 		defaultprefix = stringtype

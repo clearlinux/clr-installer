@@ -59,7 +59,6 @@ func (gui *Gui) MustRun(args *args.Args) bool {
 	} else {
 		return false
 	}
-
 }
 
 // Run is part of the Frontend interface implementation and is the gui frontend main entry point

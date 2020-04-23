@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -77,7 +77,6 @@ func (aup *AutoUpdatePage) Activate() {
 // GetConfigDefinition returns if the config was interactively defined by the user,
 // was loaded from a config file or if the config is not set.
 func (aup *AutoUpdatePage) GetConfigDefinition() int {
-
 	if aup.getModel().AutoUpdate {
 		return ConfigDefinedByConfig
 	}

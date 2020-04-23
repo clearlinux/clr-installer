@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -42,7 +42,6 @@ func (dialog *WarningDialog) Close() {
 }
 
 func initWarningDiaglogWindow(dialog *WarningDialog) error {
-
 	const title = "Warning"
 	const wBuff = 5
 	const hBuff = 5

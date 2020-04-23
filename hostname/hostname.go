@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -27,7 +27,6 @@ const (
 // IsValidHostname returns error message or nil if is valid
 // https://en.wikipedia.org/wiki/Hostname
 func IsValidHostname(hostname string) string {
-
 	if !startsWithExp.MatchString(hostname) {
 		return utils.Locale.Get("Hostname can only start with alphanumeric")
 	}

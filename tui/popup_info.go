@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -42,7 +42,6 @@ func (dialog *InfoDialog) Close() {
 }
 
 func initInfoDiaglogWindow(dialog *InfoDialog) error {
-
 	const title = "Informational"
 	const wBuff = 5
 	const hBuff = 5

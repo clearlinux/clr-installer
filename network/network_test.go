@@ -1,4 +1,4 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -18,7 +18,6 @@ func init() {
 }
 
 func TestGoodURL(t *testing.T) {
-
 	if err := CheckURL("http://www.google.com"); err != nil {
 		t.Fatalf("Good HTTP URL failed: %s", err)
 	}
@@ -33,7 +32,6 @@ func TestGoodURL(t *testing.T) {
 }
 
 func TestBadURL(t *testing.T) {
-
 	if err := CheckURL("http://www.google.zonk"); err == nil {
 		t.Fatalf("Bad HTTP URL passed incorrectly: %s", err)
 	}
@@ -343,7 +341,6 @@ func TestCopyNetwork(t *testing.T) {
 }
 
 func TestGoodDownload(t *testing.T) {
-
 	installDataURLBase = "https://cdn.download.clearlinux.org/releases/%s/clear/config/image/.data/%s"
 
 	if msg := DownloadInstallerMessage("Pre", PreInstallConf); msg != "" {

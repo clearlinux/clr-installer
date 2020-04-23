@@ -266,7 +266,6 @@ func (bd BlockDevice) GetDeviceFile() string {
 // GetMappedDeviceFile formats the block device's file path
 // using the mapped device name
 func (bd BlockDevice) GetMappedDeviceFile() string {
-
 	if bd.MappedName != "" {
 		return filepath.Join("/dev/", bd.MappedName)
 	}
@@ -388,7 +387,6 @@ func (bd *BlockDevice) FsTypeNotSwap() bool {
 
 // UsesRaid returns true if the file system type is any known RAID type
 func (bd *BlockDevice) UsesRaid() bool {
-
 	if bd.Type == BlockDeviceTypeRAID0 ||
 		bd.Type == BlockDeviceTypeRAID1 ||
 		bd.Type == BlockDeviceTypeRAID4 ||
@@ -480,7 +478,6 @@ func (bd *BlockDevice) HumanReadableSizeXiB() (string, error) {
 // UpdateBlockDevices updates the Label and UUID information only
 // for existing available block devices
 func UpdateBlockDevices(medias []*BlockDevice) error {
-
 	bds, err := listBlockDevices(nil)
 	if err != nil {
 		return err

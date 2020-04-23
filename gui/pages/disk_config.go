@@ -477,7 +477,6 @@ func (disk *DiskConfig) runScanLoop() {
 
 // addListStoreMediaRow adds new row to the ListStore widget for the given media
 func addListStoreMediaRow(store *gtk.ListStore, installMedia storage.InstallTarget) error {
-
 	// Create icon image
 	mediaType := "drive-harddisk-system"
 	if installMedia.Removable {

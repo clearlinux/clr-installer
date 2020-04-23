@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -162,7 +162,6 @@ func TestLogLevel(t *testing.T) {
 }
 
 func TestGetLogFileNameStr(t *testing.T) {
-
 	if GetLogFileName() == "" {
 		t.Fatalf("GetLogFileName returned an empty string")
 	}
