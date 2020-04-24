@@ -512,6 +512,9 @@ msgstr "Selected media will have partitions added."
 msgid "WARNING: Booting set for legacy BIOS mode."
 msgstr "WARNING: Booting set for legacy BIOS mode."
 
+msgid "WARNING: system can not boot EFI mode due to no /boot partition."
+msgstr "WARNING: system can not boot EFI mode due to no /boot partition."
+
 msgid "WARNING: New Partition table will be created."
 msgstr "WARNING: New Partition table will be created."
 

@@ -512,6 +512,9 @@ msgstr "选定的媒介将添加分区。"
 msgid "WARNING: Booting set for legacy BIOS mode."
 msgstr "警告：启动设置为传统 BIOS 模式。"
 
+msgid "WARNING: system can not boot EFI mode due to no /boot partition."
+msgstr "警告：由于没有/boot 分区，系统无法启动 EFI 模式。"
+
 msgid "WARNING: New Partition table will be created."
 msgstr "警告: 将创建新的分区表。"
 
