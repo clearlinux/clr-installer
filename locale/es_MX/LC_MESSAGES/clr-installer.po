@@ -512,6 +512,9 @@ msgstr "Se añadirán particiones a los medios seleccionados."
 msgid "WARNING: Booting set for legacy BIOS mode."
 msgstr "ADVERTENCIA: arranque para el modo BIOS heredado."
 
+msgid "WARNING: system can not boot EFI mode due to no /boot partition."
+msgstr "ADVERTENCIA: el sistema no puede arrancar el modo EFI debido a que no hay partición/boot."
+
 msgid "WARNING: New Partition table will be created."
 msgstr "ADVERTENCIA: se creará una nueva tabla de particiones."
 
