@@ -99,6 +99,7 @@ type Args struct {
 	SkipValidationAll       bool
 	SkipValidationAllSet    bool
 	SwapFileSize            string
+	ForceDestructive        bool
 }
 
 func (args *Args) setKernelArgs() (err error) {
@@ -422,6 +423,13 @@ func (args *Args) setCommandLineArgs() (err error) {
 
 	flag.StringVar(
 		&args.SwapFileSize, "swap-file-size", args.SwapFileSize, "Size of the swapfile; <size>[B|K|M|G]",
+	)
+
+	flag.BoolVar(
+		&args.ForceDestructive, "force-destructive",
+		false,
+		"Enable destructive installation which may cause data loss on unselected media;"+
+			" "+"RAID, lvm etc. Proceed with caution!",
 	)
 
 	spflag.ErrHelp = errors.New("Clear Linux Installer program")

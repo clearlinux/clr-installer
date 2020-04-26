@@ -29,7 +29,17 @@ type MediaOpts struct {
 	SkipValidationAll  bool   `yaml:"skipValidationAll,omitempty,flow"`
 	SwapFileSize       string `yaml:"swapFileSize,omitempty,flow"`
 	SwapFileSet        bool   `yaml:"-"`
+	ForceDestructive   bool   `yaml:"-"`
 }
+
+// DryRunType to hold results of dryrun from calling WritePartitionTable
+type DryRunType struct {
+	TargetResults               *[]string // What will be changed during the installation.
+	UnPlannedDestructiveResults *[]string // Changes which impact media other than the ones selected for the install.
+}
+
+// ByBDName implements sort.Interface for []*BlockDevice based on the Name field.
+type ByBDName []*BlockDevice
 
 type blockDeviceOps struct {
 	makeFsCommand   func(bd *BlockDevice, args []string) ([]string, error)
@@ -37,11 +47,15 @@ type blockDeviceOps struct {
 	makePartCommand func(bd *BlockDevice) (string, error)
 }
 
-// ByBDName implements sort.Interface for []*BlockDevice based on the Name field.
-type ByBDName []*BlockDevice
-
 func (a ByBDName) Len() int      { return len(a) }
 func (a ByBDName) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+
+// We use this in Destructive installation to store list of block devices
+// but only for this disk selected
+type preScanResults struct {
+	ScannedPvList   []*BlockDevice
+	ScannedRaidList []*BlockDevice
+}
 
 var (
 	bdOps = map[string]*blockDeviceOps{
@@ -70,10 +84,15 @@ var (
 
 	minSwapSize = uint64(32) * (1024 * 1024)       // 32MiB recommend smallest for memory crunch times
 	maxSwapSize = uint64(8) * (1024 * 1024 * 1024) // 8GiB recommend maximum for memory crunch times
+
+	// Global to store if there is impact on other disks
+	// Only used during destructive Installation
+	hasUnplannedDestructiveChanges bool = false
 )
 
 type blockDeviceDestroyOps struct {
-	RundestroyCommand func(bd *BlockDevice, disk string, dryRun *[]string) error
+	RundestroyCommand func(bd *BlockDevice, forceDestructive bool, disk string,
+		dryRun *DryRunType, scans *preScanResults) error
 }
 
 var bdDestroyOps = map[BlockDeviceType]*blockDeviceDestroyOps{
@@ -85,6 +104,33 @@ var bdDestroyOps = map[BlockDeviceType]*blockDeviceDestroyOps{
 	BlockDeviceTypeRAID5:      {removeRaidType},
 	BlockDeviceTypeRAID6:      {removeRaidType},
 	BlockDeviceTypeRAID10:     {removeRaidType},
+}
+
+// postProcessDryRunResults is called after a dryRun for WritePartitionTable
+// Only used during destructive Installation
+func (dr *DryRunType) postProcessDryRunResults(forceDestructive bool) {
+	if len(*dr.UnPlannedDestructiveResults) > 0 {
+		if forceDestructive {
+			*dr.UnPlannedDestructiveResults = append(*dr.UnPlannedDestructiveResults,
+				utils.Locale.Get("CAUTION: You are using --force-destructive option;"+
+					" "+"Above Issues will be resolved automatically"))
+			return
+		}
+
+		*dr.UnPlannedDestructiveResults = append(*dr.UnPlannedDestructiveResults,
+			utils.Locale.Get("Resolve above issues or use --force-destructive option"))
+	}
+}
+
+// GetImpactOnOtherDisks informs whether actual installation should proceed or fail
+// Only used when Performing destructive Installation
+func GetImpactOnOtherDisks() bool {
+	return hasUnplannedDestructiveChanges
+}
+
+// Only set when Performing destructive Installation
+func setImpactOnOtherDisks(value bool) {
+	hasUnplannedDestructiveChanges = value
 }
 
 func getBlockDevicesLsblkJSON(opts ...string) ([]*BlockDevice, error) {
@@ -322,7 +368,7 @@ func (bd *BlockDevice) setPartitionGUIDs(guids map[int]string) error {
 	return nil
 }
 
-func partitionUsingParted(bd *BlockDevice, dryRun *[]string, wholeDisk bool) error {
+func partitionUsingParted(bd *BlockDevice, dryRun *DryRunType, wholeDisk bool) error {
 	var start uint64
 	maxFound := false
 
@@ -334,7 +380,7 @@ func partitionUsingParted(bd *BlockDevice, dryRun *[]string, wholeDisk bool) err
 		if dryRun != nil {
 			if curr.MakePartition {
 				size, _ := HumanReadableSizeXiBWithPrecision(curr.Size, 1)
-				*dryRun = append(*dryRun, fmt.Sprintf("%s: %s [%s]",
+				*dryRun.TargetResults = append(*dryRun.TargetResults, fmt.Sprintf("%s: %s [%s]",
 					bd.Name, utils.Locale.Get(AddPartitionInfo), size))
 			}
 			continue
@@ -422,7 +468,7 @@ func partitionUsingParted(bd *BlockDevice, dryRun *[]string, wholeDisk bool) err
 }
 
 // removePhysicalvolume actually performs the operation of removal of a physical volume
-func removePhysicalvolume(bd *BlockDevice, dryRun *[]string) error {
+func removePhysicalvolume(bd *BlockDevice, dryRun *DryRunType) error {
 	if bd.FsType != BlockDeviceTypeLVM2GroupString {
 		return errors.Errorf("Block Type is not physical volume")
 	}
@@ -433,7 +479,8 @@ func removePhysicalvolume(bd *BlockDevice, dryRun *[]string) error {
 	}
 
 	if dryRun != nil {
-		*dryRun = append(*dryRun, utils.Locale.Get("Remove physical volume: %s", bd.Name))
+		*dryRun.TargetResults = append(*dryRun.TargetResults,
+			utils.Locale.Get("Remove physical volume: %s", bd.Name))
 	} else {
 		log.Info("Proceeding to remove physical volume: %s", bd.GetMappedDeviceFile())
 		err := cmd.RunAndLog(args...)
@@ -446,18 +493,83 @@ func removePhysicalvolume(bd *BlockDevice, dryRun *[]string) error {
 }
 
 /*
+checkVolumeGroupSpan is check operation to see if all PVs in VG in the entire system
+can be found in scans.ScannedPvList for specific disk which we computed earlier
+If not Found, then the PV belongs to another disk and that becomes a red flag
+*/
+func checkVolumeGroupSpan(pvDisplayOutput *bytes.Buffer, forceDestructive bool, volumeGroup string,
+	dryRun *DryRunType, scans *preScanResults) error {
+	log.Debug("checkVolumeGroupSpan(%s): Running with ForceDestructive:%v", findMode(dryRun), forceDestructive)
+
+	if volumeGroup == "" {
+		log.Debug("No volume group")
+		return nil
+	}
+
+	var pVList = []string{}
+	for _, line := range strings.Split(pvDisplayOutput.String(), "\n") {
+		fields := strings.Split(line, ":")
+		if len(fields) == 12 {
+			if strings.TrimSpace(fields[1]) == volumeGroup {
+				pVList = append(pVList, strings.TrimSpace(fields[0]))
+			}
+		}
+	}
+
+	sort.Strings(pVList)
+	var otherDisks = []string{}
+	for _, pv := range pVList {
+		found := false
+		for _, pvblk := range scans.ScannedPvList {
+			if pv == pvblk.GetMappedDeviceFile() {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			otherDisks = append(otherDisks, pv)
+		}
+	}
+
+	if len(otherDisks) > 0 {
+		if dryRun != nil {
+			if len(*dryRun.UnPlannedDestructiveResults) == 0 {
+				*dryRun.UnPlannedDestructiveResults = append(*dryRun.UnPlannedDestructiveResults,
+					utils.Locale.Get("Effect on Other Disks:"))
+			}
+
+			*dryRun.UnPlannedDestructiveResults = append(*dryRun.UnPlannedDestructiveResults,
+				utils.Locale.Get("Volume group: %s has physical volumes from other disks: [%s]",
+					volumeGroup, strings.Join(otherDisks, ", ")))
+			setImpactOnOtherDisks(true)
+		} else {
+			log.Error("Volume group: %s has physical volumes from other disks: [%s]",
+				volumeGroup, strings.Join(otherDisks, ", "))
+			if forceDestructive {
+				return nil
+			}
+			return errors.Errorf("Please resolve the errors, before retrying installation")
+		}
+	}
+
+	return nil
+}
+
+/*
 processPhysicalVolume actually performs a series of checks in steps and call
-removePhysicalvolume to actuallt remove the PV
+removePhysicalvolume to actually remove the PV
 Steps:
 ------
 1) List all the physical volume in system with their Volume groups
 Filter all VG where our PV is a part. If no VG found, remove our PV else move on
+All check and see if VG spans across multiple disks by calling checkVolumeGroupSpan
 2) Find volumes associated in VG and remove them
 Query how many PVs associated with VG, if there is only one we remove PV, VG
 else if more than 1, we only reduce that PV from the VG
 3) Remove only that PV finally which is what the function was meant to do
 */
-func processPhysicalVolume(bd *BlockDevice, dryRun *[]string) error {
+func processPhysicalVolume(bd *BlockDevice, forceDestructive bool, dryRun *DryRunType, scans *preScanResults) error {
 	if bd.FsType != BlockDeviceTypeLVM2GroupString {
 		return errors.Errorf("Block Type is not physical volume")
 	}
@@ -493,6 +605,11 @@ func processPhysicalVolume(bd *BlockDevice, dryRun *[]string) error {
 		return removePhysicalvolume(bd, dryRun)
 	}
 
+	if err := checkVolumeGroupSpan(pvDisplayOutput, forceDestructive, volumeGroup,
+		dryRun, scans); err != nil {
+		return err
+	}
+
 	// Step 2: Get all volumes associated with volume group
 	volGrpMapperName := filepath.Join("/dev/mapper/", volumeGroup)
 	args = []string{
@@ -519,7 +636,8 @@ func processPhysicalVolume(bd *BlockDevice, dryRun *[]string) error {
 
 	if dryRun != nil {
 		if len(lvs) > 0 {
-			*dryRun = append(*dryRun, utils.Locale.Get("Remove volumes : [%s]", strings.Join(lvs, ",")))
+			*dryRun.TargetResults = append(*dryRun.TargetResults,
+				utils.Locale.Get("Remove volumes: [%s]", strings.Join(lvs, ",")))
 		}
 	} else {
 		if err := removeLogicalVolume(lvs...); err != nil {
@@ -561,7 +679,8 @@ func processPhysicalVolume(bd *BlockDevice, dryRun *[]string) error {
 		}
 
 		if dryRun != nil {
-			*dryRun = append(*dryRun, utils.Locale.Get("Remove volume group: %s", volumeGroup))
+			*dryRun.TargetResults = append(*dryRun.TargetResults,
+				utils.Locale.Get("Remove volume group: %s", volumeGroup))
 		} else {
 			log.Info("Volume Group: %s has only one Physical volume: %s associated with it",
 				volumeGroup, bd.GetMappedDeviceFile())
@@ -579,7 +698,9 @@ func processPhysicalVolume(bd *BlockDevice, dryRun *[]string) error {
 		}
 
 		if dryRun != nil {
-			*dryRun = append(*dryRun, utils.Locale.Get("Remove physical volume:%s from volume group: %s", volumeGroup))
+			*dryRun.TargetResults = append(*dryRun.TargetResults,
+				utils.Locale.Get("Remove physical volume: %s from volume group: %s",
+					bd.GetMappedDeviceFile(), volumeGroup))
 		} else {
 			log.Info("Volume Group: %s has other Physical volumes associated with it", volumeGroup)
 			log.Info("Proceeding to instead reducing volume group: %s by physical volume: %s",
@@ -601,7 +722,8 @@ func processPhysicalVolume(bd *BlockDevice, dryRun *[]string) error {
 
 // We delete LVs while iterating their physical volumes
 // removeLogicalVolumeNoop needs to be a No-op
-func removeLogicalVolumeNoop(bd *BlockDevice, disk string, dryRun *[]string) error {
+func removeLogicalVolumeNoop(bd *BlockDevice, forceDestructive bool, disk string,
+	dryRun *DryRunType, scans *preScanResults) error {
 	return nil
 }
 
@@ -644,7 +766,147 @@ func reverseLookParent(raidChild *BlockDevice, disk string, filterFunc BlockDevF
 	return nil, errors.Errorf("Could not find parent")
 }
 
-func removeRaidType(bd *BlockDevice, disk string, dryRun *[]string) error {
+// findMode is a Helper function to report whether we are running in
+// dryRun or action mode
+func findMode(dryRun *DryRunType) string {
+	if dryRun != nil {
+		return "dryrun"
+	}
+
+	return "action"
+}
+
+func checkRaidSpan(bd *BlockDevice, forceDestructive bool, dryRun *DryRunType, scans *preScanResults) error {
+	log.Debug("checkRaidSpan(%s): Running with ForceDestructive:%v", findMode(dryRun), forceDestructive)
+
+	RaidScanOutput := bytes.NewBuffer(nil)
+
+	args := []string{"mdadm", "--detail", bd.GetDeviceFile(), "--export"}
+
+	err := cmd.Run(RaidScanOutput, args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	var AllRaidMembers = []string{}
+	for _, line := range strings.Split(RaidScanOutput.String(), "\n") {
+		fields := strings.Split(line, "=")
+		if len(fields) == 2 {
+			if strings.HasPrefix(fields[0], "MD_DEVICE") && strings.HasSuffix(fields[0], "DEV") {
+				AllRaidMembers = append(AllRaidMembers, fields[1])
+			}
+		}
+	}
+
+	sort.Strings(AllRaidMembers)
+	var raidMemberOtherDisks = []string{}
+	for _, raidmember := range AllRaidMembers {
+		found := false
+		for _, raidmemberblk := range scans.ScannedRaidList {
+			if raidmember == raidmemberblk.GetMappedDeviceFile() {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			raidMemberOtherDisks = append(raidMemberOtherDisks, raidmember)
+		}
+	}
+
+	if len(raidMemberOtherDisks) > 0 {
+		if dryRun != nil {
+			if len(*dryRun.UnPlannedDestructiveResults) == 0 {
+				*dryRun.UnPlannedDestructiveResults = append(*dryRun.UnPlannedDestructiveResults,
+					utils.Locale.Get("Effect on Other Disks:"))
+			}
+			*dryRun.UnPlannedDestructiveResults = append(*dryRun.UnPlannedDestructiveResults,
+				utils.Locale.Get("RAID %s: has parts from other disks: [%s]",
+					bd.Name, strings.Join(raidMemberOtherDisks, ", ")))
+			setImpactOnOtherDisks(true)
+		} else {
+			log.Error("RAID %s: has parts from other disks: [%s]",
+				bd.Name, strings.Join(raidMemberOtherDisks, ", "))
+			if forceDestructive {
+				return nil
+			}
+			return errors.Errorf("Please check log and resolve the errors, before retrying installation")
+		}
+	}
+
+	return nil
+}
+
+func failRAIDDisk(raidDisk *BlockDevice, parent *BlockDevice) error {
+	log.Warning("Failing the RAID part: %s failed for RAID: %s", parent.GetDeviceFile(), raidDisk.Name)
+	args := []string{"mdadm", "--fail", raidDisk.GetDeviceFile(), parent.GetDeviceFile()}
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func removeDiskFromRAID(raidDisk *BlockDevice, parent *BlockDevice) error {
+	args := []string{"mdadm", "--remove", raidDisk.GetDeviceFile(), parent.GetDeviceFile()}
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
+}
+
+func stopRAID(bd *BlockDevice) error {
+	log.Warning("Strategy 2: Stopping RAID: %s", bd.GetDeviceFile())
+	args := []string{"mdadm", "--stop", bd.GetDeviceFile()}
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
+}
+
+func zeroRAIDDisk(parent *BlockDevice) error {
+	log.Warning("Zeroing RAID part super-block: %s", parent.GetDeviceFile())
+	args := []string{"mdadm", "--zero-superblock", parent.GetDeviceFile()}
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	return nil
+}
+
+func processRaidDisk(raidDisk *BlockDevice, parent *BlockDevice) error {
+	err := failRAIDDisk(raidDisk, parent)
+
+	if err != nil {
+		if err = stopRAID(raidDisk); err != nil {
+			return err
+		}
+		return zeroRAIDDisk(parent)
+	}
+
+	if err = removeDiskFromRAID(raidDisk, parent); err != nil {
+		return err
+	}
+
+	return zeroRAIDDisk(parent)
+}
+
+func removeRaidType(bd *BlockDevice, forceDestructive bool, disk string,
+	dryRun *DryRunType, scans *preScanResults) error {
+	if err := checkRaidSpan(bd, forceDestructive, dryRun, scans); err != nil {
+		return err
+	}
+
 	raidParentFinder := func(b *BlockDevice) bool {
 		if b.FsType == "linux_raid_member" {
 			for _, ch := range b.Children {
@@ -666,57 +928,20 @@ func removeRaidType(bd *BlockDevice, disk string, dryRun *[]string) error {
 	}
 
 	if dryRun == nil {
-		log.Warning("Strategy 1: Failing the RAID part: %s failed for RAID: %s", parent.GetDeviceFile(), bd.Name)
-		args := []string{"mdadm", "--fail", bd.GetDeviceFile(), parent.GetDeviceFile()}
-
-		err = cmd.RunAndLog(args...)
-		if err != nil {
-			goto strategy2
-		}
-
-		log.Warning("Removing the RAID part: %s from RAID: %s", bd.GetDeviceFile(), bd.Name)
-		args = []string{"mdadm", "--remove", bd.GetDeviceFile(), parent.GetDeviceFile()}
-
-		err = cmd.RunAndLog(args...)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-
-		log.Warning("Zeroing RAID part super-block: %s", parent.GetDeviceFile())
-		args = []string{"mdadm", "--zero-superblock", parent.GetDeviceFile()}
-
-		err = cmd.RunAndLog(args...)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-
-		return nil
-
-	strategy2:
-		log.Warning("Strategy 2: Stopping RAID: %s", bd.GetDeviceFile())
-		args = []string{"mdadm", "--stop", bd.GetDeviceFile()}
-
-		err = cmd.RunAndLog(args...)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-
-		log.Warning("Zeroing RAID part super-block: %s", parent.GetDeviceFile())
-		args = []string{"mdadm", "--zero-superblock", parent.GetDeviceFile()}
-
-		err = cmd.RunAndLog(args...)
-		if err != nil {
-			return errors.Wrap(err)
+		if err = processRaidDisk(bd, parent); err != nil {
+			return err
 		}
 	} else {
-		*dryRun = append(*dryRun, utils.Locale.Get("This will degrade RAID: %s", bd.Name))
-		*dryRun = append(*dryRun, parent.Name+": "+utils.Locale.Get("Remove partition from RAID %s", bd.Name))
+		*dryRun.TargetResults = append(*dryRun.TargetResults,
+			utils.Locale.Get("Degrading RAID: %s", bd.Name))
+		*dryRun.TargetResults = append(*dryRun.TargetResults,
+			parent.Name+": "+utils.Locale.Get("Remove partition from RAID %s", bd.Name))
 	}
 
 	return nil
 }
 
-func removePart(bd *BlockDevice, disk string, dryRun *[]string) error {
+func removePart(bd *BlockDevice, forceDestructive bool, disk string, dryRun *DryRunType, scans *preScanResults) error {
 	if bd.Type != BlockDeviceTypePart {
 		return errors.Errorf("Type is not a partition")
 	}
@@ -749,10 +974,10 @@ func removePart(bd *BlockDevice, disk string, dryRun *[]string) error {
 	}
 
 	if bd.FsType == BlockDeviceTypeLVM2GroupString {
-		return processPhysicalVolume(bd, dryRun)
+		return processPhysicalVolume(bd, forceDestructive, dryRun, scans)
 	}
 
-	args := []string{"parted", parent.GetDeviceFile(), "--script", "--", "rm", strconv.FormatUint(partNum, 10)}
+	args := []string{"parted", parent.GetMappedDeviceFile(), "--script", "--", "rm", strconv.FormatUint(partNum, 10)}
 
 	if dryRun == nil {
 		log.Warning("Deleting part: %s from disk: %s", bd.Name, parent.Name)
@@ -765,36 +990,69 @@ func removePart(bd *BlockDevice, disk string, dryRun *[]string) error {
 	return nil
 }
 
-func (bd *BlockDevice) cleanUpDisk(disk string, dryRun *[]string) error {
+func (bd *BlockDevice) cleanUpDisk(disk string, forceDestructive bool,
+	dryRun *DryRunType, scans *preScanResults) error {
 	var err error = nil
 
 	for _, ch := range bd.Children {
-		if err = ch.cleanUpDisk(disk, dryRun); err != nil {
+		if err = ch.cleanUpDisk(disk, forceDestructive, dryRun, scans); err != nil {
 			return err
 		}
 		if destroyOp, okay := bdDestroyOps[ch.Type]; okay {
-			err = destroyOp.RundestroyCommand(ch, disk, dryRun)
+			if err = destroyOp.RundestroyCommand(ch, forceDestructive, disk, dryRun, scans); err != nil {
+				return err
+			}
 		}
 	}
 
 	return err
 }
 
+func preScanPhysicalVolumes(bds []*BlockDevice) []*BlockDevice {
+	PhysicalVolumeFinder := func(b *BlockDevice) bool {
+		if b.FsType == BlockDeviceTypeLVM2GroupString {
+			return true
+		}
+		return false
+	}
+
+	return FindAllBlockDevices(bds[0], PhysicalVolumeFinder)
+}
+
+func preScanRaidMembers(bds []*BlockDevice) []*BlockDevice {
+	raidMemberFinder := func(b *BlockDevice) bool {
+		if b.FsType == "linux_raid_member" {
+			return true
+		}
+		return false
+	}
+
+	return FindAllBlockDevices(bds[0], raidMemberFinder)
+}
+
 // WritePartitionTable writes the defined partitions to the actual block device
-func (bd *BlockDevice) WritePartitionTable(wholeDisk bool, dryRun *[]string) error {
+func (bd *BlockDevice) WritePartitionTable(wholeDisk bool, forceDestructive bool, dryRun *DryRunType) error {
 	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop &&
 		bd.Type != BlockDeviceTypeRAID0 && bd.Type != BlockDeviceTypeRAID1 && bd.Type != BlockDeviceTypeRAID4 &&
 		bd.Type != BlockDeviceTypeRAID5 && bd.Type != BlockDeviceTypeRAID6 && bd.Type != BlockDeviceTypeRAID10 {
 		return errors.Errorf("Type is partition, disk required")
 	}
 
+	var prg progress.Progress
+
 	if wholeDisk {
 		if dryRun == nil {
-			log.Info("Cleaning disk %s", bd.GetDeviceFile())
+			mesg := utils.Locale.Get("Cleaning disk %s", bd.GetDeviceFile())
+			prg = progress.NewLoop(mesg)
 		}
 
 		disk := bd.GetDeviceFile()
 		bds, err := getBlockDevicesLsblkJSON(disk)
+
+		scans := &preScanResults{}
+
+		scans.ScannedPvList = preScanPhysicalVolumes(bds)
+		scans.ScannedRaidList = preScanRaidMembers(bds)
 
 		if err != nil {
 			return err
@@ -804,17 +1062,27 @@ func (bd *BlockDevice) WritePartitionTable(wholeDisk bool, dryRun *[]string) err
 			return errors.Errorf("Multiple entries found for same device: %s", disk)
 		}
 
-		if err = bds[0].cleanUpDisk(disk, dryRun); err != nil {
-			return err
+		log.Info("Cleaning disk(%s): %s with ForceDestructive: %v", findMode(dryRun),
+			bd.GetDeviceFile(), forceDestructive)
+		err = bds[0].cleanUpDisk(disk, forceDestructive, dryRun, scans)
+
+		if dryRun == nil {
+			if err != nil {
+				prg.Failure()
+				return err
+			}
+			prg.Success()
+		} else {
+			dryRun.postProcessDryRunResults(forceDestructive)
 		}
 	}
 
-	var prg progress.Progress
 	var err error
 
 	if dryRun != nil {
 		if wholeDisk {
-			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(PartitioningWarning))
+			*dryRun.TargetResults = append(*dryRun.TargetResults,
+				bd.Name+": "+utils.Locale.Get(PartitioningWarning))
 		}
 	} else {
 		//write the partition label
@@ -872,7 +1140,7 @@ func (bd *BlockDevice) WritePartitionTable(wholeDisk bool, dryRun *[]string) err
 		prg.Success()
 	} else {
 		if partChanges := getPlannedPartitionChanges(bd); len(partChanges) > 0 {
-			*dryRun = append(*dryRun, partChanges...)
+			*dryRun.TargetResults = append(*dryRun.TargetResults, partChanges...)
 		}
 	}
 
@@ -884,25 +1152,29 @@ func (bd *BlockDevice) WritePartitionTable(wholeDisk bool, dryRun *[]string) err
 // otherwise a high level description, in the locale, is set in the passed
 // slice of string
 func PrepareInstallationMedia(targets map[string]InstallTarget,
-	medias []*BlockDevice, mediaOpts MediaOpts, dryRun *[]string) error {
+	medias []*BlockDevice, mediaOpts MediaOpts, dryRun *DryRunType) error {
 	for _, target := range targets {
 		if dryRun != nil {
 			if target.EraseDisk {
-				*dryRun = append(*dryRun, target.Name+": "+utils.Locale.Get(DestructiveWarning))
+				*dryRun.TargetResults = append(*dryRun.TargetResults,
+					target.Name+": "+utils.Locale.Get(DestructiveWarning))
 			} else if target.DataLoss {
-				*dryRun = append(*dryRun, target.Name+": "+utils.Locale.Get(DataLossWarning))
+				*dryRun.TargetResults = append(*dryRun.TargetResults,
+					target.Name+": "+utils.Locale.Get(DataLossWarning))
 			} else if target.WholeDisk {
-				*dryRun = append(*dryRun, target.Name+": "+utils.Locale.Get(SafeWholeWarning))
+				*dryRun.TargetResults = append(*dryRun.TargetResults,
+					target.Name+": "+utils.Locale.Get(SafeWholeWarning))
 			} else {
-				*dryRun = append(*dryRun, target.Name+": "+utils.Locale.Get(MediaToBeUsed))
+				*dryRun.TargetResults = append(*dryRun.TargetResults,
+					target.Name+": "+utils.Locale.Get(MediaToBeUsed))
 			}
 		}
 
 		for _, curr := range medias {
 			if target.Name == curr.Name {
-				if err := curr.WritePartitionTable(target.WholeDisk, dryRun); err != nil {
+				if err := curr.WritePartitionTable(target.WholeDisk, mediaOpts.ForceDestructive, dryRun); err != nil {
 					if dryRun != nil {
-						*dryRun = append(*dryRun, FailedPartitionWarning)
+						*dryRun.TargetResults = append(*dryRun.TargetResults, FailedPartitionWarning)
 					} else {
 						return err
 					}
@@ -914,7 +1186,7 @@ func PrepareInstallationMedia(targets map[string]InstallTarget,
 	if err := setBootPartition(medias, mediaOpts, dryRun); err != nil {
 		log.Warning("Could set boot information!")
 		if dryRun != nil {
-			*dryRun = append(*dryRun, FailedPartitionWarning)
+			*dryRun.TargetResults = append(*dryRun.TargetResults, FailedPartitionWarning)
 		} else {
 			return err
 		}
@@ -2402,7 +2674,7 @@ func GetAdvancedPartitions(medias []*BlockDevice) []string {
 // Looks through all of the installation media to determine which
 // partition will be the one from which the install boots
 // either an explicit /boot or / (root) in legacy mode
-func setBootPartition(medias []*BlockDevice, mediaOpts MediaOpts, dryRun *[]string) error {
+func setBootPartition(medias []*BlockDevice, mediaOpts MediaOpts, dryRun *DryRunType) error {
 	const (
 		bootStyleDefault = "boot"
 		bootStyleLegacy  = "legacy_boot"
@@ -2413,7 +2685,7 @@ func setBootPartition(medias []*BlockDevice, mediaOpts MediaOpts, dryRun *[]stri
 		log.Error(mesg)
 
 		if dryRun != nil {
-			*dryRun = append(*dryRun, mesg)
+			*dryRun.TargetResults = append(*dryRun.TargetResults, mesg)
 		}
 
 		return mesg
@@ -2466,8 +2738,10 @@ func setBootPartition(medias []*BlockDevice, mediaOpts MediaOpts, dryRun *[]stri
 			bootBlockDevice = rootBlockDevice
 			bootParent = rootParent
 			if dryRun != nil {
-				*dryRun = append(*dryRun, bootBlockDevice.Name+": "+utils.Locale.Get(LegacyModeWarning))
-				*dryRun = append(*dryRun, bootBlockDevice.Name+": "+utils.Locale.Get(LegacyNoBootWarning))
+				*dryRun.TargetResults = append(*dryRun.TargetResults,
+					bootBlockDevice.Name+": "+utils.Locale.Get(LegacyModeWarning))
+				*dryRun.TargetResults = append(*dryRun.TargetResults,
+					bootBlockDevice.Name+": "+utils.Locale.Get(LegacyNoBootWarning))
 			}
 
 			// Need to disable the ext 64bit mode
@@ -2480,7 +2754,8 @@ func setBootPartition(medias []*BlockDevice, mediaOpts MediaOpts, dryRun *[]stri
 			}
 		} else {
 			if dryRun != nil {
-				*dryRun = append(*dryRun, bootBlockDevice.Name+": "+utils.Locale.Get(LegacyModeWarning))
+				*dryRun.TargetResults = append(*dryRun.TargetResults,
+					bootBlockDevice.Name+": "+utils.Locale.Get(LegacyModeWarning))
 			}
 		}
 	}
@@ -2555,8 +2830,9 @@ func getPlannedPartitionChanges(media *BlockDevice) []string {
 
 // GetPlannedMediaChanges returns an array of strings with all of
 // disk and partition planned changes to advise the user before start
-func GetPlannedMediaChanges(targets map[string]InstallTarget, medias []*BlockDevice, mediaOpts MediaOpts) []string {
-	results := []string{}
+func GetPlannedMediaChanges(targets map[string]InstallTarget, medias []*BlockDevice,
+	mediaOpts MediaOpts) *DryRunType {
+	dryRun := &DryRunType{&[]string{}, &[]string{}}
 
 	if len(targets) != len(medias) {
 		log.Warning("The number of install targets (%d) != media devices (%d)",
@@ -2570,13 +2846,14 @@ func GetPlannedMediaChanges(targets map[string]InstallTarget, medias []*BlockDev
 		}
 	}
 
-	if err := PrepareInstallationMedia(targets, medias, mediaOpts, &results); err != nil {
+	if err := PrepareInstallationMedia(targets, medias, mediaOpts, dryRun); err != nil {
 		log.Warning("PrepareInstallationMedia: %+v", err)
 	}
 
 	if mediaOpts.SwapFileSize != "" {
-		results = append(results, fmt.Sprintf("%s (%s)", SwapfileName, mediaOpts.SwapFileSize))
+		*dryRun.TargetResults = append(*dryRun.TargetResults,
+			fmt.Sprintf("%s (%s)", SwapfileName, mediaOpts.SwapFileSize))
 	}
 
-	return results
+	return dryRun
 }
