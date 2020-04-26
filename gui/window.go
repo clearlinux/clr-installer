@@ -742,6 +742,32 @@ func (window *Window) launchMenuView() {
 	}
 }
 
+// writeToConfirmInstallDialog is a helper function to write to dialog for confirm installation window
+func writeToConfirmInstallDialog(buffer *gtk.TextBuffer, dryRunResults *storage.DryRunType) {
+	for _, media := range *dryRunResults.UnPlannedDestructiveResults {
+		log.Debug("OtherMediaChange: %s", media)
+		buffer.InsertMarkup(buffer.GetEndIter(),
+			"<b><span foreground=\"#FDB814\">"+media+"</span></b>\n")
+	}
+
+	for _, media := range *dryRunResults.TargetResults {
+		log.Debug("MediaChange: %s", media)
+		buffer.Insert(buffer.GetEndIter(), media+"\n")
+	}
+}
+
+func setConfirmButtonState(dialog *gtk.Dialog, window *Window) error {
+	var err error
+	if storage.GetImpactOnOtherDisks() && !window.model.MediaOpts.ForceDestructive {
+		if confirmButton, err := dialog.GetWidgetForResponse(gtk.RESPONSE_OK); err == nil {
+			confirmButton.SetSensitive(false)
+			return nil
+		}
+		return err
+	}
+	return nil
+}
+
 // confirmInstall prompts the user for confirmation before installing
 func (window *Window) confirmInstall() {
 	var primaryText, secondaryText string
@@ -884,11 +910,13 @@ func (window *Window) confirmInstall() {
 		}
 	}
 
-	medias := storage.GetPlannedMediaChanges(window.model.InstallSelected, window.model.TargetMedias,
+	dryRunResults := storage.GetPlannedMediaChanges(window.model.InstallSelected, window.model.TargetMedias,
 		window.model.MediaOpts)
-	for _, media := range medias {
-		log.Debug("MediaChange: %s", media)
-		buffer.Insert(buffer.GetEndIter(), media+"\n")
+
+	writeToConfirmInstallDialog(buffer, dryRunResults)
+
+	if err = setConfirmButtonState(dialog, window); err != nil {
+		log.Error("Error setting Confirm button state", err)
 	}
 
 	dialog.ShowAll()

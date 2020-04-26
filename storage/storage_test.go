@@ -553,13 +553,13 @@ func TestWritePartition(t *testing.T) {
 		bd.Children = children
 
 		//write the partition table (dryrun)
-		results := []string{}
-		if err = bd.WritePartitionTable(true, &results); err != nil {
+		var dryRun *DryRunType = &DryRunType{&[]string{}, &[]string{}}
+		if err = bd.WritePartitionTable(true, false, dryRun); err != nil {
 			t.Fatalf("Could not dryrun write partition table (%s): %s", file, err)
 		}
 
 		//write the partition table
-		if err = bd.WritePartitionTable(true, nil); err != nil {
+		if err = bd.WritePartitionTable(true, false, nil); err != nil {
 			t.Fatalf("Could not write partition table (%s): %s", file, err)
 		}
 

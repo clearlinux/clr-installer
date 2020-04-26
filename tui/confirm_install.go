@@ -55,6 +55,27 @@ func (dialog *ConfirmInstallDialog) Close() {
 	}
 }
 
+// writeToConfirmInstallDialog is a helper function to write to dialog for confirm installation window
+func writeToConfirmInstallDialog(dialog *ConfirmInstallDialog, dryRun *storage.DryRunType) {
+	if len(*dryRun.UnPlannedDestructiveResults) > 0 {
+		dialog.mediaDetail.AddText(*dryRun.UnPlannedDestructiveResults)
+		// Add buffer to ensure we see all media changes
+		dialog.mediaDetail.AddText([]string{"\n", "*/----*/----*/----*/----*/----*/----*/----*/----*/", "\n"})
+	}
+
+	for _, media := range *dryRun.UnPlannedDestructiveResults {
+		log.Debug("OtherMediaChange: %s", media)
+	}
+
+	for _, media := range *dryRun.TargetResults {
+		log.Debug("MediaChange: %s", media)
+	}
+
+	dialog.mediaDetail.AddText(*dryRun.TargetResults)
+	// Add buffer to ensure we see all media changes
+	dialog.mediaDetail.AddText([]string{"---", "=-="})
+}
+
 func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 	const wBuff = 5
 	const hBuff = 5
@@ -135,20 +156,16 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 	dialog.mediaDetail.SetWordWrap(true)
 	dialog.mediaDetail.SetStyle("AltEdit")
 
-	medias := storage.GetPlannedMediaChanges(dialog.modelSI.InstallSelected, dialog.modelSI.TargetMedias,
+	dryRunResults := storage.GetPlannedMediaChanges(dialog.modelSI.InstallSelected, dialog.modelSI.TargetMedias,
 		dialog.modelSI.MediaOpts)
-	for _, media := range medias {
-		log.Debug("MediaChange: %s", media)
-	}
 
 	// Create additional bundle removal warning for offline installs
 	if !controller.NetworkPassing && len(dialog.modelSI.UserBundles) != 0 && swupd.IsOfflineContent() {
-		medias = append([]string{"Offline Install: Removing additional bundles"}, medias...)
+		*dryRunResults.TargetResults = append(*dryRunResults.TargetResults,
+			"Offline Install: Removing additional bundles")
 	}
 
-	dialog.mediaDetail.AddText(medias)
-	// Add buffer to ensure we see all media changes
-	dialog.mediaDetail.AddText([]string{"---", "=-="})
+	writeToConfirmInstallDialog(dialog, dryRunResults)
 
 	buttonFrame := clui.CreateFrame(borderFrame, AutoSize, 1, clui.BorderNone, clui.Fixed)
 	buttonFrame.SetPack(clui.Horizontal)
@@ -158,8 +175,14 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 	dialog.cancelButton.SetActive(true)
 
 	dialog.confirmButton = CreateSimpleButton(buttonFrame, AutoSize, AutoSize, "Confirm Install", Fixed)
-	dialog.confirmButton.SetEnabled(true)
-	dialog.confirmButton.SetActive(false)
+
+	if storage.GetImpactOnOtherDisks() && !dialog.modelSI.MediaOpts.ForceDestructive {
+		dialog.confirmButton.SetEnabled(false)
+		dialog.confirmButton.SetActive(false)
+	} else {
+		dialog.confirmButton.SetEnabled(true)
+		dialog.confirmButton.SetActive(false)
+	}
 
 	return nil
 }

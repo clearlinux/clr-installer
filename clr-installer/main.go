@@ -445,6 +445,10 @@ func processOptionsSaveIfSet(options args.Args, md *model.SystemInstall) {
 		md.MediaOpts.SwapFileSize = options.SwapFileSize
 		md.MediaOpts.SwapFileSet = true
 	}
+
+	if options.ForceDestructive {
+		md.MediaOpts.ForceDestructive = options.ForceDestructive
+	}
 }
 
 func processOptionsToModel(options args.Args, md *model.SystemInstall) {

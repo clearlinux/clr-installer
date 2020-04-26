@@ -58,7 +58,7 @@ func FindBlockDeviceDepthFirst(bd *BlockDevice, filterfunc BlockDevFilterFunc) (
 }
 
 // FindAllBlockDevices runs the filterfunc and returns a list of all blockdevices which
-// satisfy the condition
+// satisfy the condition. This tree is flattened. So dont use children of each item in list
 func FindAllBlockDevices(bd *BlockDevice, filterfunc BlockDevFilterFunc) []*BlockDevice {
 	var result []*BlockDevice = []*BlockDevice{}
 

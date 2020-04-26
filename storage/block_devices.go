@@ -273,6 +273,10 @@ func (bd BlockDevice) GetMappedDeviceFile() string {
 		return filepath.Join("/dev/", bd.MappedName)
 	}
 
+	if bd.Type == BlockDeviceTypeLVM2Volume {
+		return filepath.Join("/dev/mapper", bd.Name)
+	}
+
 	return filepath.Join("/dev/", bd.Name)
 }
 
