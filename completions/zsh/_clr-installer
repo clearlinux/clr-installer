@@ -26,45 +26,57 @@ local -A opt_args val_args
 local -a global_opts; global_opts=(
   '(-)'{-v,--version}'[Version of the Installer]'
   '(-)--system-check[Verify current system is compatible with Clear Linux and exit]'
+  '--allow-insecure-http[Allow installation over insecure connections]'
   '--archive[Archive data to target after finishing]:archive:((
              true\:Archive\ data.\ \(default\)
-             false\:Don`t\archive\ data.))'
+             false\:Don\`t\ archive\ data.))'
   '(-b --block-device)'{-b,--block-device}'[Adds a new block-device`s entry to configuration file. Format: <alias:filename>]:block-device: _clr_installer_block_device'
+  '(-B --bundles)'{-B,--bundles}'[Comma-separated list of bundles to install]:bundles: _message -r "FOO,BAR,..."'
+  '--cfPurge[Remove ConfigFile after finishing]'
   '(-c --config)'{-c,--config}'[Installation configuration file]:config file: _files -g \*.yaml'
   '--copy-network[Copy the network interface configuration files to target]:copy network:((
                   true\:Copy\ the\ network\ interface\ configuration\ files\ to\ target\ \(default\)
-                  false\:Don`t\ copy\ the\ network\ interface\ configuration\ files\ to\ target))'
-  '--crypt-file[File containing the cryptsetup password]:crypt file: _files'
+                  false\:Don\`t\ copy\ the\ network\ interface\ configuration\ files\ to\ target))'
+  '--copy-swupd[Copy /etc/swupd configuration files to target]:copy swupd:((
+                true\:Copy\ the\ /etc/swupd\ configuration\ \(default\)
+                flase\:Don\`t\ copy\ the\ /etc/swupd\ configuration))'
+  '--crypt-file[File containing the cryptsetup password]:crypt file: _files -g \*.pem'
   '--genpass[Generates a PAM compatible password hash based on the provided salt string]:salt string:()'
   '--iso[Generate Hybrid ISO image (Legacy/UEFI bootable)]'
   '(-j --json-yaml)'{-j,--json-yaml}'[Converts ister JSON config to clr-installer YAML config]:convert config file: _files -g \*.json'
   '--keep-image[Keep the generated image file (when creating ISO)]:keep-image:((
                 true\:Keep\ the\ generated\ image\ file\ \(default\)
-                false\:Don`t\ keep\ generated\ image\ file))'
+                false\:Don\`t\ keep\ generated\ image\ file))'
   '--log-file[The log file path (default \"$HOME/clr-installer.log\")]:log file: _files'
   '(-l --log-level)'{-l,--log-level}'[Set log level]:log level:((
                                       4\:debug\ \(default\)
                                       3\:info
                                       2\:warning
                                       1\:error))'
-  '--reboot[Reboot after finishing (default true)]:reboot:((
+  '--reboot[Reboot after finishing]:reboot:((
                true\:Reboot\ after\ finishing\ \(default\)
-               false\:Don`t\ reboot\ after\ finishing))'
+               false\:Don\`t\ reboot\ after\ finishing))'
+  '--skip-validation-size[Skip the partition validation size check]'
   '(-S --stub-image)'{-S,--stub-image}'[Creates the filesystems only - dont perform an actual install]'
+  '--swap-file-size[Size of the swapfile]:swapfile size: _message -r "<size>[B|K|M|G]"'
   '--swupd-cert[Specify alternative path to swupd certificates]:swupd certification path: _files -/'
   '--swupd-clean[Clean Swupd state-dir content after install]'
   '--swupd-contenturl[RFC-3986 encoded url for content file downloads]:content url: _urls -i https\://'
-  '--swupd-format[The format suffix for version file downloads]:format: _message -r \"staging,1,2,etc\"'
-  '--swupd-mirror[RFC-3986 encoded url for version string and content file downloads]:swupd mirror url: _urls -i https\://'
+  '--swupd-format[The format suffix for version file downloads]:format: _message -r "staging,1,2,etc"'
+  '(--swupd-url)--swupd-mirror[RFC-3986 encoded url for version string and content file downloads]:swupd mirror url: _urls -i https\://'
   '--swupd-skip-diskspace-check[Do not check free disk space before adding bundle]:swupd skip diskspace check:((
-                                true\:Do\ not\ check\ free\ disk\ space\ \(default\)
+                                true\:Don\`t\ check\ free\ disk\ space\ \(default\)
                                 false\:Check\ free\ disk\ space))'
+  '--swupd-skip-optional[Do not install optional bundles (also-add flag in Manifests)]'
   '--swupd-state[Specify alternative swupd state directory]:swupd state dir: _files -/'
+  '(--swupd-contenturl --swupd-mirror --swupd-version-url)--swupd-url[RFC-3986 encoded url for version string and content file downloads]:swupd url: _urls -i https\://'
+  '--swupd-version[Update to version V, also accepts "latest" (default)]:version:()'
   '--swupd-versionurl[RFC-3986 encoded url for version file downloads]:swupd version url: _urls -i https\://'
   '--telemetry[Enable Telemetry]:telemetry: _clr_installer_telemetry'
   '--telemetry-policy[Telemetry Policy text]:telemetry-policy:()'
   '--telemetry-tid[Telemetry server TID]:telemetry-tid:()'
   '--telemetry-url[Telemetry server URL]:telemetry-url: _urls -i https\://'
+  '(-T --template)'{-T,--template=}'[Generates a template clr-installer YAML config file]'
   '--tui[Force to use TUI frontend]'
 )
 
