@@ -49,6 +49,8 @@ DESKTOP_DIR=$(DESTDIR)/usr/share/applications/
 CONFIG_DIR=$(DESTDIR)/usr/share/defaults/clr-installer/
 SYSTEMD_DIR=$(DESTDIR)/usr/lib/systemd/system/
 PKIT_DIR=$(DESTDIR)/usr/share/polkit-1/
+BASH_COMP_DIR=$(DESTDIR)/usr/share/bash-completion/completions/
+ZSH_COMP_DIR=$(DESTDIR)/usr/share/zsh/site-functions/
 BUILDDATE=$(shell date -u "+%Y-%m-%d_%H:%M:%S_%Z")
 
 # Are we running from a Git Repo?
@@ -97,6 +99,8 @@ install-common:
 	@install -D -m 644 $(top_srcdir)/etc/kernels.json $(CONFIG_DIR)/kernels.json
 	@install -D -m 644 $(top_srcdir)/etc/chpasswd $(CONFIG_DIR)/chpasswd
 	@install -D -m 644 $(top_srcdir)/etc/systemd/clr-installer-provision.service $(SYSTEMD_DIR)/clr-installer-provision.service
+	@install -D -m 644 $(top_srcdir)/completions/bash/clr-installer $(BASH_COMP_DIR)/clr-installer
+	@install -D -m 644 $(top_srcdir)/completions/zsh/_clr-installer $(ZSH_COMP_DIR)/_clr-installer
 
 install-tui: build-tui install-common
 	@install -D -m 755 $(top_srcdir)/.gopath/bin/clr-installer-tui $(DESTDIR)/usr/bin/clr-installer
