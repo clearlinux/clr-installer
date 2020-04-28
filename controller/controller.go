@@ -219,7 +219,14 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		tm.ExpandName(aliasMap)
 		newName := tm.Name
 		// Remap the InstallSelected
-		model.InstallSelected[newName] = model.InstallSelected[oldName]
+		if model.InstallSelected[newName].Name == oldName ||
+			model.InstallSelected[newName].Name == "" {
+			oldCopy := model.InstallSelected[oldName]
+			oldCopy.Name = newName
+			model.InstallSelected[newName] = oldCopy
+		} else {
+			model.InstallSelected[newName] = model.InstallSelected[oldName]
+		}
 		delete(model.InstallSelected, oldName)
 	}
 
@@ -235,16 +242,13 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	}
 
 	// prepare all the target block devices
-	for _, curr := range model.TargetMedias {
-		var wholeDisk bool
-		if val, ok := model.InstallSelected[curr.Name]; ok {
-			wholeDisk = val.WholeDisk
-		}
-		// based on the description given, write the partition table
-		if err = curr.WritePartitionTable(model.MediaOpts.LegacyBios, wholeDisk, nil); err != nil {
-			return err
-		}
+	if err := storage.PrepareInstallationMedia(model.InstallSelected,
+		model.TargetMedias, model.MediaOpts, nil); err != nil {
+		log.Warning("PrepareInstallationMedia: %+v", err)
+		return err
+	}
 
+	for _, curr := range model.TargetMedias {
 		// Are we using software RAID
 		softRaidUsed = softRaidUsed || curr.UsesRaid()
 

@@ -148,7 +148,7 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 		// Need to ensure the partitioner knows we are running from
 		// the command line and will be using the whole disk
 		for _, curr := range md.TargetMedias {
-			md.InstallSelected[curr.Name] = storage.InstallTarget{WholeDisk: true}
+			md.InstallSelected[curr.Name] = storage.InstallTarget{Name: curr.Name, WholeDisk: true}
 			log.Debug("Mass installer using defined media in YAML")
 		}
 

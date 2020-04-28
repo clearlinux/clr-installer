@@ -328,51 +328,19 @@ func (bd *BlockDevice) writePartitionLabel(wholeDisk bool) error {
 	return nil
 }
 
-// handlerPartitionLabelWrite is a helper function to WritePartitionTable
-// prepares performs a few checks before updating the label for the partition
-func (bd *BlockDevice) handlerPartitionLabelWrite(legacyBios bool, wholeDisk bool, dryRun *[]string) error {
-	//write the partition label
-	if dryRun != nil {
-		if legacyBios {
-			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(LegacyModeWarning))
-		}
-
-		// Check if there is a boot partition
-		bootFound := false
-		for _, curr := range bd.Children {
-			// First, check if we have the standard /boot partition
-			if curr.MountPoint == "/boot" {
-				bootFound = true
-			}
-		}
-
-		if !bootFound && legacyBios {
-			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(LegacyNoBootWarning))
-		}
-
-		if wholeDisk {
-			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(PartitioningWarning))
-		}
-	} else {
-		if err := bd.writePartitionLabel(wholeDisk); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// adjustFileSystems is a helper function to WritePartitionTable takes a prepared
+// setPartitionGUIDs is a helper function to WritePartitionTable takes a prepared
 // guid map of GUIDS->device names and uses sgdisk to update the
 // guid partition table for the disk
-func (bd *BlockDevice) adjustFileSystems(legacyBios bool,
-	guids map[int]string, bootPartition uint64, bootStyle string) error {
+func (bd *BlockDevice) setPartitionGUIDs(guids map[int]string) error {
 	var err error
 
-	msg := utils.Locale.Get("Adjusting filesystem configurations")
-	prg := progress.MultiStep(len(guids), msg)
-	log.Info(msg)
-	cnt := 1
+	if len(guids) < 1 {
+		log.Debug("No GUIDs to set for device: %s", bd.GetDeviceFile())
+		return nil
+	}
+
+	log.Info("Setting GUIDs for device: %s", bd.GetDeviceFile())
+
 	for idx, guid := range guids {
 		if guid == "none" {
 			continue
@@ -388,56 +356,7 @@ func (bd *BlockDevice) adjustFileSystems(legacyBios bool,
 		if err != nil {
 			return errors.Wrap(err)
 		}
-
-		prg.Partial(cnt)
-		cnt = cnt + 1
 	}
-
-	// In case we didn't have a /boot partition, we
-	// need to set / as boot
-	for _, curr := range bd.Children {
-		// Only check for / in new or advanced partitions
-		if !curr.MakePartition && !curr.LabeledAdvanced {
-			continue
-		}
-
-		if curr.MountPoint == "/" {
-			// If legacyBios mode and we do not have a boot, use root
-			if legacyBios && bootPartition == 0 {
-				bootPartition = curr.partition
-				bootStyle = "legacy_boot"
-				// Need to disable the ext 64bit mode
-				// https://wiki.syslinux.org/wiki/index.php?title=Filesystem#ext
-				if curr.FsType == "ext2" || curr.FsType == "ext3" || curr.FsType == "ext4" {
-					legacyExtFsOpt := "-O ^64bit"
-					curr.Options = strings.Join([]string{curr.Options, legacyExtFsOpt}, " ")
-					log.Warning("WritePartitionTable: legacy_boot on / requires option: %s", legacyExtFsOpt)
-				}
-			}
-		}
-	}
-
-	if bootPartition != 0 {
-		args := []string{
-			"parted",
-			bd.GetDeviceFile(),
-			fmt.Sprintf("set %d %s on", bootPartition, bootStyle),
-		}
-
-		err = cmd.RunAndLog(args...)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-	}
-
-	if err = bd.PartProbe(); err != nil {
-		prg.Failure()
-		return err
-	}
-
-	time.Sleep(time.Duration(4) * time.Second)
-
-	prg.Success()
 
 	return nil
 }
@@ -542,7 +461,7 @@ func partitionUsingParted(bd *BlockDevice, dryRun *[]string, wholeDisk bool) err
 }
 
 // WritePartitionTable writes the defined partitions to the actual block device
-func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryRun *[]string) error {
+func (bd *BlockDevice) WritePartitionTable(wholeDisk bool, dryRun *[]string) error {
 	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop &&
 		bd.Type != BlockDeviceTypeRAID0 && bd.Type != BlockDeviceTypeRAID1 && bd.Type != BlockDeviceTypeRAID4 &&
 		bd.Type != BlockDeviceTypeRAID5 && bd.Type != BlockDeviceTypeRAID6 && bd.Type != BlockDeviceTypeRAID10 {
@@ -558,12 +477,16 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 	var prg progress.Progress
 	var err error
 
-	// Handle write to Partition's Label
-	if err := bd.handlerPartitionLabelWrite(legacyBios, wholeDisk, dryRun); err != nil {
-		return err
-	}
+	if dryRun != nil {
+		if wholeDisk {
+			*dryRun = append(*dryRun, bd.Name+": "+utils.Locale.Get(PartitioningWarning))
+		}
+	} else {
+		//write the partition label
+		if err := bd.writePartitionLabel(wholeDisk); err != nil {
+			return err
+		}
 
-	if dryRun == nil {
 		mesg := utils.Locale.Get("Updating partition table for: %s", bd.Name)
 		prg = progress.NewLoop(mesg)
 		log.Info(mesg)
@@ -590,22 +513,11 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 	}
 
 	if dryRun == nil {
-		var bootPartition uint64
-		bootStyle := "boot"
 		guids := map[int]string{}
 
 		// Now that all new partitions are created,
 		// and we know their assigned numbers ...
 		for _, curr := range bd.Children {
-			// First, check if we have the standard /boot partition
-			// We have a /boot partition, use this
-			if curr.MountPoint == "/boot" {
-				bootPartition = curr.partition
-				if legacyBios {
-					bootStyle = "legacy_boot"
-				}
-			}
-
 			var guid string
 			guid, err = curr.getGUID()
 			if err != nil {
@@ -617,11 +529,86 @@ func (bd *BlockDevice) WritePartitionTable(legacyBios bool, wholeDisk bool, dryR
 			}
 		}
 
-		prg.Success()
-		// Remaining steps are performed inside adjustFileSystems
-		if err = bd.adjustFileSystems(legacyBios, guids, bootPartition, bootStyle); err != nil {
+		// Remaining steps are performed inside setPartitionGUIDs
+		if err = bd.setPartitionGUIDs(guids); err != nil {
 			return err
 		}
+
+		prg.Success()
+	} else {
+		if partChanges := getPlannedPartitionChanges(bd); len(partChanges) > 0 {
+			*dryRun = append(*dryRun, partChanges...)
+		}
+	}
+
+	return nil
+}
+
+// PrepareInstallationMedia updates all of the installation medias to ensure
+// installation can proceed. Media is only updated if dryRun is passed 'nil,
+// otherwise a high level description, in the locale, is set in the passed
+// slice of string
+func PrepareInstallationMedia(targets map[string]InstallTarget,
+	medias []*BlockDevice, mediaOpts MediaOpts, dryRun *[]string) error {
+	for _, target := range targets {
+		if dryRun != nil {
+			if target.EraseDisk {
+				*dryRun = append(*dryRun, target.Name+": "+utils.Locale.Get(DestructiveWarning))
+			} else if target.DataLoss {
+				*dryRun = append(*dryRun, target.Name+": "+utils.Locale.Get(DataLossWarning))
+			} else if target.WholeDisk {
+				*dryRun = append(*dryRun, target.Name+": "+utils.Locale.Get(SafeWholeWarning))
+			} else {
+				*dryRun = append(*dryRun, target.Name+": "+utils.Locale.Get(MediaToBeUsed))
+			}
+		}
+
+		for _, curr := range medias {
+			if target.Name == curr.Name {
+				if err := curr.WritePartitionTable(target.WholeDisk, dryRun); err != nil {
+					if dryRun != nil {
+						*dryRun = append(*dryRun, FailedPartitionWarning)
+					} else {
+						return err
+					}
+				}
+			}
+		}
+	}
+
+	if err := setBootPartition(medias, mediaOpts, dryRun); err != nil {
+		log.Warning("Could set boot information!")
+		if dryRun != nil {
+			*dryRun = append(*dryRun, FailedPartitionWarning)
+		} else {
+			return err
+		}
+	}
+
+	// Ensure media changes become visible to kernel/OS
+	if dryRun == nil {
+		var prg progress.Progress
+		mesg := utils.Locale.Get("Rescanning media")
+		sleepTime := 4
+		step := 0
+		total := len(medias) + sleepTime
+		prg = progress.MultiStep(total, mesg)
+
+		for _, bd := range medias {
+			if err := bd.PartProbe(); err != nil {
+				return errors.Wrap(err)
+			}
+			step++
+			prg.Partial(step)
+		}
+
+		for i := 0; i < sleepTime; i++ {
+			time.Sleep(time.Duration(1) * time.Second)
+			step++
+			prg.Partial(step)
+		}
+
+		prg.Success()
 	}
 
 	return nil
@@ -2076,6 +2063,116 @@ func GetAdvancedPartitions(medias []*BlockDevice) []string {
 	return results
 }
 
+// setBootPartition is a helper function to PrepareInstallationMedia
+// Looks through all of the installation media to determine which
+// partition will be the one from which the install boots
+// either an explicit /boot or / (root) in legacy mode
+func setBootPartition(medias []*BlockDevice, mediaOpts MediaOpts, dryRun *[]string) error {
+	const (
+		bootStyleDefault = "boot"
+		bootStyleLegacy  = "legacy_boot"
+	)
+
+	logFormatError := func(format string, vargs ...interface{}) string {
+		mesg := utils.Locale.Get(format, vargs...)
+		log.Error(mesg)
+
+		if dryRun != nil {
+			*dryRun = append(*dryRun, mesg)
+		}
+
+		return mesg
+	}
+
+	style := bootStyleDefault
+	var bootParent, bootBlockDevice, rootParent, rootBlockDevice *BlockDevice
+
+	// Check if there is a bootable partition
+	// Clear Linux OS only supports booting from a top level
+	// block device; RAID, LVM, encryption, etc are not supported
+	for _, bd := range medias {
+		for _, curr := range bd.Children {
+			// We have the standard /boot partition
+			if curr.MountPoint == "/boot" {
+				if bootBlockDevice != nil {
+					return errors.Errorf(logFormatError("Found multiple %s partition names", curr.MountPoint))
+				}
+				bootParent = bd
+				bootBlockDevice = curr
+			}
+
+			if curr.MountPoint == "/" {
+				if rootBlockDevice != nil {
+					return errors.Errorf(logFormatError("Found multiple %s partition names", curr.MountPoint))
+				}
+				rootParent = bd
+				rootBlockDevice = curr
+			}
+		}
+	}
+
+	// In case we don't have a viable boot partition
+	if bootBlockDevice == nil && !mediaOpts.LegacyBios {
+		log.Error("No /boot and not in legacy mode!")
+		return errors.Errorf(logFormatError("Found invalid %s partition name", "!BOOT"))
+	}
+
+	if bootBlockDevice == nil && rootBlockDevice == nil {
+		log.Error("No /boot nor / (root) partition found!")
+		return errors.Errorf(logFormatError("Found invalid %s partition name", "!BOOT/!ROOT"))
+	}
+
+	// If legacyBios mode
+	if mediaOpts.LegacyBios {
+		style = bootStyleLegacy
+
+		// If legacyBios mode and we do not have a boot, use root
+		if bootBlockDevice == nil {
+			bootBlockDevice = rootBlockDevice
+			bootParent = rootParent
+			if dryRun != nil {
+				*dryRun = append(*dryRun, bootBlockDevice.Name+": "+utils.Locale.Get(LegacyModeWarning))
+				*dryRun = append(*dryRun, bootBlockDevice.Name+": "+utils.Locale.Get(LegacyNoBootWarning))
+			}
+
+			// Need to disable the ext 64bit mode
+			// https://wiki.syslinux.org/wiki/index.php?title=Filesystem#ext
+			if bootBlockDevice.FsType == "ext2" ||
+				bootBlockDevice.FsType == "ext3" || bootBlockDevice.FsType == "ext4" {
+				legacyExtFsOpt := "-O ^64bit"
+				bootBlockDevice.Options = strings.Join([]string{bootBlockDevice.Options, legacyExtFsOpt}, " ")
+				log.Warning("setBootPartition: legacy_boot on / requires option: %s", legacyExtFsOpt)
+			}
+		} else {
+			if dryRun != nil {
+				*dryRun = append(*dryRun, bootBlockDevice.Name+": "+utils.Locale.Get(LegacyModeWarning))
+			}
+		}
+	}
+
+	if dryRun == nil {
+		var prg progress.Progress
+		mesg := utils.Locale.Get("Setting boot partition: %s",
+			fmt.Sprintf("%s [%s]", bootBlockDevice.Name, style))
+		prg = progress.NewLoop(mesg)
+		log.Info(mesg)
+
+		args := []string{
+			"parted",
+			bootParent.GetDeviceFile(),
+			fmt.Sprintf("set %d %s on", bootBlockDevice.partition, style),
+		}
+
+		if err := cmd.RunAndLog(args...); err != nil {
+			return errors.Wrap(err)
+		}
+
+		prg.Success()
+	}
+
+	return nil
+}
+
 func getPlannedPartitionChanges(media *BlockDevice) []string {
 	results := []string{}
 
@@ -2138,27 +2235,8 @@ func GetPlannedMediaChanges(targets map[string]InstallTarget, medias []*BlockDev
 		}
 	}
 
-	for _, target := range targets {
-		if target.EraseDisk {
-			results = append(results, target.Name+": "+utils.Locale.Get(DestructiveWarning))
-		} else if target.DataLoss {
-			results = append(results, target.Name+": "+utils.Locale.Get(DataLossWarning))
-		} else if target.WholeDisk {
-			results = append(results, target.Name+": "+utils.Locale.Get(SafeWholeWarning))
-		} else {
-			results = append(results, target.Name+": "+utils.Locale.Get(MediaToBeUsed))
-		}
-
-		for _, curr := range medias {
-			if target.Name == curr.Name {
-				if err := curr.WritePartitionTable(mediaOpts.LegacyBios, target.WholeDisk, &results); err != nil {
-					results = append(results, FailedPartitionWarning)
-				}
-				if partChanges := getPlannedPartitionChanges(curr); len(partChanges) > 0 {
-					results = append(results, partChanges...)
-				}
-			}
-		}
+	if err := PrepareInstallationMedia(targets, medias, mediaOpts, &results); err != nil {
+		log.Warning("PrepareInstallationMedia: %+v", err)
 	}
 
 	if mediaOpts.SwapFileSize != "" {

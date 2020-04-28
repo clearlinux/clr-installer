@@ -554,12 +554,12 @@ func TestWritePartition(t *testing.T) {
 
 		//write the partition table (dryrun)
 		results := []string{}
-		if err = bd.WritePartitionTable(false, true, &results); err != nil {
+		if err = bd.WritePartitionTable(true, &results); err != nil {
 			t.Fatalf("Could not dryrun write partition table (%s): %s", file, err)
 		}
 
 		//write the partition table
-		if err = bd.WritePartitionTable(false, true, nil); err != nil {
+		if err = bd.WritePartitionTable(true, nil); err != nil {
 			t.Fatalf("Could not write partition table (%s): %s", file, err)
 		}
 
@@ -940,6 +940,11 @@ var lsblkOutput string = `{
             {"name": "sdg4", "path": "/dev/sdg4", "size": "8G",    "type": "part", "fstype": "ext4", "partlabel": "CLR_MNT_/home", "mountpoint": "/home"}
          ]
       },
+	  {"name": "sdh", "path": "/dev/sdh", "size": "2.0T", "type": "disk", "mountpoint": null,
+         "children": [
+			{"name": "sdh1", "path": "/dev/sdh1", "size": "2.0T",  "type": "part", "fstype": "ext4",  "partlabel": "CLR_ROOT", "mountpoint": "/"}
+         ]
+      },
 	  {"name": "sda", "path": "/dev/sda", "size": "2.0T", "type": "disk", "mountpoint": null,
          "children": [
 			{"name": "sda1", "path": "/dev/sda1", "size": "512M",  "type": "part", "fstype": "vfat", "mountpoint": "/boot"},
@@ -1127,6 +1132,60 @@ func TestPartitionValidation(t *testing.T) {
 	results = DesktopValidatePartitions(targets, mediaOpts)
 	if cnt := len(results); cnt != 3 {
 		t.Fatalf("DesktopValidatePartitions returned %d errors, but should be 3", cnt)
+	}
+}
+
+func TestLegacyPartitionValidation(t *testing.T) {
+	medias, err := parseBlockDevicesDescriptor([]byte(lsblkOutput))
+	if err != nil {
+		t.Fatalf("Could not parser block device descriptor: %s", err)
+	}
+
+	var targets []*BlockDevice
+	var mediaOpts MediaOpts
+
+	resetWith := func(name string) {
+		mediaOpts.SwapFileSize = ""
+		mediaOpts.SwapFileSet = false
+		mediaOpts.LegacyBios = true
+		mediaOpts.SkipValidationSize = false
+		mediaOpts.SkipValidationAll = false
+		targets = []*BlockDevice{}
+
+		for _, bd := range medias {
+			if bd.Name == name {
+				t.Logf("Found media %s", name)
+				clone := bd.Clone()
+				targets = append(targets, clone)
+			}
+		}
+	}
+
+	resetWith("sde")
+	results := ServerValidatePartitions(targets, mediaOpts)
+	if len(results) > 0 {
+		for _, err := range results {
+			t.Fatalf("ServerValidatePartitions returned error %q", err)
+		}
+	}
+
+	resetWith("sdf")
+	results = ServerValidatePartitions(targets, mediaOpts)
+	if len(results) > 0 {
+		for _, err := range results {
+			t.Fatalf("ServerValidatePartitions returned error %q", err)
+		}
+	}
+
+	resetWith("sdh")
+	results = ServerValidateAdvancedPartitions(targets, mediaOpts)
+	if cnt := len(results); cnt != 1 {
+		t.Fatalf("ServerValidatePartitions returned %d errors, but should be 1", cnt)
+		if len(results) > 0 {
+			for _, err := range results {
+				t.Fatalf("ServerValidatePartitions returned error %q", err)
+			}
+		}
 	}
 }
 

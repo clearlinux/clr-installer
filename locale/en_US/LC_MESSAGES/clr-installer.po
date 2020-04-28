@@ -840,3 +840,7 @@ msgstr "Could not interrupt %s"
 #, c-format
 msgid "Creating %s"
 msgstr "Creating %s"
+
+#, c-format
+msgid "Setting boot partition: %s"
+msgstr "Setting boot partition: %s"

@@ -840,3 +840,7 @@ msgstr "无法中断 %s"
 #, c-format
 msgid "Creating %s"
 msgstr "创建 %s"
+
+#, c-format
+msgid "Setting boot partition: %s"
+msgstr "设置启动分区：%s"
