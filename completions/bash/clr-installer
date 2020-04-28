@@ -28,7 +28,7 @@ _clr_installer() {
       COMPREPLY=($(compgen -W "true false" -- "$cur"))
       return
       ;;
-    --block-device)
+    -b|--block-device)
       local blockdevice; blockdevice="$(lsblk --noheadings --raw --paths | cut -d' ' -f1 | tr '\n' ',')"
       # The trick is to insert any UNICODE space(s), e.g. non-breaking space, before the message
       #    so that 'word' is not likely to be matched by a user's input
@@ -42,11 +42,11 @@ _clr_installer() {
       COMPREPLY=($(compgen -W "$opts" -- "$cur"))
       return
       ;;
-    --config)
+    -c|--config)
       _filedir yaml
       return
       ;;
-    --json-yaml)
+    -j|--json-yaml)
       _filedir json
       return
       ;;
@@ -68,7 +68,7 @@ _clr_installer() {
       COMPREPLY=($(compgen -W "$opts" -- "$cur"))
       return
       ;;
-    --log-level)
+    -l|--log-level)
       # shellcheck disable=1018
       case "$2" in
         ​e*)
