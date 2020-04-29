@@ -1,0 +1,36 @@
+# clear-linux-config
+
+# basic.yaml
+#
+# This YAML file generates the basic TUI installer image for testing a minimial install
+# Clear Linux OS
+
+# Switch between aliases if you want to install to an actual block device.
+# i.e /dev/sda
+block-devices: [
+   {name: "installer", file: "installer.img"}
+]
+
+targetMedia:
+- name: ${installer}
+  type: disk
+  children:
+  - name: ${installer}1
+    fstype: vfat
+    mountpoint: /boot
+    size: "150M"
+    type: part
+  - name: ${installer}2
+    fstype: ext4
+    mountpoint: /
+    size: "2.6G"
+    type: part
+
+bundles: [os-core, os-core-update]
+autoUpdate: false
+postArchive: false
+postReboot: false
+telemetry: false
+keyboard: us
+language: en_US.UTF-8
+kernel: kernel-native

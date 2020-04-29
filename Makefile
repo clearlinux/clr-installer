@@ -24,6 +24,7 @@ endif
 export GOPATH=$(pkg_dir)
 export GO_PACKAGE_PREFIX := github.com/clearlinux/clr-installer
 export TESTS_DIR := $(top_srcdir)/tests/
+export FUNCTIONAL_TEST_DIR := $(top_srcdir)/tests/functional/
 export BASEBUILD_DIR := $(shell mktemp --dir --dry-run)
 export BASEIMGNAME := baseline
 export BASEIMG := $(TESTS_DIR)/$(BASEIMGNAME)
@@ -183,11 +184,7 @@ check: bundle-check
 		fi; \
 	fi; \
 
-check-image: build-tui
-	@if [ "${runuid}" != "0" ] ; then \
-		echo "check-image needs to be run as root; please use 'sudo'"; \
-		/bin/false; \
-	fi
+check-image: build-tui check-for-root-user
 	@mkdir -p ${BASEBUILD_DIR}
 	cd ${BASEBUILD_DIR} ; ${LOCAL_GOPATH}/bin/clr-installer-tui --config ${BASEIMG}.yaml --log-file ${BASEIMGLOG}
 	@if [ ! -f "$(BASEBUILD_DIR)/${BASEIMGNAME}.iso" ] ; then \
@@ -207,15 +204,15 @@ check-image: build-tui
 	fi
 	@echo "consider running 'sudo make clean' to remove the files built as root"
 
-PHONY += check-all-images-core
-check-all-images-core:
+PHONY += check-for-root-user
+check-for-root-user:
 	@if [ "${runuid}" != "0" ] ; then \
-		echo "check-image needs to be run as root; please use 'sudo'"; \
+		echo "Needs to be run as root; please use 'sudo'"; \
 		/bin/false; \
 	fi
 
 PHONY += check-all-images
-check-all-images: check-all-images-core
+check-all-images: check-for-root-user
 	@echo "This process runs serially and take a long time and should not be aborted!"
 	@echo "Consider instead 'make check-all-images-screen'"
 	@echo "Waiting 10 seconds to start..."
@@ -224,7 +221,7 @@ check-all-images: check-all-images-core
 	@echo "consider running 'sudo make clean' to remove the files built as root"
 
 PHONY += check-all-images-screen
-check-all-images-screen: check-all-images-core
+check-all-images-screen: check-for-root-user
 	@echo "Lauching screen sessions..."; \
 	echo "Use <control>-a<controld>-d to detach and leave running."; \
 	echo "	sudo screen -R # to recover session"
@@ -401,6 +398,14 @@ else
 dist-clean: clean
 	@go clean -testcache
 endif
+
+
+PHONY += functional-check
+functional-check: check-for-root-user
+	@for test in $$(find $$FUNCTIONAL_TEST_DIR -name "*.bats" | sort); do \
+		echo "Running $$test"; \
+		bats $$test; \
+	done
 
 all: build
 
