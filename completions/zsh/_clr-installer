@@ -57,6 +57,7 @@ local -a global_opts; global_opts=(
                true\:Reboot\ after\ finishing\ \(default\)
                false\:Don\`t\ reboot\ after\ finishing))'
   '--skip-validation-size[Skip the partition validation size check]'
+  '--force-destructive[Force destructive install..Proceed with caution]'
   '(-S --stub-image)'{-S,--stub-image}'[Creates the filesystems only - dont perform an actual install]'
   '--swap-file-size[Size of the swapfile]:swapfile size: _message -r "<size>[B|K|M|G]"'
   '--swupd-cert[Specify alternative path to swupd certificates]:swupd certification path: _files -/'
