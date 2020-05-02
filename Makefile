@@ -401,7 +401,7 @@ endif
 
 
 PHONY += functional-check
-functional-check: check-for-root-user
+functional-check: check-for-root-user build
 	@for test in $$(find $$FUNCTIONAL_TEST_DIR -name "*.bats" | sort); do \
 		echo "Running $$test"; \
 		bats $$test; \
