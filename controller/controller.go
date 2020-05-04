@@ -105,7 +105,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		version = fmt.Sprintf("%d", model.Version)
 	}
 
-	log.Debug("Clear Linux version: %s", version)
+	log.Debug("Clear Linux OS version: %s", version)
 
 	// do we have the minimum required to install a system?
 	if err = model.Validate(); err != nil {
@@ -576,19 +576,19 @@ func contentInstall(rootDir string, version string,
 		if err := utils.ParseOSClearVersion(); err != nil {
 			return prg, err
 		}
-		log.Info("Overriding version from %s to %s to enable offline install", version, utils.ClearVersion)
-		version = utils.ClearVersion
 
-		// Copying offline content here is a performance optimization and is not a hard
-		// failure because Swupd may be able to successfully copy offline content or
-		// install over the network.
-		if err := copyOfflineToStatedir(rootDir, sw.GetStateDir()); err != nil {
-			log.Warning("Failed to copy offline content: %s", err)
+		if version == "latest" || version == utils.ClearVersion {
+			// Copying offline content here is a performance optimization and is not a hard
+			// failure because Swupd may be able to successfully copy offline content or
+			// install over the network.
+			if err := copyOfflineToStatedir(rootDir, sw.GetStateDir()); err != nil {
+				log.Warning("Failed to copy offline content: %s", err)
+			}
+		} else {
+			log.Warning("Ignoring the Offline content (%s) due to version set to %s", utils.ClearVersion, version)
 		}
 
 		prg.Success()
-	} else if md.AutoUpdate {
-		version = "latest"
 	}
 
 	msg := utils.Locale.Get("Installing base OS and configured bundles")
