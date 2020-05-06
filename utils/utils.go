@@ -7,6 +7,7 @@ package utils
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -111,29 +112,41 @@ func CopyAllFiles(srcDir string, destDir string) error {
 // CopyFile copies src file to dest
 func CopyFile(src string, dest string) error {
 	destDir := filepath.Dir(dest)
-
-	srcInfo, err := os.Stat(src)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return errors.Errorf("no such file: %s", src)
-		}
-		return errors.Wrap(err)
-	}
-
-	if _, err = os.Stat(destDir); err != nil {
+	if _, err := os.Stat(destDir); err != nil {
 		if os.IsNotExist(err) {
 			return errors.Errorf("no such dest directory: %s", destDir)
 		}
 		return errors.Wrap(err)
 	}
 
-	data, err := ioutil.ReadFile(src)
+	srcFile, err := os.Open(src)
 	if err != nil {
-		return err
+		if os.IsNotExist(err) {
+			return errors.Errorf("no such file: %s", src)
+		}
+		return errors.Wrap(err)
+	}
+	defer srcFile.Close()
+
+	srcInfo, err := srcFile.Stat()
+	if err != nil {
+		return errors.Wrap(err)
 	}
 
-	if err = ioutil.WriteFile(dest, data, srcInfo.Mode()&os.ModePerm); err != nil {
-		return err
+	destFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, srcInfo.Mode()&os.ModePerm)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, srcFile)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+
+	// Flush cache to disk
+	if err := destFile.Sync(); err != nil {
+		return errors.Wrap(err)
 	}
 
 	return nil
