@@ -4,6 +4,14 @@ Supporting Legacy systems is (or was) a requirement of the installation media on
 
 There was already an example of how this is done in the release tools (create-iso.sh), much of how ISO generation works was built on the process in this script.
 
+**Kernel Configuration Requirements**
+
+The kernel used for booting the ISO needs to have the following as modules:
+* CONFIG_ISO9660_FS=m
+* CONFIG_CDROM=m
+* CONFIG_BLK_DEV_SR=m
+* CONFIG_OVERLAY_FS=m
+
 **How is the ISO boot process different?**
 
 The normal boot process uses a 2-stage bootloader with a shim (bootloaderx64.efi) and systemd-boot (loaderx64.efi) as the second stage.
