@@ -1,4 +1,5 @@
 ok  	github.com/clearlinux/clr-installer/args	0.272s	coverage: 85.6% of statements
+ok  	github.com/clearlinux/clr-installer/boolset	0.014s	coverage: 91.3% of statements
 ?   	github.com/clearlinux/clr-installer/clr-installer	[no test files]
 ok  	github.com/clearlinux/clr-installer/cmd	0.012s	coverage: 0.0% of statements
 ?   	github.com/clearlinux/clr-installer/conf	[no test files]
