@@ -938,7 +938,7 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 		log.Error("Failed to log Telemetry success record")
 	}
 
-	if md.PostArchive {
+	if md.PostArchive.Value() {
 		log.Info("Saving Installation results to %s", rootDir)
 
 		saveDir := filepath.Join(rootDir, "root")

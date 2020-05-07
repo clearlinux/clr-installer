@@ -69,7 +69,7 @@ type SystemInstall struct {
 	SwupdMirror       string                           `yaml:"swupdMirror,omitempty,flow"`
 	AllowInsecureHTTP bool                             `yaml:"AllowInsecureHTTP,omitempty,flow"`
 	SwupdSkipOptional bool                             `yaml:"swupdSkipOptional,omitempty,flow"`
-	PostArchive       bool                             `yaml:"postArchive,omitempty,flow"`
+	PostArchive       *boolset.BoolSet                 `yaml:"postArchive,omitempty,flow"`
 	Hostname          string                           `yaml:"hostname,omitempty,flow"`
 	AutoUpdate        *boolset.BoolSet                 `yaml:"autoUpdate,flow"`
 	TelemetryURL      string                           `yaml:"telemetryURL,omitempty,flow"`
@@ -415,9 +415,6 @@ func (si *SystemInstall) AddNetworkInterface(iface *network.Interface) {
 func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 	var result SystemInstall
 
-	// Default to archiving by default
-	result.PostArchive = true
-
 	if _, err := os.Stat(path); err == nil {
 		configStr, err := ioutil.ReadFile(path)
 		if err != nil {
@@ -428,6 +425,13 @@ func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 		if err != nil {
 			return nil, errors.Wrap(err)
 		}
+	}
+
+	// Default to archiving by default
+	if result.PostArchive == nil {
+		result.PostArchive = boolset.NewTrue()
+	} else {
+		result.PostArchive.SetDefault(true)
 	}
 
 	// Default to Auto Updating enabled by default

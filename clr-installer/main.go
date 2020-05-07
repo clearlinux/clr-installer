@@ -451,7 +451,7 @@ func processOptionsSaveIfSet(options args.Args, md *model.SystemInstall) {
 	}
 
 	if options.ArchiveSet {
-		md.PostArchive = options.Archive
+		md.PostArchive.SetValue(options.Archive)
 	}
 
 	if options.SkipValidationSizeSet {
