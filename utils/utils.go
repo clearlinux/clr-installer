@@ -114,7 +114,7 @@ func CopyFile(src string, dest string) error {
 	destDir := filepath.Dir(dest)
 	if _, err := os.Stat(destDir); err != nil {
 		if os.IsNotExist(err) {
-			return errors.Errorf("no such dest directory: %s", destDir)
+			return errors.Errorf("No such dest directory: %s", destDir)
 		}
 		return errors.Wrap(err)
 	}
@@ -122,7 +122,7 @@ func CopyFile(src string, dest string) error {
 	srcFile, err := os.Open(src)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return errors.Errorf("no such file: %s", src)
+			return errors.Errorf("No such file: %s", src)
 		}
 		return errors.Wrap(err)
 	}
