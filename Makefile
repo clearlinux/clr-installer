@@ -381,7 +381,6 @@ vendor-check:
 	@go mod tidy 2>/dev/null
 	@go mod verify 2>/dev/null
 
-
 PHONY += distclean
 ifeq ($(IS_GIT_REPO),1)
 dist-clean: clean
@@ -399,13 +398,16 @@ dist-clean: clean
 	@go clean -testcache
 endif
 
-
 PHONY += functional-check
 functional-check: check-for-root-user build
 	@for test in $$(find $$FUNCTIONAL_TEST_DIR -name "*.bats" | sort); do \
 		echo "Running $$test"; \
 		bats $$test; \
 	done
+
+PHONY += dev-check-all
+dev-check-all: check-for-root-user build lint functional-check check
+	@echo "Running dev tests have passed"
 
 all: build
 
