@@ -5,8 +5,16 @@
 package utils
 
 import (
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 )
+
+// String for test information
+const testString = "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
 
 func init() {
 	SetLocale("en_US.UTF-8")
@@ -50,4 +58,101 @@ func TestExpandVariables(t *testing.T) {
 	if expandResult == incorrectResult {
 		t.Fatalf("Expansion should have failed -- case sensitive: %q == %q", expandResult, incorrectResult)
 	}
+}
+
+func TestCopyFile(t *testing.T) {
+	// Create temp file, which we will copy
+	fileSrc, err := ioutil.TempFile("", "test_copy_file")
+	if err != nil {
+		t.Errorf("Create temp file: %v", err)
+	}
+
+	// It doesn’t matter if there is an error or not
+	defer func() {
+		fileSrc.Close()
+		os.Remove(fileSrc.Name())
+	}()
+
+	// Writing test information to file
+	_, err = fileSrc.Write([]byte(testString))
+	if err != nil {
+		t.Errorf("Write text into temp file: %v", err)
+	}
+
+	pathDest := filepath.Join(
+		filepath.Dir(fileSrc.Name()),
+		"test_copy_file",
+	)
+
+	compare := func() error {
+		return compareFiles(fileSrc.Name(), pathDest)
+	}
+
+	// In any case, delete the file, even if it has not been created
+	defer os.Remove(pathDest)
+
+	type args struct {
+		src  string
+		dest string
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		wantErr    bool
+		checkAfter func() error
+	}{
+		{name: "Copy without error", args: args{fileSrc.Name(), pathDest}, wantErr: false, checkAfter: compare},
+		{name: "Copy with error", args: args{"", ""}, wantErr: true, checkAfter: nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := CopyFile(tt.args.src, tt.args.dest); (err != nil) != tt.wantErr {
+				t.Errorf("CopyFile() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.checkAfter != nil {
+				err := tt.checkAfter()
+				if err != nil {
+					t.Error(err)
+				}
+			}
+		})
+	}
+}
+
+func compareFiles(pathSrc, pathDest string) error {
+	fileSrc, err := os.Open(pathSrc)
+	if err != nil {
+		return fmt.Errorf("Open src file %v", err)
+	}
+
+	fileDest, err := os.Open(pathDest)
+	if err != nil {
+		return fmt.Errorf("Open dest file %v", err)
+	}
+
+	statDest, err := fileDest.Stat()
+	if err != nil {
+		return fmt.Errorf("Get stat dest %v", err)
+	}
+
+	statSrc, err := fileSrc.Stat()
+	if err != nil {
+		return fmt.Errorf("Get stat src %v", err)
+	}
+
+	if statDest.Mode() != statSrc.Mode() {
+		return errors.New("Mode files not equal")
+	}
+
+	destData, err := ioutil.ReadAll(fileDest)
+	if err != nil {
+		return fmt.Errorf("Read all file desst %v", err)
+	}
+
+	if string(destData) != testString {
+		return errors.New("Data files not equal")
+	}
+
+	return nil
 }
