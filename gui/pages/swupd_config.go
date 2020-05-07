@@ -162,7 +162,7 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 	}
 
 	var warning, style string
-	if page.model.AutoUpdate {
+	if page.model.AutoUpdate.Value() {
 		style = ""
 		warning = ""
 	} else {
@@ -290,20 +290,20 @@ func (page *SwupdConfigPage) GetTitle() string {
 // StoreChanges will store this pages changes into the model
 func (page *SwupdConfigPage) StoreChanges() {
 	page.validateMirror()
-	page.model.AutoUpdate = page.autoUpdateButton.GetActive()
+	page.model.AutoUpdate.SetValue(page.autoUpdateButton.GetActive())
 }
 
 // ResetChanges will reset this page to match the model
 func (page *SwupdConfigPage) ResetChanges() {
 	page.controller.SetButtonState(ButtonConfirm, true)
 	setTextInEntry(page.mirrorEntry, page.model.SwupdMirror)
-	page.autoUpdateButton.SetActive(page.model.AutoUpdate)
+	page.autoUpdateButton.SetActive(page.model.AutoUpdate.Value())
 }
 
 // GetConfiguredValue returns a string representation of the current config
 func (page *SwupdConfigPage) GetConfiguredValue() string {
 	var ret string
-	if page.model.AutoUpdate {
+	if page.model.AutoUpdate.Value() {
 		ret = utils.Locale.Get("Auto updates enabled")
 	} else {
 		ret = utils.Locale.Get("Auto updates disabled")

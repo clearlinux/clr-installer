@@ -16,7 +16,7 @@ type AutoUpdatePage struct {
 
 // GetConfiguredValue Returns the string representation of currently value set
 func (aup *AutoUpdatePage) GetConfiguredValue() string {
-	if aup.getModel().AutoUpdate {
+	if aup.getModel().AutoUpdate.Value() {
 		return "Enabled"
 	}
 	return "Disabled"
@@ -57,9 +57,9 @@ func (aup *AutoUpdatePage) DeActivate() {
 	model := aup.getModel()
 
 	if aup.action == ActionConfirmButton {
-		model.AutoUpdate = true
+		model.AutoUpdate.SetValue(true)
 	} else if aup.action == ActionBackButton {
-		model.AutoUpdate = false
+		model.AutoUpdate.SetValue(false)
 	}
 }
 
@@ -67,7 +67,7 @@ func (aup *AutoUpdatePage) DeActivate() {
 // If Auto Update is enabled in the data model then the Confirm button will be active
 // otherwise the Back button will be activated.
 func (aup *AutoUpdatePage) Activate() {
-	if aup.getModel().AutoUpdate {
+	if aup.getModel().AutoUpdate.Value() {
 		aup.activated = aup.confirmBtn
 	} else {
 		aup.activated = aup.backBtn
@@ -77,7 +77,7 @@ func (aup *AutoUpdatePage) Activate() {
 // GetConfigDefinition returns if the config was interactively defined by the user,
 // was loaded from a config file or if the config is not set.
 func (aup *AutoUpdatePage) GetConfigDefinition() int {
-	if aup.getModel().AutoUpdate {
+	if aup.getModel().AutoUpdate.Value() {
 		return ConfigDefinedByConfig
 	}
 
