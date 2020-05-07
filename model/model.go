@@ -421,7 +421,7 @@ func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 			return nil, errors.Wrap(err)
 		}
 
-		err = yaml.Unmarshal(configStr, &result)
+		err = yaml.UnmarshalStrict(configStr, &result)
 		if err != nil {
 			return nil, errors.Wrap(err)
 		}
@@ -592,7 +592,7 @@ func (si *SystemInstall) WriteFile(path string) error {
 	}
 
 	// Unmarshal into a copy
-	if yamlErr := yaml.Unmarshal(confBytes, &copyModel); yamlErr != nil {
+	if yamlErr := yaml.UnmarshalStrict(confBytes, &copyModel); yamlErr != nil {
 		return errors.Wrap(bytesErr)
 	}
 
@@ -657,7 +657,7 @@ func (si *SystemInstall) WriteScrubModelTargetMedias() (string, error) {
 	}
 
 	// Unmarshal into a copy
-	if yamlErr := yaml.Unmarshal(confBytes, &cleanModel); yamlErr != nil {
+	if yamlErr := yaml.UnmarshalStrict(confBytes, &cleanModel); yamlErr != nil {
 		return "", errors.Wrap(bytesErr)
 	}
 
