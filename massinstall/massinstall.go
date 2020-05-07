@@ -216,8 +216,8 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 
 	log.Debug("Starting install")
 
-	if md.Version > 0 {
-		fmt.Println("Config file specifies a target \"version\", forcing auto-update off.")
+	if !md.AutoUpdate.Value() {
+		fmt.Println("Swupd auto-update set to off!")
 	}
 
 	instError = controller.Install(rootDir, md, options)

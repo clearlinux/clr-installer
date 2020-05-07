@@ -225,6 +225,7 @@ func processSwupdOptions(options args.Args, md *model.SystemInstall) {
 			version, err := strconv.ParseUint(options.SwupdVersion, 10, 32)
 			if err == nil {
 				md.Version = uint(version)
+				log.Debug("Forcing Clear Linux OS version to %d", md.Version)
 			} else {
 				log.Warning("Failed to parse swupd-version : %s; not-used!", options.SwupdVersion)
 			}
@@ -236,6 +237,25 @@ func processSwupdOptions(options args.Args, md *model.SystemInstall) {
 
 	if options.AllowInsecureHTTPSet {
 		md.AllowInsecureHTTP = options.AllowInsecureHTTP
+	}
+
+	if !md.AutoUpdate.IsSet() {
+		osVersion, err := strconv.ParseUint(utils.ClearVersion, 10, 32)
+		if err == nil {
+			log.Debug("Current Clear Linux OS version is %d", md.Version)
+			if md.Version != 0 && md.Version != uint(osVersion) {
+				md.AutoUpdate.SetValue(false)
+			}
+		} else {
+			log.Warning("Failed to parse Current Clear Linux OS: %s !", utils.ClearVersion)
+			if md.Version != 0 {
+				md.AutoUpdate.SetValue(false)
+			}
+		}
+
+		if md.AutoUpdate.IsSet() {
+			log.Debug("AutoUpdate is now set to %v", md.AutoUpdate.Value())
+		}
 	}
 }
 
@@ -501,6 +521,11 @@ func execute(options args.Args) error {
 		md.ClearCfFile = cf
 	}
 
+	log.Info("Querying Clear Linux version")
+	if err := utils.ParseOSClearVersion(); err != nil {
+		return err
+	}
+
 	processOptionsToModel(options, md)
 
 	if len(options.Bundles) > 0 {
@@ -545,11 +570,6 @@ func execute(options args.Args) error {
 		return err
 	}
 	defer func() { _ = os.RemoveAll(rootDir) }()
-
-	log.Info("Querying Clear Linux version")
-	if err := utils.ParseOSClearVersion(); err != nil {
-		return err
-	}
 
 	if options.SwupdContentURL != "" && network.IsValidURI(options.SwupdContentURL, md.AllowInsecureHTTP) == false {
 		return errors.Errorf("swupd-contenturl %s must use HTTPS or FILE protocol", options.SwupdContentURL)

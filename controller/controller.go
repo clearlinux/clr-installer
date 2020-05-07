@@ -17,6 +17,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/clearlinux/clr-installer/args"
+	"github.com/clearlinux/clr-installer/boolset"
 	"github.com/clearlinux/clr-installer/cmd"
 	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/errors"
@@ -654,7 +655,7 @@ func contentInstall(rootDir string, version string,
 		}
 	}
 
-	if !md.AutoUpdate {
+	if !md.AutoUpdate.Value() {
 		msg := utils.Locale.Get("Disabling automatic updates")
 		prg = progress.NewLoop(msg)
 		log.Info(msg)
@@ -1030,13 +1031,14 @@ func writeCustomConfig(chrootPath string, md *model.SystemInstall) error {
 
 	// Create basic config based on provided values
 	customModel := &model.SystemInstall{
-		Bundles:    md.TargetBundles,
-		Keyboard:   md.Keyboard,
-		Language:   md.Language,
-		Timezone:   md.Timezone,
-		Kernel:     md.Kernel,
-		AutoUpdate: true, // We should always default to enabled
+		Bundles:  md.TargetBundles,
+		Keyboard: md.Keyboard,
+		Language: md.Language,
+		Timezone: md.Timezone,
+		Kernel:   md.Kernel,
 	}
+	// We should always default to enabled
+	customModel.AutoUpdate = boolset.NewTrue()
 
 	return customModel.WriteFile(path.Join(customPath, conf.ConfigFile))
 }

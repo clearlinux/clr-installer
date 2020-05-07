@@ -16,6 +16,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/clearlinux/clr-installer/args"
+	"github.com/clearlinux/clr-installer/boolset"
 	"github.com/clearlinux/clr-installer/errors"
 	"github.com/clearlinux/clr-installer/kernel"
 	"github.com/clearlinux/clr-installer/keyboard"
@@ -70,7 +71,7 @@ type SystemInstall struct {
 	SwupdSkipOptional bool                             `yaml:"swupdSkipOptional,omitempty,flow"`
 	PostArchive       bool                             `yaml:"postArchive,omitempty,flow"`
 	Hostname          string                           `yaml:"hostname,omitempty,flow"`
-	AutoUpdate        bool                             `yaml:"autoUpdate,flow"`
+	AutoUpdate        *boolset.BoolSet                 `yaml:"autoUpdate,flow"`
 	TelemetryURL      string                           `yaml:"telemetryURL,omitempty,flow"`
 	TelemetryTID      string                           `yaml:"telemetryTID,omitempty,flow"`
 	TelemetryPolicy   string                           `yaml:"telemetryPolicy,omitempty,flow"`
@@ -417,9 +418,6 @@ func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 	// Default to archiving by default
 	result.PostArchive = true
 
-	// Default to Auto Updating enabled by default
-	result.AutoUpdate = true
-
 	if _, err := os.Stat(path); err == nil {
 		configStr, err := ioutil.ReadFile(path)
 		if err != nil {
@@ -430,6 +428,13 @@ func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 		if err != nil {
 			return nil, errors.Wrap(err)
 		}
+	}
+
+	// Default to Auto Updating enabled by default
+	if result.AutoUpdate == nil {
+		result.AutoUpdate = boolset.NewTrue()
+	} else {
+		result.AutoUpdate.SetDefault(true)
 	}
 
 	// Set default Timezone if not defined
@@ -518,10 +523,6 @@ func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 
 	if result.MediaOpts.SwapFileSize != "" {
 		result.MediaOpts.SwapFileSet = true
-	}
-
-	if result.Version > 0 {
-		result.AutoUpdate = false
 	}
 
 	return &result, nil

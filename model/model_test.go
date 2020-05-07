@@ -99,6 +99,7 @@ func TestLoadFile(t *testing.T) {
 
 	for _, curr := range tests {
 		path := filepath.Join(testsDir, curr.file)
+		t.Logf("Loading test file %v", curr)
 		if filepath.Ext(curr.file) == ".json" {
 			md, err := JSONtoYAMLConfig(path)
 			if err == nil {
