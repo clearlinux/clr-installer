@@ -822,7 +822,7 @@ func DownloadInstallerMessage(header string, installConf string) string {
 		return ""
 	}
 
-	if err := yaml.Unmarshal(configStr, &result); err != nil {
+	if err := yaml.UnmarshalStrict(configStr, &result); err != nil {
 		log.Debug("Failed to parse the %s YAML file: %s", header, err)
 		return ""
 	}

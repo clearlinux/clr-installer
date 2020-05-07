@@ -903,7 +903,7 @@ func saveInstallResults(rootDir string, md *model.SystemInstall) error {
 		errMsgs = append(errMsgs, "Failed to generate YAML file")
 	}
 	// Unmarshal into a copy
-	if yamlErr := yaml.Unmarshal(confBytes, &cleanModel); yamlErr != nil {
+	if yamlErr := yaml.UnmarshalStrict(confBytes, &cleanModel); yamlErr != nil {
 		errMsgs = append(errMsgs, "Failed to duplicate YAML file")
 	}
 	// Sanitize the config data to remove any potential

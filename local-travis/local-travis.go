@@ -273,7 +273,7 @@ func main() {
 		panic(err)
 	}
 
-	if yamlErr := yaml.Unmarshal(content, &cfg); yamlErr != nil {
+	if yamlErr := yaml.UnmarshalStrict(content, &cfg); yamlErr != nil {
 		panic(yamlErr)
 	}
 
