@@ -37,8 +37,8 @@ kernel: kernel-native
 kernel-arguments: {add: [clri.loglevel=4], remove: [console=ttyS0,115200n8]}
 
 pre-install: [
-   {cmd: "scripts/developer-image-pre.sh"}
+   {cmd: "${yamlDir}/developer-image-pre.sh"}
 ]
 post-install: [
-   {cmd: "scripts/developer-image-post.sh ${chrootDir}"},
+   {cmd: "${yamlDir}/developer-image-post.sh ${chrootDir}"},
 ]
