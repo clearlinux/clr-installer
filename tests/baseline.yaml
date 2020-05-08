@@ -24,13 +24,9 @@ targetMedia:
     size: "50M"
     type: part
   - name: ${baseimg}2
-    fstype: swap
-    size: "32M"
-    type: part
-  - name: ${baseimg}3
     fstype: ext4
     mountpoint: /
-    size: "1.5G"
+    size: "2.0G"
     type: part
 
 bundles: [os-core, os-core-update, NetworkManager,  vim]
@@ -48,11 +44,9 @@ kernel: kernel-native
 
 post-install: [
    {cmd: "/bin/ls ${chrootDir}/etc"},
-   {chroot:true, cmd: "/bin/ls /etc"},
+   {chroot: true, cmd: "/bin/ls /etc"},
 ]
 
 post-image: [
    {cmd: "xz -q -T0 --stdout ${imageFile} > ${imageFile}.xz"},
 ]
-
-version: 0

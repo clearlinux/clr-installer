@@ -49,7 +49,7 @@ kernel: kernel-native
 
 post-install: [
    {cmd: "/bin/ls ${chrootDir}/etc"},
-   {chroot:true, cmd: "/bin/ls /etc"},
+   {chroot: true, cmd: "/bin/ls /etc"},
 ]
 
 version: 0
