@@ -2,6 +2,10 @@
 
 This document describes the syntax for constructing a clr-installer configuration file.
 
+## Production Configuration YAML Files
+These can be found on the publisher site.
+https://download.clearlinux.org/current/config/image/
+
 ## Environment Variables
 Environment variables can be defined which will be used when installation commands are executed. These are most commonly used for `pre-install`, `post-install`, or `post-image` hooks.
 ```yaml
