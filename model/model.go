@@ -67,7 +67,7 @@ type SystemInstall struct {
 	Kernel            *kernel.Kernel                   `yaml:"kernel,omitempty,flow"`
 	PostReboot        bool                             `yaml:"postReboot,omitempty,flow"`
 	SwupdMirror       string                           `yaml:"swupdMirror,omitempty,flow"`
-	AllowInsecureHTTP bool                             `yaml:"AllowInsecureHTTP,omitempty,flow"`
+	AllowInsecureHTTP bool                             `yaml:"allowInsecureHTTP,omitempty,flow"`
 	SwupdSkipOptional bool                             `yaml:"swupdSkipOptional,omitempty,flow"`
 	PostArchive       *boolset.BoolSet                 `yaml:"postArchive,omitempty,flow"`
 	Hostname          string                           `yaml:"hostname,omitempty,flow"`

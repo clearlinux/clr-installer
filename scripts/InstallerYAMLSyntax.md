@@ -148,7 +148,7 @@ Item | Description | Default
 `swapFileSize:` | Size of the swapfile. If set to `0` no swapfile will be created. The suffixes `B` for bytes, `K` or `KB` for kilobytes, `M` or `MB` for megabytes, `G` or `GB` for gigabytes, `KiB` for kibibyte, `MiB` for mebibyte, `GiB` for gibibyte. | `-UNDEFINED-`
 `kernel` | Kernel bundle to be used | kernel-native
 `httpsProxy` | HTTPS Proxy as a string | `-UNDEFINED-`
-`allowInsecureHttp` | Allow installation and downloads over insecure connections | false
+`allowInsecureHTTP` | Allow installation and downloads over insecure connections | false
 `hostname` | Name of the host system | `-UNIQUE RANDOM-`
 `version` | Version of Clear Linux OS to install | `-LATEST_VERSION-`
 `copySwupd` | Copy /etc/swupd configuration files to target | false (true for user-interface installs)
