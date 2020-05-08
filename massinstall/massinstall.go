@@ -164,7 +164,7 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 				fmt.Printf("Disk Partition: Validation Error: %q\n", errStr)
 			}
 
-			return false, nil
+			return false, errors.Errorf("Disk partitions failed validation")
 		}
 	} else {
 		// Check for Advance Partitioning labels
@@ -203,12 +203,12 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 					fmt.Printf("Advanced Disk Partition: Validation Error: %q\n", errStr)
 				}
 
-				return false, nil
+				return false, errors.Errorf("Disk partitions failed validation")
 			}
 		} else {
 			log.Error("Failed to detected advanced partition labels!")
 			fmt.Println("Failed to detected advanced partition labels!")
-			return false, nil
+			return false, errors.Errorf("Failed to detected advanced partition labels!")
 		}
 	}
 
