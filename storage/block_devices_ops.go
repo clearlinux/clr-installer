@@ -2749,7 +2749,13 @@ func setBootPartition(medias []*BlockDevice, mediaOpts MediaOpts, dryRun *DryRun
 			if bootBlockDevice.FsType == "ext2" ||
 				bootBlockDevice.FsType == "ext3" || bootBlockDevice.FsType == "ext4" {
 				legacyExtFsOpt := "-O ^64bit"
-				bootBlockDevice.Options = strings.Join([]string{bootBlockDevice.Options, legacyExtFsOpt}, " ")
+				if len(bootBlockDevice.Options) > 0 {
+					bootBlockDevice.Options = strings.TrimSpace(bootBlockDevice.Options) +
+						" " + strings.TrimSpace(legacyExtFsOpt)
+				} else {
+					bootBlockDevice.Options = strings.TrimSpace(legacyExtFsOpt)
+				}
+
 				log.Warning("setBootPartition: legacy_boot on / requires option: %s", legacyExtFsOpt)
 			}
 		} else {
