@@ -740,3 +740,12 @@ func (bd *BlockDevice) isRaidType() bool {
 	}
 	return false
 }
+
+func (bd *BlockDevice) isExtFsType() bool {
+	if bd.FsType == "ext2" ||
+		bd.FsType == "ext3" ||
+		bd.FsType == "ext4" {
+		return true
+	}
+	return false
+}

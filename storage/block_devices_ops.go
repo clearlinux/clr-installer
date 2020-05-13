@@ -2262,9 +2262,7 @@ func validateRoot(found *bool, bd *BlockDevice,
 	} else {
 		*found = true
 		rootBlockDevice = bd.Clone()
-		if !(bd.FsType == "ext2" || bd.FsType == "ext3" ||
-			bd.FsType == "ext4" || bd.FsType == "xfs" ||
-			bd.FsType == "f2fs") {
+		if !(bd.isExtFsType() || bd.FsType == "xfs" || bd.FsType == "f2fs") {
 			results = append(results, logPartitionMustBeWarning(bd, rootLabel, "ext*|xfs|f2fs"))
 		}
 	}
@@ -2310,8 +2308,7 @@ func validateBootLegacy(rootBlockDevice *BlockDevice, rootLabel, bootLabel strin
 
 	if mediaOpts.LegacyBios {
 		if rootBlockDevice != nil {
-			if !(rootBlockDevice.FsType == "ext2" || rootBlockDevice.FsType == "ext3" ||
-				rootBlockDevice.FsType == "ext4") {
+			if !(rootBlockDevice.isExtFsType()) {
 				// xfs currently not supported due to partition table of MBR requirement
 				log.Warning("validatePartitions: legacyMode, invalid fsType: %s", rootBlockDevice.FsType)
 				results = append(results,
@@ -2745,8 +2742,7 @@ func setBootPartition(medias []*BlockDevice, mediaOpts MediaOpts, dryRun *DryRun
 
 			// Need to disable the ext 64bit mode
 			// https://wiki.syslinux.org/wiki/index.php?title=Filesystem#ext
-			if bootBlockDevice.FsType == "ext2" ||
-				bootBlockDevice.FsType == "ext3" || bootBlockDevice.FsType == "ext4" {
+			if bootBlockDevice.isExtFsType() {
 				legacyExtFsOpt := "-O ^64bit"
 				bootBlockDevice.Options = strings.Join([]string{bootBlockDevice.Options, legacyExtFsOpt}, " ")
 				log.Warning("setBootPartition: legacy_boot on / requires option: %s", legacyExtFsOpt)
