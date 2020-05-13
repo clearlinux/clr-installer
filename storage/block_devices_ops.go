@@ -2225,7 +2225,7 @@ func logMissingPartition(label string) string {
 }
 
 // Helper to validatePartitions for validating boot minimum size etc
-func validateBoot(found *bool, bd *BlockDevice, skipSize bool, bootLabel string) []string {
+func validateBoot(found *bool, bd *BlockDevice, mediaOpts MediaOpts, bootLabel string) []string {
 	var results []string
 
 	if bd.MountPoint == "/boot" {
@@ -2233,13 +2233,13 @@ func validateBoot(found *bool, bd *BlockDevice, skipSize bool, bootLabel string)
 			results = append(results, logPartitionWarning(bd, "Found multiple %s partitions", bootLabel))
 		} else {
 			*found = true
-			if bd.FsType != "vfat" {
+			if !mediaOpts.SkipValidationAll && bd.FsType != "vfat" {
 				results = append(results, logPartitionMustBeWarning(bd, bootLabel, "vfat"))
 			}
 		}
 		if bd.Size == 0 {
 			log.Warning("validatePartitions: Skipping %s size check due to zero size", bootLabel)
-		} else if skipSize {
+		} else if mediaOpts.SkipValidationSize {
 			log.Warning("validatePartitions: Skipping %s size check due to skipSize", bootLabel)
 		} else {
 			if bd.Size < minBootSize {
@@ -2303,32 +2303,30 @@ func validateSwap(found *bool, bd *BlockDevice, skipSize bool, swapLabel string)
 	return results
 }
 
-// Helper to validatePartitions for validating /var
+// Helper to validatePartitions for validating / (root)
+// We already know there is not boot partition found
 func validateBootLegacy(rootBlockDevice *BlockDevice, rootLabel, bootLabel string, mediaOpts MediaOpts) []string {
 	var results []string
 
-	if mediaOpts.SkipValidationAll {
-		if mediaOpts.LegacyBios {
-			if rootBlockDevice != nil {
-				if !(rootBlockDevice.FsType == "ext2" || rootBlockDevice.FsType == "ext3" ||
-					rootBlockDevice.FsType == "ext4") {
-					// xfs currently not supported due to partition table of MBR requirement
-					log.Warning("validatePartitions: legacyMode, invalid fsType: %s", rootBlockDevice.FsType)
-					results = append(results,
-						logPartitionMustBeWarning(rootBlockDevice, rootLabel, "ext[234]"))
-				}
-				if rootBlockDevice.Type == BlockDeviceTypeCrypt {
-					log.Warning("validatePartitions: legacyMode without /boot can not be encrypted")
-					results = append(results,
-						logPartitionWarning(rootBlockDevice, "Encryption of %s is not supported", rootLabel))
-				}
+	if mediaOpts.LegacyBios {
+		if rootBlockDevice != nil {
+			if !(rootBlockDevice.FsType == "ext2" || rootBlockDevice.FsType == "ext3" ||
+				rootBlockDevice.FsType == "ext4") {
+				// xfs currently not supported due to partition table of MBR requirement
+				log.Warning("validatePartitions: legacyMode, invalid fsType: %s", rootBlockDevice.FsType)
+				results = append(results,
+					logPartitionMustBeWarning(rootBlockDevice, rootLabel, "ext[234]"))
 			}
-		} else {
-			results = append(results, logMissingPartition(bootLabel))
+			if rootBlockDevice.Type == BlockDeviceTypeCrypt {
+				log.Warning("validatePartitions: legacyMode without /boot can not be encrypted")
+				results = append(results,
+					logPartitionWarning(rootBlockDevice, "Encryption of %s is not supported", rootLabel))
+			}
 		}
 	} else {
 		results = append(results, logMissingPartition(bootLabel))
 	}
+
 	return results
 }
 
@@ -2452,7 +2450,7 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice, mediaOpts MediaO
 	for _, curr := range medias {
 		for _, ch := range curr.Children {
 			if ch.MountPoint == "/boot" || (advancedMode && ch.Label == bootLabel) {
-				results = append(results, validateBoot(&bootFound, ch, mediaOpts.SkipValidationSize, bootLabel)...)
+				results = append(results, validateBoot(&bootFound, ch, mediaOpts, bootLabel)...)
 			}
 			if ch.MountPoint == "/" || (advancedMode && ch.Label == rootLabel) {
 				var newResults []string
@@ -2624,6 +2622,7 @@ func AdvancedPartitionsRequireEncryption(medias []*BlockDevice) bool {
 // assigned advanced partitions used
 func GetAdvancedPartitions(medias []*BlockDevice) []string {
 	results := []string{}
+	var mediaOpts MediaOpts
 
 	formatter := func(child *BlockDevice) string {
 		var name string
@@ -2643,7 +2642,7 @@ func GetAdvancedPartitions(medias []*BlockDevice) []string {
 		for _, ch := range curr.Children {
 			var found bool
 			if strings.HasPrefix(ch.PartitionLabel, "CLR_BOOT") &&
-				len(validateBoot(&found, ch, false, "CLR_BOOT")) == 0 {
+				len(validateBoot(&found, ch, mediaOpts, "CLR_BOOT")) == 0 {
 				if found {
 					results = append(results, formatter(ch))
 				}
