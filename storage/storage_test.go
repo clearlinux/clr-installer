@@ -1178,9 +1178,39 @@ func TestLegacyPartitionValidation(t *testing.T) {
 	}
 
 	resetWith("sdh")
+	mediaOpts.LegacyBios = false
+	t.Logf("mediaOpts: %+v", mediaOpts)
 	results = ServerValidateAdvancedPartitions(targets, mediaOpts)
 	if cnt := len(results); cnt != 1 {
 		t.Fatalf("ServerValidatePartitions returned %d errors, but should be 1", cnt)
+		if len(results) > 0 {
+			for _, err := range results {
+				t.Fatalf("ServerValidatePartitions returned error %q", err)
+			}
+		}
+	}
+
+	resetWith("sdh")
+	mediaOpts.LegacyBios = false
+	mediaOpts.SkipValidationAll = true
+	t.Logf("mediaOpts: %+v", mediaOpts)
+	results = ServerValidateAdvancedPartitions(targets, mediaOpts)
+	if cnt := len(results); cnt != 1 {
+		t.Fatalf("ServerValidatePartitions returned %d errors, but should be 1", cnt)
+		if len(results) > 0 {
+			for _, err := range results {
+				t.Fatalf("ServerValidatePartitions returned error %q", err)
+			}
+		}
+	}
+
+	resetWith("sdh")
+	mediaOpts.SkipValidationAll = true
+	t.Logf("mediaOpts: %+v", mediaOpts)
+	results = ServerValidateAdvancedPartitions(targets, mediaOpts)
+	t.Logf("results: %+v", results)
+	if cnt := len(results); cnt > 0 {
+		t.Fatalf("ServerValidatePartitions returned %d errors, but should be 0", cnt)
 		if len(results) > 0 {
 			for _, err := range results {
 				t.Fatalf("ServerValidatePartitions returned error %q", err)
