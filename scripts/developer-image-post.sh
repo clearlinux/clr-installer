@@ -17,8 +17,6 @@ git clone . ${TEMP_INST}
 cd ${TEMP_INST}
 make install DESTDIR=${DESTDIR}
 
-${HOOKDIR}/installer-post.sh ${DESTDIR}
-
 cd ${SAVE_DIR}
 /bin/rm -rf ${TEMP_INST}
 
