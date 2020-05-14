@@ -1,6 +1,6 @@
-# clear-linux-config
+#clear-linux-config
 
-# Switch between aliases if you want to install to an actual block device.
+# Switch between aliases if you want to install to an actual block device
 # i.e /dev/sda
 block-devices: [
    {name: "bdevice", file: "kvm.img"}
@@ -34,12 +34,13 @@ bundles: [
     os-core,
     os-core-update,
     sysadmin-basic,
+    systemd-networkd-autostart
   ]
 
-autoUpdate: false
 postArchive: false
 postReboot: false
 telemetry: false
+copySwupd: false
 
 keyboard: us
 language: en_US.UTF-8

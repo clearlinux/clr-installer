@@ -35,7 +35,6 @@ targetMedia:
     size: "0"  # Fill the test of the image
     type: part
 
-# Bundles to install to installer image
 bundles: [
     bootloader,
     c-basic,
@@ -51,10 +50,14 @@ bundles: [
     NetworkManager-extras,
     package-utils,
     pidgin,
+    telemetrics,
     vlc,
   ]
 
-# Bundles to install to target media
+# Default bundles to be installed to target media
+# - Creates a /var/lib/clr-installer/clr-installer.yaml file
+# - Used by the offline code to determine base bundles to make
+#   available for offline installation.
 targetBundles: [
     c-basic,
     desktop-autostart,
@@ -66,17 +69,22 @@ targetBundles: [
 ]
 
 offline: true
+
 postArchive: false
 postReboot: false
 telemetry: false
 iso: true
+isoPublisher: Intel Corporation
+isoApplicationId: desktop
+keepImage: true
 autoUpdate: false
+copySwupd: false
 
 keyboard: us
 language: en_US.UTF-8
 kernel: kernel-native
-
-kernel-arguments: {add: [clri.loglevel=4], remove: [console=ttyS0,115200n8]}
+# Uncomment to force demo mode for documentation runs
+#kernel-arguments: {add: [clri.demo, clri.loglevel=4], remove: []}
 
 users:
 - login: clrlinux
@@ -91,10 +99,10 @@ post-install: [
    {cmd: "${yamlDir}/live-image-post-update-version.py ${chrootDir}"},
    {cmd: "${yamlDir}/live-desktop-post-install.sh ${chrootDir}"},
    {cmd: "${yamlDir}/developer-image-post.sh ${chrootDir}"},
-   {cmd: "/bin/rm -f ${chrootDir}/usr/share/applications/clr-installer.desktop"},
+   # Uncomment to install latest master of swupd into image for testing
+   #  {cmd: "${yamlDir}/swupd-image-post.sh ${chrootDir}"},
 ]
 
-version: 0
 
 #
 # Editor modelines  -  https://www.wireshark.org/tools/modelines.html
