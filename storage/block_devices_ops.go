@@ -2380,11 +2380,16 @@ func validateSwapFile(swapFileSize string, rootBlockDevice *BlockDevice,
 			swapFilePartition = "/var"
 			swapFilePartSize = varSize
 		}
-		if checkSwapSize >= swapFilePartSize {
-			size, _ := HumanReadableSizeXiBWithPrecision(swapFilePartSize, 1)
-			results = append(results, logPartitionMustBeWarning(nil,
-				fmt.Sprintf("swapfile (%s)", checkSizeString),
-				fmt.Sprintf("< %s (%s)", swapFilePartition, size)))
+
+		if swapFilePartSize == 0 {
+			log.Warning("validatePartitions: Skipping swapfile size check due to %s zero size", swapFilePartition)
+		} else {
+			if checkSwapSize >= swapFilePartSize {
+				size, _ := HumanReadableSizeXiBWithPrecision(swapFilePartSize, 1)
+				results = append(results, logPartitionMustBeWarning(nil,
+					fmt.Sprintf("swapfile (%s)", checkSizeString),
+					fmt.Sprintf("< %s (%s)", swapFilePartition, size)))
+			}
 		}
 
 		if !skipSize {
@@ -2410,6 +2415,8 @@ func validateSwapFile(swapFileSize string, rootBlockDevice *BlockDevice,
 					fmt.Sprintf("swapfile (%s)", checkSizeString),
 					fmt.Sprintf("<= 50%% %s (%s)", swapFilePartition, size)))
 			}
+		} else {
+			log.Warning("validatePartitions: Skipping swapfile size check due to skipSize")
 		}
 	}
 
