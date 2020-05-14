@@ -33,7 +33,9 @@ const (
 	kernelCmdlineDemo         = "clri.demo"
 	kernelCmdlineLog          = "clri.loglevel"
 	kernelCmdlineHighContrast = "clri.hc"
-	logFileEnvironVar         = "CLR_INSTALLER_LOG_FILE"
+	// KernelMediaCheck is used to create a verufy ISO media boot menu
+	KernelMediaCheck  = "clri.mediacheck"
+	logFileEnvironVar = "CLR_INSTALLER_LOG_FILE"
 )
 
 var (

@@ -165,7 +165,7 @@ func mkInitrd(version string, model *model.SystemInstall, options args.Args) err
 	sw := swupd.New(tmpPaths[clrInitrd], options, model)
 
 	/* Install os-core and os-core-plus (we only need kmod-bin) as initrd */
-	if err := sw.OSInstall(version, swupd.IsoPrefix, []string{"os-core-plus"}); err != nil {
+	if err := sw.OSInstall(version, swupd.IsoPrefix, []string{"clr-installer-iso-init"}); err != nil {
 		prg = progress.NewLoop(msg)
 		prg.Failure()
 		return err
@@ -181,9 +181,10 @@ func mkInitrdInitScript(templatePath string) error {
 	log.Info(msg)
 
 	type Modules struct {
-		Modules []string
+		Modules            []string
+		IsoMediaBootOption string
 	}
-	mods := Modules{}
+	mods := Modules{IsoMediaBootOption: args.KernelMediaCheck}
 
 	//Modules to insmod during init, paths relative to the kernel folder
 	modules := []string{
@@ -259,6 +260,10 @@ func mkInitrdInitScript(templatePath string) error {
 		return err
 	}
 
+	log.Debug("Init script contents after template expansion: ")
+	// soft error just needed for logging
+	_ = cmd.RunAndLog("cat", tmpPaths[clrInitrd]+"/init")
+
 	/* Set correct owner and permissions on initrd's init */
 	if err = os.Chown(tmpPaths[clrInitrd]+"/init", 0, 0); err != nil {
 		prg.Failure()
@@ -320,6 +325,21 @@ func buildInitrdImage() error {
 	return err
 }
 
+// We take a copy of options from normal EFI entry and edit it for new EFI entry: /loader/entries/iso-checksum.conf
+func prepareISOCheckSumBootEntry(inputOptions []string) []string {
+	outputOptions := append([]string(nil), inputOptions...)
+	for i, option := range outputOptions {
+		if strings.Contains(option, "title") {
+			outputOptions[i] = "title Verify ISO Integrity"
+		}
+
+		if i == len(outputOptions)-1 {
+			outputOptions[i] = strings.TrimSpace(option) + " " + args.KernelMediaCheck
+		}
+	}
+	return outputOptions
+}
+
 func mkEfiBoot() error {
 	msg := "Building efiboot image"
 	prg := progress.NewLoop(msg)
@@ -342,6 +362,7 @@ func mkEfiBoot() error {
 
 	/* Modify loader/entries/Clear-linux-*, add initrd= line and remove ROOT= from kernel command line options */
 	entriesGlob, err := filepath.Glob(tmpPaths[clrEfi] + "/loader/entries/Clear-linux-*")
+	entriesIsoChecksum := filepath.Join(tmpPaths[clrEfi] + "/loader/entries/iso-checksum.conf")
 	if err != nil || len(entriesGlob) != 1 {
 		prg.Failure()
 		log.Error("Failed to modify efi entries file")
@@ -381,6 +402,14 @@ func mkEfiBoot() error {
 		return err
 	}
 
+	isoBootMenuLines := prepareISOCheckSumBootEntry(lines)
+	err = ioutil.WriteFile(entriesIsoChecksum, []byte(strings.Join(isoBootMenuLines, "\n")), 0644)
+	if err != nil {
+		prg.Failure()
+		log.Error("Failed to write kernel boot parameters file for isomd5sum check")
+		return err
+	}
+
 	/* Copy EFI files to the cdroot for Rufus support */
 	cpCmd := []string{"cp", "-pr", tmpPaths[clrEfi] + "/.", tmpPaths[clrCdroot]}
 	err = cmd.RunAndLog(cpCmd...)
@@ -392,6 +421,17 @@ func mkEfiBoot() error {
 	/* Copy initrd to efiboot.img and finally unmount efiboot.img */
 	initrdPaths := []string{tmpPaths[clrCdroot] + "/EFI/BOOT/initrd.gz", tmpPaths[clrEfi] + "/EFI/BOOT/initrd.gz"}
 	err = utils.CopyFile(initrdPaths[0], initrdPaths[1])
+	if err != nil {
+		prg.Failure()
+		return err
+	}
+
+	/*
+		Copy initrd to iso-checksum.conf.
+		If we dont do this, mkLegacyBoot will fail to find it while creating correspoding isolinux entry
+	*/
+	err = utils.CopyFile(tmpPaths[clrEfi]+"/loader/entries/iso-checksum.conf",
+		tmpPaths[clrImgEfi]+"/loader/entries/iso-checksum.conf")
 	if err != nil {
 		prg.Failure()
 		return err
@@ -413,7 +453,8 @@ func mkLegacyBoot(templatePath string) error {
 	log.Info(msg)
 
 	type BootConf struct {
-		Options string
+		Options           string
+		OptionsMediaCheck string
 	}
 	bc := BootConf{}
 
@@ -458,6 +499,27 @@ func mkLegacyBoot(templatePath string) error {
 		return err
 	}
 
+	// inner Function to remove filter unwanted parts like PARTUUID, word: `option` for different boot menus
+	filterOptionsLineFunc := func(optionLine []byte) string {
+		/* Read options from the EFI partition, remove the string 'options' and root=PARTUUID from the options line */
+		lines := strings.Split(string(optionLine), "\n")
+		var optionsLineTemp string
+		for _, line := range lines {
+			if strings.Contains(line, "options") {
+				optionsLineTemp = line
+			}
+		}
+
+		options := strings.Split(optionsLineTemp, " ")
+		for i, option := range options {
+			if strings.Contains(option, "options") || strings.Contains(option, "PARTUUID") {
+				options[i] = ""
+			}
+		}
+
+		return strings.Join(options, " ")
+	}
+
 	/* Find the (kernel boot) options file, load it into bc.Options */
 	optionsGlob, err := filepath.Glob(tmpPaths[clrImgEfi] + "/loader/entries/Clear-linux-*")
 	if err != nil || len(optionsGlob) > 1 { // Fail if there's >1 match
@@ -472,22 +534,24 @@ func mkLegacyBoot(templatePath string) error {
 		return err
 	}
 
-	/* Read options from the EFI partition, remove the string 'options' and root=PARTUUID from the options line */
-	lines := strings.Split(string(optionsFile), "\n")
-	var optionsLine string
-	for _, line := range lines {
-		if strings.Contains(line, "options") {
-			optionsLine = line
-		}
+	bc.Options = filterOptionsLineFunc(optionsFile)
+
+	// ISO Integrity boot option
+	entriesIsoChecksum, err := filepath.Glob(tmpPaths[clrImgEfi] + "/loader/entries/iso-checksum*")
+	if err != nil || len(entriesIsoChecksum) > 1 { // Fail if there's >1 match
+		prg.Failure()
+		log.Error("Failed to determine boot options for ISO Integrity check")
+		return err
 	}
 
-	options := strings.Split(optionsLine, " ")
-	for i, option := range options {
-		if strings.Contains(option, "options") || strings.Contains(option, "PARTUUID") {
-			options[i] = ""
-		}
+	optionsFileISO, err := ioutil.ReadFile(entriesIsoChecksum[0])
+	if err != nil {
+		prg.Failure()
+		log.Error("Failed to read options file from iso boot menu")
+		return err
 	}
-	bc.Options = string(strings.Join(options, " "))
+
+	bc.OptionsMediaCheck = filterOptionsLineFunc(optionsFileISO)
 
 	/* Fill boot options in isolinux.cfg */
 	tmpl, err := ioutil.ReadFile(templatePath + "/isolinux.cfg.template")
@@ -519,6 +583,30 @@ func mkLegacyBoot(templatePath string) error {
 	if err != nil {
 		prg.Failure()
 		log.Error("Failed to execute template filling")
+		return err
+	}
+
+	prg.Success()
+	return err
+}
+
+func implantIsoChecksum(imgName string) error {
+	msg := "Adding Checksums for ISO Integrity"
+	prg := progress.NewLoop(msg)
+	log.Info(msg)
+
+	args := []string{
+		"implantisomd5",
+	}
+
+	if len(imgName) > 0 {
+		isoName := imgName + ".iso"
+		args = append(args, isoName)
+	}
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		prg.Failure()
 		return err
 	}
 
@@ -641,6 +729,10 @@ func MakeIso(rootDir string, imgName string, model *model.SystemInstall, options
 	}
 
 	if err = packageIso(imgName, appID, model.ISOPublisher); err != nil {
+		return err
+	}
+
+	if err = implantIsoChecksum(imgName); err != nil {
 		return err
 	}
 
