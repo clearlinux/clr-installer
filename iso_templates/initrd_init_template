@@ -14,6 +14,8 @@ INFO="\\033[1;36m"           # light cyan
 # Explicitly send boot messages to tty0, /dev/console is ttyS0
 echo_tty_kmsg() {
     echo -e "$1" > /dev/tty0
+    # This is required for messages to be seen while using qemu
+    echo -e "$1" > /dev/console
     echo -e "$1" | sed 's/\x1b\[[0-9;]*m//g' > /dev/kmsg
 }
 
@@ -104,15 +106,45 @@ mount_root() {
     fi
 }
 
-# Finds the installer media and calls mount_root if successful
-find_and_mount_installer() {
+wait_for_keystrokes() {
+    while [ true ] ; do
+        read -n 1
+        if [ "$?" -eq 0 ] ; then
+            break
+        fi
+    done
+}
+
+check_iso_verify() {
+    local ret="$1"
+    local msg="$2"
+    [ "$ret" -ne 0 ] && { echo_tty_kmsg "[${FAILURE} FAIL ${NORMAL}]"; shell_trap "$msg"; }
+    [ "$ret" -eq 0 ] && { echo_tty_kmsg "[${SUCCESS}  OK  ${NORMAL}] $msg: Press any key to continue"; wait_for_keystrokes; }
+}
+
+# Check ISO media integrity
+verify_media() {
+    local installer="$1"
+    local need="ISO integrity check"
+
+    if [ -n "${installer}" ]; then
+        checkisomd5 --verbose ${installer} 2>&1 | tee -a /dev/console > /dev/tty0
+    else
+        shell_trap "[${FAILURE} FAIL ${NORMAL}] Failed to verify installer media, failed to boot Clear Linux*."
+    fi
+
+    check_iso_verify "${PIPESTATUS[0]}" "$need"
+}
+
+# Finds the installer media
+find_installer() {
     local retries=0
 
     while [ $retries -le 5 ]; do
-        local installer=$(blkid -L CLR_ISO)
+        installer=$(blkid -L CLR_ISO)
         if [ -n "${installer}" ]; then
             echo_tty_kmsg "[${SUCCESS}  OK  ${NORMAL}] Found installer media, continuing boot..."
-            mount_root ${installer}
+            echo "$installer"
             break
         else
             echo_tty_kmsg "Searching for installer media, retrying..."
@@ -126,6 +158,17 @@ find_and_mount_installer() {
     fi
 }
 
+# Mounts the installer media found previously
+mount_installer() {
+    local installer="$1"
+
+    if [ -n "${installer}" ]; then
+        mount_root "${installer}"
+    else
+        shell_trap "[${FAILURE} FAIL ${NORMAL}] Failed to mount installer media, failed to boot Clear Linux*."
+    fi
+}
+
 overlay_and_switch() {
     mkdir /mnt/ramfs
     mount -t tmpfs -o size=512M none /mnt/ramfs
@@ -133,7 +176,18 @@ overlay_and_switch() {
     mount -t overlay -o lowerdir=/mnt/rootfs,upperdir=/mnt/ramfs/w_root,workdir=/mnt/ramfs/workdir none /mnt/ramfs/rw_root
 
     # Switch root
-    exec switch_root /mnt/ramfs/rw_root /sbin/init
+    exec switch_root /mnt/ramfs/rw_root /sbin/init 1>/dev/kmsg 2>/dev/kmsg
+}
+
+check_kernel_cmdline_contains() {
+    local optioncheck=${1}
+    local kernelcmdline=$(cat /proc/cmdline)
+    for option in $kernelcmdline; do
+        if [ "$option" == "$optioncheck" ]; then
+          return 0
+        fi
+    done
+    return -1
 }
 
 main() {
@@ -143,7 +197,6 @@ main() {
     mount -t devtmpfs none /dev
     mount -t tmpfs none /run
 
-
     # Verify CPU features needed to run Clear exist
     echo_tty_kmsg "Checking if system is capable of running Clear Linux*..."
     have_64bit_cpu
@@ -151,14 +204,25 @@ main() {
     have_sse41_cpu_feature
     have_sse42_cpu_feature
     have_pclmul_cpu_feature
+
     echo_tty_kmsg "[${SUCCESS}  OK  ${NORMAL}] All checks passed."
+
+    # Find the installer
+    installer=$(find_installer)
+
+    # ISO media integrity check on installer media
+    if check_kernel_cmdline_contains {{.IsoMediaBootOption}}; then
+        echo_tty_kmsg "Starting ISO integrity check..."
+        verify_media "$installer"
+    fi
 
     # insmod required modules
     {{range .Modules}}
     insmod {{.}}
     {{end}}
 
-    find_and_mount_installer
+    # Mount it
+    mount_installer "$installer"
     overlay_and_switch
 }
 
