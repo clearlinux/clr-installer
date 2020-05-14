@@ -8,3 +8,10 @@ LABEL clear
   LINUX /kernel/kernel.xz
   INITRD /EFI/BOOT/initrd.gz
   APPEND {{.Options}}
+
+LABEL clear
+  MENU DEFAULT
+  MENU LABEL Test ISO for defects
+  LINUX /kernel/kernel.xz
+  INITRD /EFI/BOOT/initrd.gz
+  APPEND {{.Options}}
