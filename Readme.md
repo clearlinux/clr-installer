@@ -33,20 +33,21 @@ cd clr-installer && make
 
 ## Install (installing the installer)
 
-To create a bootable image which will launch the installer, use the [installer.yaml](../master/scripts/installer.yaml) as the config file.
+To create a bootable image which will contains the installer, use the [developer-image.yaml](../master/scripts/developer-image.yaml) as the config file.
 ```
-sudo .gopath/bin/clr-installer --config scripts/installer.yaml
+sudo .gopath/bin/clr-installer --config scripts/developer-image.yaml
 ```
 Refer to [InstallerYAMLSyntax](../master/scripts/InstallerYAMLSyntax.md) for syntax of the config file.
 
 Create a bootable installer on USB media:
 ```
-sudo .gopath/bin/clr-installer --config scripts/installer.yaml -b installer:<usb device> --iso
+sudo .gopath/bin/clr-installer --config scripts/developer-image.yaml --iso
+sudo dd if=installer.iso of=<usb device> bs=4M status=progress
 ```
 
 > Note: Replace ```<usb device>``` with the usb's device file as follows:
 >
-> sudo .gopath/bin/clr-installer --config scripts/installer.yaml -b installer:/dev/sdb --iso
+> sudo dd if=installer.iso of=/dev/sdb bs=4M status=progress
 >
 
 ## Testing [Run as root]
