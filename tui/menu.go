@@ -13,6 +13,7 @@ import (
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/network"
 	"github.com/clearlinux/clr-installer/swupd"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 // MenuPage is the Page implementation for the main menu page
@@ -146,11 +147,12 @@ func scrollTabToActive(activated clui.Control, group *TabGroup) {
 
 func (page *MenuPage) launchConfirmInstallDialogBox() {
 	if page.installBtn.Enabled() {
-		if dialog, err := CreateConfirmInstallDialogBox(page.tui.model); err == nil {
+		if dialog, err := CreateConfirmInstallDialogBox(page.tui.model, page.tui.options); err == nil {
 			dialog.OnClose(func() {
 				if dialog.Confirmed {
 					// Remove user bundles when continuing install with an offline warning
-					if !controller.NetworkPassing && len(dialog.modelSI.UserBundles) != 0 && swupd.IsOfflineContent() {
+					if !controller.NetworkPassing && len(dialog.modelSI.UserBundles) != 0 &&
+						swupd.OfflineIsUsable(utils.VersionUintString(page.tui.model.Version), page.tui.options) {
 						page.tui.model.UserBundles = nil
 					}
 					page.GotoPage(TuiPageInstall)
@@ -193,7 +195,8 @@ func newMenuPage(tui *Tui) (Page, error) {
 	page.installBtn.OnClick(func(ev clui.Event) {
 		// Network needs to be validated before the install when offline content isn't supported
 		// or additional bundles were added
-		if (!swupd.IsOfflineContent() || len(page.tui.model.UserBundles) != 0) && !controller.NetworkPassing {
+		if (!swupd.OfflineIsUsable(utils.VersionUintString(page.tui.model.Version), page.tui.options) ||
+			len(page.tui.model.UserBundles) != 0) && !controller.NetworkPassing {
 			if dialog, err := CreateNetworkTestDialogBox(page.tui.model); err == nil {
 				dialog.OnClose(func() {
 					page.launchConfirmInstallDialogBox()
@@ -203,7 +206,7 @@ func newMenuPage(tui *Tui) (Page, error) {
 					clui.RefreshScreen()
 					time.Sleep(time.Second)
 					dialog.Close()
-				} else if !swupd.IsOfflineContent() {
+				} else if !swupd.OfflineIsUsable(utils.VersionUintString(page.tui.model.Version), page.tui.options) {
 					// Cannot install without network or offline content
 					page.installBtn.SetEnabled(false)
 				}

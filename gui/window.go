@@ -878,7 +878,8 @@ func (window *Window) confirmInstall() {
 	}
 
 	// Valid network is required to install without offline content or additional bundles
-	if (!swupd.IsOfflineContent() || len(window.model.UserBundles) != 0) && !controller.NetworkPassing {
+	if (!swupd.OfflineIsUsable(utils.VersionUintString(window.model.Version), window.options) ||
+		len(window.model.UserBundles) != 0) && !controller.NetworkPassing {
 		if ret, err := network.RunNetworkTest(window.model); ret == network.NetTestErr {
 			log.Warning("Error running network test: ", err)
 			return
@@ -886,7 +887,7 @@ func (window *Window) confirmInstall() {
 	}
 
 	if !controller.NetworkPassing {
-		if !swupd.IsOfflineContent() {
+		if !swupd.OfflineIsUsable(utils.VersionUintString(window.model.Version), window.options) {
 			// Cannot install without network or offline content
 			return
 		} else if len(window.model.UserBundles) != 0 {
