@@ -219,7 +219,7 @@ func processSwupdOptions(options args.Args, md *model.SystemInstall) {
 		md.SwupdSkipOptional = options.SwupdSkipOptional
 	}
 	if options.SwupdVersion != "" {
-		if strings.EqualFold(options.SwupdVersion, "latest") {
+		if utils.IsLatestVersion(options.SwupdVersion) {
 			md.Version = 0
 		} else {
 			version, err := strconv.ParseUint(options.SwupdVersion, 10, 32)
