@@ -12,11 +12,13 @@ import (
 	"github.com/VladimirMarkelov/clui"
 	term "github.com/nsf/termbox-go"
 
+	"github.com/clearlinux/clr-installer/args"
 	"github.com/clearlinux/clr-installer/controller"
 	"github.com/clearlinux/clr-installer/log"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/swupd"
+	"github.com/clearlinux/clr-installer/utils"
 )
 
 // ConfirmInstallDialog is dialog window use to stop all other
@@ -28,6 +30,7 @@ type ConfirmInstallDialog struct {
 	onClose   func()
 
 	modelSI       *model.SystemInstall
+	options       args.Args
 	warningLabel  *clui.Label
 	mediaLabel    *clui.Label
 	mediaDetail   *clui.TextView
@@ -160,7 +163,8 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 		dialog.modelSI.MediaOpts)
 
 	// Create additional bundle removal warning for offline installs
-	if !controller.NetworkPassing && len(dialog.modelSI.UserBundles) != 0 && swupd.IsOfflineContent() {
+	if !controller.NetworkPassing && len(dialog.modelSI.UserBundles) != 0 &&
+		swupd.OfflineIsUsable(utils.VersionUintString(dialog.modelSI.Version), dialog.options) {
 		*dryRunResults.TargetResults = append(*dryRunResults.TargetResults,
 			"Offline Install: Removing additional bundles")
 	}
@@ -188,7 +192,7 @@ func initConfirmDiaglogWindow(dialog *ConfirmInstallDialog) error {
 }
 
 // CreateConfirmInstallDialogBox creates the Network PopUp
-func CreateConfirmInstallDialogBox(modelSI *model.SystemInstall) (*ConfirmInstallDialog, error) {
+func CreateConfirmInstallDialogBox(modelSI *model.SystemInstall, options args.Args) (*ConfirmInstallDialog, error) {
 	dialog := new(ConfirmInstallDialog)
 
 	if dialog == nil {
