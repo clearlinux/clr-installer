@@ -569,27 +569,36 @@ func contentInstall(rootDir string, version string,
 		bundles = append(bundles, md.Kernel.Bundle)
 	}
 
+	// We have offline content available
 	if swupd.IsOfflineContent() {
-		msg := utils.Locale.Get("Copying cached content to target media")
-		prg = progress.NewLoop(msg)
-		log.Info(msg)
-
 		if err := utils.ParseOSClearVersion(); err != nil {
 			return prg, err
 		}
 
-		if version == "latest" || version == utils.ClearVersion {
+		// If command line did not explicitly set "latest", use the current
+		// image version to enable Offline content usage
+		// Note: Setting "version: 0" in the YAML will not override offline content
+		if version == "latest" && options.SwupdVersion == "" {
+			version = utils.ClearVersion
+			log.Info("Overriding version from 'latest' to %s to enable offline install", utils.ClearVersion)
+		}
+
+		if version == utils.ClearVersion {
+			msg := utils.Locale.Get("Copying cached content to target media")
+			prg = progress.NewLoop(msg)
+			log.Info(msg)
+
 			// Copying offline content here is a performance optimization and is not a hard
 			// failure because Swupd may be able to successfully copy offline content or
 			// install over the network.
 			if err := copyOfflineToStatedir(rootDir, sw.GetStateDir()); err != nil {
 				log.Warning("Failed to copy offline content: %s", err)
 			}
+
+			prg.Success()
 		} else {
 			log.Warning("Ignoring the Offline content (%s) due to version set to %s", utils.ClearVersion, version)
 		}
-
-		prg.Success()
 	}
 
 	msg := utils.Locale.Get("Installing base OS and configured bundles")
