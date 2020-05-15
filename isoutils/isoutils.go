@@ -526,6 +526,30 @@ func mkLegacyBoot(templatePath string) error {
 	return err
 }
 
+func implantIsoChecksum(imgName string) error {
+	msg := "Adding Checksums for ISO Integrity"
+	prg := progress.NewLoop(msg)
+	log.Info(msg)
+
+	args := []string{
+		"implantiso",
+	}
+
+	if len(imgName) > 0 {
+		isoName := imgName + ".iso"
+		args = append(args, isoName)
+	}
+
+	err := cmd.RunAndLog(args...)
+	if err != nil {
+		prg.Failure()
+		return err
+	}
+
+	prg.Success()
+	return err
+}
+
 func packageIso(imgName, appID, publisher string) error {
 	msg := "Building ISO"
 	prg := progress.NewLoop(msg)
@@ -641,6 +665,10 @@ func MakeIso(rootDir string, imgName string, model *model.SystemInstall, options
 	}
 
 	if err = packageIso(imgName, appID, model.ISOPublisher); err != nil {
+		return err
+	}
+
+	if err = implantIsoChecksum(imgName); err != nil {
 		return err
 	}
 
