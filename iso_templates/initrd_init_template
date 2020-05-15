@@ -136,6 +136,13 @@ overlay_and_switch() {
     exec switch_root /mnt/ramfs/rw_root /sbin/init
 }
 
+verify_media() {
+    echo_tty_kmsg "Verifying media"
+    local installer=$(blkid -L CLR_ISO)
+
+    checkisomd5 --verbose --gauge ${installer}
+}
+
 main() {
     # Mount temp filesystem
     mount -t proc none /proc
@@ -151,6 +158,8 @@ main() {
     have_sse41_cpu_feature
     have_sse42_cpu_feature
     have_pclmul_cpu_feature
+
+    verify_media
     echo_tty_kmsg "[${SUCCESS}  OK  ${NORMAL}] All checks passed."
 
     # insmod required modules
