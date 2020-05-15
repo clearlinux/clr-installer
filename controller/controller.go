@@ -63,7 +63,6 @@ func sortMountPoint(bds []*storage.BlockDevice) []*storage.BlockDevice {
 //nolint: gocyclo  // TODO: Refactor this
 func Install(rootDir string, model *model.SystemInstall, options args.Args) error {
 	var err error
-	var version string
 	var prg progress.Progress
 	var encryptedUsed, softRaidUsed bool
 
@@ -100,11 +99,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		}
 	}
 
-	if model.Version == 0 {
-		version = "latest"
-	} else {
-		version = fmt.Sprintf("%d", model.Version)
-	}
+	version := utils.VersionUintString(model.Version)
 
 	log.Debug("Clear Linux OS version: %s", version)
 
@@ -574,9 +569,9 @@ func contentInstall(rootDir string, version string,
 
 	// We have usable offline content available
 	if swupd.OfflineIsUsable(version, options) {
-		if version == "latest" {
+		if utils.IsLatestVersion(version) {
+			log.Info("Overriding version from '%s' to %s to enable offline install", version, utils.ClearVersion)
 			version = utils.ClearVersion
-			log.Info("Overriding version from 'latest' to %s to enable offline install", utils.ClearVersion)
 		}
 
 		msg := utils.Locale.Get("Copying cached content to target media")

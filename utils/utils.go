@@ -1,4 +1,4 @@
-// Copyright © 2019 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
@@ -496,4 +496,21 @@ func HostHasEFI() bool {
 	}
 
 	return true
+}
+
+//VersionUintString converts a uint model to the string version
+func VersionUintString(versionUint uint) string {
+	var version string
+
+	if versionUint == 0 {
+		version = "latest"
+	} else {
+		version = fmt.Sprintf("%d", versionUint)
+	}
+
+	return version
+}
+
+func IsLatestVersion(version string) bool {
+	return strings.EqualFold(version, "latest")
 }
