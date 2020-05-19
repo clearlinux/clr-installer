@@ -583,9 +583,11 @@ func contentInstall(rootDir string, version string,
 		// install over the network.
 		if err := copyOfflineToStatedir(rootDir, sw.GetStateDir()); err != nil {
 			log.Warning("Failed to copy offline content: %s", err)
+			prg.Failure()
+			time.Sleep(time.Second * 2)
+		} else {
+			prg.Success()
 		}
-
-		prg.Success()
 	} else {
 		log.Warning("Ignoring the Offline content (%s) due to version set to %s", utils.ClearVersion, version)
 	}
@@ -712,6 +714,11 @@ func contentInstall(rootDir string, version string,
 }
 
 func copyOfflineToStatedir(rootDir, stateDir string) error {
+	// Force an error for testing
+	if testFail, _ := utils.FileExists(path.Join(conf.OfflineContentDir, "FAIL")); testFail {
+		return fmt.Errorf("Forcing a failing for %s", conf.OfflineContentDir)
+	}
+
 	if err := utils.MkdirAll(filepath.Dir(stateDir), 0755); err != nil {
 		return err
 	}
