@@ -1,14 +1,16 @@
-// Copyright © 2018 Intel Corporation
+// Copyright © 2020 Intel Corporation
 //
 // SPDX-License-Identifier: GPL-3.0-only
 
 package swupd
 
 import (
+	"os"
 	"testing"
 	"time"
 
 	"github.com/clearlinux/clr-installer/args"
+	"github.com/clearlinux/clr-installer/conf"
 	"github.com/clearlinux/clr-installer/model"
 	"github.com/clearlinux/clr-installer/progress"
 	"github.com/clearlinux/clr-installer/utils"
@@ -194,5 +196,46 @@ func TestProcess(t *testing.T) {
 	}
 	if mp.output != "success" {
 		t.Fatal("Message processed incorrectly. Expected: success, Actual:", mp.output)
+	}
+}
+
+func TestOffline(t *testing.T) {
+	options := args.Args{
+		SwupdVersion: "latest",
+	}
+
+	if err := utils.ParseOSClearVersion(); err != nil {
+		t.Fatalf("Could not parse OS version")
+	}
+
+	if OfflineIsUsable("latest", options) {
+		t.Fatalf("Offline Content should not be usable due to missing content directory")
+	}
+
+	if !utils.IsRoot() {
+		t.Skip("Not running as 'root', skipping test")
+	}
+
+	if err := utils.MkdirAll(conf.OfflineContentDir, 0700); err != nil {
+		t.Fatalf("Could not make offline content dir: %v", err)
+	}
+	defer func() { _ = os.RemoveAll(conf.OfflineContentDir) }()
+
+	if OfflineIsUsable("latest", options) {
+		t.Fatalf("Offline Content should not be usable due to %s", options.SwupdVersion)
+	}
+
+	options.SwupdVersion = ""
+	version := "1000"
+	if OfflineIsUsable(version, options) {
+		t.Fatalf("Offline Content should not be usable due to version %s", version)
+	}
+
+	if !OfflineIsUsable("latest", options) {
+		t.Fatalf("Offline Content should be usable")
+	}
+
+	if !OfflineIsUsable(utils.ClearVersion, options) {
+		t.Fatalf("Offline Content should be usable")
 	}
 }

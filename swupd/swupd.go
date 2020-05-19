@@ -701,3 +701,27 @@ func CopyConfigurations(rootDir string) {
 			filepath.Join(rootDir, swupdConfigOverrideDir))
 	}
 }
+
+// OfflineIsUsable ensures that we have offline content, and
+// that based on our desired version and command line options,
+// that it should be used for the installation.
+func OfflineIsUsable(version string, options args.Args) bool {
+	if IsOfflineContent() {
+		if err := utils.ParseOSClearVersion(); err != nil {
+			return false
+		}
+
+		// If command line did not explicitly set "latest", use the current
+		// image version to enable Offline content usage
+		// Note: Setting "version: 0" in the YAML will not override offline content
+		if utils.IsLatestVersion(version) && options.SwupdVersion == "" {
+			return true
+		}
+
+		if version == utils.ClearVersion {
+			return true
+		}
+	}
+
+	return false
+}

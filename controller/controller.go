@@ -114,7 +114,10 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 	}
 
 	// Using MassInstaller (non-UI) the network will not have been checked yet
-	if !NetworkPassing && !options.StubImage && !swupd.IsOfflineContent() && len(model.UserBundles) != 0 {
+	if !NetworkPassing &&
+		!options.StubImage &&
+		!swupd.OfflineIsUsable(version, options) &&
+		len(model.UserBundles) != 0 {
 		if err = ConfigureNetwork(model); err != nil {
 			return err
 		}
@@ -569,36 +572,27 @@ func contentInstall(rootDir string, version string,
 		bundles = append(bundles, md.Kernel.Bundle)
 	}
 
-	// We have offline content available
-	if swupd.IsOfflineContent() {
-		if err := utils.ParseOSClearVersion(); err != nil {
-			return prg, err
-		}
-
-		// If command line did not explicitly set "latest", use the current
-		// image version to enable Offline content usage
-		// Note: Setting "version: 0" in the YAML will not override offline content
-		if version == "latest" && options.SwupdVersion == "" {
+	// We have usable offline content available
+	if swupd.OfflineIsUsable(version, options) {
+		if version == "latest" {
 			version = utils.ClearVersion
 			log.Info("Overriding version from 'latest' to %s to enable offline install", utils.ClearVersion)
 		}
 
-		if version == utils.ClearVersion {
-			msg := utils.Locale.Get("Copying cached content to target media")
-			prg = progress.NewLoop(msg)
-			log.Info(msg)
+		msg := utils.Locale.Get("Copying cached content to target media")
+		prg = progress.NewLoop(msg)
+		log.Info(msg)
 
-			// Copying offline content here is a performance optimization and is not a hard
-			// failure because Swupd may be able to successfully copy offline content or
-			// install over the network.
-			if err := copyOfflineToStatedir(rootDir, sw.GetStateDir()); err != nil {
-				log.Warning("Failed to copy offline content: %s", err)
-			}
-
-			prg.Success()
-		} else {
-			log.Warning("Ignoring the Offline content (%s) due to version set to %s", utils.ClearVersion, version)
+		// Copying offline content here is a performance optimization and is not a hard
+		// failure because Swupd may be able to successfully copy offline content or
+		// install over the network.
+		if err := copyOfflineToStatedir(rootDir, sw.GetStateDir()); err != nil {
+			log.Warning("Failed to copy offline content: %s", err)
 		}
+
+		prg.Success()
+	} else {
+		log.Warning("Ignoring the Offline content (%s) due to version set to %s", utils.ClearVersion, version)
 	}
 
 	msg := utils.Locale.Get("Installing base OS and configured bundles")
