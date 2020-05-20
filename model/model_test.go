@@ -719,6 +719,29 @@ func TestInterActivePass(t *testing.T) {
 	}
 }
 
+func TestInitDefaults(t *testing.T) {
+	si := &SystemInstall{}
+
+	// Exercise both code paths
+	// First time pointers are nil, second time they have a value
+	for i := 1; i < 2; i++ {
+		si.InitializeDefaults()
+		if si.PostArchive == nil {
+			t.Fatalf("InitializeDefaults failed to initialize PostArchive default")
+		}
+		if !si.PostArchive.IsDefault() {
+			t.Fatalf("InitializeDefaults failed to set PostArchive default")
+		}
+
+		if si.AutoUpdate == nil {
+			t.Fatalf("InitializeDefaults failed to initialize AutoUpdate default")
+		}
+		if !si.AutoUpdate.IsDefault() {
+			t.Fatalf("InitializeDefaults failed to set AutoUpdate default")
+		}
+	}
+}
+
 func TestSetDefaultSwapFilePass(t *testing.T) {
 	si := &SystemInstall{}
 	if si.MediaOpts.SwapFileSize != "" {
