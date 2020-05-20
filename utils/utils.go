@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"syscall"
 	"unsafe"
@@ -498,7 +499,23 @@ func HostHasEFI() bool {
 	return true
 }
 
-//VersionUintString converts a uint model to the string version
+//VersionStringUint converts string version to an uint version
+func VersionStringUint(versionString string) (uint, error) {
+	var versionUint uint = 0
+
+	if versionString == "" || IsLatestVersion(versionString) {
+		return 0, nil
+	}
+
+	version, err := strconv.ParseUint(versionString, 10, 32)
+	if err == nil {
+		versionUint = uint(version)
+	}
+
+	return versionUint, err
+}
+
+//VersionUintString converts an uint version to the string version
 func VersionUintString(versionUint uint) string {
 	var version string
 

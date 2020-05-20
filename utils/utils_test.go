@@ -156,3 +156,45 @@ func compareFiles(pathSrc, pathDest string) error {
 
 	return nil
 }
+
+func TestVersion(t *testing.T) {
+	versionString := VersionUintString(0)
+	if !IsLatestVersion(versionString) {
+		t.Fatalf("Version 0 should always be latest")
+	}
+
+	if num, err := VersionStringUint(versionString); err != nil {
+		t.Fatalf("Parse Error: Version latest should always be 0")
+	} else if num != 0 {
+		t.Fatalf("Version latest should always be 0")
+	} else {
+		t.Logf("Found version %d for '%s'", num, versionString)
+	}
+
+	versionString = ""
+	if num, err := VersionStringUint(versionString); err != nil {
+		t.Fatalf("Parse Error: Version '' should always be 0")
+	} else if num != 0 {
+		t.Fatalf("Version '' should always be 0")
+	} else {
+		t.Logf("Found version %d for '%s'", num, versionString)
+	}
+
+	versionString = "0"
+	if num, err := VersionStringUint(versionString); err != nil {
+		t.Fatalf("Parse Error: Version '0' should always be 0")
+	} else if num != 0 {
+		t.Fatalf("Version '0' should always be 0")
+	} else {
+		t.Logf("Found version %d for '%s'", num, versionString)
+	}
+
+	versionString = "10"
+	if num, err := VersionStringUint(versionString); err != nil {
+		t.Fatalf("Parse Error: Version '10' should always be 10")
+	} else if num != 10 {
+		t.Fatalf("Version '10' should always be 10")
+	} else {
+		t.Logf("Found version %d for '%s'", num, versionString)
+	}
+}
