@@ -90,6 +90,8 @@ type Network struct {
 func JSONtoYAMLConfig(cf string) (*SystemInstall, error) {
 	var si SystemInstall
 
+	si.InitializeDefaults()
+
 	fp, err := os.Open(cf)
 	if err != nil {
 		return nil, errors.Wrap(err)

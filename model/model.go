@@ -120,6 +120,24 @@ type StorageAlias struct {
 	DeviceFile bool   `yaml:"devicefile,omitempty,flow"`
 }
 
+// InitializeDefaults ensure defaults are set such
+// as initializing pointer members
+func (si *SystemInstall) InitializeDefaults() {
+	// Default to archiving by default
+	if si.PostArchive == nil {
+		si.PostArchive = boolset.NewTrue()
+	} else {
+		si.PostArchive.SetDefault(true)
+	}
+
+	// Default to Auto Updating enabled by default
+	if si.AutoUpdate == nil {
+		si.AutoUpdate = boolset.NewTrue()
+	} else {
+		si.AutoUpdate.SetDefault(true)
+	}
+}
+
 // ClearInstallSelected clears the map of Installation Selected targets
 func (si *SystemInstall) ClearInstallSelected() {
 	si.InstallSelected = map[string]storage.InstallTarget{}
@@ -427,19 +445,7 @@ func LoadFile(path string, options args.Args) (*SystemInstall, error) {
 		}
 	}
 
-	// Default to archiving by default
-	if result.PostArchive == nil {
-		result.PostArchive = boolset.NewTrue()
-	} else {
-		result.PostArchive.SetDefault(true)
-	}
-
-	// Default to Auto Updating enabled by default
-	if result.AutoUpdate == nil {
-		result.AutoUpdate = boolset.NewTrue()
-	} else {
-		result.AutoUpdate.SetDefault(true)
-	}
+	result.InitializeDefaults()
 
 	// Set default Timezone if not defined
 	if result.Timezone == nil {
