@@ -211,6 +211,11 @@ check-for-root-user:
 		/bin/false; \
 	fi
 
+PHONY += check-json-yaml
+check-json-yaml: check-for-root-user
+	@${top_srcdir}/tests/check-json-yaml.sh .
+	@echo "consider running 'sudo make clean' to remove the files built as root"
+
 PHONY += check-all-images
 check-all-images: check-for-root-user
 	@echo "This process runs serially and take a long time and should not be aborted!"
