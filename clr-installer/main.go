@@ -219,16 +219,11 @@ func processSwupdOptions(options args.Args, md *model.SystemInstall) {
 		md.SwupdSkipOptional = options.SwupdSkipOptional
 	}
 	if options.SwupdVersion != "" {
-		if utils.IsLatestVersion(options.SwupdVersion) {
-			md.Version = 0
+		if version, err := utils.VersionStringUint(options.SwupdVersion); err == nil {
+			md.Version = version
+			log.Debug("Forcing Clear Linux OS version to %d", md.Version)
 		} else {
-			version, err := strconv.ParseUint(options.SwupdVersion, 10, 32)
-			if err == nil {
-				md.Version = uint(version)
-				log.Debug("Forcing Clear Linux OS version to %d", md.Version)
-			} else {
-				log.Warning("Failed to parse swupd-version : %s; not-used!", options.SwupdVersion)
-			}
+			log.Warning("Failed to parse swupd-version : %s; not-used!", options.SwupdVersion)
 		}
 	}
 	if options.CopySwupdSet {
