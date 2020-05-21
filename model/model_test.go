@@ -5,6 +5,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -771,5 +772,70 @@ func TestSetDefaultSwapFilePass(t *testing.T) {
 	si.ResetDefaultSwapFileSize()
 	if si.MediaOpts.SwapFileSize == "" {
 		t.Fatalf("SwapFileSize should be set to %q, but it is empty", testValue)
+	}
+}
+
+func TestJSONUnmarshalIster(t *testing.T) {
+	var us IsterConfig
+
+	if err := json.Unmarshal([]byte(`{"Version" "latest"}`), &us); err == nil {
+		t.Fatalf("UnmarshalJSON should have had an error")
+	} else {
+		t.Logf("Found expected error: %+v", err)
+	}
+
+	if err := json.Unmarshal([]byte(`{"Version": 0.567}`), &us); err == nil {
+		t.Fatalf("UnmarshalJSON should have had an error")
+	} else {
+		t.Logf("Found expected error: %+v", err)
+	}
+
+	if err := json.Unmarshal([]byte(`{"Version": "latest"}`), &us); err != nil {
+		t.Fatalf("UnmarshalJSON error %+v", err)
+	}
+	if us.Version.Number != 0 {
+		t.Fatalf("Version latest should always be 0")
+	}
+
+	if err := json.Unmarshal([]byte(`{"Version": ""}`), &us); err != nil {
+		t.Fatalf("UnmarshalJSON error %+v", err)
+	}
+	if us.Version.Number != 0 {
+		t.Fatalf("Version '' should always be 0")
+	}
+
+	if err := json.Unmarshal([]byte(`{"Version": 0}`), &us); err != nil {
+		t.Fatalf("UnmarshalJSON error %+v", err)
+	}
+	if us.Version.Number != 0 {
+		t.Fatalf("Version '0' should always be 0, not %d", us.Version.Number)
+	}
+
+	if err := json.Unmarshal([]byte(`{"Version": "10"}`), &us); err != nil {
+		t.Fatalf("UnmarshalJSON error %+v", err)
+	}
+	if us.Version.Number != 10 {
+		t.Fatalf("Version \"10\" should always be 10, not %d", us.Version.Number)
+	}
+
+	if err := json.Unmarshal([]byte(`{"Version": 10}`), &us); err != nil {
+		t.Fatalf("UnmarshalJSON error %+v", err)
+	}
+	if us.Version.Number != 10 {
+		t.Fatalf("Version 10 should always be 10, not %d", us.Version.Number)
+	}
+
+	if err := json.Unmarshal([]byte(`{"Version": "54321"}`), &us); err != nil {
+		t.Fatalf("UnmarshalJSON error %+v", err)
+	}
+	if us.Version.Number != 54321 {
+		t.Fatalf("Version \"54321\" should always be 54321, not %d", us.Version.Number)
+	}
+
+	if err := json.Unmarshal([]byte(`{"Version": 54321}`), &us); err != nil {
+		t.Fatalf("UnmarshalJSON error %+v", err)
+	}
+	if us.Version.Number != 54321 {
+		t.Fatalf("Version 54321 should always be 54321, not %d", us.Version.Number)
 	}
 }

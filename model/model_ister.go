@@ -5,8 +5,10 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -22,7 +24,12 @@ import (
 	"github.com/clearlinux/clr-installer/storage"
 	"github.com/clearlinux/clr-installer/telemetry"
 	"github.com/clearlinux/clr-installer/user"
+	"github.com/clearlinux/clr-installer/utils"
 )
+
+type UintString struct {
+	Number uint
+}
 
 // IsterConfig represents the install configuration used in the "ister" app
 type IsterConfig struct {
@@ -30,7 +37,7 @@ type IsterConfig struct {
 	PartitionLayouts     []*PartitionLayout     `json:"PartitionLayout"`
 	FilesystemTypes      []*FilesystemType      `json:"FilesystemTypes"`
 	PartitionMountPoints []*PartitionMountPoint `json:"PartitionMountPoints"`
-	Version              json.Number            `json:"Version"`
+	Version              UintString             `json:"Version"`
 	Bundles              []string               `json:"Bundles"`
 	Users                []*User                `json:"Users,omitempty,flow"`
 	Hostname             string                 `json:"Hostname,omitempty,flow"`
@@ -217,13 +224,7 @@ func JSONtoYAMLConfig(cf string) (*SystemInstall, error) {
 		si.AddTargetMedia(curr)                                                         // Set TargetMedia
 	}
 
-	// Set Version. Any non numeric version (e.g. "latest") is set to 0
-	v, err := ic.Version.Int64()
-	if err == nil {
-		si.Version = uint(v)
-	} else {
-		si.Version = 0
-	}
+	si.Version = ic.Version.Number
 
 	// Process the bundle information
 	// clr-installer treats the kernel differently unlike ister
@@ -365,4 +366,46 @@ func setStorageValues(name string, part uint64, size string) (storage.BlockDevic
 		}
 	}
 	return bd, nil
+}
+
+// UnmarshalJSON decodes a UintString
+func (us *UintString) UnmarshalJSON(b []byte) error {
+	dec := json.NewDecoder(bytes.NewReader(b))
+	dec.UseNumber()
+
+	for {
+		token, err := dec.Token()
+		if err == io.EOF {
+			break
+		}
+
+		switch t := token.(type) {
+		case json.Number:
+			var n int64
+			n, err = t.Int64()
+			if err != nil {
+				us.Number = 0
+				return err
+			}
+			us.Number = uint(n)
+
+		case string:
+			str, sValid := token.(string)
+			if !sValid {
+				us.Number = 0
+				return errors.Errorf("\"Version\" token is neither an uint nor a string value")
+			}
+
+			us.Number, err = utils.VersionStringUint(str)
+			if err != nil {
+				us.Number = 0
+				return err
+			}
+
+		default:
+			return errors.Errorf("\"Version\" token is unknown type: %+v", t)
+		}
+	}
+
+	return nil
 }
