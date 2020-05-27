@@ -27,6 +27,14 @@ git clone https://github.com/clearlinux/clr-installer.git
 
 ## Build the installer
 
+### Pre-requisties
+We have compiled all the tools you need to start building clr-installer in a single development bundle called `clr-installer-dev`.
+
+Install it using:
+```
+swupd bundle-add clr-installer-dev
+```
+
 ```
 cd clr-installer && make
 ```
