@@ -8,14 +8,36 @@ WARNING="\\033[1;33m"        # yellow
 FAILURE="\\033[1;31m"        # red
 INFO="\\033[1;36m"           # light cyan
 
+TTY_DEFAULT="/dev/console"
+TTYS="/dev/console /dev/tty0 /dev/ttyS0 /dev/tty1 /dev/ttyS1 /dev/tty2 /dev/ttyS2"
+TTY="${TTY_DEFAULT}"
+
+discover_tty() {
+    found=0
+    for tty in ${TTYS}
+    do
+        echo -e "" >> "${tty}" 2>/dev/null
+        if [ "$?" -eq 0 ] ; then
+            TTY="${tty}"
+            found=1
+            break
+        fi
+    done
+
+    if [ "${found}" -eq 1 ] ; then
+        echo_tty_kmsg "${INFO}Using ${TTY} for output${NORMAL}"
+    else
+        TTY="${TTY_DEFAULT}"
+        echo_tty_kmsg "${FAILURE}Defaulting to ${TTY} for output${NORMAL}"
+    fi
+}
+
 # Prints msg to TTY and kmsg, stripping color codes for kmsg
 # This echos twice - once for tty0 and once on kmsg for all others
 # $1 - Message string to print
 # Explicitly send boot messages to tty0, /dev/console is ttyS0
 echo_tty_kmsg() {
-    echo -e "$1" > /dev/tty0
-    # This is required for messages to be seen while using qemu
-    echo -e "$1" > /dev/console
+    echo -e "$1" > "${TTY}"
     echo -e "$1" | sed 's/\x1b\[[0-9;]*m//g' > /dev/kmsg
 }
 
@@ -128,12 +150,11 @@ verify_media() {
     local need="ISO integrity check"
 
     if [ -n "${installer}" ]; then
-        checkisomd5 --verbose ${installer} 2>&1 | tee -a /dev/console > /dev/tty0
+        checkisomd5 --verbose ${installer} |& tee -a "${TTY}"
+        check_iso_verify "${PIPESTATUS[0]}" "$need"
     else
         shell_trap "[${FAILURE} FAIL ${NORMAL}] Failed to verify installer media, failed to boot Clear Linux*."
     fi
-
-    check_iso_verify "${PIPESTATUS[0]}" "$need"
 }
 
 # Finds the installer media
@@ -196,6 +217,8 @@ main() {
     mount -t sysfs none /sys
     mount -t devtmpfs none /dev
     mount -t tmpfs none /run
+
+    discover_tty
 
     # Verify CPU features needed to run Clear exist
     echo_tty_kmsg "Checking if system is capable of running Clear Linux*..."
