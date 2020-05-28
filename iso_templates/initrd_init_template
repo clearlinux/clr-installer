@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Set color commands used with echo
 # Refer to man console_codes for more info
@@ -128,20 +128,24 @@ mount_root() {
     fi
 }
 
-wait_for_keystrokes() {
-    while [ true ] ; do
-        read -n 1
-        if [ "$?" -eq 0 ] ; then
-            break
-        fi
+wait_for_timeout() {
+    local n="$1"
+    local space=" "
+    echo_tty_kmsg
+    echo_tty_kmsg
+    while [ "$n" -ge 0 ] ; do
+        printf "Continue booting in [%2d] sec(s)...\r" "$n" > "${TTY}"
+        sleep 1
+        n=`expr "$n" - 1`
     done
+    printf "%50c\r" "$space" > "${TTY}"
 }
 
 check_iso_verify() {
     local ret="$1"
     local msg="$2"
     [ "$ret" -ne 0 ] && { echo_tty_kmsg "[${FAILURE} FAIL ${NORMAL}]"; shell_trap "$msg"; }
-    [ "$ret" -eq 0 ] && { echo_tty_kmsg "[${SUCCESS}  OK  ${NORMAL}] $msg: Press any key to continue"; wait_for_keystrokes; }
+    [ "$ret" -eq 0 ] && { echo_tty_kmsg "[${SUCCESS}  OK  ${NORMAL}] $msg"; wait_for_timeout 10; }
 }
 
 # Check ISO media integrity
@@ -150,7 +154,7 @@ verify_media() {
     local need="ISO integrity check"
 
     if [ -n "${installer}" ]; then
-        checkisomd5 --verbose ${installer} |& tee -a "${TTY}"
+        checkisomd5 --verbose ${installer} > "${TTY}"
         check_iso_verify "${PIPESTATUS[0]}" "$need"
     else
         shell_trap "[${FAILURE} FAIL ${NORMAL}] Failed to verify installer media, failed to boot Clear Linux*."
