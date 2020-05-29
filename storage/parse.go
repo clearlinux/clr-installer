@@ -16,6 +16,7 @@ import (
 // Version used for reading and writing YAML
 type blockDeviceYAMLMarshal struct {
 	Name            string         `yaml:"name,omitempty"`
+	Path            string         `yaml:"path,omitempty"`
 	Model           string         `yaml:"model,omitempty"`
 	MajorMinor      string         `yaml:"majMin,omitempty"`
 	FsType          string         `yaml:"fstype,omitempty"`
@@ -58,6 +59,14 @@ func (bd *BlockDevice) UnmarshalJSON(b []byte) error {
 			}
 
 			bd.Name = name
+		case "path":
+			var path string
+
+			if path, err = getNextStrToken(dec, "path"); err != nil {
+				return err
+			}
+
+			bd.Path = path
 		case "model":
 			var model string
 
@@ -268,6 +277,7 @@ func (bd *BlockDevice) MarshalYAML() (interface{}, error) {
 	var bdm blockDeviceYAMLMarshal
 
 	bdm.Name = bd.Name
+	bdm.Path = bd.Path
 	bdm.Model = bd.Model
 	bdm.MajorMinor = bd.MajorMinor
 	bdm.FsType = bd.FsType
@@ -296,6 +306,7 @@ func (bd *BlockDevice) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	// Copy the unmarshaled data
 	bd.Name = unmarshBlockDevice.Name
+	bd.Path = unmarshBlockDevice.Path
 	bd.Model = unmarshBlockDevice.Model
 	bd.MajorMinor = unmarshBlockDevice.MajorMinor
 	bd.FsType = unmarshBlockDevice.FsType

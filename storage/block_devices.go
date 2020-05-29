@@ -23,6 +23,7 @@ import (
 type BlockDevice struct {
 	Name            string             // device name
 	MappedName      string             // mapped device name
+	Path            string             // device path
 	Model           string             // device model
 	MajorMinor      string             // major:minor device number
 	PtType          string             // partition table type
@@ -263,6 +264,10 @@ func (bd *BlockDevice) GetPartitionNumber() uint64 {
 
 // GetDeviceFile formats the block device's file path
 func (bd BlockDevice) GetDeviceFile() string {
+	if bd.Path != "" {
+		return bd.Path
+	}
+
 	return filepath.Join("/dev/", bd.Name)
 }
 
@@ -277,7 +282,7 @@ func (bd BlockDevice) GetMappedDeviceFile() string {
 		return filepath.Join("/dev/mapper", bd.Name)
 	}
 
-	return filepath.Join("/dev/", bd.Name)
+	return bd.GetDeviceFile()
 }
 
 // GetDeviceID returns an identifier for the block device
@@ -343,6 +348,7 @@ func (bd *BlockDevice) Clone() *BlockDevice {
 	clone := &BlockDevice{
 		Name:            bd.Name,
 		MappedName:      bd.MappedName,
+		Path:            bd.Path,
 		Model:           bd.Model,
 		MajorMinor:      bd.MajorMinor,
 		FsType:          bd.FsType,
