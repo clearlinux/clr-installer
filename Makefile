@@ -414,6 +414,11 @@ PHONY += dev-check-all
 dev-check-all: check-for-root-user build lint functional-check check
 	@echo "Running dev tests have passed"
 
+PHONY += damage
+damage:
+	@echo "Building damage_file"
+	go build tests/damage_file.go
+
 all: build
 
 PHONY += all
