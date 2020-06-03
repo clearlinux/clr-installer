@@ -223,6 +223,11 @@ main() {
     mount -t devtmpfs none /dev
     mount -t tmpfs none /run
 
+    # insmod required modules
+    {{range .Modules}}
+    insmod {{.}}
+    {{end}}
+
     discover_tty
 
     # Verify CPU features needed to run Clear exist
@@ -243,11 +248,6 @@ main() {
         echo_tty_kmsg "Starting ISO integrity check..."
         verify_media "$installer"
     fi
-
-    # insmod required modules
-    {{range .Modules}}
-    insmod {{.}}
-    {{end}}
 
     # Mount it
     mount_installer "$installer"
