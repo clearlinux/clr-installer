@@ -164,8 +164,9 @@ verify_media() {
 # Finds the installer media
 find_installer() {
     local retries=0
+    local max_retries=10
 
-    while [ $retries -le 5 ]; do
+    while [ $retries -le $max_retries ]; do
         installer=$(blkid -L CLR_ISO)
         if [ -n "${installer}" ]; then
             echo_tty_kmsg "[${SUCCESS}  OK  ${NORMAL}] Found installer media, continuing boot..."
@@ -178,7 +179,7 @@ find_installer() {
         fi
     done
 
-    if [ $retries -ge 5 ]; then
+    if [ $retries -ge $max_retries ]; then
         shell_trap "[${FAILURE} FAIL ${NORMAL}] Failed to find installer media, retries exhausted, failed to boot Clear Linux*."
     fi
 }
