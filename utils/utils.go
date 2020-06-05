@@ -227,6 +227,17 @@ func StringSliceContains(sl []string, str string) bool {
 	return false
 }
 
+// StringBlobContains returns true if sl h str, returns false otherwise
+func StringBlobContains(output *bytes.Buffer, str string) bool {
+	containsRegex := regexp.MustCompile(str)
+
+	if containsRegex.MatchString(output.String()) {
+		return true
+	}
+
+	return false
+}
+
 // IntSliceContains returns true if is contains value, returns false otherwise
 func IntSliceContains(is []int, value int) bool {
 	for _, curr := range is {

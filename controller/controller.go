@@ -5,12 +5,16 @@
 package controller
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -247,6 +251,8 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		return err
 	}
 
+	var bootDisk string
+	var bootpartition string
 	for _, curr := range model.TargetMedias {
 		// Are we using software RAID
 		softRaidUsed = softRaidUsed || curr.UsesRaid()
@@ -278,6 +284,11 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 				msg := utils.Locale.Get("Skipping new file system for %s", ch.Name)
 				log.Debug(msg)
 				continue
+			}
+
+			if ch.MountPoint == "/boot" {
+				bootDisk = curr.GetDeviceFile()
+				bootpartition = strconv.FormatUint(ch.GetPartitionNumber(), 10)
 			}
 
 			msg := utils.Locale.Get("Writing %s file system to %s", ch.FsType, ch.Name)
@@ -485,12 +496,143 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		}
 	}
 
+	/*
+	 BootNext setting is only needed during installation and not done during following:
+	 1. ISO generation
+	 2. Legacy Bios
+	*/
+	if !model.MakeISO && !model.MediaOpts.LegacyBios {
+		fullymappedname := fmt.Sprintf("%s%s", bootDisk, bootpartition)
+		log.Info("Attemping to set UEFI to boot next %s", fullymappedname)
+		setBootNextOnce(bootDisk, bootpartition)
+	}
+
 	msg = utils.Locale.Get("Installation completed")
 	prg = progress.NewLoop(msg)
 	log.Info(msg)
 	prg.Success()
 
 	return nil
+}
+
+func runEFIBootMgr(AdditionalOptions []string) (*bytes.Buffer, error) {
+	var args = []string{"efibootmgr"}
+	args = append(args, AdditionalOptions...)
+	output := bytes.NewBuffer(nil)
+
+	if err := cmd.Run(output, args...); err != nil {
+		return nil, err
+	}
+
+	for _, line := range strings.Split(output.String(), "\n") {
+		if line == "\n" {
+			continue
+		}
+		log.Debug("%s", line)
+	}
+
+	return output, nil
+}
+
+func createBootEntry(bdevice, part, UefiEntryName string) error {
+	var err error
+	var additionalArgs = []string{"--create-only",
+		"--disk",
+		bdevice,
+		"-p",
+		part,
+		"-L",
+		UefiEntryName,
+		"-l",
+		//"'EFI\\boot\\bootx64.efi'",
+		"'\\EFI\\org.clearlinux\\bootloaderx64.efi'",
+		"-u",
+	}
+
+	_, err = runEFIBootMgr(additionalArgs)
+	return err
+}
+
+func setBootNext(Hexcode string) error {
+	var err error
+	var additionalArgs = []string{"--bootnext", Hexcode}
+
+	_, err = runEFIBootMgr(additionalArgs)
+	return err
+}
+
+func getUniqueUEFIEntry() string {
+	prefix := "UEFI_CLEARLINUX_"
+	retries := 3
+	uniqueName := ""
+
+	out, err := runEFIBootMgr([]string{})
+	if err != nil {
+		log.Debug("Failed to create UEFI Entry Name")
+		return ""
+	}
+
+	for retries > 0 {
+		suffix := rand.Intn(100)
+		testEntryName := fmt.Sprintf("%s%d", prefix, suffix)
+
+		if !utils.StringBlobContains(out, testEntryName) {
+			uniqueName = testEntryName
+			break
+		}
+		retries--
+	}
+
+	if len(uniqueName) > 0 {
+		log.Debug("Choosing %s to be UEFI entry name", uniqueName)
+		return uniqueName
+	}
+
+	log.Debug("Failed to create UEFI Entry Name %s", uniqueName)
+	log.Debug("This could be because of a lot of pre-existing UEFI entries")
+
+	return ""
+}
+
+func getBootNextHex(UEFIEntryName string) string {
+	out, err := runEFIBootMgr([]string{})
+	if err != nil {
+		log.Debug("Failed to extract Hex Code")
+		return ""
+	}
+
+	re := regexp.MustCompile(`Boot([0-9A-F]+)\*`)
+
+	for _, line := range strings.Split(out.String(), "\n") {
+		if strings.Contains(line, UEFIEntryName) {
+			matches := re.FindStringSubmatch(line)
+			if len(matches) == 2 {
+				// The second element in the list is the Hex code
+				log.Debug("Extracted Hex Code: %s", matches[1])
+				return matches[1]
+			}
+		}
+	}
+
+	log.Debug("Failed to extract Hex Code")
+	return ""
+}
+
+func setBootNextOnce(bdevice, part string) {
+	UEFIEntryName := getUniqueUEFIEntry()
+
+	err := createBootEntry(bdevice, part, UEFIEntryName)
+	if err != nil {
+		log.Warning(err.Error())
+	}
+
+	hexcode := getBootNextHex(UEFIEntryName)
+
+	if len(hexcode) > 0 {
+		if err = setBootNext(hexcode); err != nil {
+			log.Warning(err.Error())
+		}
+	}
 }
 
 func applyHooks(name string, vars map[string]string, hooks []*model.InstallHook) error {
