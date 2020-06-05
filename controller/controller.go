@@ -589,7 +589,9 @@ func contentInstall(rootDir string, version string,
 			prg.Success()
 		}
 	} else {
-		log.Warning("Ignoring the Offline content (%s) due to version set to %s", utils.ClearVersion, version)
+		if swupd.IsOfflineContent() {
+			log.Warning("Ignoring the Offline content (%s) due to version set to %s", utils.ClearVersion, version)
+		}
 	}
 
 	msg := utils.Locale.Get("Installing base OS and configured bundles")
