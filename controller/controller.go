@@ -664,7 +664,6 @@ func contentInstall(rootDir string, version string,
 		if err := sw.DisableUpdate(); err != nil {
 			warnMsg := utils.Locale.Get("Disabling automatic updates failed")
 			log.Warning(warnMsg)
-			prg.Failure()
 			return prg, err
 		}
 		prg.Success()
@@ -696,7 +695,6 @@ func contentInstall(rootDir string, version string,
 
 	err := cmd.RunAndLogWithEnv(envVars, args...)
 	if err != nil {
-		prg.Failure()
 		return prg, errors.Wrap(err)
 	}
 	prg.Success()
