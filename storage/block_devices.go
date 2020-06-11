@@ -110,6 +110,9 @@ const (
 	// BlockDeviceStateConnected identifies a BlockDevice as Connected
 	BlockDeviceStateConnected
 
+	// BlockDeviceStateSuspended identifies a BlockDevice as Suspended
+	BlockDeviceStateSuspended
+
 	// MinimumPartitionSize is smallest size for any partition
 	MinimumPartitionSize = 1048576
 
@@ -164,6 +167,9 @@ const (
 
 	// PassphraseMessage specifies the text for encryption passphrase dialog
 	PassphraseMessage = "Encryption requires a Passphrase"
+
+	// RequiredBundleLVM the bundle needed if lvm partitions are used other than root
+	RequiredBundleLVM = "storage-utils"
 )
 
 var (
@@ -174,6 +180,7 @@ var (
 		BlockDeviceStateRunning:   "running",
 		BlockDeviceStateLive:      "live",
 		BlockDeviceStateConnected: "Connected",
+		BlockDeviceStateSuspended: "suspended",
 		BlockDeviceStateUnknown:   "",
 	}
 	blockDeviceTypeMap = map[BlockDeviceType]string{
@@ -203,6 +210,8 @@ var (
 
 	// BlockDeviceTypeLVM2GroupString is a string version for LVM2 member type
 	BlockDeviceTypeLVM2GroupString, _ = blockDeviceTypeMap[BlockDeviceTypeLVM2Group]
+
+	lvmAdvancedLabelExp = regexp.MustCompile(`\w+-(CLR_[0-9a-zA-Z-_\+.]+$)`)
 )
 
 func getAliasSuffix(file string) string {
@@ -213,6 +222,19 @@ func getAliasSuffix(file string) string {
 	}
 
 	return ""
+}
+
+func (bd *BlockDevice) FindAllChildren() []*BlockDevice {
+	var children []*BlockDevice
+
+	for _, ch := range bd.Children {
+		children = append(children, ch)
+		if len(ch.Children) > 0 {
+			children = append(children, ch.FindAllChildren()...)
+		}
+	}
+
+	return children
 }
 
 // ExpandName expands variables in the Name attribute applying the values in the
@@ -636,6 +658,20 @@ func isBlockDeviceAvailableDeep(blockDevices []*BlockDevice) bool {
 		if strings.Contains(bd.Label, "CLR_ISO") {
 			available = false
 			break
+		}
+
+		// Hack for Logical Volumes
+		// Since lvms do not have Partition Labels, if the Logical Volume name
+		// which matches Advance Labels, force set the Partition Label
+		if bd.Type == BlockDeviceTypeLVM2Volume {
+			log.Debug("isBlockDeviceAvailableDeep: Found lvm name: %s", bd.Name)
+			if matches := lvmAdvancedLabelExp.FindStringSubmatch(bd.Name); len(matches) == 2 {
+				// Hack again: LVM does not allow '/' in names, so we map '+' to '/'
+				bd.PartitionLabel = strings.ReplaceAll(matches[1], "+", "/")
+				log.Debug("Force setting partlabel from lvm name: %s", bd.PartitionLabel)
+			} else {
+				log.Debug("lvm name %s does not match Advanced regex %s", bd.Name, lvmAdvancedLabelExp.String())
+			}
 		}
 
 		if bd.Children != nil {

@@ -85,6 +85,10 @@ var (
 	minSwapSize = uint64(32) * (1024 * 1024)       // 32MiB recommend smallest for memory crunch times
 	maxSwapSize = uint64(8) * (1024 * 1024 * 1024) // 8GiB recommend maximum for memory crunch times
 
+	// Defaults types for file system
+	defaultFsType     = "ext4"
+	defaultBootFsType = "vfat"
+
 	// Global to store if there is impact on other disks
 	// Only used during destructive Installation
 	hasUnplannedDestructiveChanges bool = false
@@ -254,6 +258,7 @@ func (bd *BlockDevice) isStandardMount() bool {
 	standard := false
 
 	for mnt := range guidMap {
+		// LVM do not have GUID Types
 		if bd.MountPoint == mnt {
 			standard = true
 		}
@@ -1032,7 +1037,7 @@ func preScanRaidMembers(bds []*BlockDevice) []*BlockDevice {
 
 // WritePartitionTable writes the defined partitions to the actual block device
 func (bd *BlockDevice) WritePartitionTable(wholeDisk bool, forceDestructive bool, dryRun *DryRunType) error {
-	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop &&
+	if bd.Type != BlockDeviceTypeDisk && bd.Type != BlockDeviceTypeLoop && bd.Type != BlockDeviceTypeLVM2Volume &&
 		bd.Type != BlockDeviceTypeRAID0 && bd.Type != BlockDeviceTypeRAID1 && bd.Type != BlockDeviceTypeRAID4 &&
 		bd.Type != BlockDeviceTypeRAID5 && bd.Type != BlockDeviceTypeRAID6 && bd.Type != BlockDeviceTypeRAID10 {
 		return errors.Errorf("Type is partition, disk required")
@@ -1229,7 +1234,8 @@ func (bd *BlockDevice) getPartitionList() []*PartedPartition {
 	partTable := bytes.NewBuffer(nil)
 	devFile := bd.GetDeviceFile()
 
-	if !utils.IntSliceContains([]int{BlockDeviceTypeDisk, BlockDeviceTypeLoop}, int(bd.Type)) {
+	if !utils.IntSliceContains([]int{BlockDeviceTypeDisk, BlockDeviceTypeLoop, BlockDeviceTypeLVM2Volume},
+		int(bd.Type)) {
 		log.Warning("getPartitionList() called on non-disk %q", devFile)
 		return partitionList
 	}
@@ -1760,41 +1766,54 @@ func GenerateTabFiles(rootDir string, medias []*BlockDevice) error {
 	var fstab []string
 	var errFound bool
 
+	// First create a list of all children we need to check
+	var childrenToCheck []*BlockDevice
+
 	for _, curr := range medias {
-		for _, ch := range curr.Children {
-			// Handle Encrypted partitions
-			var ctab []string
-			var ftab []string
+		childrenToCheck = append(childrenToCheck, curr.FindAllChildren()...)
+	}
 
-			if ch.Type == BlockDeviceTypeCrypt {
-				if ch.FsType == "swap" {
-					ctab = append(ctab, filepath.Base(ch.MappedName), ch.GetDeviceID(),
-						"/dev/urandom",
-						fmt.Sprintf("swap,offset=2048,cipher=%s,size=%d",
-							EncryptCipher, EncryptKeySize))
+	for _, ch := range childrenToCheck {
+		// Handle Encrypted partitions
+		var ctab []string
+		var ftab []string
 
-					ftab = append(ftab, ch.GetMappedDeviceFile(), "none",
-						"swap", "defaults", "0", "0")
-				} else {
-					if !ch.isStandardMount() {
-						ctab = append(ctab, filepath.Base(ch.MappedName), ch.GetDeviceID())
-						ftab = append(ftab, ch.GetMappedDeviceFile(), ch.MountPoint,
-							ch.FsType, "defaults", "0", "2")
-					}
-				}
+		if ch.Type == BlockDeviceTypeCrypt {
+			if ch.FsType == "swap" {
+				ctab = append(ctab, filepath.Base(ch.MappedName), ch.GetDeviceID(),
+					"/dev/urandom",
+					fmt.Sprintf("swap,offset=2048,cipher=%s,size=%d",
+						EncryptCipher, EncryptKeySize))
+
+				ftab = append(ftab, ch.GetMappedDeviceFile(), "none",
+					"swap", "defaults", "0", "0")
 			} else {
-				if !ch.isStandardMount() && ch.MountPoint != "" {
-					ftab = append(ftab, ch.GetDeviceID(), ch.MountPoint,
+				if !ch.isStandardMount() {
+					ctab = append(ctab, filepath.Base(ch.MappedName), ch.GetDeviceID())
+					ftab = append(ftab, ch.GetMappedDeviceFile(), ch.MountPoint,
 						ch.FsType, "defaults", "0", "2")
 				}
 			}
+		} else if ch.Type == BlockDeviceTypeLVM2Volume {
+			if ch.FsType == "swap" {
+				ftab = append(ftab, ch.GetDeviceID(), "none",
+					"swap", "defaults", "0", "0")
+			} else {
+				ftab = append(ftab, ch.GetDeviceID(), ch.MountPoint,
+					ch.FsType, "defaults", "0", "2")
+			}
+		} else {
+			if !ch.isStandardMount() && ch.MountPoint != "" {
+				ftab = append(ftab, ch.GetDeviceID(), ch.MountPoint,
+					ch.FsType, "defaults", "0", "2")
+			}
+		}
 
-			if len(ctab) > 0 {
-				crypttab = append(crypttab, strings.Join(ctab, " "))
-			}
-			if len(ftab) > 0 {
-				fstab = append(fstab, strings.Join(ftab, " "))
-			}
+		if len(ctab) > 0 {
+			crypttab = append(crypttab, strings.Join(ctab, " "))
+		}
+		if len(ftab) > 0 {
+			fstab = append(fstab, strings.Join(ftab, " "))
 		}
 	}
 
@@ -1803,6 +1822,7 @@ func GenerateTabFiles(rootDir string, medias []*BlockDevice) error {
 		crypttabFile := filepath.Join(rootDir, "etc", "crypttab")
 		lines := strings.Join(crypttab, "\n") + "\n"
 
+		log.Debug("Creating tab file: %s", crypttabFile)
 		if err := utils.MkdirAll(etcDir, 0755); err != nil {
 			log.Error("Failed to create %s dir: %v", etcDir, err)
 			errFound = true
@@ -1819,6 +1839,7 @@ func GenerateTabFiles(rootDir string, medias []*BlockDevice) error {
 		fstabFile := filepath.Join(rootDir, "etc", "fstab")
 		lines := strings.Join(fstab, "\n") + "\n"
 
+		log.Debug("Creating tab file: %s", fstabFile)
 		if err := utils.MkdirAll(etcDir, 0755); err != nil {
 			log.Error("Failed to create %s dir: %v", etcDir, err)
 			errFound = true
@@ -1999,119 +2020,124 @@ func FindAllInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTarg
 //
 // Appending "_E" to the label marks it for encryption; not valid for CLR_BOOT
 // Appending "_F" to the label marks it for formatting (newfs)
-func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
-	var targetMedias []*BlockDevice
-	defaultFsType := "ext4"
-	defaultBootFsType := "vfat"
+func hasAdvancedInstallTarget(medias []*BlockDevice) bool {
+	clrFound := false
 
-	for _, curr := range medias {
-		var installBlockDevice *BlockDevice
-		clrAdded := false
-		installBlockDevice = curr.Clone()
+	for _, bd := range medias {
+		label := bd.PartitionLabel
 
-		for _, ch := range installBlockDevice.Children {
-			clrFound := false
-			label := ch.PartitionLabel
+		if label != "" {
+			log.Debug("FindAdvancedInstallTargets: Found partition %s with name %s", bd.Name, label)
+		}
 
-			if label != "" {
-				log.Debug("FindAdvancedInstallTargets: Found partition %s with name %s", ch.Name, label)
+		for _, part := range strings.Split(label, "_") {
+			lowerPart := strings.ToLower(part)
+
+			// Filter out parts which don't start with CLR which
+			// mean they are not meant for advanced Installation
+			if !clrFound {
+				if lowerPart == "clr" {
+					log.Debug("FindAdvancedInstallTargets: Partition label contains clr %s", bd.Name)
+					clrFound = true
+				}
+				continue
 			}
 
-			for _, part := range strings.Split(label, "_") {
-				lowerPart := strings.ToLower(part)
+			switch lowerPart {
+			case "boot":
+				if bd.Type == BlockDeviceTypeRAID1 ||
+					bd.Type == BlockDeviceTypeRAID0 ||
+					bd.Type == BlockDeviceTypeRAID4 ||
+					bd.Type == BlockDeviceTypeRAID5 ||
+					bd.Type == BlockDeviceTypeRAID6 ||
+					bd.Type == BlockDeviceTypeRAID10 ||
+					bd.Type == BlockDeviceTypeLVM2Volume {
+					break
+				}
 
-				// Filter out parts which don't start with CLR which
-				// mean they are not meant for advanced Installation
-				if !clrFound {
-					if lowerPart == "clr" {
-						log.Debug("FindAdvancedInstallTargets: Partition label contains clr %s", ch.Name)
+				if bd.Type == BlockDeviceTypeCrypt {
+					log.Warning("FindAdvancedInstallTargets: /boot can not be encrypted, skipping")
+					bd.Type = BlockDeviceTypePart
+				}
+				log.Debug("FindAdvancedInstallTargets: Boot is %s", bd.Name)
+				bd.LabeledAdvanced = true
+				if bd.FsType == "" {
+					log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s",
+						bd.Name, defaultBootFsType)
+					bd.FsType = defaultBootFsType
+					log.Debug("FindAdvancedInstallTargets: Forcing Format partition %s enabled", bd.Name)
+					bd.FormatPartition = true
+				}
+				clrFound = true
+				bd.MountPoint = "/boot"
+			case "root":
+				log.Debug("FindAdvancedInstallTargets: Root is %s", bd.Name)
+				bd.LabeledAdvanced = true
+				if bd.FsType == "" {
+					log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s",
+						bd.Name, defaultFsType)
+					bd.FsType = defaultFsType
+					log.Debug("FindAdvancedInstallTargets: Forcing Format partition %s enabled", bd.Name)
+					bd.FormatPartition = true
+				}
+				clrFound = true
+				bd.MountPoint = "/"
+			case "swap":
+				log.Debug("FindAdvancedInstallTargets: Swap on %s", bd.Name)
+				bd.LabeledAdvanced = true
+				if bd.FsType == "" {
+					log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s",
+						bd.Name, "swap")
+					bd.FsType = "swap"
+					log.Debug("FindAdvancedInstallTargets: Forcing Format partition %s enabled", bd.Name)
+					bd.FormatPartition = true
+				}
+				clrFound = true
+			case "mnt":
+				mntParts := strings.Split(label, "MNT_")
+				if len(mntParts) == 2 {
+					path := filepath.Clean(mntParts[1])
+					if filepath.IsAbs(path) {
+						log.Debug("FindAdvancedInstallTargets: Extra mount %q for %s", path, bd.Name)
+
+						bd.MountPoint = path
+						bd.LabeledAdvanced = true
+						if bd.FsType == "" {
+							log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s",
+								bd.Name, defaultFsType)
+							bd.FsType = defaultFsType
+							log.Debug("FindAdvancedInstallTargets: Forcing Format partition %s enabled", bd.Name)
+							bd.FormatPartition = true
+						}
 						clrFound = true
 					}
-					continue
 				}
-
-				switch lowerPart {
-				case "boot":
-					if curr.Type == BlockDeviceTypeRAID1 ||
-						curr.Type == BlockDeviceTypeRAID0 ||
-						curr.Type == BlockDeviceTypeRAID4 ||
-						curr.Type == BlockDeviceTypeRAID5 ||
-						curr.Type == BlockDeviceTypeRAID6 ||
-						curr.Type == BlockDeviceTypeRAID10 ||
-						curr.Type == BlockDeviceTypeLVM2Volume {
-						break
-					}
-
-					if ch.Type == BlockDeviceTypeCrypt {
-						log.Warning("FindAdvancedInstallTargets: /boot can not be encrypted, skipping")
-						ch.Type = BlockDeviceTypePart
-					}
-					log.Debug("FindAdvancedInstallTargets: Boot is %s", ch.Name)
-					ch.LabeledAdvanced = true
-					if ch.FsType == "" {
-						log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s",
-							ch.Name, defaultBootFsType)
-						ch.FsType = defaultBootFsType
-						log.Debug("FindAdvancedInstallTargets: Forcing Format partition %s enabled", ch.Name)
-						ch.FormatPartition = true
-					}
-					clrAdded = true
-					ch.MountPoint = "/boot"
-				case "root":
-					log.Debug("FindAdvancedInstallTargets: Root is %s", ch.Name)
-					ch.LabeledAdvanced = true
-					if ch.FsType == "" {
-						log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s",
-							ch.Name, defaultFsType)
-						ch.FsType = defaultFsType
-						log.Debug("FindAdvancedInstallTargets: Forcing Format partition %s enabled", ch.Name)
-						ch.FormatPartition = true
-					}
-					clrAdded = true
-					ch.MountPoint = "/"
-				case "swap":
-					log.Debug("FindAdvancedInstallTargets: Swap on %s", ch.Name)
-					ch.LabeledAdvanced = true
-					if ch.FsType == "" {
-						log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s",
-							ch.Name, "swap")
-						ch.FsType = "swap"
-						log.Debug("FindAdvancedInstallTargets: Forcing Format partition %s enabled", ch.Name)
-						ch.FormatPartition = true
-					}
-					clrAdded = true
-				case "mnt":
-					mntParts := strings.Split(label, "MNT_")
-					if len(mntParts) == 2 {
-						path := filepath.Clean(mntParts[1])
-						if filepath.IsAbs(path) {
-							log.Debug("FindAdvancedInstallTargets: Extra mount %q for %s", path, ch.Name)
-
-							ch.MountPoint = path
-							ch.LabeledAdvanced = true
-							if ch.FsType == "" {
-								log.Debug("FindAdvancedInstallTargets: No FsType set for %s, defaulting to %s",
-									ch.Name, defaultFsType)
-								ch.FsType = defaultFsType
-								log.Debug("FindAdvancedInstallTargets: Forcing Format partition %s enabled", ch.Name)
-								ch.FormatPartition = true
-							}
-							clrAdded = true
-						}
-					}
-					break
-				case "f":
-					ch.FormatPartition = true
-					log.Debug("FindAdvancedInstallTargets: Format partition %s enabled", ch.Name)
-				}
-			}
-
-			if len(ch.Children) > 0 {
-				targetMedias = append(targetMedias, FindAdvancedInstallTargets(ch.Children)...)
+				break
+			case "f":
+				bd.FormatPartition = true
+				log.Debug("FindAdvancedInstallTargets: Format partition %s enabled", bd.Name)
 			}
 		}
 
-		if clrAdded {
+		if len(bd.Children) > 0 {
+			log.Debug("FindAdvancedInstallTargets: %s partition has children %d, pushing recurse ...",
+				bd.Name, len(bd.Children))
+			recurseHas := hasAdvancedInstallTarget(bd.Children)
+			clrFound = clrFound || recurseHas
+		}
+	}
+
+	return clrFound
+}
+
+func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
+	var targetMedias []*BlockDevice
+
+	for _, curr := range medias {
+		var installBlockDevice *BlockDevice
+		installBlockDevice = curr.Clone()
+
+		if hasAdvancedInstallTarget(installBlockDevice.Children) {
 			targetMedias = append(targetMedias, installBlockDevice)
 		}
 	}
@@ -2129,11 +2155,21 @@ func FindAdvancedInstallTargets(medias []*BlockDevice) []*BlockDevice {
 func HasAdvancedSwap(medias []*BlockDevice) bool {
 	hasSwap := false
 
+	// First create a list of all children we need to check
+	var childrenToCheck []*BlockDevice
+
 	for _, curr := range medias {
-		for _, ch := range curr.Children {
-			if ch.LabeledAdvanced && ch.PartitionLabel == "CLR_SWAP" {
-				hasSwap = true
-			}
+		childrenToCheck = append(childrenToCheck, curr.FindAllChildren()...)
+	}
+
+	for _, ch := range childrenToCheck {
+		if ch.LabeledAdvanced && ch.PartitionLabel == "CLR_SWAP" {
+			hasSwap = true
+		}
+
+		if len(ch.Children) > 0 {
+			childHasSwap := HasAdvancedSwap(ch.Children)
+			hasSwap = hasSwap || childHasSwap
 		}
 	}
 
@@ -2452,24 +2488,29 @@ func validatePartitions(rootSize uint64, medias []*BlockDevice, mediaOpts MediaO
 		return results
 	}
 
+	// First create a list of all children we need to check
+	var childrenToCheck []*BlockDevice
+
 	for _, curr := range medias {
-		for _, ch := range curr.Children {
-			if ch.MountPoint == "/boot" || (advancedMode && ch.Label == bootLabel) {
-				results = append(results, validateBoot(&bootFound, ch, mediaOpts, bootLabel)...)
-			}
-			if ch.MountPoint == "/" || (advancedMode && ch.Label == rootLabel) {
-				var newResults []string
-				rootBlockDevice, newResults = validateRoot(&rootFound, ch, rootSize,
-					mediaOpts.SkipValidationSize, rootLabel)
-				results = append(results, newResults...)
-			}
-			if ch.FsType == "swap" || (advancedMode && ch.Label == swapLabel) {
-				results = append(results, validateSwap(&swapFound, ch, mediaOpts.SkipValidationSize, swapLabel)...)
-			}
-			if ch.MountPoint == "/var" || (advancedMode && ch.Label == varLabel) {
-				varFound = true
-				varSize = ch.Size
-			}
+		childrenToCheck = append(childrenToCheck, curr.FindAllChildren()...)
+	}
+
+	for _, ch := range childrenToCheck {
+		if ch.MountPoint == "/boot" || (advancedMode && ch.Label == bootLabel) {
+			results = append(results, validateBoot(&bootFound, ch, mediaOpts, bootLabel)...)
+		}
+		if ch.MountPoint == "/" || (advancedMode && ch.Label == rootLabel) {
+			var newResults []string
+			rootBlockDevice, newResults = validateRoot(&rootFound, ch, rootSize,
+				mediaOpts.SkipValidationSize, rootLabel)
+			results = append(results, newResults...)
+		}
+		if ch.FsType == "swap" || (advancedMode && ch.Label == swapLabel) {
+			results = append(results, validateSwap(&swapFound, ch, mediaOpts.SkipValidationSize, swapLabel)...)
+		}
+		if ch.MountPoint == "/var" || (advancedMode && ch.Label == varLabel) {
+			varFound = true
+			varSize = ch.Size
 		}
 	}
 
@@ -2518,65 +2559,70 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice, mediaOpt
 	valResults := validatePartitions(rootSize, medias, mediaOpts, advancedMode)
 	results = append(results, valResults...)
 
-	for _, curr := range medias {
-		for _, ch := range curr.Children {
-			clrFound := false
-			label := ch.PartitionLabel
-			labelUpper := ""
+	// First create a list of all children we need to check
+	var childrenToCheck []*BlockDevice
 
-			if label != "" {
-				log.Debug("validateAdvancedPartitions: Found partition %s with name %s", ch.Name, label)
+	for _, curr := range medias {
+		childrenToCheck = append(childrenToCheck, curr.FindAllChildren()...)
+	}
+
+	for _, ch := range childrenToCheck {
+		clrFound := false
+		label := ch.PartitionLabel
+		labelUpper := ""
+
+		if label != "" {
+			log.Debug("validateAdvancedPartitions: Found partition %s with name %s", ch.Name, label)
+		}
+
+		for _, part := range strings.Split(label, "_") {
+			lowerPart := strings.ToLower(part)
+			if labelUpper != "" {
+				labelUpper = labelUpper + "_"
+			}
+			labelUpper = labelUpper + strings.ToUpper(part)
+
+			if !clrFound {
+				if lowerPart == "clr" {
+					clrFound = true
+				}
+				continue
 			}
 
-			for _, part := range strings.Split(label, "_") {
-				lowerPart := strings.ToLower(part)
-				if labelUpper != "" {
-					labelUpper = labelUpper + "_"
-				}
-				labelUpper = labelUpper + strings.ToUpper(part)
+			switch lowerPart {
+			case "mnt":
+				failed := false
+				warning := utils.Locale.Get("Found invalid %s partition", label)
 
-				if !clrFound {
-					if lowerPart == "clr" {
-						clrFound = true
-					}
-					continue
+				mntParts := strings.Split(label, "MNT_")
+				if len(mntParts) != 2 {
+					failed = true
+					log.Warning("validateAdvancedPartitions: %s %+v (%s)", warning, ch, "too many parts")
 				}
 
-				switch lowerPart {
-				case "mnt":
-					failed := false
-					warning := utils.Locale.Get("Found invalid %s partition", label)
-
-					mntParts := strings.Split(label, "MNT_")
-					if len(mntParts) != 2 {
-						failed = true
-						log.Warning("validateAdvancedPartitions: %s %+v (%s)", warning, ch, "too many parts")
-					}
-
-					if !strings.HasPrefix(mntParts[1], "/") {
-						failed = true
-						log.Warning("validateAdvancedPartitions: %s %+v (%s)", warning, ch, "must start with '/'")
-					}
-
-					path := filepath.Clean(mntParts[1])
-					if !filepath.IsAbs(path) {
-						failed = true
-						log.Warning("validateAdvancedPartitions: %s %+v (%s)", warning, ch, "must be an absolute path")
-					}
-
-					if labelMap[labelUpper] {
-						failed = true
-						log.Warning("validateAdvancedPartitions: %s %+v (%s)",
-							warning, ch, "found duplicate partition label")
-					} else {
-						labelMap[labelUpper] = true
-					}
-
-					if failed {
-						results = append(results, warning)
-					}
-					break
+				if !strings.HasPrefix(mntParts[1], "/") {
+					failed = true
+					log.Warning("validateAdvancedPartitions: %s %+v (%s)", warning, ch, "must start with '/'")
 				}
+
+				path := filepath.Clean(mntParts[1])
+				if !filepath.IsAbs(path) {
+					failed = true
+					log.Warning("validateAdvancedPartitions: %s %+v (%s)", warning, ch, "must be an absolute path")
+				}
+
+				if labelMap[labelUpper+mntParts[1]] {
+					failed = true
+					log.Warning("validateAdvancedPartitions: %s %+v (%s)",
+						warning, ch, "found duplicate partition label")
+				} else {
+					labelMap[labelUpper+mntParts[1]] = true
+				}
+
+				if failed {
+					results = append(results, warning)
+				}
+				break
 			}
 		}
 	}
@@ -2589,29 +2635,34 @@ func validateAdvancedPartitions(rootSize uint64, medias []*BlockDevice, mediaOpt
 func AdvancedPartitionsRequireEncryption(medias []*BlockDevice) bool {
 	encryptionFound := false
 
+	// First create a list of all children we need to check
+	var childrenToCheck []*BlockDevice
+
 	for _, curr := range medias {
-		for _, ch := range curr.Children {
-			clrFound := false
-			label := ch.PartitionLabel
+		childrenToCheck = append(childrenToCheck, curr.FindAllChildren()...)
+	}
 
-			for _, part := range strings.Split(label, "_") {
-				lowerPart := strings.ToLower(part)
+	for _, ch := range childrenToCheck {
+		clrFound := false
+		label := ch.PartitionLabel
 
-				if !clrFound {
-					if lowerPart == "clr" {
-						clrFound = true
-					}
-					continue
+		for _, part := range strings.Split(label, "_") {
+			lowerPart := strings.ToLower(part)
+
+			if !clrFound {
+				if lowerPart == "clr" {
+					clrFound = true
 				}
+				continue
+			}
 
-				switch lowerPart {
-				case "boot":
-					break
-					/*
-						case "e":
-							encryptionFound = true
-					*/
-				}
+			switch lowerPart {
+			case "boot":
+				break
+				/*
+					case "e":
+						encryptionFound = true
+				*/
 			}
 		}
 	}
@@ -2643,31 +2694,36 @@ func GetAdvancedPartitions(medias []*BlockDevice) []string {
 		return name
 	}
 
+	// First create a list of all children we need to check
+	var childrenToCheck []*BlockDevice
+
 	for _, curr := range medias {
-		for _, ch := range curr.Children {
-			var found bool
-			if strings.HasPrefix(ch.PartitionLabel, "CLR_BOOT") &&
-				len(validateBoot(&found, ch, mediaOpts, "CLR_BOOT")) == 0 {
-				if found {
-					results = append(results, formatter(ch))
-				}
-			}
-			if strings.HasPrefix(ch.PartitionLabel, "CLR_SWAP") &&
-				len(validateSwap(&found, ch, false, "CLR_SWAP")) == 0 {
-				if found {
-					ch.FsType = "swap"
-					results = append(results, formatter(ch))
-				}
-			}
-			if strings.HasPrefix(ch.PartitionLabel, "CLR_ROOT") {
-				_, rootResults := validateRoot(&found, ch, 0, false, "CLR_ROOT")
-				if len(rootResults) == 0 && found {
-					results = append(results, formatter(ch))
-				}
-			}
-			if strings.HasPrefix(ch.PartitionLabel, "CLR_MNT_/") {
+		childrenToCheck = append(childrenToCheck, curr.FindAllChildren()...)
+	}
+
+	for _, ch := range childrenToCheck {
+		var found bool
+		if strings.HasPrefix(ch.PartitionLabel, "CLR_BOOT") &&
+			len(validateBoot(&found, ch, mediaOpts, "CLR_BOOT")) == 0 {
+			if found {
 				results = append(results, formatter(ch))
 			}
+		}
+		if strings.HasPrefix(ch.PartitionLabel, "CLR_SWAP") &&
+			len(validateSwap(&found, ch, false, "CLR_SWAP")) == 0 {
+			if found {
+				ch.FsType = "swap"
+				results = append(results, formatter(ch))
+			}
+		}
+		if strings.HasPrefix(ch.PartitionLabel, "CLR_ROOT") {
+			_, rootResults := validateRoot(&found, ch, 0, false, "CLR_ROOT")
+			if len(rootResults) == 0 && found {
+				results = append(results, formatter(ch))
+			}
+		}
+		if strings.HasPrefix(ch.PartitionLabel, "CLR_MNT_/") {
+			results = append(results, formatter(ch))
 		}
 	}
 
@@ -2795,7 +2851,14 @@ func setBootPartition(medias []*BlockDevice, mediaOpts MediaOpts, dryRun *DryRun
 func getPlannedPartitionChanges(media *BlockDevice) []string {
 	results := []string{}
 
-	for _, ch := range media.Children {
+	// First create a list of all children we need to check
+	var childrenToCheck []*BlockDevice
+
+	if len(media.Children) > 0 {
+		childrenToCheck = append(childrenToCheck, media.FindAllChildren()...)
+	}
+
+	for _, ch := range childrenToCheck {
 		if ch.FormatPartition {
 			partName := ch.Name
 			if partName == "" {

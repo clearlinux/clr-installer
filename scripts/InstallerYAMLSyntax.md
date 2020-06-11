@@ -22,7 +22,7 @@ block-devices: [
    {name: "bdevice", file: "os-image.img"}
 ]
 ```
-or 
+or
 ```yaml
 block-devices: [
    {name: "bdevice", file: "/dev/sda"}
@@ -33,7 +33,7 @@ block-devices: [
 The `targetMedia` is the media where the Clear Linux OS will be installed. This can be either an image filename, or a physical device name. When using image filenames, first define a device alias for the image file.
 
 Item | Description | Required?
------------- | ------------- | ------------- 
+------------ | ------------- | -------------
 `name:` | Block-device alias or the physical device name| Yes
 `type:` | Type of the target media should always be `disk` | Yes
 `children:` | List of partition for the image | Yes
@@ -41,7 +41,7 @@ Item | Description | Required?
 
 ### Children
 Item | Description | Required?
------------- | ------------- | ------------- 
+------------ | ------------- | -------------
 `name:` | Block-device alias and partition number or the physical partition name| Yes
 `type:` | Partition type should be `part` for a standard partition or `crypt` for encrypted partitions | Yes
 `fstype:` | Type of the partition can be one of: `swap`, or `ext2`, `ext3`, `ext4`, `xfs`, `f2fs`, `btrfs`, or `vfat` | Yes
@@ -82,20 +82,26 @@ If a swap partition is defined and the swapFileSize or `--swap-file-size=<size>`
 
 ### Advanced Installation Media Targets
 
-To use Advance Partition Labels for a command line installation, `targetMedia`
+To use Advanced Partitioning for a command line installation, `targetMedia`
 should  be left out of the YAML configuration file. Instead, Partition Labels
-are used in to tag and convey which partitions should be used for an advanced
-installation.
+or Logical Volume Names are used to tag and convey which partitions should be
+used for an advanced installation.
 
-Partition Label | Description | Required?
------------- | ------------- | ------------- 
+Partition Label / Logical Volume Name  | Description | Required?
+------------ | ------------- | -------------
 `CLR_BOOT` | The /boot partition; must be vfat | Yes
 `CLR_ROOT` | The / root partition; must be ext[234], xfs, or f2fs due to clr-boot-manager requirement | Yes
 `CLR_SWAP` | A optional swap partition; can be more than one or used in place of a swapfile | No
 `CLR_MNT_<mount_point>` | Any additional partitions that should be included in the install like /srv, /home, ... | No
 
-#### NOTE:
-You may also add `_F` to the partition label to force the formatting.
+#### NOTES:
+- You may also add `_F` to the partition label (or logical volume name) to force the formatting.
+- Partition labels can be added with cgdisk or gparted.
+- LVM2 tools should be used to manually create the logical volumes.
+  - The CLR_BOOT <b>must</b> always be a standard partition; LVM and Software RAID are not possible nor supported.
+  - The logical volume name, not the logical volume group nor the physical volume name, needs to match the Advanced syntax.
+  - Since `/` is not legal for logical volume names, `+` should be used in its place; i.e. `CLR_MNT_+home` for `/home`.
+
 #### EXAMPLES:
 Partition Label | Description
 ------------ | -------------
@@ -124,7 +130,7 @@ https://github.com/clearlinux/clr-bundles
 A set of user accounts can be created at the time of installation.
 
 Item | Description | Required?
------------- | ------------- | ------------- 
+------------ | ------------- | -------------
 `login:` | Name of the user's login | Yes
 `username:` | The full name of the user. | No
 `password:` | The encrypted password suitable for the /etc/passwd file. This string can be generated using `clr-installer --genpass <passwd>` | No
@@ -145,7 +151,7 @@ https://github.com/clearlinux/clr-bundles
 
 ## Installation Options
 Item | Description | Default
------------- | ------------- | ------------- 
+------------ | ------------- | -------------
 `keyboard:` | Name of the keyboard type. Valid value can be found using `localectl list-keymaps`; may require installing the `kbd` bundle first. | us
 `language:` | Name of the system language. Valid values can be found using `locale -a`; may require installing the `glibc-locale` bundle first. | en_US.UTF-8
 `timezone:` | Name of the system timezone. Valid values can be found using `timedatectl list-timezones`; may require installing the `tzdata` bundle first. | UTC
@@ -191,7 +197,7 @@ telemetry: false
 Supports adding or removing kernel arguments. There is NO support for directly defining the entire kernel command line in order to avoid non-bootable configurations.
 
 Item | Description | Required?
------------- | ------------- | ------------- 
+------------ | ------------- | -------------
 `add:` | A YAML list of strings with additional kernel parameters. These are always appending to the pre-defined kernel parameters.| No
 `remove:` | A YAML list of strings to attempt to remove from the pre-defined kernel parameters. Only exact matches are removed. | No
 
@@ -207,7 +213,7 @@ kernel-arguments: {
 Clear Linux OS Installer supports `pre-install`, `post-install`, and `post-image` hooks which are executed either before (pre) the start of the installation, after (post) the installation steps are completed, or after (post) the image file is created.
 
 Item | Description | Required?
------------- | ------------- | ------------- 
+------------ | ------------- | -------------
 `cmd:` | The command to run plus any arguments; usually passing `chrootDir`| Yes
 `chroot:` | Boolean indicating if this command should be run chrooted | No
 
@@ -216,7 +222,7 @@ Item | Description | Required?
 In addition to the environment variables defined in the `env` section of the YAML file, two internal variables are also predefined for use with hooks:
 
 Environment Variable | Description
------------- | ------------- 
+------------ | -------------
 `yamlDir` | The directory where the configuration YAML file resides. This is useful as most installation hooks are stored in (or relative to) the same directory as the YAML file.
 `chrootDir` | The directory where the installation is being placed (chrooted). This should be passed as an argument to the installation hook to ensure modifications are made to the correct location of the install.
 `imageFile` | The file name of the image file generated by the installer. Only useful for `post-image` hooks.
