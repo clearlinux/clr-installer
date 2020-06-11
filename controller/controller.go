@@ -64,7 +64,7 @@ func sortMountPoint(bds []*storage.BlockDevice) []*storage.BlockDevice {
 func Install(rootDir string, model *model.SystemInstall, options args.Args) error {
 	var err error
 	var prg progress.Progress
-	var encryptedUsed, softRaidUsed bool
+	var encryptedUsed, softRaidUsed, lvmRootUsed bool
 
 	vars := map[string]string{
 		"chrootDir": rootDir,
@@ -247,51 +247,60 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		return err
 	}
 
+	// First create a list of all children we need to check
+	var childrenToCheck []*storage.BlockDevice
+
 	for _, curr := range model.TargetMedias {
 		// Are we using software RAID
 		softRaidUsed = softRaidUsed || curr.UsesRaid()
 
-		// prepare the blockdevice's partitions filesystem
-		for _, ch := range curr.Children {
-			if ch.Type == storage.BlockDeviceTypeCrypt {
-				encryptedUsed = true
+		childrenToCheck = append(childrenToCheck, curr.FindAllChildren()...)
+	}
 
-				if ch.FsTypeNotSwap() {
-					msg := utils.Locale.Get("Mapping %s partition to an encrypted partition", ch.Name)
-					prg = progress.NewLoop(msg)
-					log.Info(msg)
-					if err = ch.MapEncrypted(model.CryptPass); err != nil {
-						prg.Failure()
-						return err
-					}
-					prg.Success()
+	// prepare the blockdevice's partitions filesystem
+	for _, ch := range childrenToCheck {
+		if ch.Type == storage.BlockDeviceTypeCrypt {
+			encryptedUsed = true
+
+			if ch.FsTypeNotSwap() {
+				msg := utils.Locale.Get("Mapping %s partition to an encrypted partition", ch.Name)
+				prg = progress.NewLoop(msg)
+				log.Info(msg)
+				if err = ch.MapEncrypted(model.CryptPass); err != nil {
+					prg.Failure()
+					return err
 				}
+				prg.Success()
 			}
-
-			// if we have a mount point set it for future mounting
-			if ch.MountPoint != "" {
-				mountPoints = append(mountPoints, ch)
-			}
-
-			// Do not overwrite File System content for pre-existing
-			if !ch.FormatPartition {
-				msg := utils.Locale.Get("Skipping new file system for %s", ch.Name)
-				log.Debug(msg)
-				continue
-			}
-
-			msg := utils.Locale.Get("Writing %s file system to %s", ch.FsType, ch.Name)
-			if ch.MountPoint != "" {
-				msg = msg + fmt.Sprintf(" '%s'", ch.MountPoint)
-			}
-			prg = progress.NewLoop(msg)
-			log.Info(msg)
-			if err = ch.MakeFs(); err != nil {
-				prg.Failure()
-				return err
-			}
-			prg.Success()
 		}
+
+		if ch.Type == storage.BlockDeviceTypeLVM2Volume {
+			lvmRootUsed = true
+		}
+
+		// if we have a mount point set it for future mounting
+		if ch.MountPoint != "" {
+			mountPoints = append(mountPoints, ch)
+		}
+
+		// Do not overwrite File System content for pre-existing
+		if !ch.FormatPartition {
+			msg := utils.Locale.Get("Skipping new file system for %s", ch.Name)
+			log.Debug(msg)
+			continue
+		}
+
+		msg := utils.Locale.Get("Writing %s file system to %s", ch.FsType, ch.Name)
+		if ch.MountPoint != "" {
+			msg = msg + fmt.Sprintf(" '%s'", ch.MountPoint)
+		}
+		prg = progress.NewLoop(msg)
+		log.Info(msg)
+		if err = ch.MakeFs(); err != nil {
+			prg.Failure()
+			return err
+		}
+		prg.Success()
 	}
 
 	// Update the target devices current labels and UUIDs
@@ -360,7 +369,7 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		model.AddBundle(language.RequiredBundle)
 	}
 
-	if encryptedUsed || softRaidUsed {
+	if encryptedUsed || softRaidUsed || lvmRootUsed {
 		model.AddBundle(storage.RequiredBundle)
 	}
 	if encryptedUsed {
