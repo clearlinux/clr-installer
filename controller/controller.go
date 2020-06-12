@@ -678,19 +678,43 @@ func contentInstall(rootDir string, version string,
 		cbmPath = fmt.Sprintf("%s/usr/bin/clr-boot-manager", rootDir)
 	}
 
-	args := []string{
-		cbmPath,
-		"update",
-		"--image",
-		fmt.Sprintf("--path=%s", rootDir),
-	}
+	/*
+		bindsys := []string{"mount", "--bind", "/sys", fmt.Sprintf("%s/sys", rootDir)}
+		bindproc := []string{"mount", "--bind", "/proc", fmt.Sprintf("%s/proc", rootDir)}
+		binddev := []string{"mount", "--bind", "/dev", fmt.Sprintf("%s/dev", rootDir)}
 
+		for _, op := range [][]string{bindsys, bindproc, binddev} {
+			err := cmd.RunAndLog(op...)
+			if err != nil {
+				return prg, errors.Wrap(err)
+			}
+		}
+	*/
+
+	args := []string{}
 	envVars := map[string]string{
 		"CBM_DEBUG": "1",
 	}
 
-	if md.MediaOpts.LegacyBios {
-		envVars["CBM_FORCE_LEGACY"] = "1"
+	if !md.MediaOpts.LegacyBios && !md.MakeISO {
+		args = []string{
+			"chroot",
+			rootDir,
+			"clr-boot-manager",
+			"update",
+		}
+	} else {
+		args = []string{
+			cbmPath,
+			"update",
+			"--image",
+			fmt.Sprintf("--path=%s", rootDir),
+		}
+
+		if md.MediaOpts.LegacyBios {
+			envVars["CBM_FORCE_LEGACY"] = "1"
+		}
+
 	}
 
 	err := cmd.RunAndLogWithEnv(envVars, args...)
@@ -698,6 +722,20 @@ func contentInstall(rootDir string, version string,
 		return prg, errors.Wrap(err)
 	}
 	prg.Success()
+
+	/*
+		exitchroot := []string{"exit"}
+		ubindsys := []string{"umount", fmt.Sprintf("%s/sys", rootDir)}
+		ubindproc := []string{"umount", fmt.Sprintf("%s/proc", rootDir)}
+		ubinddev := []string{"umount", fmt.Sprintf("%s/dev", rootDir)}
+
+		for _, op := range [][]string{ubindsys, ubindproc, ubinddev} {
+			err := cmd.RunAndLog(op...)
+			if err != nil {
+				return prg, errors.Wrap(err)
+			}
+		}
+	*/
 
 	// Clean-up State Directory content
 	if options.SwupdStateClean {

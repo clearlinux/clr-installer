@@ -412,6 +412,13 @@ func (args *Args) setCommandLineArgs() (err error) {
 	// We do not want this flag to be shown as part of the standard help message
 	makeFlagHidden(flag, "cbm-path")
 
+	/*
+		flag.StringVarP(
+			&args.CBMPath, "cbm-path", "", "//home//kp//clr-boot-manager//build//src//clr-boot-manager",
+			"Path to clr-boot-manager (default: the target systems /usr/bin/clr-boot-manager)",
+		)
+	*/
+
 	flag.BoolVar(
 		&args.SkipValidationSize, "skip-validation-size",
 		args.SkipValidationSize, "Skip the partition validation size check",
