@@ -643,40 +643,36 @@ func (bd *BlockDevice) Equals(cmp *BlockDevice) bool {
 }
 
 func isBlockDeviceAvailableDeep(blockDevices []*BlockDevice) bool {
-	available := true
+	foundDevices := []*BlockDevice{}
 
 	for _, bd := range blockDevices {
-		// We ignore devices with any mount partition
-		if bd.MountPoint != "" {
-			available = false
-			break
-		}
-		// We ignore devices if any partition has a CLR_ISO label
-		if strings.Contains(bd.Label, "CLR_ISO") {
-			available = false
-			break
-		}
-
-		// Hack for Logical Volumes
-		// Since lvms do not have Partition Labels, if the Logical Volume name
-		// which matches Advance Labels, force set the Partition Label
-		if bd.Type == BlockDeviceTypeLVM2Volume {
-			log.Debug("isBlockDeviceAvailableDeep: Found lvm name: %s", bd.Name)
-			if matches := lvmAdvancedLabelExp.FindStringSubmatch(bd.Name); len(matches) == 2 {
-				// Hack again: LVM does not allow '/' in names, so we map '+' to '/'
-				bd.PartitionLabel = strings.ReplaceAll(matches[1], "+", "/")
-				log.Debug("Force setting partlabel from lvm name: %s", bd.PartitionLabel)
+		foundDevices = append(foundDevices, FindAllBlockDevices(bd, func(b *BlockDevice) bool {
+			if b.MountPoint != "" {
+				return false
 			}
-		}
-
-		if bd.Children != nil {
-			if available = isBlockDeviceAvailableDeep(bd.Children); !available {
-				break
+			// We ignore devices if any partition has a CLR_ISO label
+			if strings.Contains(bd.Label, "CLR_ISO") {
+				return false
 			}
-		}
+
+			if b.Type == BlockDeviceTypeLVM2Volume {
+				log.Debug("isBlockDeviceAvailableDeep: Found lvm name: %s", b.Name)
+				if matches := lvmAdvancedLabelExp.FindStringSubmatch(b.Name); len(matches) == 2 {
+					// Hack again: LVM does not allow '/' in names, so we map '+' to '/'
+					b.PartitionLabel = strings.ReplaceAll(matches[1], "+", "/")
+					log.Debug("Force setting partlabel from lvm name: %s", b.PartitionLabel)
+					return true
+				}
+			}
+			return false
+		})...)
 	}
 
-	return available
+	if len(foundDevices) > 0 {
+		return true
+	}
+
+	return false
 }
 
 func parseBlockDevicesDescriptor(data []byte) ([]*BlockDevice, error) {
