@@ -1,0 +1,21 @@
+# clear-linux-config
+
+# advanced.yaml
+#
+# Completes an Advanced installation for a server
+# Clear Linux OS
+
+keyboard: us
+language: en_US.UTF-8
+bundles: [os-core, os-core-update, openssh-server]
+telemetry: false
+timezone: America/Los_Angeles
+users: [{login: user1,
+    username: user1,
+    password: $6$hEEGzgD9mX/vuMUk$Q8C8moXKXrmolSnxvKMrqPWtko3cbz9e57sQH/rZ7oiinr4QYwLK/UMP3dG0XDn5gZR7TuZeRe5/DpOHpPTyd0,
+    admin: true}]
+kernel: kernel-native
+hostname: clr-lvm-test
+autoUpdate: true
+postArchive: false
+postReboot: false
