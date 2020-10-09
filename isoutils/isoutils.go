@@ -188,9 +188,9 @@ func mkInitrdInitScript(templatePath string) error {
 
 	//Modules to insmod during init, paths relative to the kernel folder
 	modules := []string{
-		"/kernel/fs/isofs/isofs.ko",
 		"/kernel/drivers/cdrom/cdrom.ko",
 		"/kernel/drivers/scsi/sr_mod.ko",
+		"/kernel/fs/isofs/isofs.ko",
 		"/kernel/fs/overlayfs/overlay.ko",
 	}
 
