@@ -9,7 +9,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.0.0
 	github.com/digitalocean/go-smbios v0.0.0-20180907143718-390a4f403a8e
 	github.com/google/go-cmp v0.4.0 // indirect
-	github.com/gotk3/gotk3 v0.4.0
+	github.com/gotk3/gotk3 v0.6.0
 	github.com/huandu/xstrings v1.3.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leonelquinteros/gotext v1.4.0
