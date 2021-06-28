@@ -13,11 +13,14 @@ github.com/coreos/go-systemd/v22/dbus
 github.com/digitalocean/go-smbios/smbios
 # github.com/godbus/dbus/v5 v5.0.3
 github.com/godbus/dbus/v5
-# github.com/gotk3/gotk3 v0.4.0
+# github.com/gotk3/gotk3 v0.6.0
 github.com/gotk3/gotk3/cairo
 github.com/gotk3/gotk3/gdk
 github.com/gotk3/gotk3/glib
 github.com/gotk3/gotk3/gtk
+github.com/gotk3/gotk3/internal/callback
+github.com/gotk3/gotk3/internal/closure
+github.com/gotk3/gotk3/internal/slab
 github.com/gotk3/gotk3/pango
 # github.com/huandu/xstrings v1.3.0
 github.com/huandu/xstrings
