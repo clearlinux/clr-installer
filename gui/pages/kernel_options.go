@@ -86,9 +86,7 @@ func NewConfigKernelPage(controller Controller, model *model.SystemInstall) (Pag
 	if err != nil {
 		return nil, err
 	}
-	if _, err := page.list.Connect("row-activated", page.onRowActivated); err != nil {
-		return nil, err
-	}
+	_ = page.list.Connect("row-activated", page.onRowActivated)
 	page.scroll.Add(page.list)
 
 	// Create list data

@@ -165,7 +165,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		sc.AddClass("label-radio")
 	}
 	safeBox.PackStart(disk.safeButton, false, false, 0)
-	if _, err := disk.safeButton.Connect("toggled", func() {
+	_ = disk.safeButton.Connect("toggled", func() {
 		// REfactor the TUI code to also return when not active
 		if !disk.safeButton.GetActive() {
 			return
@@ -183,9 +183,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 				log.Warning("Problem populating possible disk selections")
 			}
 		}
-	}); err != nil {
-		return nil, err
-	}
+	})
 
 	safeDescription := utils.Locale.Get("Install on an unallocated disk or alongside existing partitions.")
 	safeLabel, err := gtk.LabelNew(safeDescription)
@@ -216,7 +214,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		sc.AddClass("label-radio-warning")
 	}
 	destructiveBox.PackStart(disk.destructiveButton, false, false, 0)
-	if _, err := disk.destructiveButton.Connect("toggled", func() {
+	_ = disk.destructiveButton.Connect("toggled", func() {
 		// REfactor the TUI code to also return when not active
 		if !disk.destructiveButton.GetActive() {
 			return
@@ -234,9 +232,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 				log.Warning("Problem populating possible disk selections")
 			}
 		}
-	}); err != nil {
-		return nil, err
-	}
+	})
 
 	destructiveDescription := utils.Locale.Get("Erase all data on selected media and install Clear Linux* OS.")
 	destructiveLabel, err := gtk.LabelNew(destructiveDescription)
@@ -259,9 +255,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		return nil, err
 	}
 
-	if _, err := disk.chooserCombo.Connect("changed", disk.onChooserComboChanged); err != nil {
-		log.Warning("Error connecting to entry")
-	}
+	_ = disk.chooserCombo.Connect("changed", disk.onChooserComboChanged)
 
 	// Add the renderers to the ComboBox
 	mediaRenderer, _ := gtk.CellRendererPixbufNew()
@@ -325,9 +319,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	disk.optionsGrid.Attach(disk.encryptCheck, 0, 1, 1, 1)
 
 	// Generate signal on encryptCheck button click
-	if _, err := disk.encryptCheck.Connect("clicked", disk.onEncryptClick); err != nil {
-		return nil, err
-	}
+	_ = disk.encryptCheck.Connect("clicked", disk.onEncryptClick)
 
 	// Buttons
 	disk.rescanButton, err = setButton(utils.Locale.Get("RESCAN MEDIA"), "button-page")
@@ -336,9 +328,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	}
 	disk.rescanButton.SetTooltipText(utils.Locale.Get("Rescan for changes to hot swappable media."))
 
-	if _, err = disk.rescanButton.Connect("clicked", disk.onRescanClick); err != nil {
-		return nil, err
-	}
+	_ = disk.rescanButton.Connect("clicked", disk.onRescanClick)
 
 	rescanBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
@@ -386,9 +376,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 	reqs := []string{"CLR_BOOT:vfat", "CLR_SWAP:linux-swap", "CLR_ROOT:ext*|xfs|f2fs"}
 	disk.advancedButton.SetTooltipText(utils.Locale.Get("Minimum requirements: %s", strings.Join(reqs, ", ")))
 	advancedBox.PackStart(disk.advancedButton, false, false, 0)
-	if _, err := disk.advancedButton.Connect("toggled", disk.advancedButtonToggled); err != nil {
-		return nil, err
-	}
+	_ = disk.advancedButton.Connect("toggled", disk.advancedButtonToggled)
 
 	advancedDescription := utils.Locale.Get("Use partitioning tool to configure and select media via partition names.")
 	advancedLabel, err := gtk.LabelNew(advancedDescription)
@@ -414,9 +402,7 @@ func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page,
 		utils.Locale.Get(
 			"Launch the external partitioning tool to name the partitions to be used for the installation."))
 
-	if _, err = disk.partitionButton.Connect("clicked", disk.runDiskPartitionTool); err != nil {
-		return nil, err
-	}
+	_ = disk.partitionButton.Connect("clicked", disk.runDiskPartitionTool)
 
 	partitionBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
@@ -659,36 +645,14 @@ func (disk *DiskConfig) createPassphraseDialog() {
 	disk.passphrase.SetVisibility(false)
 	disk.passphraseConfirm.SetVisibility(false)
 
-	if _, err := disk.passphrase.Connect("changed", disk.onPassphraseChange); err != nil {
-		log.Warning("Error connecting to entry")
-		return
-	}
-
-	if _, err := disk.passphrase.Connect("activate", disk.onPassphraseActive); err != nil {
-		log.Warning("Error connecting to entry")
-		return
-	}
-
-	if _, err := disk.passphrase.Connect("key-press-event", disk.onPassphraseKeyPress); err != nil {
-		log.Warning("Error connecting to entry")
-		return
-	}
+	_ = disk.passphrase.Connect("changed", disk.onPassphraseChange)
+	_ = disk.passphrase.Connect("activate", disk.onPassphraseActive)
+	_ = disk.passphrase.Connect("key-press-event", disk.onPassphraseKeyPress)
 
 	// Generate signal on PassphraseConfirm change
-	if _, err := disk.passphraseConfirm.Connect("changed", disk.onPassphraseChange); err != nil {
-		log.Warning("Error connecting to entry")
-		return
-	}
-
-	if _, err := disk.passphraseConfirm.Connect("activate", disk.onPassphraseActive); err != nil {
-		log.Warning("Error connecting to entry")
-		return
-	}
-
-	if _, err := disk.passphraseConfirm.Connect("key-press-event", disk.onPassphraseKeyPress); err != nil {
-		log.Warning("Error connecting to entry")
-		return
-	}
+	_ = disk.passphraseConfirm.Connect("changed", disk.onPassphraseChange)
+	_ = disk.passphraseConfirm.Connect("activate", disk.onPassphraseActive)
+	_ = disk.passphraseConfirm.Connect("key-press-event", disk.onPassphraseKeyPress)
 
 	disk.passphraseDialog, err = common.CreateDialog(contentBox, title)
 	if err != nil {
@@ -699,10 +663,7 @@ func (disk *DiskConfig) createPassphraseDialog() {
 	disk.passphraseDialog.AddActionWidget(disk.passphraseCancel, gtk.RESPONSE_CANCEL)
 	disk.passphraseDialog.AddActionWidget(disk.passphraseOK, gtk.RESPONSE_OK)
 
-	_, err = disk.passphraseDialog.Connect("response", disk.dialogResponse)
-	if err != nil {
-		log.Warning("Error connecting to dialog")
-	}
+	_ = disk.passphraseDialog.Connect("response", disk.dialogResponse)
 }
 
 func (disk *DiskConfig) onPassphraseChange(entry *gtk.Entry) {
@@ -767,19 +728,23 @@ func (disk *DiskConfig) onChooserComboChanged(combo *gtk.ComboBox) {
 	}
 
 	if iter, iterErr := combo.GetActiveIter(); iter != nil && iterErr == nil {
-		if model, modelErr := combo.GetModel(); modelErr == nil && model.GetNColumns() >= 2 {
-			// Extract from model
-			if valueObj, getErr := model.GetValue(iter, 2); getErr == nil && valueObj != nil {
-				if _, fType, typeErr := valueObj.Type(); typeErr == nil && fType == glib.TYPE_STRING {
-					if name, nameErr := valueObj.GetString(); nameErr == nil {
-						disk.tempSelectedTarget = name
-						log.Debug("ComboBox entry selected is: %v", name)
-					} else {
-						log.Warning("Failed to get model string from value: %v", nameErr)
+		if modelITreeModel, modelErr := combo.GetModel(); modelErr == nil {
+			if model := modelITreeModel.ToTreeModel(); model != nil && model.GetNColumns() >= 2 {
+				// Extract from model
+				if valueObj, getErr := model.GetValue(iter, 2); getErr == nil && valueObj != nil {
+					if _, fType, typeErr := valueObj.Type(); typeErr == nil && fType == glib.TYPE_STRING {
+						if name, nameErr := valueObj.GetString(); nameErr == nil {
+							disk.tempSelectedTarget = name
+							log.Debug("ComboBox entry selected is: %v", name)
+						} else {
+							log.Warning("Failed to get model string from value: %v", nameErr)
+						}
 					}
+				} else {
+					log.Warning("Failed to get ComboBox model value from iter: %v", getErr)
 				}
 			} else {
-				log.Warning("Failed to get ComboBox model value from iter: %v", getErr)
+				log.Warning("Failed to get ComboBox model: %v", modelErr)
 			}
 		} else {
 			log.Warning("Failed to get ComboBox model: %v", modelErr)
@@ -1306,11 +1271,7 @@ func (disk *DiskConfig) runDiskPartitionTool() {
 			return
 		}
 
-		_, err = dialog.Connect("response", disk.warningDialogResponse)
-		if err != nil {
-			log.Error("Error connecting to dialog", err)
-			return
-		}
+		_ = dialog.Connect("response", disk.warningDialogResponse)
 
 		dialog.ShowAll()
 		dialog.Run()

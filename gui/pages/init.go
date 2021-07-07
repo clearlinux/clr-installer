@@ -124,7 +124,7 @@ const (
 // is correctly performed, and that we have valid constraints in which to
 // scroll.
 func scrollToView(scroll *gtk.ScrolledWindow, container gtk.IWidget, widget *gtk.Widget) {
-	_, err := glib.TimeoutAdd(100, func() bool {
+	_ = glib.TimeoutAdd(100, func() bool {
 		adjustment := scroll.GetVAdjustment()
 		_, y, err := widget.TranslateCoordinates(container, 0, 0)
 		if err != nil {
@@ -134,9 +134,6 @@ func scrollToView(scroll *gtk.ScrolledWindow, container gtk.IWidget, widget *gtk
 		adjustment.SetValue(math.Min(float64(y), maxSize))
 		return false
 	})
-	if err != nil {
-		log.Warning("Error adjusting scroll: ", err) // Just log trivial error
-	}
 }
 
 // getTextFromEntry reads the text from an Entry buffer

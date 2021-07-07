@@ -56,12 +56,9 @@ func createNetworkTestDialog() (*networkTestDialog, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = glib.IdleAdd(func() {
+	_ = glib.IdleAdd(func() {
 		netDialog.pbar.SetFraction(0.0)
 	})
-	if err != nil {
-		return nil, err
-	}
 	netDialog.pbar.SetHAlign(gtk.ALIGN_FILL)
 	netDialog.pbar.SetMarginBottom(12)
 	netDialog.pbar.SetMarginTop(12)
@@ -88,17 +85,16 @@ func createNetworkTestDialog() (*networkTestDialog, error) {
 	netDialog.dialog.SetDeletable(false)
 
 	// Configure confirm button
-	netDialog.confirmButton, err = netDialog.dialog.GetWidgetForResponse(gtk.RESPONSE_OK)
+	var buttonIWidget gtk.IWidget
+	buttonIWidget, err = netDialog.dialog.GetWidgetForResponse(gtk.RESPONSE_OK)
 	if err != nil {
 		log.Error("Error getting confirm button", err)
 		return nil, err
 	}
-	_, err = netDialog.confirmButton.Connect("clicked", func() {
+	netDialog.confirmButton = buttonIWidget.ToWidget()
+	_ = netDialog.confirmButton.Connect("clicked", func() {
 		netDialog.dialog.Destroy()
 	})
-	if err != nil {
-		return nil, err
-	}
 	netDialog.confirmButton.SetSensitive(false)
 
 	netDialog.dialog.ShowAll()
@@ -122,13 +118,9 @@ func RunNetworkTest(md *model.SystemInstall) (NetTestReturnCode, error) {
 		// Automatically close the dialog on success
 		if controller.NetworkPassing {
 			time.Sleep(time.Second)
-			_, err = glib.IdleAdd(func() {
+			_ = glib.IdleAdd(func() {
 				netDialog.dialog.Destroy()
 			})
-			if err != nil {
-				log.ErrorError(err)
-				netDialog.dialog.Destroy()
-			}
 		}
 	}()
 	netDialog.dialog.Run()
@@ -142,7 +134,7 @@ func RunNetworkTest(md *model.SystemInstall) (NetTestReturnCode, error) {
 
 // Desc will push a description box into the view for later marking
 func (netDialog *networkTestDialog) Desc(desc string) {
-	_, err := glib.IdleAdd(func() {
+	_ = glib.IdleAdd(func() {
 		// The target prefix is used by the massinstaller to separate target,
 		// offline, and ISO content installs. It is unnecessary for the GUI.
 		desc = strings.TrimPrefix(desc, swupd.TargetPrefix)
@@ -150,36 +142,24 @@ func (netDialog *networkTestDialog) Desc(desc string) {
 		netDialog.label.SetText(desc)
 		netDialog.label.ShowAll()
 	})
-	if err != nil {
-		log.ErrorError(err)
-		return
-	}
 }
 
 // Failure handles failure to install
 func (netDialog *networkTestDialog) Failure() {
-	_, err := glib.IdleAdd(func() {
+	_ = glib.IdleAdd(func() {
 		netDialog.label.SetText(utils.Locale.Get("Network check failed."))
 		netDialog.confirmButton.SetSensitive(true)
 		netDialog.label.ShowAll()
 	})
-	if err != nil {
-		log.ErrorError(err)
-		return
-	}
 }
 
 // Success notes the install was successful
 func (netDialog *networkTestDialog) Success() {
-	_, err := glib.IdleAdd(func() {
+	_ = glib.IdleAdd(func() {
 		netDialog.label.SetText(utils.Locale.Get("Success"))
 		netDialog.confirmButton.SetSensitive(true)
 		netDialog.label.ShowAll()
 	})
-	if err != nil {
-		log.ErrorError(err)
-		return
-	}
 }
 
 // LoopWaitDuration will return the duration for step-waits
@@ -194,11 +174,7 @@ func (netDialog *networkTestDialog) Partial(total int, step int) {
 
 // Step will step the progressbar in indeterminate mode
 func (netDialog *networkTestDialog) Step() {
-	_, err := glib.IdleAdd(func() {
+	_ = glib.IdleAdd(func() {
 		netDialog.pbar.Pulse()
 	})
-	if err != nil {
-		log.ErrorError(err)
-		return
-	}
 }

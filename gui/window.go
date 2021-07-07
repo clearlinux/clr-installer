@@ -285,12 +285,7 @@ func (window *Window) createWelcomePage() (*Window, error) {
 	}
 
 	// TODO: Remove this temporary code after development phase
-	_, err = window.handle.Connect("destroy", func() {
-		gtk.MainQuit()
-	})
-	if err != nil {
-		return nil, err
-	}
+	_ = window.handle.Connect("destroy", func() { gtk.MainQuit() })
 
 	// Create footer area now
 	if err = window.CreateFooter(); err != nil {
@@ -302,13 +297,7 @@ func (window *Window) createWelcomePage() (*Window, error) {
 
 	// Create syscheck pop-up when system check fails
 	if syscheckErr := syscheck.RunSystemCheck(true); syscheckErr != nil {
-		_, err = glib.IdleAdd(func() {
-			displaySyscheckDialog(syscheckErr)
-		})
-		if err != nil {
-			log.ErrorError(err)
-			return nil, err
-		}
+		_ = glib.IdleAdd(func() { displaySyscheckDialog(syscheckErr) })
 	}
 
 	return window, nil
@@ -489,17 +478,13 @@ func (window *Window) CreateFooter() error {
 	if window.buttons.next, err = createNavButton(utils.Locale.Get("NEXT"), "button-confirm"); err != nil {
 		return err
 	}
-	if _, err = window.buttons.next.Connect("clicked", func() { window.onNextClick() }); err != nil {
-		return err
-	}
+	_ = window.buttons.next.Connect("clicked", func() { window.onNextClick() })
 
 	// Exit button
 	if window.buttons.exit, err = createNavButton(utils.Locale.Get("EXIT"), "button-cancel"); err != nil {
 		return err
 	}
-	if _, err = window.buttons.exit.Connect("clicked", func() { gtk.MainQuit() }); err != nil {
-		return err
-	}
+	_ = window.buttons.exit.Connect("clicked", func() { gtk.MainQuit() })
 
 	// Pack the buttons
 	window.buttons.boxWelcome.PackEnd(window.buttons.next, false, false, 4)
@@ -519,25 +504,19 @@ func (window *Window) UpdateFooter() error {
 	if window.buttons.install, err = createNavButton(utils.Locale.Get("INSTALL"), "button-confirm"); err != nil {
 		return err
 	}
-	if _, err = window.buttons.install.Connect("clicked", func() { window.confirmInstall() }); err != nil {
-		return err
-	}
+	_ = window.buttons.install.Connect("clicked", func() { window.confirmInstall() })
 
 	// Exit button
 	if window.buttons.quit, err = createNavButton(utils.Locale.Get("EXIT"), "button-cancel"); err != nil {
 		return err
 	}
-	if _, err = window.buttons.quit.Connect("clicked", func() { gtk.MainQuit() }); err != nil {
-		return err
-	}
+	_ = window.buttons.quit.Connect("clicked", func() { gtk.MainQuit() })
 
 	// Back button
 	if window.buttons.back, err = createNavButton(utils.Locale.Get("CHANGE LANGUAGE"), "button-cancel"); err != nil {
 		return err
 	}
-	if _, err = window.buttons.back.Connect("clicked", func() { window.launchWelcomeView() }); err != nil {
-		return err
-	}
+	_ = window.buttons.back.Connect("clicked", func() { window.launchWelcomeView() })
 
 	window.buttons.back.SetMarginStart(common.StartEndMargin)
 
@@ -545,17 +524,13 @@ func (window *Window) UpdateFooter() error {
 	if window.buttons.confirm, err = createNavButton(utils.Locale.Get("CONFIRM"), "button-confirm"); err != nil {
 		return err
 	}
-	if _, err = window.buttons.confirm.Connect("clicked", func() { window.onConfirmClick() }); err != nil {
-		return err
-	}
+	_ = window.buttons.confirm.Connect("clicked", func() { window.onConfirmClick() })
 
 	// Cancel button
 	if window.buttons.cancel, err = createNavButton(utils.Locale.Get("CANCEL"), "button-cancel"); err != nil {
 		return err
 	}
-	if _, err = window.buttons.cancel.Connect("clicked", func() { window.onCancelClick() }); err != nil {
-		return err
-	}
+	_ = window.buttons.cancel.Connect("clicked", func() { window.onCancelClick() })
 
 	// Create box for primary buttons
 	if window.buttons.boxPrimary, err = gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0); err != nil {
@@ -759,7 +734,8 @@ func writeToConfirmInstallDialog(buffer *gtk.TextBuffer, dryRunResults *storage.
 func setConfirmButtonState(dialog *gtk.Dialog, window *Window) error {
 	var err error
 	if storage.GetImpactOnOtherDisks() && !window.model.MediaOpts.ForceDestructive {
-		if confirmButton, err := dialog.GetWidgetForResponse(gtk.RESPONSE_OK); err == nil {
+		if buttonIWidget, err := dialog.GetWidgetForResponse(gtk.RESPONSE_OK); err == nil {
+			confirmButton := buttonIWidget.ToWidget()
 			confirmButton.SetSensitive(false)
 			return nil
 		}
@@ -871,11 +847,7 @@ func (window *Window) confirmInstall() {
 		return
 	}
 
-	_, err = dialog.Connect("response", window.dialogResponse)
-	if err != nil {
-		log.Error("Error connecting to dialog", err)
-		return
-	}
+	_ = dialog.Connect("response", window.dialogResponse)
 
 	// Valid network is required to install without offline content or additional bundles
 	if (!swupd.OfflineIsUsable(utils.VersionUintString(window.model.Version), window.options) ||
@@ -896,18 +868,15 @@ func (window *Window) confirmInstall() {
 			offlineMsg := utils.Locale.Get("Offline Install: Removing additional bundles")
 			buffer.Insert(buffer.GetEndIter(), offlineMsg+"\n")
 
-			confirmButton, err := dialog.GetWidgetForResponse(gtk.RESPONSE_OK)
+			buttonIWidget, err := dialog.GetWidgetForResponse(gtk.RESPONSE_OK)
 			if err != nil {
 				log.Error("Error getting confirm button", err)
 				return
 			}
-			_, err = confirmButton.Connect("button-press-event", func() {
+			confirmButton := buttonIWidget.ToWidget()
+			_ = confirmButton.Connect("button-press-event", func() {
 				window.model.UserBundles = nil
 			})
-			if err != nil {
-				log.Error("Error connecting to dialog", err)
-				return
-			}
 		}
 	}
 
@@ -1023,14 +992,10 @@ func displayErrorDialog(err error) {
 		log.Error("Error creating dialog", err)
 		return
 	}
-	_, err = dialog.Connect("response", func() {
+	_ = dialog.Connect("response", func() {
 		dialog.Destroy()
 		gtk.MainQuit() // Exit Installer
 	})
-	if err != nil {
-		log.Error("Error connecting to dialog", err)
-		return
-	}
 	dialog.ShowAll()
 	dialog.Run()
 }
@@ -1079,19 +1044,16 @@ func displaySyscheckDialog(syscheckErr error) {
 	dialog.SetDeletable(false)
 
 	// Configure button
-	confirmButton, err := dialog.GetWidgetForResponse(gtk.RESPONSE_OK)
+	buttonIWidget, err := dialog.GetWidgetForResponse(gtk.RESPONSE_OK)
 	if err != nil {
 		log.Error("Error getting confirm button", err)
 		return
 	}
-	_, err = confirmButton.Connect("button-press-event", func() {
+	confirmButton := buttonIWidget.ToWidget()
+	_ = confirmButton.Connect("button-press-event", func() {
 		dialog.Destroy()
 		gtk.MainQuit() // Exit Installer
 	})
-	if err != nil {
-		log.Error("Error connecting to dialog", err)
-		return
-	}
 
 	dialog.ShowAll()
 	dialog.Run()

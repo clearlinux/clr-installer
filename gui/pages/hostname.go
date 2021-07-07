@@ -69,9 +69,7 @@ func NewHostnamePage(controller Controller, model *model.SystemInstall) (Page, e
 	page.box.PackStart(page.warning, false, false, 10)
 
 	// Generate signal on Hostname entry change
-	if _, err := page.entry.Connect("changed", page.onChange); err != nil {
-		return nil, err
-	}
+	_ = page.entry.Connect("changed", page.onChange)
 
 	return page, nil
 }

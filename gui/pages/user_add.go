@@ -118,29 +118,19 @@ func NewUserAddPage(controller Controller, model *model.SystemInstall) (Page, er
 	page.box.PackStart(page.adminCheck, false, false, 0)
 
 	// Generate signal on Name change
-	if _, err := page.name.Connect("changed", page.onNameChange); err != nil {
-		return nil, err
-	}
+	_ = page.name.Connect("changed", page.onNameChange)
 
 	// Generate signal on Login change
-	if _, err := page.login.Connect("changed", page.onLoginChange); err != nil {
-		return nil, err
-	}
+	_ = page.login.Connect("changed", page.onLoginChange)
 
 	// Generate signal on Password change
-	if _, err := page.password.Connect("changed", page.onPasswordChange); err != nil {
-		return nil, err
-	}
+	_ = page.password.Connect("changed", page.onPasswordChange)
 
 	// Generate signal on Password Confirm change
-	if _, err := page.passwordConfirm.Connect("changed", page.onPasswordChange); err != nil {
-		return nil, err
-	}
+	_ = page.passwordConfirm.Connect("changed", page.onPasswordChange)
 
 	// Generate signal on AdminCheck button click
-	if _, err := page.adminCheck.Connect("clicked", page.onAdminClick); err != nil {
-		return nil, err
-	}
+	_ = page.adminCheck.Connect("clicked", page.onAdminClick)
 
 	return page, nil
 }
