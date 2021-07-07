@@ -201,13 +201,9 @@ func (page *InstallPage) ResetChanges() {
 			page.info.SetText(text)
 		}
 
-		_, err = glib.IdleAdd(func() {
+		_ = glib.IdleAdd(func() {
 			page.pbar.SetFraction(1.0)
 		})
-		if err != nil {
-			log.ErrorError(err) // TODO: Handle error in a better way
-			return
-		}
 
 		go func() {
 			_ = network.DownloadInstallerMessage("Post-Installation",
@@ -222,7 +218,7 @@ func (page *InstallPage) ResetChanges() {
 
 // Desc will push a description box into the view for later marking
 func (page *InstallPage) Desc(desc string) {
-	_, err := glib.IdleAdd(func() {
+	_ = glib.IdleAdd(func() {
 		// The target prefix is used by the massinstaller to separate target,
 		// offline, and ISO content installs. It is unnecessary for the GUI.
 		desc = strings.TrimPrefix(desc, swupd.TargetPrefix)
@@ -253,32 +249,20 @@ func (page *InstallPage) Desc(desc string) {
 		page.list.SelectRow(row)
 		scrollToView(page.scroll, page.list, &row.Widget)
 	})
-	if err != nil {
-		log.ErrorError(err) // TODO: Handle error in a better way
-		return
-	}
 }
 
 // Failure handles failure to install
 func (page *InstallPage) Failure() {
-	_, err := glib.IdleAdd(func() {
+	_ = glib.IdleAdd(func() {
 		page.widgets[page.selection].MarkStatus(false)
 	})
-	if err != nil {
-		log.ErrorError(err) // TODO: Handle error in a better way
-		return
-	}
 }
 
 // Success notes the install was successful
 func (page *InstallPage) Success() {
-	_, err := glib.IdleAdd(func() {
+	_ = glib.IdleAdd(func() {
 		page.widgets[page.selection].MarkStatus(true)
 	})
-	if err != nil {
-		log.ErrorError(err) // TODO: Handle error in a better way
-		return
-	}
 }
 
 // LoopWaitDuration will return the duration for step-waits
@@ -288,22 +272,14 @@ func (page *InstallPage) LoopWaitDuration() time.Duration {
 
 // Partial handles an actual progress update
 func (page *InstallPage) Partial(total int, step int) {
-	_, err := glib.IdleAdd(func() {
+	_ = glib.IdleAdd(func() {
 		page.pbar.SetFraction(float64(step) / float64(total))
 	})
-	if err != nil {
-		log.ErrorError(err) // TODO: Handle error in a better way
-		return
-	}
 }
 
 // Step will step the progressbar in indeterminate mode
 func (page *InstallPage) Step() {
-	_, err := glib.IdleAdd(func() {
+	_ = glib.IdleAdd(func() {
 		page.pbar.Pulse()
 	})
-	if err != nil {
-		log.ErrorError(err) // TODO: Handle error in a better way
-		return
-	}
 }

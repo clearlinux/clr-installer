@@ -156,18 +156,21 @@ func createDecisionBox(model *model.SystemInstall, bundle *Bundle) (*decisionDia
 	decisionMaker.dialog.SetDeletable(false)
 
 	// Configure confirm button
-	decisionMaker.confirmButton, err = decisionMaker.dialog.GetWidgetForResponse(gtk.RESPONSE_OK)
+	var buttonIWidget gtk.IWidget
+	buttonIWidget, err = decisionMaker.dialog.GetWidgetForResponse(gtk.RESPONSE_OK)
 	if err != nil {
 		return nil, err
 	}
+	decisionMaker.confirmButton = buttonIWidget.ToWidget()
 
 	// Configure cancel button
-	decisionMaker.cancelButton, err = decisionMaker.dialog.GetWidgetForResponse(gtk.RESPONSE_CANCEL)
+	buttonIWidget, err = decisionMaker.dialog.GetWidgetForResponse(gtk.RESPONSE_CANCEL)
 	if err != nil {
 		return nil, err
 	}
+	decisionMaker.cancelButton = buttonIWidget.ToWidget()
 
-	_, err = decisionMaker.confirmButton.Connect("clicked", func() {
+	_ = decisionMaker.confirmButton.Connect("clicked", func() {
 		if ret, _ := network.RunNetworkTest(model); ret != network.NetTestSuccess {
 			bundle.clearPage = true
 			bundle.ResetChanges()
@@ -178,18 +181,12 @@ func createDecisionBox(model *model.SystemInstall, bundle *Bundle) (*decisionDia
 		bundle.windowController.SetButtonState(ButtonConfirm, controller.NetworkPassing)
 		decisionMaker.dialog.Destroy()
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	_, err = decisionMaker.cancelButton.Connect("clicked", func() {
+	_ = decisionMaker.cancelButton.Connect("clicked", func() {
 		bundle.clearPage = true
 		decisionMaker.dialog.Destroy()
 		bundle.ResetChanges()
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	decisionMaker.confirmButton.SetSensitive(true)
 	decisionMaker.cancelButton.SetSensitive(true)
@@ -246,7 +243,7 @@ func NewBundlePage(windowController Controller, model *model.SystemInstall) (Pag
 
 	for i := range bundle.selections {
 		if !controller.NetworkPassing {
-			if _, err := bundle.selections[i].Connect("toggled", func() {
+			_ = bundle.selections[i].Connect("toggled", func() {
 				if !controller.NetworkPassing && !bundle.clearPage {
 					// we dont want to fire any checkbox signals
 					// when we want to clear the page. if encounter
@@ -262,9 +259,7 @@ func NewBundlePage(windowController Controller, model *model.SystemInstall) (Pag
 				if !controller.NetworkPassing && bundle.clearPage {
 					bundle.clearPage = false
 				}
-			}); err != nil {
-				return nil, err
-			}
+			})
 		}
 	}
 

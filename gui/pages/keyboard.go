@@ -51,9 +51,7 @@ func NewKeyboardPage(controller Controller, model *model.SystemInstall) (Page, e
 		return nil, err
 	}
 	page.box.PackStart(page.searchEntry, false, false, 0)
-	if _, err := page.searchEntry.Connect("search-changed", page.onChange); err != nil {
-		return nil, err
-	}
+	_ = page.searchEntry.Connect("search-changed", page.onChange)
 
 	// ScrolledWindow
 	page.scroll, err = setScrolledWindow(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC, "scroller")
@@ -67,9 +65,7 @@ func NewKeyboardPage(controller Controller, model *model.SystemInstall) (Page, e
 	if err != nil {
 		return nil, err
 	}
-	if _, err := page.list.Connect("row-activated", page.onRowActivated); err != nil {
-		return nil, err
-	}
+	_ = page.list.Connect("row-activated", page.onRowActivated)
 	page.scroll.Add(page.list)
 
 	// Create list data

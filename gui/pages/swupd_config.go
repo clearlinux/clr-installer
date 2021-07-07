@@ -90,9 +90,7 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 	page.mirrorWarning.SetMaxWidthChars(1) // The value does not matter but its required for LineWrap to work
 	page.mirrorWarning.SetLineWrap(true)
 	page.box.PackStart(page.mirrorWarning, false, false, 0)
-	if _, err := page.mirrorEntry.Connect("changed", page.onMirrorChange); err != nil {
-		return nil, err
-	}
+	_ = page.mirrorEntry.Connect("changed", page.onMirrorChange)
 
 	page.insecureCheck, err = gtk.CheckButtonNew()
 	if err != nil {
@@ -102,7 +100,7 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 	page.insecureCheck.SetMarginStart(14)         // Custom margin to align properly
 	page.insecureCheck.SetHAlign(gtk.ALIGN_START) // Ensures that clickable area is only within the label
 	page.box.PackStart(page.insecureCheck, false, false, 10)
-	if _, err := page.insecureCheck.Connect("clicked", func(button *gtk.CheckButton) {
+	_ = page.insecureCheck.Connect("clicked", func(button *gtk.CheckButton) {
 		if button.GetActive() {
 			page.model.AllowInsecureHTTP = true
 		} else {
@@ -110,9 +108,7 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 		}
 
 		page.validateMirror()
-	}); err != nil {
-		return nil, err
-	}
+	})
 
 	separator, err := gtk.SeparatorNew(gtk.ORIENTATION_HORIZONTAL)
 	if err != nil {
@@ -157,9 +153,7 @@ func NewSwupdConfigPage(controller Controller, model *model.SystemInstall) (Page
 	page.autoUpdateButton.SetMarginStart(14)         // Custom margin to align properly
 	page.autoUpdateButton.SetHAlign(gtk.ALIGN_START) // Ensures that clickable area is only within the label
 	page.box.PackStart(page.autoUpdateButton, false, false, 10)
-	if _, err := page.autoUpdateButton.Connect("clicked", page.onAutoUpdateClick); err != nil {
-		return nil, err
-	}
+	_ = page.autoUpdateButton.Connect("clicked", page.onAutoUpdateClick)
 
 	var warning, style string
 	if page.model.AutoUpdate.Value() {
