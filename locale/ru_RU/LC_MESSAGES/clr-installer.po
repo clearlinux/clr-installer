@@ -98,56 +98,56 @@ msgstr "Установка ОС Clear Linux*"
 
 #, c-format
 msgid "Running %s hooks"
-msgstr "Running %s hooks"
+msgstr "Запуск хуков %s"
 
 msgid "Testing connectivity"
-msgstr "Testing connectivity"
+msgstr "Тестирование подключения"
 
 msgid "Test connectivity"
-msgstr "Test connectivity"
+msgstr "Тест подключения"
 
 msgid "Test Network Settings"
 msgstr "Test Network Settings"
 
 #, c-format
 msgid "Removing logical disk volume: %s"
-msgstr "Removing logical disk volume: %s"
+msgstr "Удаление тома логического диска: %s"
 
 #, c-format
 msgid "Writing partition table to: %s"
-msgstr "Writing partition table to: %s"
+msgstr "Запись таблицы разделов в: %s"
 
 msgid "Adjusting filesystem configurations"
-msgstr "Adjusting filesystem configurations"
+msgstr "Настройка конфигурации файловой системы"
 
 #, c-format
 msgid "Writing %s file system to %s"
-msgstr "Writing %s file system to %s"
+msgstr "Запись файловой системы %s в %s"
 
 msgid "Writing mount files"
 msgstr "Writing mount files"
 
 msgid "Installing the base system"
-msgstr "Installing the base system"
+msgstr "Установка основной системы"
 
 msgid "Saving the installation results"
-msgstr "Saving the installation results"
+msgstr "Сохранение результатов установки"
 
 msgid "Installation completed"
-msgstr "Installation completed"
+msgstr "Установка завершена"
 
 msgid "Success"
-msgstr "Success"
+msgstr "Успешно"
 
 msgid "Failure"
-msgstr "Failure"
+msgstr "Сбой"
 
 msgid "This task has not yet completed"
-msgstr "This task has not yet completed"
+msgstr "Эта задача еще не завершена"
 
 #, c-format
 msgid "VERSION %s"
-msgstr "VERSION %s"
+msgstr "ВЕРСИЯ %s"
 
 msgid "Select Installation Media"
 msgstr "Select Installation Media"
