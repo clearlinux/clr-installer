@@ -20,7 +20,8 @@ ConditionKernelCommandLine=clri.descriptor
 [Service]
 Type=oneshot
 ExecStartPre=-/usr/bin/cat /etc/issue
-ExecStart=/bin/bash -l -c 'until /usr/bin/clr-installer ; do echo "clr-installer failed...retying"; sleep 5 ; done ; /usr/bin/reboot'
+ExecStart=/usr/bin/clr-installer
+ExecStartPost=/usr/bin/reboot
 StandardInput=tty
 StandardOutput=tty
 StandardError=tty
