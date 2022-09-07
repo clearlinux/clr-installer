@@ -22,10 +22,9 @@ Type=oneshot
 ExecStartPre=-/usr/bin/cat /etc/issue
 ExecStart=/usr/bin/clr-installer
 ExecStartPost=/usr/bin/reboot
-StandardInput=tty
-StandardOutput=tty
-StandardError=tty
-TTYPath=/dev/console
+StandardInput=tty-force
+StandardOutput=tty-force
+StandardError=tty-force
 
 [Install]
 WantedBy=multi-user.target
