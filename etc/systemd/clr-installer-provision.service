@@ -15,10 +15,10 @@
 Description=Clear Linux OS Installer
 After=systemd-user-sessions.service plymouth-quit.service getty@tty1.service
 Conflicts=getty@tty1.service getty@tty0.service serial-getty@ttyS0.service
+ConditionKernelCommandLine=clri.descriptor
 
 [Service]
 Type=oneshot
-ExecStartPre=/bin/bash -l -c 'grep --quiet --no-message clri.descriptor= /proc/cmdline || (echo "Missing clr-install YAML on kernel command line" ; /bin/false)'
 ExecStartPre=-/bin/bash -l -c '/usr/bin/cat /etc/issue'
 ExecStart=/bin/bash -l -c 'until /usr/bin/clr-installer ; do echo "clr-installer failed...retying"; sleep 5 ; done ; /usr/bin/reboot'
 StandardInput=tty
