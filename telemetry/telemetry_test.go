@@ -168,13 +168,19 @@ func TestTelemetryServerPrivateIP(t *testing.T) {
 			}
 		}()
 
+		errc := make(chan error, 1)
 		// Start a micro http server
 		go func() {
 			http.HandleFunc("/", HelloServer)
 			if err := http.ListenAndServe(httpAddr+":"+httpPort, nil); err != nil {
-				t.Fatalf("Telemetry: Failed to create http server for testing: %s\n", err)
+				errc <- err
 			}
 		}()
+
+		err = <-errc
+		if err != nil {
+			t.Fatalf("Telemetry: Failed to create http server for testing: %s\n", err)
+		}
 
 		url = "http://" + httpAddr + ":" + httpPort + "/"
 		_, getErr := http.Get(url)
