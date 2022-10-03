@@ -214,8 +214,7 @@ func JSONtoYAMLConfig(cf string) (*SystemInstall, error) {
 		var children = make([]*storage.BlockDevice, len(partitions), len(partitions))
 		i := 0
 		for _, part := range partitions {
-			e := storage.BlockDevice{}
-			e = part
+			e := part
 			children[i] = &e
 			i++
 		}

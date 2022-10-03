@@ -500,9 +500,9 @@ func execute(options args.Args) error {
 
 	var md *model.SystemInstall
 
-	cf := options.ConfigFile
 	// Load config values from file to model
-	if cf, err = checkAndLoadConfigFile(options, &md); err != nil {
+	cf, err := checkAndLoadConfigFile(options, &md)
+	if err != nil {
 		return err
 	}
 	if options.CfDownloaded {
