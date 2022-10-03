@@ -1,3 +1,4 @@
+//go:build !guiBuild
 // +build !guiBuild
 
 // Copyright © 2018 Intel Corporation

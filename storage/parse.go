@@ -35,7 +35,7 @@ type blockDeviceYAMLMarshal struct {
 
 // UnmarshalJSON decodes a BlockDevice, targeted to integrate with json
 // decoding framework
-//nolint: gocyclo  // TODO: Refactor this
+// nolint: gocyclo  // TODO: Refactor this
 func (bd *BlockDevice) UnmarshalJSON(b []byte) error {
 	dec := json.NewDecoder(bytes.NewReader(b))
 

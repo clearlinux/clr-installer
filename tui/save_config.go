@@ -105,9 +105,9 @@ func (page *SaveConfigPage) DeActivate() {}
 
 // GetConfigDefinition is a stub implementation
 // the real implementation must check with the model and return:
-//    + ConfigDefinedByUser: if the configuration was interactively defined by the user
-//    + ConfigDefinedByConfig: if the configuration was provided by a config file
-//    + ConfigNotDefined: if none of the above apply
+//   - ConfigDefinedByUser: if the configuration was interactively defined by the user
+//   - ConfigDefinedByConfig: if the configuration was provided by a config file
+//   - ConfigNotDefined: if none of the above apply
 func (page *SaveConfigPage) GetConfigDefinition() int {
 	return ConfigDefinedByUser
 }

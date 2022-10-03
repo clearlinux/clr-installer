@@ -499,7 +499,7 @@ func HostHasEFI() bool {
 	return true
 }
 
-//VersionStringUint converts string version to an uint version
+// VersionStringUint converts string version to an uint version
 func VersionStringUint(versionString string) (uint, error) {
 	var versionUint uint = 0
 
@@ -515,7 +515,7 @@ func VersionStringUint(versionString string) (uint, error) {
 	return versionUint, err
 }
 
-//VersionUintString converts an uint version to the string version
+// VersionUintString converts an uint version to the string version
 func VersionUintString(versionUint uint) string {
 	var version string
 
