@@ -5,6 +5,7 @@
 package gui
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -429,7 +430,7 @@ func (window *Window) AddPage(page pages.Page) error {
 
 	// Make available via root stack
 	window.pages[id] = root
-	window.rootStack.AddNamed(root, "page:"+string(id))
+	window.rootStack.AddNamed(root, "page:"+fmt.Sprint(id))
 
 	return nil
 }
