@@ -282,7 +282,7 @@ func askPassPhrase(prompt string) string {
 	}
 
 	// Restore it in the event of an interrupt.
-	c := make(chan os.Signal)
+	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM,
 		syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGILL, syscall.SIGTRAP,
 		syscall.SIGABRT, syscall.SIGSTKFLT, syscall.SIGSYS)
