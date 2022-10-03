@@ -112,7 +112,7 @@ func (disk *DiskConfig) advancedButtonToggled() {
 }
 
 // NewDiskConfigPage returns a new DiskConfigPage
-//nolint: gocyclo  // TODO: Refactor this
+// nolint: gocyclo  // TODO: Refactor this
 func NewDiskConfigPage(controller Controller, model *model.SystemInstall) (Page, error) {
 	disk := &DiskConfig{
 		controller: controller,

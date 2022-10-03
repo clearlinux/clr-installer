@@ -109,10 +109,14 @@ type InstallHook struct {
 
 // StorageAlias is used to expand variables in the targetMedia definitions
 // a partition's block device name attribute could be declared in the form of:
-//   Name: ${alias}p1
+//
+//	Name: ${alias}p1
+//
 // where ${alias} was previously declared pointing to a block device file such as:
 // block-devices : [
-//   {name: "alias", file: "/dev/nvme0n1"}
+//
+//	{name: "alias", file: "/dev/nvme0n1"}
+//
 // ]
 type StorageAlias struct {
 	Name       string `yaml:"name,omitempty,flow"`

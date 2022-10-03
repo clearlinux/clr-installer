@@ -235,9 +235,9 @@ func (bd *BlockDevice) updatePartitionInfo() error {
 }
 
 // getGUID determines the partition type guid either based on:
-//   + mount point
-//   + file system type (i.e swap)
-//   + or if it's the "special" efi case
+//   - mount point
+//   - file system type (i.e swap)
+//   - or if it's the "special" efi case
 func (bd *BlockDevice) getGUID() string {
 	if guid, ok := guidMap[bd.MountPoint]; ok {
 		return guid
@@ -2011,6 +2011,7 @@ func FindAllInstallTargets(rootSize uint64, medias []*BlockDevice) []InstallTarg
 // FindAdvancedInstallTargets creates a list of advanced installation targets
 // We use Partition Labels to tag and convey which partitions should be used
 // for an advanced installations.
+//
 //	CLR_BOOT = The /boot partition; must be vfat
 //	CLR_SWAP = A swap partition to use; can be more than one
 //	CLR_ROOT = The / root partition; must be ext[234], xfs or f2fs.

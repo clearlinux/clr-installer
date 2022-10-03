@@ -914,7 +914,7 @@ func TestAddPartititions(t *testing.T) {
 	AddRootStandardPartition(bd, rootSize)
 }
 
-//nolint: lll // WONTFIX
+// nolint: lll // WONTFIX
 var lsblkOutput string = `{
    "blockdevices": [
 	  {"name": "sde", "path": "/dev/sde", "size": "2.0T", "type": "disk", "mountpoint": null,
