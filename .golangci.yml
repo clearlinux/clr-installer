@@ -15,10 +15,7 @@ linters:
     - gocyclo
     - gofmt
     - goimports
-    - golint
-    - deadcode
-    - varcheck
-    - structcheck
+    - revive
     - unused
     - vetshadow
     - errcheck
