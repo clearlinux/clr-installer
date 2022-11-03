@@ -553,7 +553,7 @@ func TestWritePartition(t *testing.T) {
 		bd.Children = children
 
 		//write the partition table (dryrun)
-		var dryRun *DryRunType = &DryRunType{&[]string{}, &[]string{}}
+		var dryRun = &DryRunType{&[]string{}, &[]string{}}
 		if err = bd.WritePartitionTable(true, false, dryRun); err != nil {
 			t.Fatalf("Could not dryrun write partition table (%s): %s", file, err)
 		}
@@ -915,7 +915,7 @@ func TestAddPartititions(t *testing.T) {
 }
 
 // nolint: lll // WONTFIX
-var lsblkOutput string = `{
+var lsblkOutput = `{
    "blockdevices": [
 	  {"name": "sde", "path": "/dev/sde", "size": "2.0T", "type": "disk", "mountpoint": null,
          "children": [

@@ -91,7 +91,7 @@ var (
 
 	// Global to store if there is impact on other disks
 	// Only used during destructive Installation
-	hasUnplannedDestructiveChanges bool = false
+	hasUnplannedDestructiveChanges = false
 )
 
 type blockDeviceDestroyOps struct {
@@ -431,7 +431,7 @@ func partitionUsingParted(bd *BlockDevice, dryRun *DryRunType, wholeDisk bool) e
 
 		if size < 1 {
 			if maxFound {
-				return errors.Errorf("Found more than one partition with size 0 for %s!", bd.Name)
+				return errors.Errorf("found more than one partition with size 0 for %s", bd.Name)
 			}
 			maxFound = true
 			end = 0
@@ -997,7 +997,7 @@ func removePart(bd *BlockDevice, forceDestructive bool, disk string, dryRun *Dry
 
 func (bd *BlockDevice) cleanUpDisk(disk string, forceDestructive bool,
 	dryRun *DryRunType, scans *preScanResults) error {
-	var err error = nil
+	var err error
 
 	for _, ch := range bd.Children {
 		if err = ch.cleanUpDisk(disk, forceDestructive, dryRun, scans); err != nil {

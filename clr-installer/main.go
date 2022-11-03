@@ -422,7 +422,7 @@ func processConvertConfigFileOption(options args.Args, md *model.SystemInstall) 
 	copyModel := md
 	var err error
 	if options.ConvertConfigFile != "" && options.TemplateConfigFile != "" {
-		return copyModel, errors.Errorf("Options --json-yaml and --template are mutually exclusive.")
+		return copyModel, errors.Errorf("options --json-yaml and --template are mutually exclusive")
 	}
 
 	if options.ConvertConfigFile != "" {
