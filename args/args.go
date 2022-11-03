@@ -140,7 +140,7 @@ func (args *Args) setKernelArgs() (err error) {
 		var ffile string
 		msg := fmt.Sprintf("Downloading configuration file %q", url)
 
-		var downloadSleep time.Duration = 0
+		var downloadSleep time.Duration
 		for { // Keep retrying to download configuration file
 			time.Sleep(downloadSleep * time.Second)
 			fmt.Println(msg)

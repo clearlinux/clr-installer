@@ -208,7 +208,7 @@ func (mi *MassInstall) Run(md *model.SystemInstall, rootDir string, options args
 		} else {
 			log.Error("Failed to detected advanced partition labels!")
 			fmt.Println("Failed to detected advanced partition labels!")
-			return false, errors.Errorf("Failed to detected advanced partition labels!")
+			return false, errors.Errorf("failed to detected advanced partition labels")
 		}
 	}
 

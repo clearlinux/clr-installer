@@ -73,7 +73,7 @@ func CopyAllFiles(srcDir string, destDir string) error {
 	err := filepath.Walk(srcDir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
-				return errors.Errorf("Failure accessing a path %q: %v\n", path, err)
+				return errors.Errorf("failure accessing a path %q: %v", path, err)
 			}
 			target := filepath.Join(destDir, path)
 			if info.IsDir() {
@@ -501,7 +501,7 @@ func HostHasEFI() bool {
 
 // VersionStringUint converts string version to an uint version
 func VersionStringUint(versionString string) (uint, error) {
-	var versionUint uint = 0
+	var versionUint uint
 
 	if versionString == "" || IsLatestVersion(versionString) {
 		return 0, nil
