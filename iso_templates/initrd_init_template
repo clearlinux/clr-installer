@@ -177,7 +177,9 @@ find_installer() {
             sleep 1
             (( retries++ ))
         fi
-        blkid
+        blkid | while read partition; do
+            echo_tty_kmsg "${partition}"
+        done
     done
 
     if [ $retries -ge $max_retries ]; then
