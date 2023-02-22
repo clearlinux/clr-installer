@@ -1,2 +1,2 @@
-1) Update vendor and test
+1) Update vendor and test (go mod vendor)
 2) Tag new release version and push tag to github and use github ui to draft a new release
