@@ -177,6 +177,7 @@ find_installer() {
             sleep 1
             (( retries++ ))
         fi
+        blkid
     done
 
     if [ $retries -ge $max_retries ]; then
