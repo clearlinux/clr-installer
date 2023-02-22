@@ -111,6 +111,12 @@ func Interrupt() {
 	interrupt_comm <- struct{}{}
 }
 
+// https://docs.microsoft.com/en-us/windows/console/char-info-str
+const (
+	common_lvb_leading_byte  = 0x0100
+	common_lvb_trailing_byte = 0x0200
+)
+
 // Synchronizes the internal back buffer with the terminal.
 func Flush() error {
 	update_size_maybe()
@@ -118,12 +124,15 @@ func Flush() error {
 	for _, diff := range diffbuf {
 		chars := []char_info{}
 		for _, char := range diff.chars {
-			chars = append(chars, char)
 			if runewidth.RuneWidth(rune(char.char)) > 1 {
+				char.attr |= common_lvb_leading_byte
+				chars = append(chars, char)
 				chars = append(chars, char_info{
-					char: ' ',
-					attr: char.attr,
+					char: char.char,
+					attr: char.attr | common_lvb_trailing_byte,
 				})
+			} else {
+				chars = append(chars, char)
 			}
 		}
 		r := small_rect{
@@ -172,6 +181,50 @@ func SetCell(x, y int, ch rune, fg, bg Attribute) {
 	}
 
 	back_buffer.cells[y*back_buffer.width+x] = Cell{ch, fg, bg}
+}
+
+// Returns the specified cell from the internal back buffer.
+func GetCell(x, y int) Cell {
+	return back_buffer.cells[y*back_buffer.width+x]
+}
+
+// Changes cell's character (rune) in the internal back buffer at the
+// specified position.
+func SetChar(x, y int, ch rune) {
+	if x < 0 || x >= back_buffer.width {
+		return
+	}
+	if y < 0 || y >= back_buffer.height {
+		return
+	}
+
+	back_buffer.cells[y*back_buffer.width+x].Ch = ch
+}
+
+// Changes cell's foreground attributes in the internal back buffer at
+// the specified position.
+func SetFg(x, y int, fg Attribute) {
+	if x < 0 || x >= back_buffer.width {
+		return
+	}
+	if y < 0 || y >= back_buffer.height {
+		return
+	}
+
+	back_buffer.cells[y*back_buffer.width+x].Fg = fg
+}
+
+// Changes cell's background attributes in the internal back buffer at
+// the specified position.
+func SetBg(x, y int, bg Attribute) {
+	if x < 0 || x >= back_buffer.width {
+		return
+	}
+	if y < 0 || y >= back_buffer.height {
+		return
+	}
+
+	back_buffer.cells[y*back_buffer.width+x].Bg = bg
 }
 
 // Returns a slice into the termbox's back buffer. You can get its dimensions

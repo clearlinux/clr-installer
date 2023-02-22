@@ -107,13 +107,13 @@ func (l *Locale) AddDomain(dom string) {
 
 	file := l.findExt(dom, "po")
 	if file != "" {
-		poObj = new(Po)
+		poObj = NewPo()
 		// Parse file.
 		poObj.ParseFile(file)
 	} else {
 		file = l.findExt(dom, "mo")
 		if file != "" {
-			poObj = new(Mo)
+			poObj = NewMo()
 			// Parse file.
 			poObj.ParseFile(file)
 		} else {
@@ -152,7 +152,7 @@ func (l *Locale) AddTranslator(dom string, tr Translator) {
 	l.Unlock()
 }
 
-// GetDomain is the domain getter for the package configuration
+// GetDomain is the domain getter for Locale configuration
 func (l *Locale) GetDomain() string {
 	l.RLock()
 	dom := l.defaultDomain
@@ -182,7 +182,19 @@ func (l *Locale) GetN(str, plural string, n int, vars ...interface{}) string {
 // GetD returns the corresponding Translation in the given domain for the given string.
 // Supports optional parameters (vars... interface{}) to be inserted on the formatted string using the fmt.Printf syntax.
 func (l *Locale) GetD(dom, str string, vars ...interface{}) string {
-	return l.GetND(dom, str, str, 1, vars...)
+	// Sync read
+	l.RLock()
+	defer l.RUnlock()
+
+	if l.Domains != nil {
+		if _, ok := l.Domains[dom]; ok {
+			if l.Domains[dom] != nil {
+				return l.Domains[dom].Get(str, vars...)
+			}
+		}
+	}
+
+	return Printf(str, vars...)
 }
 
 // GetND retrieves the (N)th plural form of Translation in the given domain for the given string.
@@ -200,7 +212,10 @@ func (l *Locale) GetND(dom, str, plural string, n int, vars ...interface{}) stri
 		}
 	}
 
-	// Return the same we received by default
+	// Use western default rule (plural > 1) to handle missing domain default result.
+	if n == 1 {
+		return Printf(str, vars...)
+	}
 	return Printf(plural, vars...)
 }
 
@@ -219,7 +234,19 @@ func (l *Locale) GetNC(str, plural string, n int, ctx string, vars ...interface{
 // GetDC returns the corresponding Translation in the given domain for the given string in the given context.
 // Supports optional parameters (vars... interface{}) to be inserted on the formatted string using the fmt.Printf syntax.
 func (l *Locale) GetDC(dom, str, ctx string, vars ...interface{}) string {
-	return l.GetNDC(dom, str, str, 1, ctx, vars...)
+	// Sync read
+	l.RLock()
+	defer l.RUnlock()
+
+	if l.Domains != nil {
+		if _, ok := l.Domains[dom]; ok {
+			if l.Domains[dom] != nil {
+				return l.Domains[dom].GetC(str, ctx, vars...)
+			}
+		}
+	}
+
+	return Printf(str, vars...)
 }
 
 // GetNDC retrieves the (N)th plural form of Translation in the given domain for the given string in the given context.
@@ -237,8 +264,26 @@ func (l *Locale) GetNDC(dom, str, plural string, n int, ctx string, vars ...inte
 		}
 	}
 
-	// Return the same we received by default
+	// Use western default rule (plural > 1) to handle missing domain default result.
+	if n == 1 {
+		return Printf(str, vars...)
+	}
 	return Printf(plural, vars...)
+}
+
+//GetTranslations returns a copy of all translations in all domains of this locale. It does not support contexts.
+func (l *Locale) GetTranslations() map[string]*Translation {
+	all := make(map[string]*Translation)
+
+	l.RLock()
+	defer l.RUnlock()
+	for _, translator := range l.Domains {
+		for msgID, trans := range translator.GetDomain().GetTranslations() {
+			all[msgID] = trans
+		}
+	}
+
+	return all
 }
 
 // LocaleEncoding is used as intermediary storage to encode Locale objects to Gob.

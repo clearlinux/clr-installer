@@ -1,19 +1,28 @@
 # github.com/GehirnInc/crypt v0.0.0-20200316065508-bb7000b8a962
+## explicit
 github.com/GehirnInc/crypt
 github.com/GehirnInc/crypt/common
 github.com/GehirnInc/crypt/internal
 github.com/GehirnInc/crypt/sha512_crypt
 # github.com/VladimirMarkelov/clui v1.2.1
+## explicit
 github.com/VladimirMarkelov/clui
-# github.com/atotto/clipboard v0.1.2
+# github.com/atotto/clipboard v0.1.4
+## explicit
 github.com/atotto/clipboard
-# github.com/coreos/go-systemd/v22 v22.0.0
+# github.com/coreos/go-systemd/v22 v22.5.0
+## explicit; go 1.12
 github.com/coreos/go-systemd/v22/dbus
 # github.com/digitalocean/go-smbios v0.0.0-20180907143718-390a4f403a8e
+## explicit
 github.com/digitalocean/go-smbios/smbios
-# github.com/godbus/dbus/v5 v5.0.3
+# github.com/godbus/dbus/v5 v5.1.0
+## explicit; go 1.12
 github.com/godbus/dbus/v5
-# github.com/gotk3/gotk3 v0.6.0
+# github.com/google/go-cmp v0.4.0
+## explicit; go 1.8
+# github.com/gotk3/gotk3 v0.6.1
+## explicit; go 1.14
 github.com/gotk3/gotk3/cairo
 github.com/gotk3/gotk3/gdk
 github.com/gotk3/gotk3/glib
@@ -22,30 +31,56 @@ github.com/gotk3/gotk3/internal/callback
 github.com/gotk3/gotk3/internal/closure
 github.com/gotk3/gotk3/internal/slab
 github.com/gotk3/gotk3/pango
-# github.com/huandu/xstrings v1.3.0
+# github.com/huandu/xstrings v1.4.0
+## explicit; go 1.12
 github.com/huandu/xstrings
-# github.com/leonelquinteros/gotext v1.4.0
+# github.com/kr/text v0.2.0
+## explicit
+# github.com/leonelquinteros/gotext v1.5.1
+## explicit; go 1.13
 github.com/leonelquinteros/gotext
 github.com/leonelquinteros/gotext/plurals
-# github.com/mattn/go-runewidth v0.0.9
+# github.com/mattn/go-runewidth v0.0.14
+## explicit; go 1.9
 github.com/mattn/go-runewidth
+# github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e
+## explicit; go 1.12
 # github.com/nightlyone/lockfile v1.0.0
+## explicit; go 1.11
 github.com/nightlyone/lockfile
-# github.com/nsf/termbox-go v0.0.0-20200204031403-4d2b513ad8be
+# github.com/nsf/termbox-go v1.1.1
+## explicit; go 1.15
 github.com/nsf/termbox-go
+# github.com/rivo/uniseg v0.4.4
+## explicit; go 1.18
+github.com/rivo/uniseg
 # github.com/spf13/pflag v1.0.5
+## explicit; go 1.12
 github.com/spf13/pflag
-# golang.org/x/crypto v0.0.0-20200323165209-0ec3e9974c59
+# github.com/stretchr/testify v1.5.1
+## explicit; go 1.13
+# golang.org/x/crypto v0.6.0
+## explicit; go 1.17
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/sys v0.0.0-20200327173247-9dae0f8f5775
+# golang.org/x/sys v0.5.0
+## explicit; go 1.17
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.3.2
+# golang.org/x/term v0.5.0
+## explicit; go 1.17
+golang.org/x/term
+# golang.org/x/text v0.7.0
+## explicit; go 1.17
 golang.org/x/text/internal/format
 golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag
 golang.org/x/text/language
 golang.org/x/text/language/display
-# gopkg.in/yaml.v2 v2.2.8
+# gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f
+## explicit
+# gopkg.in/yaml.v2 v2.4.0
+## explicit; go 1.15
 gopkg.in/yaml.v2

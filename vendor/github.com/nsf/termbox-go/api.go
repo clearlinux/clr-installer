@@ -25,6 +25,10 @@ import (
 //      }
 //      defer termbox.Close()
 func Init() error {
+	if IsInit {
+		return nil
+	}
+
 	var err error
 
 	if runtime.GOOS == "openbsd" || runtime.GOOS == "freebsd" {
@@ -130,6 +134,10 @@ func Interrupt() {
 // Finalizes termbox library, should be called after successful initialization
 // when termbox's functionality isn't required anymore.
 func Close() {
+	if !IsInit {
+		return
+	}
+
 	quit <- 1
 	out.WriteString(funcs[t_show_cursor])
 	out.WriteString(funcs[t_sgr0])
@@ -243,6 +251,50 @@ func SetCell(x, y int, ch rune, fg, bg Attribute) {
 	}
 
 	back_buffer.cells[y*back_buffer.width+x] = Cell{ch, fg, bg}
+}
+
+// Returns the specified cell from the internal back buffer.
+func GetCell(x, y int) Cell {
+	return back_buffer.cells[y*back_buffer.width+x]
+}
+
+// Changes cell's character (rune) in the internal back buffer at the
+// specified position.
+func SetChar(x, y int, ch rune) {
+	if x < 0 || x >= back_buffer.width {
+		return
+	}
+	if y < 0 || y >= back_buffer.height {
+		return
+	}
+
+	back_buffer.cells[y*back_buffer.width+x].Ch = ch
+}
+
+// Changes cell's foreground attributes in the internal back buffer at
+// the specified position.
+func SetFg(x, y int, fg Attribute) {
+	if x < 0 || x >= back_buffer.width {
+		return
+	}
+	if y < 0 || y >= back_buffer.height {
+		return
+	}
+
+	back_buffer.cells[y*back_buffer.width+x].Fg = fg
+}
+
+// Changes cell's background attributes in the internal back buffer at
+// the specified position.
+func SetBg(x, y int, bg Attribute) {
+	if x < 0 || x >= back_buffer.width {
+		return
+	}
+	if y < 0 || y >= back_buffer.height {
+		return
+	}
+
+	back_buffer.cells[y*back_buffer.width+x].Bg = bg
 }
 
 // Returns a slice into the termbox's back buffer. You can get its dimensions
