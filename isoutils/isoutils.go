@@ -346,7 +346,7 @@ func mkEfiBoot() error {
 	log.Info(msg)
 
 	cmds := [][]string{
-		{"fallocate", "-l", "124M", tmpPaths[clrCdroot] + "/EFI/efiboot.img"},
+		{"fallocate", "-l", "150M", tmpPaths[clrCdroot] + "/EFI/efiboot.img"},
 		{"mkfs.fat", "-n", "CLEAR_EFI", tmpPaths[clrCdroot] + "/EFI/efiboot.img"},
 		{"mount", "-t", "vfat", "-o", "loop", tmpPaths[clrCdroot] + "/EFI/efiboot.img", tmpPaths[clrEfi]},
 		{"cp", "-pr", tmpPaths[clrImgEfi] + "/.", tmpPaths[clrEfi]},
