@@ -506,12 +506,20 @@ func (v *Widget) Unmap() {
 }
 
 // TODO:
-//void gtk_widget_realize(GtkWidget *widget);
-//void gtk_widget_unrealize(GtkWidget *widget);
 //void gtk_widget_draw(GtkWidget *widget, cairo_t *cr);
 //void gtk_widget_queue_resize(GtkWidget *widget);
 //void gtk_widget_queue_resize_no_redraw(GtkWidget *widget);
 // gtk_widget_queue_allocate().
+
+// Realize is a wrapper around gtk_widget_realize().
+func (v *Widget) Realize() {
+	C.gtk_widget_realize(v.native())
+}
+
+// Unrealize is a wrapper around gtk_widget_unrealize().
+func (v *Widget) Unrealize() {
+	C.gtk_widget_unrealize(v.native())
+}
 
 // Event() is a wrapper around gtk_widget_event().
 func (v *Widget) Event(event *gdk.Event) bool {
@@ -906,7 +914,7 @@ func requisitionFromNative(requisitionNative *C.GtkRequisition) (*Requisition, e
 	if requisition == nil {
 		return nil, nilPtrErr
 	}
-	runtime.SetFinalizer(requisition, (*Requisition).free)
+	runtime.SetFinalizer(requisition, func(l *Requisition) { glib.FinalizerStrategy(l.free) })
 	return requisition, nil
 }
 
