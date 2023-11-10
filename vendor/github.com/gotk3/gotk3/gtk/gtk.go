@@ -216,6 +216,7 @@ func init() {
 		{glib.Type(C.gtk_cell_area_get_type()), marshalCellArea},
 		{glib.Type(C.gtk_cell_area_context_get_type()), marshalCellAreaContext},
 		{glib.Type(C.gtk_cell_area_box_get_type()), marshalCellAreaBox},
+		{glib.Type(C.gtk_viewport_get_type()), marshalViewport},
 		{glib.Type(C.gtk_volume_button_get_type()), marshalVolumeButton},
 		{glib.Type(C.gtk_widget_get_type()), marshalWidget},
 		{glib.Type(C.gtk_window_get_type()), marshalWindow},
@@ -3189,7 +3190,7 @@ func (v *Clipboard) WaitForContents(target gdk.Atom) (*SelectionData, error) {
 		return nil, nilPtrErr
 	}
 	p := &SelectionData{c}
-	runtime.SetFinalizer(p, (*SelectionData).free)
+	runtime.SetFinalizer(p, func(l *SelectionData) { glib.FinalizerStrategy(l.free) })
 	return p, nil
 }
 
@@ -4189,7 +4190,7 @@ func (v *Entry) GetIconGIcon(iconPos EntryIconPosition) (*glib.Icon, error) {
 	}
 	obj := &glib.Object{glib.ToGObject(unsafe.Pointer(c))}
 	i := &glib.Icon{obj}
-	runtime.SetFinalizer(i, func(_ interface{}) { obj.Unref() })
+	runtime.SetFinalizer(i, func(_ interface{}) { glib.FinalizerStrategy(obj.Unref) })
 	return i, nil
 }
 
@@ -4853,6 +4854,16 @@ func (v *FileChooser) GetDoOverwriteConfirmation() bool {
 	return gobool(c)
 }
 
+// SetAction is a wrapper around gtk_file_chooser_set_action().
+func (v *FileChooser) SetAction(action FileChooserAction) {
+	C.gtk_file_chooser_set_action(v.native(), C.GtkFileChooserAction(action))
+}
+
+// GetAction is a wrapper around gtk_file_chooser_get_action().
+func (v *FileChooser) GetAction() FileChooserAction {
+	return FileChooserAction(C.gtk_file_chooser_get_action(v.native()))
+}
+
 // SetCreateFolders is a wrapper around gtk_file_chooser_set_create_folders().
 func (v *FileChooser) SetCreateFolders(value bool) {
 	C.gtk_file_chooser_set_create_folders(v.native(), gbool(value))
@@ -4895,9 +4906,24 @@ func (v *FileChooser) SetPreviewWidget(widget IWidget) {
 	C.gtk_file_chooser_set_preview_widget(v.native(), widget.toWidget())
 }
 
+// GetPreviewWidget is a wrapper around gtk_file_chooser_get_preview_widget().
+func (v *FileChooser) GetPreviewWidget() (IWidget, error) {
+	c := C.gtk_file_chooser_get_preview_widget(v.native())
+	if c == nil {
+		return nil, nilPtrErr
+	}
+	return castWidget(c)
+}
+
 // SetPreviewWidgetActive is a wrapper around gtk_file_chooser_set_preview_widget_active().
 func (v *FileChooser) SetPreviewWidgetActive(active bool) {
 	C.gtk_file_chooser_set_preview_widget_active(v.native(), gbool(active))
+}
+
+// GetPreviewWidgetActive is a wrapper around gtk_file_chooser_get_preview_widget_active().
+func (v *FileChooser) GetPreviewWidgetActive() bool {
+	c := C.gtk_file_chooser_get_preview_widget_active(v.native())
+	return gobool(c)
 }
 
 // GetPreviewFilename is a wrapper around gtk_file_chooser_get_preview_filename().
@@ -4958,6 +4984,20 @@ func (v *FileChooser) SetSelectMultiple(value bool) {
 func (v *FileChooser) GetSelectMultiple() bool {
 	c := C.gtk_file_chooser_get_select_multiple(v.native())
 	return gobool(c)
+}
+
+// SetExtraWidget is a wrapper around gtk_file_chooser_set_extra_widget().
+func (v *FileChooser) SetExtraWidget(widget IWidget) {
+	C.gtk_file_chooser_set_extra_widget(v.native(), widget.toWidget())
+}
+
+// GetExtraWidget is a wrapper around gtk_file_chooser_get_extra_widget().
+func (v *FileChooser) GetExtraWidget() (IWidget, error) {
+	c := C.gtk_file_chooser_get_extra_widget(v.native())
+	if c == nil {
+		return nil, nilPtrErr
+	}
+	return castWidget(c)
 }
 
 /*
@@ -5551,6 +5591,15 @@ type IconTheme struct {
 	Theme *C.GtkIconTheme
 }
 
+// IconThemeNew is a wrapper around gtk_icon_theme_new().
+func IconThemeNew() (*IconTheme, error) {
+	c := C.gtk_icon_theme_new()
+	if c == nil {
+		return nil, nilPtrErr
+	}
+	return &IconTheme{c}, nil
+}
+
 // IconThemeGetDefault is a wrapper around gtk_icon_theme_get_default().
 func IconThemeGetDefault() (*IconTheme, error) {
 	c := C.gtk_icon_theme_get_default()
@@ -5590,6 +5639,22 @@ func (v *IconTheme) HasIcon(iconName string) bool {
 
 	c := C.gtk_icon_theme_has_icon(v.Theme, (*C.gchar)(cstr))
 	return gobool(c)
+}
+
+// AddResourcePath is a wrapper around gtk_icon_theme_add_resource_path().
+func (v *IconTheme) AddResourcePath(path string) {
+	cstr := C.CString(path)
+	defer C.free(unsafe.Pointer(cstr))
+
+	C.gtk_icon_theme_add_resource_path(v.Theme, (*C.gchar)(cstr))
+}
+
+// AppendSearchPath is a wrapper around gtk_icon_theme_append_search_path().
+func (v *IconTheme) AppendSearchPath(path string) {
+	cstr := C.CString(path)
+	defer C.free(unsafe.Pointer(cstr))
+
+	C.gtk_icon_theme_append_search_path(v.Theme, (*C.gchar)(cstr))
 }
 
 /*
@@ -5806,7 +5871,7 @@ func (v *Image) GetGIcon() (*glib.Icon, IconSize, error) {
 	obj := &glib.Object{glib.ToGObject(unsafe.Pointer(gicon))}
 	i := &glib.Icon{obj}
 
-	runtime.SetFinalizer(i, func(_ interface{}) { obj.Unref() })
+	runtime.SetFinalizer(i, func(_ interface{}) { glib.FinalizerStrategy(obj.Unref) })
 	return i, IconSize(*size), nil
 }
 
@@ -8583,7 +8648,7 @@ func (v *SelectionData) GetPixbuf() *gdk.Pixbuf {
 
 	obj := &glib.Object{glib.ToGObject(unsafe.Pointer(c))}
 	p := &gdk.Pixbuf{obj}
-	runtime.SetFinalizer(p, func(_ interface{}) { obj.Unref() })
+	runtime.SetFinalizer(p, func(_ interface{}) { glib.FinalizerStrategy(obj.Unref) })
 
 	return p
 }
@@ -9215,7 +9280,7 @@ func TargetEntryNew(target string, flags TargetFlags, info uint) (*TargetEntry, 
 	}
 	t := (*TargetEntry)(unsafe.Pointer(c))
 	// causes setFinilizer error
-	//	runtime.SetFinalizer(t, (*TargetEntry).free)
+	//  runtime.SetFinalizer(t, func(v *TargetEntry) { glib.FinalizerStrategy(v.free) })
 	return t, nil
 }
 
@@ -10493,7 +10558,7 @@ func (v *TreeIter) Copy() (*TreeIter, error) {
 		return nil, nilPtrErr
 	}
 	t := &TreeIter{*c}
-	runtime.SetFinalizer(t, (*TreeIter).free)
+	runtime.SetFinalizer(t, func(v *TreeIter) { glib.FinalizerStrategy(v.free) })
 	return t, nil
 }
 
@@ -10613,7 +10678,7 @@ func (v *TreeModel) GetPath(iter *TreeIter) (*TreePath, error) {
 		return nil, nilPtrErr
 	}
 	p := &TreePath{c}
-	runtime.SetFinalizer(p, (*TreePath).free)
+	runtime.SetFinalizer(p, func(v *TreePath) { glib.FinalizerStrategy(v.free) })
 	return p, nil
 }
 
@@ -10766,7 +10831,7 @@ func (v *TreeModelFilter) ConvertChildPathToPath(childPath *TreePath) *TreePath 
 		return nil
 	}
 	p := &TreePath{path}
-	runtime.SetFinalizer(p, (*TreePath).free)
+	runtime.SetFinalizer(p, func(v *TreePath) { glib.FinalizerStrategy(v.free) })
 	return p
 }
 
@@ -10793,7 +10858,7 @@ func (v *TreeModelFilter) ConvertPathToChildPath(filterPath *TreePath) *TreePath
 		return nil
 	}
 	p := &TreePath{path}
-	runtime.SetFinalizer(p, (*TreePath).free)
+	runtime.SetFinalizer(p, func(v *TreePath) { glib.FinalizerStrategy(v.free) })
 	return p
 }
 
@@ -10890,7 +10955,7 @@ func TreePathNewFromString(path string) (*TreePath, error) {
 		return nil, nilPtrErr
 	}
 	t := &TreePath{c}
-	runtime.SetFinalizer(t, (*TreePath).free)
+	runtime.SetFinalizer(t, func(v *TreePath) { glib.FinalizerStrategy(v.free) })
 	return t, nil
 }
 
@@ -10916,7 +10981,7 @@ func TreePathNewFirst() (*TreePath, error) {
 		return nil, nilPtrErr
 	}
 	t := &TreePath{c}
-	runtime.SetFinalizer(t, (*TreePath).free)
+	runtime.SetFinalizer(t, func(v *TreePath) { glib.FinalizerStrategy(v.free) })
 	return t, nil
 }
 
@@ -10942,7 +11007,7 @@ func (v *TreePath) Copy() (*TreePath, error) {
 		return nil, nilPtrErr
 	}
 	t := &TreePath{c}
-	runtime.SetFinalizer(t, (*TreePath).free)
+	runtime.SetFinalizer(t, func(v *TreePath) { glib.FinalizerStrategy(v.free) })
 	return t, nil
 }
 
@@ -11028,9 +11093,11 @@ func (v *TreeSelection) GetSelectedRows(model ITreeModel) *glib.List {
 		return &TreePath{(*C.GtkTreePath)(ptr)}
 	})
 	runtime.SetFinalizer(glist, func(glist *glib.List) {
-		glist.FreeFull(func(item interface{}) {
-			path := item.(*TreePath)
-			C.gtk_tree_path_free(path.GtkTreePath)
+		glib.FinalizerStrategy(func() {
+			glist.FreeFull(func(item interface{}) {
+				path := item.(*TreePath)
+				C.gtk_tree_path_free(path.GtkTreePath)
+			})
 		})
 	})
 
@@ -11140,7 +11207,7 @@ func TreeRowReferenceNew(model *TreeModel, path *TreePath) (*TreeRowReference, e
 		return nil, nilPtrErr
 	}
 	r := &TreeRowReference{c}
-	runtime.SetFinalizer(r, (*TreeRowReference).free)
+	runtime.SetFinalizer(r, func(v *TreeRowReference) { glib.FinalizerStrategy(v.free) })
 	return r, nil
 }
 
@@ -11151,7 +11218,7 @@ func (v *TreeRowReference) GetPath() *TreePath {
 		return nil
 	}
 	t := &TreePath{c}
-	runtime.SetFinalizer(t, (*TreePath).free)
+	runtime.SetFinalizer(t, func(v *TreePath) { glib.FinalizerStrategy(v.free) })
 	return t
 }
 
@@ -11331,7 +11398,7 @@ func (v *TreeModelSort) ConvertChildPathToPath(childPath *TreePath) *TreePath {
 		return nil
 	}
 	p := &TreePath{path}
-	runtime.SetFinalizer(p, (*TreePath).free)
+	runtime.SetFinalizer(p, func(v *TreePath) { glib.FinalizerStrategy(v.free) })
 	return p
 }
 
@@ -11350,7 +11417,7 @@ func (v *TreeModelSort) ConvertPathToChildPath(sortPath *TreePath) *TreePath {
 		return nil
 	}
 	p := &TreePath{path}
-	runtime.SetFinalizer(p, (*TreePath).free)
+	runtime.SetFinalizer(p, func(v *TreePath) { glib.FinalizerStrategy(v.free) })
 	return p
 }
 
@@ -11649,6 +11716,12 @@ func wrapViewport(obj *glib.Object) *Viewport {
 		Bin:        *b,
 		Scrollable: *s,
 	}
+}
+
+func marshalViewport(p uintptr) (interface{}, error) {
+	c := C.g_value_get_object((*C.GValue)(unsafe.Pointer(p)))
+	obj := glib.Take(unsafe.Pointer(c))
+	return wrapViewport(obj), nil
 }
 
 func (v *Viewport) toViewport() *C.GtkViewport {

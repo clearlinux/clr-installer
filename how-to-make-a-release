@@ -1,2 +1,2 @@
-1) (optional) go get -u ./... && go mod tidy && go vendor (retest, see readme for testing details then create PR)
+1) (optional) go get -u ./... && go mod tidy && go mod vendor (retest, see readme for testing details then create PR)
 2) Tag new release version and push tag to github and use github ui to draft a new release
