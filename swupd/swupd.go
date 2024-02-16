@@ -58,7 +58,7 @@ const (
 	AutoUpdateCommand = "\"swupd autoupdate --enable\""
 
 	// AutoUpdateLink specifies document link of auto updates
-	AutoUpdateLink = "https://docs.01.org/clearlinux/latest/guides/clear/swupd.html"
+	AutoUpdateLink = "https://docs.01.org/clearlinux/guides/clear/swupd.html"
 
 	// AutoUpdateLabel specifies label of auto updates
 	AutoUpdateLabel = "Enable Auto Updates"
