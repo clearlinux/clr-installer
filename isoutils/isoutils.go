@@ -194,6 +194,13 @@ func mkInitrdInitScript(templatePath string) error {
 		"/kernel/fs/overlayfs/overlay.ko",
 	}
 
+	//Compression extensions
+	compressionExtensions := []string{
+		".zst",
+		".gz",
+		".xz",
+	}
+
 	/* Find kernel, then break the name into kernelVersion */
 	kernelGlob, err := filepath.Glob(tmpPaths[clrRootfs] + "/lib/kernel/org.clearlinux.*")
 	if err != nil || len(kernelGlob) != 1 {
@@ -208,6 +215,15 @@ func mkInitrdInitScript(templatePath string) error {
 	/* Copy files to initrd, and add to mods so they're added to the init template */
 	for _, i := range modules {
 		rootfsModPath := tmpPaths[clrRootfs] + "/usr/lib/modules/" + kernelVersion + "." + kernelType + i
+
+		/* check for compression extensions on module filenames */
+		for _, ext := range compressionExtensions {
+			if _, err := os.Stat(rootfsModPath + ext); err == nil {
+				rootfsModPath = rootfsModPath + ext
+				i = i + ext
+				break
+			}
+		}
 
 		/* copy kernel module to initramfs */
 		initrdModPath := filepath.Dir(tmpPaths[clrInitrd] + "/usr/lib/modules/" + kernelVersion + "." + kernelType + i)
