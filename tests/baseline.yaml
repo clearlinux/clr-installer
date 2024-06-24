@@ -21,12 +21,12 @@ targetMedia:
   - name: ${baseimg}1
     fstype: vfat
     mountpoint: /boot
-    size: "50M"
+    size: "100M"
     type: part
   - name: ${baseimg}2
     fstype: ext4
     mountpoint: /
-    size: "2.0G"
+    size: "4.0G"
     type: part
 
 bundles: [os-core, os-core-update, NetworkManager,  vim]
