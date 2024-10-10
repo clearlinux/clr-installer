@@ -205,7 +205,7 @@ var (
 		"/dev/mmcblk": "p",
 	}
 
-	bootSizeDefault     = uint64(150 * (1024 * 1024))
+	bootSizeDefault     = uint64(512 * (1024 * 1024))
 	SwapFileSizeDefault = uint64(64 * (1024 * 1024))
 
 	// BlockDeviceTypeLVM2GroupString is a string version for LVM2 member type
