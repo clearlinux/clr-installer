@@ -1272,6 +1272,10 @@ func (v *Event) free() {
 	C.gdk_event_free(v.native())
 }
 
+func (v *Event) ScanCode() int {
+    return int(C.gdk_event_get_scancode(v.native()))
+}
+
 /*
  * GdkEventButton
  */
@@ -2483,6 +2487,22 @@ func (v *Window) WindowGetWidth() (width int) {
 // WindowGetHeight is a wrapper around gdk_window_get_height()
 func (v *Window) WindowGetHeight() (height int) {
 	return int(C.gdk_window_get_height(v.native()))
+}
+
+// GetRootOrigin is a wrapper around gdk_window_get_root_origin()
+func (v *Window) GetRootOrigin() (x int, y int) {
+    var cX C.gint
+    var cY C.gint
+    C.gdk_window_get_root_origin(v.native(), &cX, &cY)
+    return int(cX), int(cY)
+}
+
+// GetOrigin is a wrapper around gdk_window_get_origin
+func (v *Window) GetOrigin() (x int, y int) {
+    var cX C.gint
+    var cY C.gint
+    C.gdk_window_get_origin(v.native(), &cX, &cY)
+    return int(cX), int(cY)
 }
 
 // CreateSimilarSurface is a wrapper around gdk_window_create_similar_surface().

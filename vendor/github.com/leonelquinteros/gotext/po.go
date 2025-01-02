@@ -6,6 +6,7 @@
 package gotext
 
 import (
+	"io/fs"
 	"strconv"
 	"strings"
 )
@@ -24,7 +25,7 @@ Example:
 
 	func main() {
 		// Create po object
-		po := gotext.NewPoTranslator()
+		po := gotext.NewPo()
 
 		// Parse .po file
 		po.ParseFile("/path/to/po/file/translations.po")
@@ -32,15 +33,15 @@ Example:
 		// Get Translation
 		fmt.Println(po.Get("Translate this"))
 	}
-
 */
 type Po struct {
-	//these three public members are for backwards compatibility. they are just set to the value in the domain
+	// these three public members are for backwards compatibility. they are just set to the value in the domain
 	Headers     HeaderMap
 	Language    string
 	PluralForms string
 
 	domain *Domain
+	fs     fs.FS
 }
 
 type parseState int
@@ -53,11 +54,18 @@ const (
 	msgStr
 )
 
-//NewPo should always be used to instantiate a new Po object
+// NewPo should always be used to instantiate a new Po object
 func NewPo() *Po {
 	po := new(Po)
 	po.domain = NewDomain()
 
+	return po
+}
+
+// NewPoFS works like NewPO but adds an optional fs.FS
+func NewPoFS(filesystem fs.FS) *Po {
+	po := NewPo()
+	po.fs = filesystem
 	return po
 }
 
@@ -77,11 +85,18 @@ func (po *Po) GetRefs(str string) []string {
 	return po.domain.GetRefs(str)
 }
 
+func (po *Po) SetPluralResolver(f func(int) int) {
+	po.domain.customPluralResolver = f
+}
+
 func (po *Po) Set(id, str string) {
 	po.domain.Set(id, str)
 }
 func (po *Po) Get(str string, vars ...interface{}) string {
 	return po.domain.Get(str, vars...)
+}
+func (po *Po) Append(b []byte, str string, vars ...interface{}) []byte {
+	return po.domain.Append(b, str, vars...)
 }
 
 func (po *Po) SetN(id, plural string, n int, str string) {
@@ -90,6 +105,9 @@ func (po *Po) SetN(id, plural string, n int, str string) {
 func (po *Po) GetN(str, plural string, n int, vars ...interface{}) string {
 	return po.domain.GetN(str, plural, n, vars...)
 }
+func (po *Po) AppendN(b []byte, str, plural string, n int, vars ...interface{}) []byte {
+	return po.domain.AppendN(b, str, plural, n, vars...)
+}
 
 func (po *Po) SetC(id, ctx, str string) {
 	po.domain.SetC(id, ctx, str)
@@ -97,12 +115,31 @@ func (po *Po) SetC(id, ctx, str string) {
 func (po *Po) GetC(str, ctx string, vars ...interface{}) string {
 	return po.domain.GetC(str, ctx, vars...)
 }
+func (po *Po) AppendC(b []byte, str, ctx string, vars ...interface{}) []byte {
+	return po.domain.AppendC(b, str, ctx, vars...)
+}
 
 func (po *Po) SetNC(id, plural, ctx string, n int, str string) {
 	po.domain.SetNC(id, plural, ctx, n, str)
 }
 func (po *Po) GetNC(str, plural string, n int, ctx string, vars ...interface{}) string {
 	return po.domain.GetNC(str, plural, n, ctx, vars...)
+}
+func (po *Po) AppendNC(b []byte, str, plural string, n int, ctx string, vars ...interface{}) []byte {
+	return po.domain.AppendNC(b, str, plural, n, ctx, vars...)
+}
+
+func (po *Po) IsTranslated(str string) bool {
+	return po.domain.IsTranslated(str)
+}
+func (po *Po) IsTranslatedN(str string, n int) bool {
+	return po.domain.IsTranslatedN(str, n)
+}
+func (po *Po) IsTranslatedC(str, ctx string) bool {
+	return po.domain.IsTranslatedC(str, ctx)
+}
+func (po *Po) IsTranslatedNC(str string, n int, ctx string) bool {
+	return po.domain.IsTranslatedNC(str, n, ctx)
 }
 
 func (po *Po) MarshalText() ([]byte, error) {
@@ -118,7 +155,7 @@ func (po *Po) UnmarshalBinary(data []byte) error {
 }
 
 func (po *Po) ParseFile(f string) {
-	data, err := getFileData(f)
+	data, err := getFileData(f, po.fs)
 	if err != nil {
 		return
 	}
@@ -214,10 +251,10 @@ func (po *Po) saveBuffer() {
 		po.domain.translations[po.domain.trBuffer.ID] = po.domain.trBuffer
 	} else {
 		// With context...
-		if _, ok := po.domain.contexts[po.domain.ctxBuffer]; !ok {
-			po.domain.contexts[po.domain.ctxBuffer] = make(map[string]*Translation)
+		if _, ok := po.domain.contextTranslations[po.domain.ctxBuffer]; !ok {
+			po.domain.contextTranslations[po.domain.ctxBuffer] = make(map[string]*Translation)
 		}
-		po.domain.contexts[po.domain.ctxBuffer][po.domain.trBuffer.ID] = po.domain.trBuffer
+		po.domain.contextTranslations[po.domain.ctxBuffer][po.domain.trBuffer.ID] = po.domain.trBuffer
 
 		// Cleanup current context buffer if needed
 		if po.domain.trBuffer.ID != "" {

@@ -7,6 +7,7 @@ package gotext
 
 import (
 	"errors"
+	"io/fs"
 	"io/ioutil"
 	"os"
 )
@@ -25,6 +26,13 @@ type Translator interface {
 	MarshalBinary() ([]byte, error)
 	UnmarshalBinary([]byte) error
 	GetDomain() *Domain
+}
+type AppendTranslator interface {
+	Translator
+	Append(b []byte, str string, vars ...interface{}) []byte
+	AppendN(b []byte, str, plural string, n int, vars ...interface{}) []byte
+	AppendC(b []byte, str, ctx string, vars ...interface{}) []byte
+	AppendNC(b []byte, str, plural string, n int, ctx string, vars ...interface{}) []byte
 }
 
 // TranslatorEncoding is used as intermediary storage to encode Translator objects to Gob.
@@ -60,13 +68,17 @@ func (te *TranslatorEncoding) GetTranslator() Translator {
 	po.domain.nplurals = te.Nplurals
 	po.domain.plural = te.Plural
 	po.domain.translations = te.Translations
-	po.domain.contexts = te.Contexts
+	po.domain.contextTranslations = te.Contexts
 
 	return po
 }
 
-//getFileData reads a file and returns the byte slice after doing some basic sanity checking
-func getFileData(f string) ([]byte, error) {
+// getFileData reads a file and returns the byte slice after doing some basic sanity checking
+func getFileData(f string, filesystem fs.FS) ([]byte, error) {
+	if filesystem != nil {
+		return fs.ReadFile(filesystem, f)
+	}
+
 	// Check if file exists
 	info, err := os.Stat(f)
 	if err != nil {

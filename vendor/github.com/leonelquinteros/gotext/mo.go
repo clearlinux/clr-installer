@@ -8,6 +8,7 @@ package gotext
 import (
 	"bytes"
 	"encoding/binary"
+	"io/fs"
 )
 
 const (
@@ -44,17 +45,17 @@ Example:
 		// Get Translation
 		fmt.Println(mo.Get("Translate this"))
 	}
-
 */
 type Mo struct {
-	//these three public members are for backwards compatibility. they are just set to the value in the domain
+	// these three public members are for backwards compatibility. they are just set to the value in the domain
 	Headers     HeaderMap
 	Language    string
 	PluralForms string
 	domain      *Domain
+	fs          fs.FS
 }
 
-//NewMo should always be used to instantiate a new Mo object
+// NewMo should always be used to instantiate a new Mo object
 func NewMo() *Mo {
 	mo := new(Mo)
 	mo.domain = NewDomain()
@@ -62,25 +63,57 @@ func NewMo() *Mo {
 	return mo
 }
 
+// NewMoFS works like NewMO but adds an optional fs.FS
+func NewMoFS(filesystem fs.FS) *Mo {
+	mo := NewMo()
+	mo.fs = filesystem
+	return mo
+}
+
 func (mo *Mo) GetDomain() *Domain {
 	return mo.domain
 }
 
-//all of the Get functions are for convenience and aid in backwards compatibility
+// all of the Get functions are for convenience and aid in backwards compatibility
 func (mo *Mo) Get(str string, vars ...interface{}) string {
 	return mo.domain.Get(str, vars...)
+}
+func (mo *Mo) Append(b []byte, str string, vars ...interface{}) []byte {
+	return mo.domain.Append(b, str, vars...)
 }
 
 func (mo *Mo) GetN(str, plural string, n int, vars ...interface{}) string {
 	return mo.domain.GetN(str, plural, n, vars...)
 }
+func (mo *Mo) AppendN(b []byte, str, plural string, n int, vars ...interface{}) []byte {
+	return mo.domain.AppendN(b, str, plural, n, vars...)
+}
 
 func (mo *Mo) GetC(str, ctx string, vars ...interface{}) string {
 	return mo.domain.GetC(str, ctx, vars...)
 }
+func (mo *Mo) AppendC(b []byte, str, ctx string, vars ...interface{}) []byte {
+	return mo.domain.AppendC(b, str, ctx, vars...)
+}
 
 func (mo *Mo) GetNC(str, plural string, n int, ctx string, vars ...interface{}) string {
 	return mo.domain.GetNC(str, plural, n, ctx, vars...)
+}
+func (mo *Mo) AppendNC(b []byte, str, plural string, n int, ctx string, vars ...interface{}) []byte {
+	return mo.domain.AppendNC(b, str, plural, n, ctx, vars...)
+}
+
+func (mo *Mo) IsTranslated(str string) bool {
+	return mo.domain.IsTranslated(str)
+}
+func (mo *Mo) IsTranslatedN(str string, n int) bool {
+	return mo.domain.IsTranslatedN(str, n)
+}
+func (mo *Mo) IsTranslatedC(str, ctx string) bool {
+	return mo.domain.IsTranslatedC(str, ctx)
+}
+func (mo *Mo) IsTranslatedNC(str string, n int, ctx string) bool {
+	return mo.domain.IsTranslatedNC(str, n, ctx)
 }
 
 func (mo *Mo) MarshalBinary() ([]byte, error) {
@@ -92,7 +125,7 @@ func (mo *Mo) UnmarshalBinary(data []byte) error {
 }
 
 func (mo *Mo) ParseFile(f string) {
-	data, err := getFileData(f)
+	data, err := getFileData(f, mo.fs)
 	if err != nil {
 		return
 	}
@@ -254,10 +287,10 @@ func (mo *Mo) addTranslation(msgid, msgstr []byte) {
 
 	if len(msgctxt) > 0 {
 		// With context...
-		if _, ok := mo.domain.contexts[string(msgctxt)]; !ok {
-			mo.domain.contexts[string(msgctxt)] = make(map[string]*Translation)
+		if _, ok := mo.domain.contextTranslations[string(msgctxt)]; !ok {
+			mo.domain.contextTranslations[string(msgctxt)] = make(map[string]*Translation)
 		}
-		mo.domain.contexts[string(msgctxt)][translation.ID] = translation
+		mo.domain.contextTranslations[string(msgctxt)][translation.ID] = translation
 	} else {
 		mo.domain.translations[translation.ID] = translation
 	}
