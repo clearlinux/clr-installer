@@ -638,6 +638,7 @@ func packageIso(imgName, appID, publisher string) error {
 	args := []string{
 		"xorriso", "-as", "mkisofs",
 		"-o", imgName + ".iso",
+		"-iso-level", "3",
 		"-V", "CLR_ISO",
 	}
 
