@@ -1,0 +1,891 @@
+msgid "CONFIRM"
+msgstr "ПОДТВЕРДИТЬ"
+
+msgid "CANCEL"
+msgstr "ОТМЕНА"
+
+msgid "INSTALL"
+msgstr "УСТАНОВИТЬ"
+
+msgid "EXIT"
+msgstr "ВЫХОД"
+
+msgid "NEXT"
+msgstr "ДАЛЕЕ"
+
+msgid "BACK"
+msgstr "НАЗАД"
+
+msgid "REQUIRED OPTIONS"
+msgstr "НЕОБХОДИМЫЕ ОПЦИИ"
+
+msgid "ADVANCED OPTIONS"
+msgstr "РАСШИРЕННЫЕ ОПЦИИ"
+
+msgid "Select Language"
+msgstr "Выберите язык"
+
+msgid "Select Time Zone"
+msgstr "Выберите часовой пояс"
+
+msgid "Select Keyboard"
+msgstr "Выберите клавиатуру"
+
+msgid "Configure Media"
+msgstr "Настроить медиа"
+
+msgid "Telemetry"
+msgstr "Телеметрия"
+
+msgid "Select Additional Bundles"
+msgstr "Выберите дополнительные пакеты"
+
+msgid "Offline Install: Removing additional bundles"
+msgstr "Автономная установка: удаление дополнительных пакетов"
+
+msgid "Copying cached content to target media"
+msgstr "Копирование кэшированного контента на целевой носитель"
+
+msgid "Manage User"
+msgstr "Управление пользователем"
+
+msgid "Assign Hostname"
+msgstr "Установить имя хоста"
+
+msgid "Enabled"
+msgstr "Включено"
+
+msgid "Enable Telemetry"
+msgstr "Включить телеметрию"
+
+msgid "No additional bundles selected"
+msgstr "Дополнительные пакеты не выбраны"
+
+msgid "Hostname can only start with alphanumeric"
+msgstr "Имя хоста может начинаться только с букв или цифр"
+
+msgid "Hostname can only contain alphanumeric and hyphen"
+msgstr "Имя хоста может содержать только буквенно-цифровые символы и дефис"
+
+#, c-format
+msgid "Hostname can only have a maximum of %d characters"
+msgstr "Имя хоста может содержать максимум %d символов"
+
+msgid "No target system hostname assigned"
+msgstr "Имя хоста целевой системы не установлено"
+
+msgid "No choice made"
+msgstr "Не выбрано"
+
+msgid "Allow Clear Linux* OS to collect anonymized system data and usage statistics for continuous improvement?"
+msgstr "Разрешить ОС Clear Linux* собирать анонимные системные данные и статистику использования для постоянного улучшения?"
+
+msgid "These reports only relate to operating system details. No personally identifiable information is collected."
+msgstr "Эти отчеты относятся только к сведениям об операционной системе. Никакая личная информация не собирается."
+
+#, c-format
+msgid "See %s for more information."
+msgstr "См. %s для получения дополнительной информации."
+
+msgid "Intel's privacy policy can be found at: http://www.intel.com/privacy."
+msgstr "Политику конфиденциальности Intel можно найти по адресу: https://www.intel.com/privacy."
+
+msgid "NOTICE: Enabling Telemetry preferred by default on internal networks."
+msgstr "ВНИМАНИЕ: Включение телеметрии предпочтительнее по умолчанию во внутренних сетях."
+
+msgid "Installing Clear Linux* OS"
+msgstr "Установка ОС Clear Linux*"
+
+#, c-format
+msgid "Running %s hooks"
+msgstr "Запуск хуков %s"
+
+msgid "Testing connectivity"
+msgstr "Тестирование подключения"
+
+msgid "Test connectivity"
+msgstr "Тест подключения"
+
+msgid "Test Network Settings"
+msgstr "Test Network Settings"
+
+#, c-format
+msgid "Removing logical disk volume: %s"
+msgstr "Удаление тома логического диска: %s"
+
+#, c-format
+msgid "Writing partition table to: %s"
+msgstr "Запись таблицы разделов в: %s"
+
+msgid "Adjusting filesystem configurations"
+msgstr "Настройка конфигурации файловой системы"
+
+#, c-format
+msgid "Writing %s file system to %s"
+msgstr "Запись файловой системы %s в %s"
+
+msgid "Writing mount files"
+msgstr "Writing mount files"
+
+msgid "Installing the base system"
+msgstr "Установка основной системы"
+
+msgid "Saving the installation results"
+msgstr "Сохранение результатов установки"
+
+msgid "Installation completed"
+msgstr "Установка завершена"
+
+msgid "Success"
+msgstr "Успешно"
+
+msgid "Failure"
+msgstr "Сбой"
+
+msgid "This task has not yet completed"
+msgstr "Эта задача еще не завершена"
+
+#, c-format
+msgid "VERSION %s"
+msgstr "ВЕРСИЯ %s"
+
+msgid "Select Installation Media"
+msgstr "Select Installation Media"
+
+msgid "Enable Encryption"
+msgstr "Enable Encryption"
+
+msgid "Configure Installation Media"
+msgstr "Configure Installation Media"
+
+msgid "Partial"
+msgstr "Partial"
+
+msgid "Entire Disk"
+msgstr "Entire Disk"
+
+msgid "Erase Disk"
+msgstr "Erase Disk"
+
+msgid "Advanced"
+msgstr "Advanced"
+
+msgid "No media found for installation"
+msgstr "No media found for installation"
+
+msgid "No -media- selected"
+msgstr "No -media- selected"
+
+#, c-format
+msgid "Warning: %s"
+msgstr "Warning: %s"
+
+# TRANSLATION SET: 2
+
+msgid "Manage User"
+msgstr "Manage User"
+
+msgid "Add User"
+msgstr "Add User"
+
+#, c-format
+msgid "Must start with letter. Can use numbers, commas, - and _. Max %d characters."
+msgstr "Must start with letter. Can use numbers, commas, - and _. Max %d characters."
+
+#, c-format
+msgid "Must begin with a letter. You can use letters, numbers, hyphens, underscores, and periods. Up to %d characters."
+msgstr "Must begin with a letter. You can use letters, numbers, hyphens, underscores, and periods. Up to %d characters."
+
+#, c-format
+msgid "Min %d and Max %d characters."
+msgstr "Min %d and Max %d characters."
+
+msgid "Administrator"
+msgstr "Administrator"
+
+msgid "DELETE USER"
+msgstr "DELETE USER"
+
+msgid "Specified login is a system default user"
+msgstr "Specified login is a system default user"
+
+msgid "User must be unique"
+msgstr "User must be unique"
+
+msgid "Passwords do not match"
+msgstr "Passwords do not match"
+
+msgid "No users added"
+msgstr "No users added"
+
+msgid "User Name"
+msgstr "User Name"
+
+msgid "Login"
+msgstr "Login"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "RESCAN"
+msgstr "RESCAN"
+
+msgid "Rescan for changes to hot swappable media."
+msgstr "Rescan for changes to hot swappable media."
+
+msgid "RESCAN MEDIA"
+msgstr "RESCAN MEDIA"
+
+msgid "Adding extra users"
+msgstr "Adding extra users"
+
+msgid "Username must contain only numbers, letters, commas, - or _"
+msgstr "Username must contain only numbers, letters, commas, - or _"
+
+#, c-format
+msgid "UserName maximum length is %d"
+msgstr "UserName maximum length is %d"
+
+msgid "Login is required"
+msgstr "Login is required"
+
+#, c-format
+msgid "Login maximum length is %d"
+msgstr "Login maximum length is %d"
+
+msgid "Login must contain only numbers, letters, -, . or _"
+msgstr "Login must contain only numbers, letters, -, . or _"
+
+msgid "Password is required"
+msgstr "Password is required"
+
+#, c-format
+msgid "Password must be at least %d characters long"
+msgstr "Password must be at least %d characters long"
+
+#, c-format
+msgid "Password may be at most %d characters long"
+msgstr "Password may be at most %d characters long"
+
+msgid "Passphrase is required"
+msgstr "Passphrase is required"
+
+msgid "Passphrase may only contain 7-bit, printable characters"
+msgstr "Passphrase may only contain 7-bit, printable characters"
+
+#, c-format
+msgid "Passphrase must be at least %d characters long"
+msgstr "Passphrase must be at least %d characters long"
+
+#, c-format
+msgid "Passphrase may be at most %d characters long"
+msgstr "Passphrase may be at most %d characters long"
+
+msgid "Disk Encryption Passphrase"
+msgstr "Disk Encryption Passphrase"
+
+msgid "Confirm Passphrase"
+msgstr "Confirm Passphrase"
+
+#, c-format
+msgid "Label too long, max is %d"
+msgstr "Label too long, max is %d"
+
+msgid "Invalid label characters"
+msgstr "Invalid label characters"
+
+msgid "Invalid size, may only be suffixed by: B, K, M, G, T or P"
+msgstr "Invalid size, may only be suffixed by: B, K, M, G, T or P"
+
+msgid "Invalid size"
+msgstr "Invalid size"
+
+msgid "Size too small"
+msgstr "Size too small"
+
+msgid "Unknown free space"
+msgstr "Unknown free space"
+
+msgid "Size too large"
+msgstr "Size too large"
+
+msgid "Encryption"
+msgstr "Encryption"
+
+msgid "No Media Selected"
+msgstr "No Media Selected"
+
+msgid "Too many media found"
+msgstr "Too many media found"
+
+msgid "Safe Installation"
+msgstr "Safe Installation"
+
+msgid "Install on an unallocated disk or alongside existing partitions."
+msgstr "Install on an unallocated disk or alongside existing partitions."
+
+msgid "Destructive Installation"
+msgstr "Destructive Installation"
+
+msgid "Erase all data on selected media and install Clear Linux* OS."
+msgstr "Erase all data on selected media and install Clear Linux* OS."
+
+msgid "Advanced Installation"
+msgstr "Advanced Installation"
+
+msgid "Use partitioning tool to configure and select media via partition names."
+msgstr "Use partitioning tool to configure and select media via partition names."
+
+#, c-format
+msgid "Minimum requirements: %s"
+msgstr "Minimum requirements: %s"
+
+msgid "PARTITION MEDIA"
+msgstr "PARTITION MEDIA"
+
+msgid "Launch the external partitioning tool to name the partitions to be used for the installation."
+msgstr "Launch the external partitioning tool to name the partitions to be used for the installation."
+
+#, c-format
+msgid "Could not launch %s. Check log %s"
+msgstr "Could not launch %s. Check log %s"
+
+#, c-format
+msgid "%s must be %s"
+msgstr "%s must be %s"
+
+#, c-format
+msgid "Found multiple %s partition names"
+msgstr "Found multiple %s partition names"
+
+#, c-format
+msgid "Found invalid %s partition name"
+msgstr "Found invalid %s partition name"
+
+#, c-format
+msgid "Encryption of %s is not supported"
+msgstr "Encryption of %s is not supported"
+
+#, c-format
+msgid "Missing %s partition name"
+msgstr "Missing %s partition name"
+
+msgid "CHANGE LANGUAGE"
+msgstr "CHANGE LANGUAGE"
+
+msgid "Confirm"
+msgstr "Confirm"
+
+#, c-format
+msgid "Can use alphanumeric characters and - with a maximum of %d characters."
+msgstr "Can use alphanumeric characters and - with a maximum of %d characters."
+
+msgid "Welcome to Clear Linux* OS Desktop Installation"
+msgstr "Welcome to Clear Linux* OS Desktop Installation"
+
+msgid "Thank you for choosing Clear Linux* OS"
+msgstr "Thank you for choosing Clear Linux* OS"
+
+msgid "No safe media found for installation"
+msgstr "No safe media found for installation"
+
+#, c-format
+msgid "Updating partition table for: %s"
+msgstr "Updating partition table for: %s"
+
+msgid "admin"
+msgstr "admin"
+
+msgid "pre-install"
+msgstr "pre-install"
+
+msgid "post-install"
+msgstr "post-install"
+
+msgid "post-image"
+msgstr "post-image"
+
+#, c-format
+msgid "Setting Language locale to %s"
+msgstr "Setting Language locale to %s"
+
+msgid "Installing base OS and configured bundles"
+msgstr "Installing base OS and configured bundles"
+
+msgid "Running post-update scripts"
+msgstr "Running post-update scripts"
+
+msgid "Disabling automatic updates"
+msgstr "Disabling automatic updates"
+
+msgid "Disabling automatic updates failed"
+msgstr "Disabling automatic updates failed"
+
+msgid "Installing boot loader"
+msgstr "Installing boot loader"
+
+msgid "Searching the system for available media."
+msgstr "Searching the system for available media."
+
+msgid "Please wait."
+msgstr "Please wait."
+
+# Used only in Installer desktop icon
+msgid "Install Clear Linux* OS"
+msgstr "Install Clear Linux* OS"
+
+# Used only in Installer desktop icon
+msgid "Clear Linux* OS Installer"
+msgstr "Clear Linux* OS Installer"
+
+msgid "Common set of prebuilt R libraries"
+msgstr "Common set of prebuilt R libraries"
+
+msgid "Run a cloud orchestration server"
+msgstr "Run a cloud orchestration server"
+
+msgid "Build the containers-basic bundle"
+msgstr "Build the containers-basic bundle"
+
+msgid "Applications for the desktop"
+msgstr "Applications for the desktop"
+
+msgid "UI that automatically starts on boot"
+msgstr "UI that automatically starts on boot"
+
+msgid "Utilities to assist application development"
+msgstr "Utilities to assist application development"
+
+msgid "Popular text editors (terminal-based)"
+msgstr "Popular text editors (terminal-based)"
+
+msgid "GNU Image Manipulation Program"
+msgstr "GNU Image Manipulation Program"
+
+msgid "Build and run go language programs"
+msgstr "Build and run go language programs"
+
+msgid "Build and run java language programs"
+msgstr "Build and run java language programs"
+
+msgid "LibreOffice - Free Office Suite"
+msgstr "LibreOffice - Free Office Suite"
+
+msgid "Build machine learning applications"
+msgstr "Build machine learning applications"
+
+msgid "Network utilities and settings"
+msgstr "Network utilities and settings"
+
+msgid "Run any Clear Linux dev. process"
+msgstr "Run any Clear Linux dev. process"
+
+msgid "Utilities for creating, building, and managing packages"
+msgstr "Utilities for creating, building, and managing packages"
+
+msgid "Run perl language programs"
+msgstr "Run perl language programs"
+
+msgid "Multi-protocol instant messagging (IM) client"
+msgstr "Multi-protocol instant messagging (IM) client"
+
+msgid "Run python language programs"
+msgstr "Run python language programs"
+
+msgid "Common utilities to manage a system"
+msgstr "Common utilities to manage a system"
+
+msgid "Captures most console work flows"
+msgstr "Captures most console work flows"
+
+msgid "Packages to build the user-basic bundle"
+msgstr "Packages to build the user-basic bundle"
+
+# TRANSLATION SET: 3
+
+msgid "Selected media will be partitioned."
+msgstr "Selected media will be partitioned."
+
+msgid "Selected media will have partitions added."
+msgstr "Selected media will have partitions added."
+
+msgid "WARNING: Booting set for legacy BIOS mode."
+msgstr "WARNING: Booting set for legacy BIOS mode."
+
+msgid "WARNING: system can not boot EFI mode due to no /boot partition."
+msgstr "WARNING: system can not boot EFI mode due to no /boot partition."
+
+msgid "WARNING: New Partition table will be created."
+msgstr "WARNING: New Partition table will be created."
+
+msgid "WARNING: Logical Volume will be removed."
+msgstr "WARNING: Logical Volume will be removed."
+
+msgid "WARNING: Selected media will be erased."
+msgstr "WARNING: Selected media will be erased."
+
+msgid "WARNING: Selected media will have data loss."
+msgstr "WARNING: Selected media will have data loss."
+
+msgid "None"
+msgstr "None"
+
+msgid "Target Media"
+msgstr "Target Media"
+
+msgid "Confirm Installation"
+msgstr "Confirm Installation"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Encryption requires a Passphrase"
+msgstr "Encryption requires a Passphrase"
+
+msgid "Encryption Passphrase"
+msgstr "Encryption Passphrase"
+
+msgid "Encryption passphrase required"
+msgstr "Encryption passphrase required"
+
+msgid "Passphrases do not match"
+msgstr "Passphrases do not match"
+
+msgid "Mapping %s partition to an encrypted partition"
+msgstr "Mapping %s partition to an encrypted partition"
+
+msgid "Skipping new file system for %s"
+msgstr "Skipping new file system for %s"
+
+msgid "Disabled"
+msgstr "Disabled"
+
+# TRANSLATION SET: 4
+
+msgid "Installation failed."
+msgstr "Installation failed."
+
+msgid "Network check failed."
+msgstr "Network check failed."
+
+msgid "System failed to pass pre-install checks."
+msgstr "System failed to pass pre-install checks."
+
+msgid "System check failed"
+msgstr "System check failed"
+
+#, c-format
+msgid "Unable to read %s"
+msgstr "Unable to read %s"
+
+msgid "Missing CPU feature: "
+msgstr "Missing CPU feature: "
+
+msgid "Failed to find EFI firmware"
+msgstr "Failed to find EFI firmware"
+
+msgid "Rescanning media"
+msgstr "Rescanning media"
+
+msgid "Resolving OS versions"
+msgstr "Resolving OS versions"
+
+msgid "Cleaning up download directory"
+msgstr "Cleaning up download directory"
+
+msgid "Downloading required manifests"
+msgstr "Downloading required manifests"
+
+msgid "Resolving files that need to be installed"
+msgstr "Resolving files that need to be installed"
+
+msgid "Downloading required packs"
+msgstr "Downloading required packs"
+
+msgid "Extracting required packs"
+msgstr "Extracting required packs"
+
+msgid "Verifying installed files"
+msgstr "Verifying installed files"
+
+msgid "Verifying staged files"
+msgstr "Verifying staged files"
+
+msgid "Downloading missing files"
+msgstr "Downloading missing files"
+
+msgid "Extracting missing files"
+msgstr "Extracting missing files"
+
+msgid "YES"
+msgstr "YES"
+
+msgid "NO"
+msgstr "NO"
+
+msgid "Installation in progress."
+msgstr "Installation in progress."
+
+msgid "Installation successful."
+msgstr "Installation successful."
+
+msgid "(default)"
+msgstr "(default)"
+
+msgid "Select Kernel"
+msgstr "Select Kernel"
+
+msgid "Add Extra Arguments"
+msgstr "Add Extra Arguments"
+
+msgid "Remove Arguments"
+msgstr "Remove Arguments"
+
+msgid "Kernel Configuration"
+msgstr "Kernel Configuration"
+
+msgid " with custom command line arguments"
+msgstr " with custom command line arguments"
+
+msgid "No custom options specified"
+msgstr "No custom options specified"
+
+msgid "Note: The boot manager tool will first include the \"Add Extra Arguments\" items."
+msgstr "Note: The boot manager tool will first include the \"Add Extra Arguments\" items."
+
+msgid "Then, the \"Remove Arguments\" items are removed."
+msgstr "Then, the \"Remove Arguments\" items are removed."
+
+msgid "The final argument list contains the kernel bundle's configured arguments and the ones configured by the user."
+msgstr "The final argument list contains the kernel bundle's configured arguments and the ones configured by the user."
+
+msgid "Cutting-edge Linux kernel tailored for bare metal"
+msgstr "Cutting-edge Linux kernel tailored for bare metal"
+
+msgid "Run the latest Long Term Support (LTS) Linux Kernel"
+msgstr "Run the latest Long Term Support (LTS) Linux Kernel"
+
+#, c-format
+msgid "See %s for details."
+msgstr "See %s for details."
+
+#, c-format
+msgid "Use %s to configure network."
+msgstr "Use %s to configure network."
+
+msgid "Checking Prerequisites"
+msgstr "Checking Prerequisites"
+
+msgid "Checking Prerequisites."
+msgstr "Checking Prerequisites."
+
+msgid "Checking system for compatibility"
+msgstr "Checking system for compatibility"
+
+msgid "System not compatible."
+msgstr "System not compatible."
+
+msgid "Prerequisites passed."
+msgstr "Prerequisites passed."
+
+msgid "Something went wrong..."
+msgstr "Something went wrong..."
+
+#, c-format
+msgid "Please report this crash using %s"
+msgstr "Please report this crash using %s"
+
+msgid "Include the following as attachments to enable diagnosis:"
+msgstr "Include the following as attachments to enable diagnosis:"
+
+msgid "You may need to remove any personal data of concern from the attachments."
+msgstr "You may need to remove any personal data of concern from the attachments."
+
+msgid "The Installer will now exit."
+msgstr "The Installer will now exit."
+
+msgid "Mirror URL"
+msgstr "Mirror URL"
+
+msgid "Specify a different installation source (swupd) URL than the default."
+msgstr "Specify a different installation source (swupd) URL than the default."
+
+msgid "HTTPS sites must use a publicly signed CA."
+msgstr "HTTPS sites must use a publicly signed CA."
+
+msgid "Automatic OS Updates"
+msgstr "Automatic OS Updates"
+
+msgid "Allow Clear Linux* OS to continuously update as new versions are released."
+msgstr "Allow Clear Linux* OS to continuously update as new versions are released."
+
+msgid "This is the default, preferred behavior for Clear Linux* OS to ensure that the latest security concerns are always addressed."
+msgstr "This is the default, preferred behavior for Clear Linux* OS to ensure that the latest security concerns are always addressed."
+
+msgid "To enable this post installation use:"
+msgstr "To enable this post installation use:"
+
+#, c-format
+msgid "See %s for more information."
+msgstr "See %s for more information."
+
+msgid "Enable Auto Updates"
+msgstr "Enable Auto Updates"
+
+msgid "WARNING: Disabling Automatic OS Updates puts the system at risk of missing critical security patches."
+msgstr "WARNING: Disabling Automatic OS Updates puts the system at risk of missing critical security patches."
+
+msgid "Invalid URL: Use HTTPS"
+msgstr "Invalid URL: Use HTTPS"
+
+msgid "Mirror not set correctly"
+msgstr "Mirror not set correctly"
+
+msgid "Software Updater Configuration"
+msgstr "Software Updater Configuration"
+
+msgid "Auto updates enabled"
+msgstr "Auto updates enabled"
+
+msgid "Auto updates disabled"
+msgstr "Auto updates disabled"
+
+msgid "Custom mirror set."
+msgstr "Custom mirror set."
+
+msgid "Server not responding"
+msgstr "Server not responding"
+
+msgid "SSL certificate problem"
+msgstr "SSL certificate problem"
+
+msgid "Server does not report any version"
+msgstr "Server does not report any version"
+
+msgid "Version URL of mirror not found"
+msgstr "Version URL of mirror not found"
+
+msgid "."
+msgstr "."
+
+#, c-format
+msgid "Format partition as %s."
+msgstr "Format partition as %s."
+
+msgid "Selected media will be used for installation."
+msgstr "Selected media will be used for installation."
+
+#, c-format
+msgid "Updating partition table for: %s"
+msgstr "Updating partition table for: %s"
+
+msgid "WARNING: partition will be removed."
+msgstr "WARNING: partition will be removed."
+
+msgid "Add new partition."
+msgstr "Add new partition."
+
+msgid "WARNING: Failed to detected partition information."
+msgstr "WARNING: Failed to detected partition information."
+
+msgid "Use existing partition."
+msgstr "Use existing partition."
+
+msgid "Encrypted"
+msgstr "Encrypted"
+
+msgid "Allow installation over insecure connections (http://)"
+msgstr "Allow installation over insecure connections (http://)"
+
+#, c-format
+msgid "This requires a working network connection.\nProceed with a network test?"
+msgstr "This requires a working network connection.\nProceed with a network test?"
+
+msgid "Network Required"
+msgstr "Network Required"
+
+msgid "Installation Steps Complete"
+msgstr "Installation Steps Complete"
+
+# cracklib password messages
+msgid "Password does not contain enough DIFFERENT characters"
+msgstr "Password does not contain enough DIFFERENT characters"
+
+msgid "Password is too simplistic/systematic"
+msgstr "Password is too simplistic/systematic"
+
+msgid "Password is based on a dictionary word"
+msgstr "Password is based on a dictionary word"
+
+msgid "Password is based on a (reversed) dictionary word"
+msgstr "Password is based on a (reversed) dictionary word"
+
+# cracklib passphrase messages
+msgid "Passphrase does not contain enough DIFFERENT characters"
+msgstr "Passphrase does not contain enough DIFFERENT characters"
+
+msgid "Passphrase is too simplistic/systematic"
+msgstr "Passphrase is too simplistic/systematic"
+
+msgid "Passphrase is based on a dictionary word"
+msgstr "Passphrase is based on a dictionary word"
+
+msgid "Passphrase is based on a (reversed) dictionary word"
+msgstr "Passphrase is based on a (reversed) dictionary word"
+
+#, c-format
+msgid "Could not interrupt %s"
+msgstr "Could not interrupt %s"
+
+#, c-format
+msgid "Creating %s"
+msgstr "Creating %s"
+
+#, c-format
+msgid "Setting boot partition: %s"
+msgstr "Setting boot partition: %s"
+
+#, c-format
+msgid "Cleaning disk %s"
+msgstr "Cleaning disk %s"
+
+#, c-format
+msgid "Degrading RAID: %s"
+msgstr "Degrading RAID: %s"
+
+#, c-format
+msgid "Remove partition from RAID %s"
+msgstr "Remove partition from RAID %s"
+
+#, c-format
+msgid "RAID %s: has parts from other disks: [%s]"
+msgstr "RAID %s: has parts from other disks: [%s]"
+
+#, c-format
+msgid "Remove physical volume: %s from volume group: %s"
+msgstr "Remove physical volume: %s from volume group: %s"
+
+#, c-format
+msgid "Volume group: %s has physical volumes from other disks: [%s]"
+msgstr "Volume group: %s has physical volumes from other disks: [%s]"
+
+#, c-format
+msgid "Remove volume group: %s"
+msgstr "Remove volume group: %s"
+
+#, c-format
+msgid "Remove physical volume: %s"
+msgstr "Remove physical volume: %s"
+
+#, c-format
+msgid "Remove volumes: [%s]"
+msgstr "Remove volumes: [%s]"
+
+msgid "Effect on Other Disks:"
+msgstr "Effect on Other Disks:"
+
+msgid "Resolve above issues or use --force-destructive option"
+msgstr "Resolve above issues or use --force-destructive option"
+
+msgid "CAUTION: You are using --force-destructive option; Above Issues will be resolved automatically"
+msgstr "CAUTION: You are using --force-destructive option; Above Issues will be resolved automatically"
