@@ -48,6 +48,7 @@ var (
 const (
 	// NetWorkManager is the application to manage network.
 	NetWorkManager = "Network Manager"
+	NetworkdBundle = "systemd-networkd-autostart"
 )
 
 func sortMountPoint(bds []*storage.BlockDevice) []*storage.BlockDevice {
@@ -343,8 +344,9 @@ func Install(rootDir string, model *model.SystemInstall, options args.Args) erro
 		return err
 	}
 
-	// If we are using NetworkManager add the basic bundle
-	if network.IsNetworkManagerActive() {
+	// If we are using NetworkManager add the basic bundle, unless
+	// we have systemd-networkd bundle, in which case skip it
+	if network.IsNetworkManagerActive() && !model.ContainsBundle(NetworkdBundle) {
 		log.Info("Adding bundle '%s' to enable networking", network.RequiredBundle)
 		model.AddBundle(network.RequiredBundle)
 	}
