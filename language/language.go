@@ -39,6 +39,7 @@ var localizedLanguages = map[string]bool{ // TODO: Remove this when localization
 	"en_US.UTF-8": false,
 	"zh_CN.UTF-8": false,
 	"es_MX.UTF-8": false,
+	"de_DE.UTF-8": false,
 }
 
 // validLanguages stores the list of all valid, known languages
